@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Ig1ZtOaXnuxmR2xYK+zC7O6WjUE=",
+			"path": "github.com/trackit/jsonlog",
+			"revision": "c756960f66409f2d8e894a3adee54551fd580376",
+			"revisionTime": "2017-10-05T19:25:53Z"
+		}
+	],
+	"rootPath": "github.com/trackit/trackit2"
+}
