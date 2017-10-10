@@ -22,7 +22,8 @@ import (
 
 // HandleRequest is a dummy request handler function. It does nothing except
 // some logging and returns static data.
-func HandleRequest(response http.ResponseWriter, request *http.Request, logger jsonlog.Logger) {
+func HandleRequest(response http.ResponseWriter, request *http.Request) {
+	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	logger.Debug("Request headers.", request.Header)
 	response.WriteHeader(200)
 	response.Write([]byte("Costs."))

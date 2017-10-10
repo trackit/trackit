@@ -30,10 +30,6 @@ import (
 // package.
 type contextKey int
 
-// HandlerFuncWithLogger is an HTTP handler function which also accepts a
-// jsonlog Logger.
-type HandlerFuncWithLogger func(http.ResponseWriter, *http.Request, jsonlog.Logger)
-
 const (
 	// contextKeyRequestId is the key for a request's random ID stored in
 	// its context.
@@ -56,7 +52,7 @@ func initializeHandlers() {
 
 // handleDecoratedFunc decorates an HTTP handler function that accepts a logger
 // in order to provide the logger and some values in the context.
-func handleDecoratedFunc(pattern string, f HandlerFuncWithLogger) {
+func handleDecoratedFunc(pattern string, f http.HandlerFunc) {
 	http.HandleFunc(pattern, decorateWithLogger(loggedHandler(f)))
 }
 
@@ -86,16 +82,17 @@ func getRequestLogData(r *http.Request) requestLogData {
 
 // loggedHandler is a decorator around an HTTP handler function with logger
 // which logs the request before calling the handler function.
-func loggedHandler(f HandlerFuncWithLogger) HandlerFuncWithLogger {
-	return func(w http.ResponseWriter, r *http.Request, l jsonlog.Logger) {
+func loggedHandler(f http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		l.Info("Received request.", getRequestLogData(r))
-		f(w, r, l)
+		f(w, r)
 	}
 }
 
 // decorateWithLogger decorates an HTTP handler function with logger. It sets
 // some values in the context and configures the logger to log them.
-func decorateWithLogger(f HandlerFuncWithLogger) http.HandlerFunc {
+func decorateWithLogger(f http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, contextKeyRequestId, rand.Int63())
@@ -105,6 +102,7 @@ func decorateWithLogger(f HandlerFuncWithLogger) http.HandlerFunc {
 		logger = logger.WithContextKey(contextKeyRequestId, "requestId")
 		logger = logger.WithContextKey(contextKeyRequestTime, "requestTime")
 		logger = logger.WithLogLevel(jsonlog.LogLevelDebug)
-		f(w, r.WithContext(ctx), logger)
+		ctx = jsonlog.ContextWithLogger(ctx, logger)
+		f(w, r.WithContext(ctx))
 	}
 }
