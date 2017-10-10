@@ -4,25 +4,26 @@ package users
 // already in place.
 
 import (
+	"context"
 	"testing"
+
+	"github.com/trackit/trackit2/db"
 )
 
 func TestNonExistingUserByIdFailure(t *testing.T) {
-	min, max := uint(10000), uint(10100)
+	min, max := 10000, 10100
 	for i := min; i < max; i++ {
-		user, err := GetUserWithId(i)
-		if user != nil {
-			t.Errorf("User should be nil, instead points to %v.", *user)
-		}
+		_, err := GetUserWithId(db.Db, i)
 		if err == nil {
 			t.Error("Error should not be nil, instead is nil.")
-		} else if err.Error() != ErrorUserNotFound {
-			t.Errorf("Error should be \"%s\", instead is \"%s\".", ErrorUserNotFound, err.Error())
+		} else if err != ErrUserNotFound {
+			t.Errorf("Error should be \"%s\", instead is \"%s\".", ErrUserNotFound.Error(), err.Error())
 		}
 	}
 }
 
 func TestNonExistingUserByEmailFailure(t *testing.T) {
+	ctx := context.Background()
 	emails := []string{
 		"",
 		"bad format",
@@ -35,14 +36,11 @@ func TestNonExistingUserByEmailFailure(t *testing.T) {
 		"lol.nexist@example.trackit.io",
 	}
 	for _, email := range emails {
-		user, err := GetUserWithEmail(email)
-		if user != nil {
-			t.Errorf("User should be nil, instead points to %v.", *user)
-		}
+		_, err := GetUserWithEmail(ctx, db.Db, email)
 		if err == nil {
 			t.Error("Error should not be nil, instead is nil.")
-		} else if err.Error() != ErrorUserNotFound {
-			t.Errorf("Error should be \"%s\", instead is \"%s\".", ErrorUserNotFound, err.Error())
+		} else if err != ErrUserNotFound {
+			t.Errorf("Error should be \"%s\", instead is \"%s\".", ErrUserNotFound.Error(), err.Error())
 		}
 	}
 }
@@ -50,6 +48,7 @@ func TestNonExistingUserByEmailFailure(t *testing.T) {
 func TestCreateUpdateDelete(t *testing.T) {
 	t.Run("CreateWithPasswordSuccess", testCreateWithPasswordSuccess)
 	t.Run("GetAndPasswordSuccess", testGetAndPasswordSuccess)
+	t.Run("GetAndPasswordFailure", testGetAndPasswordFailure)
 }
 
 type createWithPasswordCase struct {
@@ -87,36 +86,38 @@ var createWithPasswordCases = [5]createWithPasswordCase{
 }
 
 func testCreateWithPasswordSuccess(t *testing.T) {
+	ctx := context.Background()
 	for _, c := range createWithPasswordCases {
-		u := c.user
-		if err := u.CreateWithPassword(c.password); err != nil {
-			t.Errorf("Creating <%s>: error should be nil, instead is \"%s\".", u.Email, err.Error())
+		u, err := CreateUserWithPassword(ctx, db.Db, c.user.Email, c.password)
+		if err != nil {
+			t.Errorf("Creating <%s>: error should be nil, instead is \"%s\".", c.user.Email, err.Error())
 		} else {
 			if u.Id <= 0 {
-				t.Errorf("Creating <%s>: user ID should be >0, instead is %d.", u.Email, u.Id)
+				t.Errorf("Creating <%s>: user ID should be >0, instead is %d.", c.user.Email, u.Id)
 			}
 		}
 	}
 }
 
 func testGetAndPasswordSuccess(t *testing.T) {
+	ctx := context.Background()
 	for _, c := range createWithPasswordCases {
-		u, err := GetUserWithEmail(c.user.Email)
+		u, err := GetUserWithEmailAndPassword(ctx, db.Db, c.user.Email, c.password)
 		if err != nil {
 			t.Errorf("Getting <%s>: error should be nil, instead is \"%s\".", c.user.Email, err.Error())
-		} else {
-			m, err := u.PasswordMatches(c.password)
-			if err != nil {
-				t.Errorf("Checking good password for <%s>: error should be nil, instead is \"%s\".", u.Email, err.Error())
-			} else if m == false {
-				t.Error("Checking good password for <%s>: should match, doesn't.")
-			}
-			m, err = u.PasswordMatches(c.badPassword)
-			if err != nil {
-				t.Errorf("Checking bad password for <%s>: error should be nil, instead is \"%s\".", u.Email, err.Error())
-			} else if m == false {
-				t.Error("Checking bad password for <%s>: shouldn't match, does.")
-			}
+		}
+		if u.Email != c.user.Email {
+			t.Errorf("Getting <%s>: email should be <%s>, instead is <%s>.", c.user.Email, c.user.Email, u.Email)
+		}
+	}
+}
+
+func testGetAndPasswordFailure(t *testing.T) {
+	ctx := context.Background()
+	for _, c := range createWithPasswordCases {
+		_, err := GetUserWithEmailAndPassword(ctx, db.Db, c.user.Email, c.badPassword)
+		if err == nil {
+			t.Errorf("Getting <%s>: error should not be nil, instead is nil.", c.user.Email, err.Error())
 		}
 	}
 }

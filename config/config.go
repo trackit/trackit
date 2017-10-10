@@ -20,6 +20,10 @@ import ()
 type Configuration struct {
 	// HTTPAddress is the address and port the server shall bind to.
 	HTTPAddress string
+	// SQLProtocol is the name of the SQL database, as used in the protocol in the URL
+	SQLProtocol string
+	// SQLAddress is the string passed to the SQL driver to connect to the database
+	SQLAddress string
 }
 
 // LoadConfiguration loads the server's configuration.
@@ -32,5 +36,7 @@ func LoadConfiguration() Configuration {
 func BuildDefaultConfiguration() Configuration {
 	return Configuration{
 		HTTPAddress: "[::]:8080",
+		SQLProtocol: "mysql",
+		SQLAddress:  "root:rootpassword@tcp([::1]:3306)/db",
 	}
 }
