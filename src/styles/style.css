@@ -1,0 +1,75 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Open sans', sans-serif;
+  background: #e9e5e5 !important;
+}
+
+.title {
+  padding: 2px;
+  text-overflow-ellipsis: overflow;
+  overflow: hidden;
+  display: block;
+}
+
+.selected-image, .select-video {
+  height: 500px;
+}
+
+.selected-image img, .select-video video {
+  width: 100%;
+  height: 450px;
+}
+
+.image-thumbnail, .video-thumbnail {
+  display: flex;
+  justify-content: space-around;
+  overflow: auto;
+  overflow-y: hidden;
+}
+
+.image-thumbnail img, .video-thumbnail video {
+  width: 70px;
+  height: 70px;
+  padding: 1px;
+  border: 1px solid grey;
+}
+
+.red-color {
+  color: #d6413b;
+}
+
+.red-bg {
+  background-color: #d6413b;
+}
+
+h1, h2, h3, h4, button {
+  font-family: 'Montserrat', sans-serif !important;
+}
+
+.paper-title {
+  padding-left: 15px;
+  float:left;
+}
+
+hr {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.ReactTable button.btn.btn-xs{
+  float: left;
+  margin-right: 5px;
+  background-color: white;
+  font-weight: 200;
+}
+
+.price-cell {
+  font-size: 15px;
+}
+
+/* Overriding React Table styling */
+.ReactTable .rt-thead .rt-th.-sort-asc, .ReactTable .rt-thead .rt-td.-sort-asc {
+    -webkit-box-shadow: inset 0 3px 0 0 rgba(213, 65, 60, 1);
+    box-shadow: inset 0 3px 0 0 rgba(213, 65, 60, 1);
+}
