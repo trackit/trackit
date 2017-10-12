@@ -1,18 +1,17 @@
 import React, { Component } from 'react';
-import Header from './common/Header';
 
-import PageContainer from './containers/PageContainer';
+import Containers from './containers';
 
 class App extends Component {
   render() {
     return (
       <div>
-        <Header />
-        <PageContainer />
+        <Containers.Main>
+          <Containers.Page />
+        </Containers.Main>
       </div>
     );
   }
 }
-
 
 export default App;
