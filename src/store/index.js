@@ -4,9 +4,11 @@ import createSagaMiddleware from 'redux-saga';
 import rootReducer from '../reducers';
 import rootSaga from '../sagas';
 
+import initialState from './initialState';
+
 //  Returns the store instance
 // It can  also take initialState argument when provided
-const configureStore = () => {
+export default () => {
   // Creating the redux-saga middleware
   const sagaMiddleware = createSagaMiddleware();
 
@@ -16,6 +18,7 @@ const configureStore = () => {
   return {
     ...createStore(
       rootReducer,
+      initialState,
       composeEnhancers(
         applyMiddleware(sagaMiddleware)
       )
@@ -23,5 +26,3 @@ const configureStore = () => {
     runSaga: sagaMiddleware.run(rootSaga)
   };
 };
-
-export default configureStore;
