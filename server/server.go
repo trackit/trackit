@@ -23,6 +23,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/costs"
+	"github.com/trackit/trackit2/users"
 )
 
 // contextKey represents a key in a context. Using an unexported type in this
@@ -47,7 +48,9 @@ func main() {
 
 // initializeHandlers sets the HTTP server up with handler functions.
 func initializeHandlers() {
-	handleDecoratedFunc("/costs/", costs.HandleRequest)
+	handleDecoratedFunc("/costs", costs.HandleRequest)
+	handleDecoratedFunc("/login", users.LogIn)
+	handleDecoratedFunc("/test", users.TestToken)
 }
 
 // handleDecoratedFunc decorates an HTTP handler function that accepts a logger

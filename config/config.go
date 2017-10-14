@@ -20,23 +20,39 @@ import ()
 type Configuration struct {
 	// HTTPAddress is the address and port the server shall bind to.
 	HTTPAddress string
-	// SQLProtocol is the name of the SQL database, as used in the protocol in the URL
+	// SQLProtocol is the name of the SQL database, as used in the protocol in the URL.
 	SQLProtocol string
-	// SQLAddress is the string passed to the SQL driver to connect to the database
+	// SQLAddress is the string passed to the SQL driver to connect to the database.
 	SQLAddress string
+	// HashDifficulty is the difficulty used by the hashing function used to store passwords.
+	HashDifficulty uint
+	// AuthIssuer is the issuer included in JWT tokens.
+	AuthIssuer string
+	// AuthSecret is the secret used to sign and verify JWT tokens.
+	AuthSecret []byte
 }
+
+var configurationInitialized = false
+var configuration Configuration
 
 // LoadConfiguration loads the server's configuration.
 func LoadConfiguration() Configuration {
-	return BuildDefaultConfiguration()
+	if !configurationInitialized {
+		configuration = BuildDefaultConfiguration()
+		configurationInitialized = true
+	}
+	return configuration
 }
 
 // BuildDefaultConfiguration returns a sane default configuration for the
 // server.
 func BuildDefaultConfiguration() Configuration {
 	return Configuration{
-		HTTPAddress: "[::]:8080",
-		SQLProtocol: "mysql",
-		SQLAddress:  "root:rootpassword@tcp([::1]:3306)/db",
+		HTTPAddress:    "[::]:8080",
+		SQLProtocol:    "mysql",
+		SQLAddress:     "root:rootpassword@tcp([::1]:3306)/db",
+		HashDifficulty: 12,
+		AuthIssuer:     "trackit",
+		AuthSecret:     []byte("trackitdefaultsecret"),
 	}
 }

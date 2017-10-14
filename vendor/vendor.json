@@ -25,6 +25,12 @@
 			"revisionTime": "2017-10-06T00:59:22Z"
 		},
 		{
+			"checksumSHA1": "GXOurDGgsLmJs0wounpdWZZRSGw=",
+			"path": "github.com/dgrijalva/jwt-go",
+			"revision": "a539ee1a749a2b895533f979515ac7e6e0f5b650",
+			"revisionTime": "2017-06-08T00:51:49Z"
+		},
+		{
 			"checksumSHA1": "SYxDN6l6j6OJ9f9BQDzneaJBd0k=",
 			"path": "github.com/gedex/inflector",
 			"revision": "16278e9db8130ac7ec405dc174cfb94344f16325",
