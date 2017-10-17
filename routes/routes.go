@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-var registeredHandlers = make([]RegisteredHandler, 0x40)
+var RegisteredHandlers = make([]RegisteredHandler, 0, 0x40)
 
 type RegisteredHandler struct {
 	Pattern string
@@ -33,7 +33,7 @@ func Register(pattern string, handler Handler, decorators ...Decorator) {
 		d := decorators[l-i]
 		stage = d.Decorate(stage)
 	}
-	registeredHandlers = append(registeredHandlers, RegisteredHandler{
+	RegisteredHandlers = append(RegisteredHandlers, RegisteredHandler{
 		pattern,
 		func(w http.ResponseWriter, r *http.Request) {
 			arguments := make(Arguments)

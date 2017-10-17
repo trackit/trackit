@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"time"
@@ -23,6 +24,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/costs"
+	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
 )
 
@@ -41,16 +43,24 @@ const (
 )
 
 func main() {
+	logger := jsonlog.DefaultLogger
 	configuration := config.LoadConfiguration()
 	initializeHandlers()
-	http.ListenAndServe(configuration.HTTPAddress, nil)
+	logger.Info(fmt.Sprintf("Listening on %s.", configuration.HTTPAddress), nil)
+	err := http.ListenAndServe(configuration.HTTPAddress, nil)
+	logger.Error("Server stopped.", err.Error())
 }
 
 // initializeHandlers sets the HTTP server up with handler functions.
 func initializeHandlers() {
+	logger := jsonlog.DefaultLogger
 	handleDecoratedFunc("/costs", costs.HandleRequest)
 	handleDecoratedFunc("/login", users.LogIn)
 	handleDecoratedFunc("/test", users.TestToken)
+	for _, rh := range routes.RegisteredHandlers {
+		handleDecoratedFunc(rh.Pattern, rh.Handler)
+		logger.Info(fmt.Sprintf("Registered route %s.", rh.Pattern), nil)
+	}
 }
 
 // handleDecoratedFunc decorates an HTTP handler function that accepts a logger

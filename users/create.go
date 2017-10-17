@@ -60,7 +60,7 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 }
 
 func (body createUserRequestBody) valid() bool {
-	return body.Email != "" && body.Email != ""
+	return body.Email != "" && body.Password != ""
 }
 
 func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx) (int, interface{}) {
