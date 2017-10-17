@@ -2,3 +2,7 @@
 
 This is the new iteration of MSolution’s Trackit, a tool to optimize your AWS
 usage and spending.
+
+== Cheking out
+
+In order to check out this project’s dependencies, run `govendor sync -v`.
