@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import registerServiceWorker from './registerServiceWorker';
 import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
+import { BrowserRouter, Route } from 'react-router-dom'
+
 import Theme from './common/Theme';
 
 // CSS inclusion for whole app
@@ -15,6 +17,8 @@ import './styles/style.css';
 
 // Components
 import App from './App';
+import Containers from './containers';
+
 
 // Setup
 import configureStore from './store';
@@ -28,7 +32,12 @@ const theme = createMuiTheme(Theme.theme);
 ReactDOM.render((
     <MuiThemeProvider theme={theme}>
       <Provider store={store}>
-          <App />
+        <BrowserRouter>
+          <div>
+            <Route path="/app" component={App}/>
+            <Route path="/login" component={Containers.Login}/>
+          </div>
+        </BrowserRouter>
       </Provider>
     </MuiThemeProvider>
     ), document.getElementById('root')
