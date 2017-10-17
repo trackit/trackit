@@ -41,7 +41,7 @@ func LogIn(response http.ResponseWriter, request *http.Request) {
 	var body loginRequestBody
 	err := decodeRequestBody(request, &body)
 	if err == nil && isLoginRequestBodyValid(body) {
-		attemptLogInWithValidBody(response, request, body)
+		logInWithValidBody(response, request, body)
 	} else {
 		response.WriteHeader(400)
 	}
@@ -58,9 +58,9 @@ func isLoginRequestBodyValid(body loginRequestBody) bool {
 	return body.Email != "" && body.Password != ""
 }
 
-// attemptLogInWithValidBody tries to authenticate and log a user in using a
+// logInWithValidBody tries to authenticate and log a user in using a
 // validated login request.
-func attemptLogInWithValidBody(response http.ResponseWriter, request *http.Request, body loginRequestBody) {
+func logInWithValidBody(response http.ResponseWriter, request *http.Request, body loginRequestBody) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	user, err := GetUserWithEmailAndPassword(request.Context(), db.Db, body.Email, body.Password)
 	if err == nil {

@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	bCryptCost uint
+	bCryptCost int
 	jwtIssuer  string
 	jwtSecret  []byte
 )
@@ -55,6 +55,7 @@ type jwtClaims struct {
 	NotBefore int64  `json:"nbf"`
 	Expires   int64  `json:"exp"`
 	Subject   int    `json:"sub"`
+	User      User   `json:"usr"`
 	jwt.StandardClaims
 }
 
@@ -65,6 +66,7 @@ func generateToken(user User) (string, error) {
 		NotBefore: time.Now().Add(-1 * time.Hour).Unix(),
 		Expires:   time.Now().Add(60 * 24 * time.Hour).Unix(),
 		Subject:   user.Id,
+		User:      user,
 	})
 	return token.SignedString([]byte(jwtSecret))
 }
