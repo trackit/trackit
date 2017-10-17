@@ -1,70 +1,58 @@
 import React, { Component } from 'react';
-import {bindActionCreators} from 'redux';
 import { connect } from 'react-redux';
 // import PropTypes from 'prop-types';
 
+import Actions from '../actions';
+
 import Paper from 'material-ui/Paper';
 
+import Components from '../components';
 
-import DeclareSetupComponent from '../components/DeclareSetupComponent';
-import ChartManagerComponent from '../components/ChartManagerComponent';
-import TableComponent from '../components/TableComponent';
+const DeclareSetup = Components.DeclareSetup;
 
-
-import * as ProvidersActions from '../actions/providersActions';
+const style = {
+  paper: {
+    padding: '15px',
+    margin: '15px',
+  },
+  noPadding: {
+    padding: '0px'
+  }
+};
 
 // PageContainer Component
 class PageContainer extends Component {
 
-    componentDidMount() {
-      this.props.getPricingGcp();
-      this.props.getPricingAws();
-    }
+  componentDidMount() {
+    this.props.getGCPPricing();
+    this.props.getAWSPricing();
+  }
 
-    render() {
-      const styles = {
-        paper: {
-          padding: '15px',
-          margin: '15px',
-        },
-        noPadding: {
-          padding: '0px'
-        }
-      }
-
-      return (
-        <div className="container-fluid">
-          <Paper elevation={3} style={styles.paper} className="animated bounceInRight">
-            <DeclareSetupComponent />
-          </Paper>
-          <Paper elevation={3} style={styles.paper} className="animated fadeIn">
-            <ChartManagerComponent />
-          </Paper>
-          <Paper elevation={3} style={Object.assign({},styles.paper, styles.noPadding)} className="animated fadeIn">
-            <TableComponent />
-          </Paper>
-
-        </div>
-      );
-    }
+  render() {
+    return (
+      <div className="container-fluid">
+        <Paper elevation={3} style={style.paper} className="animated bounceInRight">
+          <DeclareSetup />
+        </Paper>
+      </div>
+    );
+  }
 
 }
 
-
-// Define PropTypes
 PageContainer.propTypes = {};
 
-
-// Subscribe component to redux store and merge the state into
-// component's props
 const mapStateToProps = ({ types }) => ({
   types
 });
 
-const mapActionCreatorsToProps = (dispatch) => (
-   bindActionCreators(ProvidersActions, dispatch)
-);
+const mapDispatchToProps = (dispatch) => ({
+  getAWSPricing: () => {
+    dispatch(Actions.AWS.Pricing.getPricing())
+  },
+  getGCPPricing: () => {
+    dispatch(Actions.GCP.Pricing.getPricing())
+  },
+});
 
-
-// connect method from react-router connects the component with redux store
-export default connect(mapStateToProps, mapActionCreatorsToProps)(PageContainer);
+export default connect(mapStateToProps, mapDispatchToProps)(PageContainer);

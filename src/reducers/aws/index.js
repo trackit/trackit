@@ -1,8 +1,6 @@
 import { combineReducers } from 'redux';
-import aws from './aws';
-import gcp from './gcp';
+import pricing from './pricingReducer';
 
 export default combineReducers({
-  aws,
-  gcp
+  pricing
 });
