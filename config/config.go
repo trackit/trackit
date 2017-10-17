@@ -25,11 +25,13 @@ type Configuration struct {
 	// SQLAddress is the string passed to the SQL driver to connect to the database.
 	SQLAddress string
 	// HashDifficulty is the difficulty used by the hashing function used to store passwords.
-	HashDifficulty uint
+	HashDifficulty int
 	// AuthIssuer is the issuer included in JWT tokens.
 	AuthIssuer string
 	// AuthSecret is the secret used to sign and verify JWT tokens.
 	AuthSecret []byte
+	// AwsRegion is the AWS region the product operates in.
+	AwsRegion string
 }
 
 var configurationInitialized = false
@@ -54,5 +56,6 @@ func BuildDefaultConfiguration() Configuration {
 		HashDifficulty: 12,
 		AuthIssuer:     "trackit",
 		AuthSecret:     []byte("trackitdefaultsecret"),
+		AwsRegion:      "us-west-2",
 	}
 }
