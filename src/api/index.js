@@ -1,9 +1,5 @@
-import * as Types from './types';
-import * as Regions from './regions';
-import * as Pricing from './pricing';
+import * as Auth from './auth';
 
 export default {
-  ...Types,
-  ...Regions,
-  ...Pricing
+  Auth,
 };

@@ -6,6 +6,9 @@ import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 import { BrowserRouter, Route } from 'react-router-dom'
 
 import Theme from './common/Theme';
+import PrivateRoute from './common/PrivateRoute';
+import IndexRedirect from './common/IndexRedirect';
+import Constants from './constants';
 
 // CSS inclusion for whole app
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -29,13 +32,17 @@ const store = configureStore();
 // Creating theme
 const theme = createMuiTheme(Theme.theme);
 
+// Retrieving Token from localStorage if any
+store.dispatch({ type: Constants.GET_USER_TOKEN });
+
 ReactDOM.render((
     <MuiThemeProvider theme={theme}>
       <Provider store={store}>
         <BrowserRouter>
           <div>
-            <Route path="/app" component={App}/>
+            <Route exact path="/" component={IndexRedirect}/>
             <Route path="/login" component={Containers.Login}/>
+            <PrivateRoute path="/app" component={App} store={store} />
           </div>
         </BrowserRouter>
       </Provider>

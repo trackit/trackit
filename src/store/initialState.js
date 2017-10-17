@@ -5,4 +5,7 @@ export default {
   gcp: {
     pricing: []
   },
+  auth: {
+    token: null,
+  },
 };
