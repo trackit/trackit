@@ -55,7 +55,6 @@ func main() {
 func initializeHandlers() {
 	logger := jsonlog.DefaultLogger
 	handleDecoratedFunc("/costs", costs.HandleRequest)
-	handleDecoratedFunc("/login", users.LogIn)
 	handleDecoratedFunc("/test", users.TestToken)
 	for _, rh := range routes.RegisteredHandlers {
 		handleDecoratedFunc(rh.Pattern, rh.Handler)

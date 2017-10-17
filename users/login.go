@@ -15,12 +15,14 @@
 package users
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit2/routes"
 )
 
 // loginRequestBody is the expected request body for the LogIn route handler.
@@ -35,15 +37,26 @@ type loginResponseBody struct {
 	Token string `json:"token"`
 }
 
+func init() {
+	routes.Register(
+		"/login",
+		logIn,
+		routes.RequireMethod{"POST"},
+		routes.WithErrorBody{},
+		db.WithTransaction{db.Db},
+	)
+}
+
 // LogIn handles users attempting to log in. It shall return a valid token the
 // caller can then use to call other routes.
-func LogIn(response http.ResponseWriter, request *http.Request) {
+func logIn(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body loginRequestBody
 	err := decodeRequestBody(request, &body)
+	tx := a[db.Transaction].(*sql.Tx)
 	if err == nil && isLoginRequestBodyValid(body) {
-		logInWithValidBody(response, request, body)
+		return logInWithValidBody(request, body, tx)
 	} else {
-		response.WriteHeader(400)
+		return 400, errors.New("Body is invalid.")
 	}
 }
 
@@ -60,33 +73,31 @@ func isLoginRequestBodyValid(body loginRequestBody) bool {
 
 // logInWithValidBody tries to authenticate and log a user in using a
 // validated login request.
-func logInWithValidBody(response http.ResponseWriter, request *http.Request, body loginRequestBody) {
+func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	user, err := GetUserWithEmailAndPassword(request.Context(), db.Db, body.Email, body.Password)
+	user, err := GetUserWithEmailAndPassword(request.Context(), tx, body.Email, body.Password)
 	if err == nil {
-		logAuthenticatedUserIn(response, request, user)
+		return logAuthenticatedUserIn(request, user)
 	} else {
 		logger.Warning("Authentication failure.", body)
-		response.WriteHeader(403)
+		return 403, errors.New("Authentication failure.")
 	}
 }
 
 // logAuthenticatedUserIn generates a token for a user that's already been
 // authenticated.
-func logAuthenticatedUserIn(response http.ResponseWriter, request *http.Request, user User) {
+func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	token, err := generateToken(user)
 	if err == nil {
-		body := loginResponseBody{
+		logger.Info("User logged in.", user)
+		return 200, loginResponseBody{
 			User:  user,
 			Token: token,
 		}
-		response.WriteHeader(200)
-		json.NewEncoder(response).Encode(body)
-		logger.Info("User logged in.", user)
 	} else {
 		logger.Error("Failed to generate token.", err.Error())
-		response.WriteHeader(500)
+		return 500, errors.New("Failed to generate token.")
 	}
 }
 
