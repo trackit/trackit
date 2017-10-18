@@ -16,6 +16,7 @@ import (
 	"github.com/trackit/trackit2/users"
 )
 
+// AwsAccount represents a client's AWS account.
 type AwsAccount struct {
 	Id       int    `json:"id"`
 	UserId   int    `json:"userId"`
@@ -41,10 +42,15 @@ func init() {
 	stsService = sts.New(Session)
 }
 
+// GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
+// given user.
 func GetAwsAccountsFromUser(u users.User) ([]AwsAccount, error) {
 	return nil, ErrNotImplemented
 }
 
+// CreateAwsAccount registers a new AWS account for a user. It does no error
+// checking: the caller should check themselves that the role ARN exists and is
+// correctly configured.
 func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount := models.AwsAccount{
@@ -62,14 +68,4 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 		logger.Error("Failed to insert AWS account in database.", nil)
 	}
 	return err
-}
-
-func TestAwsAccount(AwsAccount) (string, error) {
-	input := &sts.GetCallerIdentityInput{}
-	result, err := stsService.GetCallerIdentity(input)
-	if err == nil {
-		return *result.Account, nil
-	} else {
-		return "", err
-	}
 }

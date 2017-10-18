@@ -11,14 +11,24 @@ import (
 	"github.com/trackit/trackit2/routes"
 )
 
+// WithRequestId is a decorator which adds a request ID to incoming requests.
+// It stores it in the request context, sets the logger up to log it, and adds
+// it to the response in the `X-Request-ID` HTTP header.
 type WithRequestId struct{}
 
+// WithRequestTime is a decorator which adds a request time to incoming
+// requests. It stores it in the request context and sets the logger up to log
+// it.
 type WithRequestTime struct{}
 
+// WithBackendId is a decorator which adds a backend ID to incoming requests.
+// It adds it to tthe response in the `X-Backend-ID` HTTP header.
 type WithBackendId struct {
 	backendId string
 }
 
+// WithRouteLogging is a decorator which logs any calls to the route, with some
+// data about the request.
 type WithRouteLogging struct{}
 
 func (d WithRequestId) Decorate(h routes.IntermediateHandler) routes.IntermediateHandler {
@@ -59,7 +69,7 @@ func getRequestLogData(r *http.Request) requestLogData {
 }
 
 // requestLogData is the set of fields from an HTTP request that are logged
-// when a request arrives.
+// when a request arrives on a route decorated by WithRouteLogging.
 type requestLogData struct {
 	Proto     string   `json:"protocol"`
 	Method    string   `json:"method"`

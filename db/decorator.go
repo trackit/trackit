@@ -9,6 +9,9 @@ import (
 	"github.com/trackit/trackit2/routes"
 )
 
+// WithTransaction is a decorator which manages a transaction for an HTTP
+// request. It will Commit the transaction iff the handler returns something
+// other than an error and it did not panic; it Rollbacks otherwise.
 type WithTransaction struct {
 	Db *sql.DB
 }
