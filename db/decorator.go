@@ -44,7 +44,7 @@ func (d WithTransaction) Decorate(h routes.IntermediateHandler) routes.Intermedi
 			}()
 			return h(w, r, a)
 		} else {
-			logger.Error("Failed to start SQL transaction.", err.Error())
+			logger.Error("Failed to start Sql transaction.", err.Error())
 			return 500, routes.ErrorBody{fmt.Sprintf("Server could not initiate transaction.")}
 		}
 	}

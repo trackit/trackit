@@ -1,0 +1,33 @@
+version: '3'
+services:
+  sql:
+    build: sql/
+    environment:
+      - MYSQL_USER=${TRACKIT_SQL_USER:-trackit}
+      - MYSQL_PASSWORD=${TRACKIT_SQL_PASSWORD:-trackitpassword}
+      - MYSQL_DATABASE=${TRACKIT_SQL_DATABASE:-trackit}
+      - MYSQL_RANDOM_ROOT_PASSWORD=yes
+    networks:
+      - app
+    ports:
+      - '127.0.0.1:3306:3306'
+  api:
+    build: server/
+    links:
+      - sql
+    command:
+      - -sql-address=${TRACKIT_SQL_USER:-trackit}:${TRACKIT_SQL_PASSWORD:-trackitpassword}@tcp(sql:3306)/${TRACKIT_SQL_DATABASE:-trackit}
+      - -http-address=[::]:80
+    ports:
+      - '127.0.0.1:8080:80'
+    networks:
+      - app
+networks:
+  app:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.19.84.0/24
+
+# vim: ts=2 sts=2 et:

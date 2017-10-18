@@ -25,18 +25,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	bCryptCost int
-	jwtIssuer  string
-	jwtSecret  []byte
+const (
+	bCryptCost = 12
 )
 
-func init() {
-	c := config.LoadConfiguration()
-	bCryptCost = c.HashDifficulty
-	jwtIssuer = c.AuthIssuer
-	jwtSecret = c.AuthSecret
-}
+var (
+	jwtIssuer = config.AuthIssuer
+	jwtSecret = []byte(config.AuthSecret)
+)
 
 // getPasswordHash generates a hash string for a given password.
 func getPasswordHash(password string) (string, error) {

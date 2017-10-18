@@ -26,8 +26,7 @@ var Db *sql.DB
 
 func init() {
 	var err error
-	config := config.LoadConfiguration()
-	Db, err = sql.Open(config.SQLProtocol, config.SQLAddress)
+	Db, err = sql.Open(config.SqlProtocol, config.SqlAddress)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

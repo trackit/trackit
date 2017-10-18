@@ -35,9 +35,8 @@ var (
 )
 
 func init() {
-	c := config.LoadConfiguration()
 	Session = session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(c.AwsRegion),
+		Region: aws.String(config.AwsRegion),
 	}))
 	stsService = sts.New(Session)
 }

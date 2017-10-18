@@ -40,20 +40,18 @@ const (
 
 func main() {
 	logger := jsonlog.DefaultLogger
-	configuration := config.LoadConfiguration()
 	initializeHandlers()
-	logger.Info(fmt.Sprintf("Listening on %s.", configuration.HTTPAddress), nil)
-	err := http.ListenAndServe(configuration.HTTPAddress, nil)
+	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
+	err := http.ListenAndServe(config.HttpAddress, nil)
 	logger.Error("Server stopped.", err.Error())
 }
 
 // initializeHandlers sets the HTTP server up with handler functions.
 func initializeHandlers() {
-	c := config.LoadConfiguration()
 	globalDecorators := []routes.Decorator{
 		WithRequestTime{},
 		WithRequestId{},
-		WithBackendId{c.BackendId},
+		WithBackendId{config.BackendId},
 		WithRouteLogging{},
 		routes.WithErrorBody{},
 	}

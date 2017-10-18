@@ -1,7 +1,7 @@
 #!/bin/bash
 
 xo \
-	'mysql://root:rootpassword@localhost/db' \
+	'mysql://root:ooquuphieMohnei8pei3mias7pee8Yae@localhost/trackit' \
 	--out models \
 	--ignore-fields \
 		created \
