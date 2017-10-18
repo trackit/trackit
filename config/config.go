@@ -32,6 +32,8 @@ type Configuration struct {
 	AuthSecret []byte
 	// AwsRegion is the AWS region the product operates in.
 	AwsRegion string
+	// BackendId is an identifier for the current instance of the server.
+	BackendId string
 }
 
 var configurationInitialized = false
@@ -57,5 +59,6 @@ func BuildDefaultConfiguration() Configuration {
 		AuthIssuer:     "trackit",
 		AuthSecret:     []byte("trackitdefaultsecret"),
 		AwsRegion:      "us-west-2",
+		BackendId:      "dev",
 	}
 }

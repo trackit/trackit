@@ -265,6 +265,12 @@
 			"revisionTime": "2017-09-10T13:46:14Z"
 		},
 		{
+			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",
+			"path": "github.com/satori/go.uuid",
+			"revision": "5bf94b69c6b68ee1b541973bb8e1144db23a194b",
+			"revisionTime": "2017-03-21T23:07:31Z"
+		},
+		{
 			"checksumSHA1": "GSEtpje73qM1d4p7DsQolilsZrI=",
 			"path": "github.com/trackit/jsonlog",
 			"revision": "d693ccc8f433b6b854bc41a69a5903b66f2bd1fa",

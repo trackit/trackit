@@ -38,7 +38,7 @@ func init() {
 		"/user",
 		createUser,
 		routes.RequireMethod{"POST"},
-		routes.WithErrorBody{},
+		routes.RequireContentType{"application/json"},
 		db.WithTransaction{db.Db},
 	)
 }

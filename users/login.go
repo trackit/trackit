@@ -42,7 +42,7 @@ func init() {
 		"/login",
 		logIn,
 		routes.RequireMethod{"POST"},
-		routes.WithErrorBody{},
+		routes.RequireContentType{"application/json"},
 		db.WithTransaction{db.Db},
 	)
 }
@@ -101,22 +101,18 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 	}
 }
 
+func init() {
+	routes.Register(
+		"/user/me",
+		me,
+		routes.RequireMethod{"GET"},
+		db.WithTransaction{db.Db},
+		WithAuthenticatedUser{},
+	)
+}
+
 // TestToken tests a token's validity. For a valid token, it returns the user
 // the token belongs to.
-func TestToken(response http.ResponseWriter, request *http.Request) {
-	var err error
-	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	if authorization := request.Header["Authorization"]; authorization != nil && len(authorization) == 1 {
-		var user User
-		tokenString := authorization[0]
-		if user, err = testToken(tokenString); err == nil {
-			response.WriteHeader(200)
-			json.NewEncoder(response).Encode(user)
-			return
-		}
-	} else {
-		err = errors.New("Authorization header not found.")
-	}
-	logger.Warning("Failed testing token.", err.Error())
-	response.WriteHeader(400)
+func me(request *http.Request, a routes.Arguments) (int, interface{}) {
+	return 200, a[AuthenticatedUser].(User)
 }

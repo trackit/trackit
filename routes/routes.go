@@ -9,7 +9,7 @@ var RegisteredHandlers = make([]RegisteredHandler, 0, 0x40)
 
 type RegisteredHandler struct {
 	Pattern string
-	Handler http.HandlerFunc
+	Handler IntermediateHandler
 }
 
 type Arguments map[interface{}]interface{}
@@ -26,21 +26,28 @@ type ErrorBody struct {
 	Error string `json:"error"`
 }
 
+func (h IntermediateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	arguments := make(Arguments)
+	status, output := h(w, r, arguments)
+	w.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(output)
+}
+
+func ApplyDecorators(h IntermediateHandler, ds ...Decorator) IntermediateHandler {
+	l := len(ds) - 1
+	for i := range ds {
+		h = ds[l-i].Decorate(h)
+	}
+	return h
+}
+
 func Register(pattern string, handler Handler, decorators ...Decorator) {
 	stage := baseIntermediate(handler)
-	l := len(decorators) - 1
-	for i := range decorators {
-		d := decorators[l-i]
-		stage = d.Decorate(stage)
-	}
+	stage = ApplyDecorators(stage, decorators...)
 	RegisteredHandlers = append(RegisteredHandlers, RegisteredHandler{
 		pattern,
-		func(w http.ResponseWriter, r *http.Request) {
-			arguments := make(Arguments)
-			status, output := stage(w, r, arguments)
-			w.WriteHeader(status)
-			json.NewEncoder(w).Encode(output)
-		},
+		stage,
 	})
 }
 

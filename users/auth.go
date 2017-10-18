@@ -15,13 +15,13 @@
 package users
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/trackit/trackit2/config"
-	"github.com/trackit/trackit2/db"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -90,14 +90,14 @@ func areClaimsValid(claims jwtClaims) bool {
 
 // testToken checks whether a JWT token is valid and retrieves the owning User
 // if it is.
-func testToken(tokenString string) (User, error) {
+func testToken(tx *sql.Tx, tokenString string) (User, error) {
 	var user User
 	token, err := jwt.ParseWithClaims(tokenString, &jwtClaims{}, getTokenSigningKey)
 	if err == nil {
 		if claims, ok := token.Claims.(*jwtClaims); ok && token.Valid {
 			if areClaimsValid(*claims) {
 				userId := claims.Subject
-				user, err = GetUserWithId(db.Db, userId)
+				user, err = GetUserWithId(tx, userId)
 			} else {
 				err = errors.New("Claims are invalid.")
 			}
