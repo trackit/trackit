@@ -1,6 +1,6 @@
 import Page from './PageContainer';
 import Main from './MainContainer';
-import Login from './LoginContainer';
+import Login from './auth/LoginContainer';
 
 
 export default {

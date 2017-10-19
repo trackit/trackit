@@ -1,8 +1,15 @@
 import React, {Component} from 'react';
+import { connect } from 'react-redux';
 
 import logo from '../../assets/logo.png';
+import Actions from "../../actions";
 
 class Header extends Component {
+
+  submit(e) {
+    e.preventDefault();
+    this.props.logout();
+  }
 
   render() {
     const styles = {
@@ -21,8 +28,10 @@ class Header extends Component {
         color: 'white',
         fontSize: '28px',
         margin: '10px auto',
+      },
+      button: {
+        color: 'black'
       }
-
     }
 
     return(
@@ -43,10 +52,17 @@ class Header extends Component {
             Cloud Storage Comparator
           </h1>
           <div style={{ clear: 'both' }} />
+        <button onClick={this.submit.bind(this)} style={styles.button}>Logout</button>
       </div>
     );
   }
 
 }
 
-export default Header;
+const mapDispatchToProps = (dispatch) => ({
+  logout: () => {
+    dispatch(Actions.Auth.logout())
+  }
+});
+
+export default connect(null, mapDispatchToProps)(Header);
