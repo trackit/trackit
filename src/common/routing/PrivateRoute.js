@@ -16,6 +16,6 @@ const PrivateRoute = ({ component: Component, store, ...rest }) => {
       }}/>
     )
   )}/>);
-}
+};
 
 export default PrivateRoute;
