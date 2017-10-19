@@ -19,6 +19,7 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
+	_ "github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/users"
