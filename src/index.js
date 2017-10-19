@@ -6,8 +6,7 @@ import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
 import { BrowserRouter, Route } from 'react-router-dom'
 
 import Theme from './common/Theme';
-import PrivateRoute from './common/PrivateRoute';
-import IndexRedirect from './common/IndexRedirect';
+import { PrivateRoute, IndexRedirect } from './common/routing';
 import Constants from './constants';
 
 // CSS inclusion for whole app

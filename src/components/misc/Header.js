@@ -22,7 +22,6 @@ class Header extends Component {
         fontSize: '28px',
         margin: '10px auto',
       }
-
     }
 
     return(
@@ -47,6 +46,6 @@ class Header extends Component {
     );
   }
 
-}
+};
 
 export default Header;

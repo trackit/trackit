@@ -1,7 +1,12 @@
 import Constants from '../../constants';
 
 export default {
-	getToken: () => ({
-		type: Constants.GET_USER_TOKEN
-	}),
+	token: {
+    get: () => ({
+      type: Constants.GET_USER_TOKEN
+    }),
+    clean: () => ({
+      type: Constants.CLEAN_USER_TOKEN
+    })
+  }
 };
