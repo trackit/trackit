@@ -15,15 +15,13 @@
 package main
 
 import (
-	"context"
-	"math/rand"
+	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit2/config"
-	"github.com/trackit/trackit2/costs"
-	"github.com/trackit/trackit2/users"
+	"github.com/trackit/trackit2/routes"
+	_ "github.com/trackit/trackit2/users"
 )
 
 // contextKey represents a key in a context. Using an unexported type in this
@@ -41,71 +39,32 @@ const (
 )
 
 func main() {
+	logger := jsonlog.DefaultLogger
 	configuration := config.LoadConfiguration()
 	initializeHandlers()
-	http.ListenAndServe(configuration.HTTPAddress, nil)
+	logger.Info(fmt.Sprintf("Listening on %s.", configuration.HTTPAddress), nil)
+	err := http.ListenAndServe(configuration.HTTPAddress, nil)
+	logger.Error("Server stopped.", err.Error())
 }
 
 // initializeHandlers sets the HTTP server up with handler functions.
 func initializeHandlers() {
-	handleDecoratedFunc("/costs", costs.HandleRequest)
-	handleDecoratedFunc("/login", users.LogIn)
-	handleDecoratedFunc("/test", users.TestToken)
-}
-
-// handleDecoratedFunc decorates an HTTP handler function that accepts a logger
-// in order to provide the logger and some values in the context.
-func handleDecoratedFunc(pattern string, f http.HandlerFunc) {
-	http.HandleFunc(pattern, decorateWithLogger(loggedHandler(f)))
-}
-
-// requestLogData is the set of fields from an HTTP request that are logged
-// when a request arrives.
-type requestLogData struct {
-	Proto     string   `json:"protocol"`
-	Method    string   `json:"method"`
-	URL       string   `json:"url"`
-	Address   string   `json:"address"`
-	Host      string   `json:"host"`
-	UserAgent []string `json:"userAgent"`
-}
-
-// getRequestLogData fills a requestLogData instance with information from an
-// http.Request.
-func getRequestLogData(r *http.Request) requestLogData {
-	return requestLogData{
-		Proto:     r.Proto,
-		Method:    r.Method,
-		Host:      r.Host,
-		URL:       r.URL.String(),
-		Address:   r.RemoteAddr,
-		UserAgent: r.Header["User-Agent"],
+	c := config.LoadConfiguration()
+	globalDecorators := []routes.Decorator{
+		WithRequestTime{},
+		WithRequestId{},
+		WithBackendId{c.BackendId},
+		WithRouteLogging{},
+		routes.WithErrorBody{},
+	}
+	logger := jsonlog.DefaultLogger
+	for _, rh := range routes.RegisteredHandlers {
+		applyDecoratorsAndHandle(rh.Pattern, rh.Handler, globalDecorators)
+		logger.Info(fmt.Sprintf("Registered route %s.", rh.Pattern), nil)
 	}
 }
 
-// loggedHandler is a decorator around an HTTP handler function with logger
-// which logs the request before calling the handler function.
-func loggedHandler(f http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		l := jsonlog.LoggerFromContextOrDefault(r.Context())
-		l.Info("Received request.", getRequestLogData(r))
-		f(w, r)
-	}
-}
-
-// decorateWithLogger decorates an HTTP handler function with logger. It sets
-// some values in the context and configures the logger to log them.
-func decorateWithLogger(f http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		ctx = context.WithValue(ctx, contextKeyRequestId, rand.Int63())
-		ctx = context.WithValue(ctx, contextKeyRequestTime, time.Now())
-		logger := jsonlog.DefaultLogger
-		logger = logger.WithContext(ctx)
-		logger = logger.WithContextKey(contextKeyRequestId, "requestId")
-		logger = logger.WithContextKey(contextKeyRequestTime, "requestTime")
-		logger = logger.WithLogLevel(jsonlog.LogLevelDebug)
-		ctx = jsonlog.ContextWithLogger(ctx, logger)
-		f(w, r.WithContext(ctx))
-	}
+func applyDecoratorsAndHandle(p string, h routes.IntermediateHandler, ds []routes.Decorator) {
+	h = routes.ApplyDecorators(h, ds...)
+	http.Handle(p, h)
 }
