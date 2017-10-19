@@ -1,0 +1,212 @@
+.sidebar {
+    background: #fff;
+    box-shadow: 1px 0px 20px rgba(0, 0, 0, 0.08);
+}
+
+.sidebar .collapse {
+    height: 0px;
+    transition: .05s ease-in;
+}
+
+.sidebar .collapse.in {
+    height: auto;
+    transition: .05s ease-in;
+}
+
+.sidebar button:focus, .navbar-header button:focus {
+    border: none;
+    outline: none;
+}
+
+
+/* NAVBAR HEADER */
+
+.navbar-header {
+    width: 100%;
+    height: 60px;
+    background: #2f323e;
+    border: 0;
+}
+
+.navbar-header .top-left-part {
+    width: 220px;
+    float: left;
+    border-right: 1px solid rgba(0, 0, 0, .08);
+}
+
+.navbar-header .top-right-part {
+    float: right;
+    height: 100%;
+}
+
+.navbar-header .top-right-part>div.dropdown-trigger {
+    height: 100%;
+    float: right;
+}
+
+.navbar-header .top-right-part>div.dropdown-trigger ul.dropdown-menu {
+    right: 0;
+    left: auto;
+}
+
+.navbar-header .logo b {
+    height: 60px;
+    float: left;
+    padding-left: 30px;
+    width: auto;
+    line-height: 59px;
+    text-align: center;
+}
+
+.navbar-header .logo b>img {
+    max-height: 35px;
+}
+
+.navbar-header button.navbar-user-dropdown-toggle {
+    height: 100%;
+    padding: 0px 20px;
+    border: none;
+    background-color: inherit;
+    color: white;
+    font-size: 15px;
+}
+
+
+/* SIDEBAR HEAD */
+
+
+/* Temporary fix for mobile screens. To remove when enabling foldable menu on mobile devices */
+
+.sidebar .sidebar-head {
+    display: none;
+}
+
+.sidebar .sidebar-head {
+    padding: 4px 20px;
+    background: #ffffff;
+    width: 60px;
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+}
+
+.sidebar .sidebar-head h3 {
+    color: #686868;
+    font-weight: 300;
+    margin-top: 8px;
+}
+
+.sidebar .sidebar-head h3 i {
+    font-size: 20px;
+}
+
+.sidebar .open-close {
+    width: 20px;
+    text-align: center!important;
+    display: inline-block;
+    font-style: normal;
+    font-weight: 500;
+    margin-right: 7px;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+
+/* User menu item */
+
+.sidebar #side-menu .user-menu-item>button {
+    width: 100%;
+    text-align: left;
+    padding: 7px 7px;
+    background-color: #ffffff;
+    color: #54667a;
+    border: none;
+    font-size: 16px;
+}
+
+.sidebar #side-menu .user-menu-item>button:hover {
+    background: rgba(245, 245, 245, 1);
+}
+
+.sidebar #side-menu .user-menu-item>button>.fa-stack {
+    margin-right: 15px;
+    margin-left: 3px;
+}
+
+.sidebar #side-menu .user-menu-item>button .fa.fa-caret-right {
+    top: 20px;
+}
+
+
+/* Menu */
+
+#side-menu li a {
+    padding: 18px 20px;
+    display: block;
+}
+
+#side-menu li, #side-menu li a {
+    color: #54667a;
+}
+
+#side-menu li a.active {
+    color: #ffffff;
+    background-color: #d6413b;
+}
+
+.sidebar #side-menu .fa.menu-icon {
+    font-size: 21px;
+    margin-right: 15px;
+}
+
+.sidebar #side-menu {
+    overflow: hidden;
+}
+
+.sidebar .fa.fa-caret-right {
+    position: absolute;
+    right: 18px;
+    top: 24px;
+}
+
+
+/* DESKTOP */
+
+@media (min-width: 768px) {
+    .navbar-static-top {
+        padding-left: 60px;
+    }
+    .navbar-default {
+        position: relative;
+        width: 100%;
+        top: 0;
+    }
+    .sidebar:hover {
+        width: 240px;
+    }
+    .sidebar:hover .sidebar-head {
+        width: 240px;
+    }
+    .sidebar {
+        z-index: 1001;
+        position: fixed;
+        width: 60px;
+        padding-top: 0;
+        height: 100%;
+        /*transition: .05s ease-in;*/
+    }
+    .sidebar #side-menu {
+        padding-top: 60px;
+    }
+    .sidebar .hide-menu {
+        display: none;
+    }
+    .sidebar:hover .hide-menu {
+        display: inline;
+    }
+    /* Temporary fix for mobile screens. To remove when enabling foldable menu on mobile devices */
+    .sidebar .sidebar-head {
+        display: block;
+    }
+}
