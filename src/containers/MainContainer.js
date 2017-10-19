@@ -7,7 +7,7 @@ class MainContainer extends Component {
   render() {
     return (
       <div>
-        <Components.Misc.Header />
+        <Components.Misc.Navigation />
         {this.props.children}
       </div>
     );

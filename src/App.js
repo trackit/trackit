@@ -7,7 +7,6 @@ class App extends Component {
     return (
       <div>
         <Containers.Main>
-          <Containers.Page />
         </Containers.Main>
       </div>
     );
