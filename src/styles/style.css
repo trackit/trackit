@@ -5,9 +5,25 @@ body {
     background: #edf1f5 !important;
 }
 
+/* BUTTONS */
+
 button {
     font-family: 'Rubik', 'Open sans', sans-serif;
 }
+
+.btn-default, .btn-default:focus, .btn-default:hover {
+    color: #4885ed;
+    background-color: #fff;
+    border-color: #4885ed;
+}
+
+.btn-primary, .btn-primary:focus, .btn-primary:hover {
+    color: white;
+    background-color: #4885ed;
+    border-color: #4885ed;
+}
+
+/* COLORS */
 
 .red-color {
     color: #d6413b;
@@ -16,6 +32,8 @@ button {
 .red-bg {
     background-color: #d6413b;
 }
+
+/* MARGIN AND PADDING HELPERS */
 
 .m-b-0 {
     margin-bottom: 0px;
@@ -31,6 +49,29 @@ button {
 
 .m-r-0 {
     margin-right: 0px;
+}
+
+.white-box {
+    background: #fff;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,.1);
+}
+
+.form-control {
+    background-color: #fff;
+    border: 1px solid #e4e7ea;
+    border-radius: 4px;
+    box-shadow: none;
+    color: #565656;
+    height: 38px;
+    max-width: 100%;
+    padding: 7px 12px;
+    transition: all 300ms linear 0s;
+}
+
+label {
+  font-weight: 500;
 }
 
 

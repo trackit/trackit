@@ -3,22 +3,22 @@ import Validator from 'validator';
 
 const required = (value) => {
   if (!value.toString().trim().length)
-    return (<span className="error">Value is required</span>);
+    return (<div className="alert alert-warning">This field is required</div>);
 };
 
 const email = (value) => {
   if (!Validator.isEmail(value))
-    return (<span className="error">{value} is not a valid email.</span>);
+    return (<div className="alert alert-warning">{value} is not a valid email.</div>);
 };
 
 const lt = (value, props) => {
   if (value.toString().trim().length > props.maxLength)
-    return (<span className="error">The value exceeded {props.maxLength} symbols.</span>);
+    return (<div className="alert alert-warning">The value exceeded {props.maxLength} symbols.</div>);
 };
 
 const password = (value, props, components) => {
   if (value !== components['confirm'][0].value)
-    return (<span className="error">Passwords are not equal.</span>);
+    return (<div className="alert alert-warning">Passwords are not equal.</div>);
 };
 
 export default {
