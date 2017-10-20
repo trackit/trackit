@@ -146,8 +146,9 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time, durat
 		paramAggr := detailedLineItemFieldsName[paramNameSplit[0]](paramNameSplit)
 		allAggregationSlice = append(allAggregationSlice, paramAggr...)
 	}
+	aggregationParamName := allAggregationSlice[0].paramName
 	nestedAggregation := nestAggregation(allAggregationSlice)
-	search.Aggregation(allAggregationSlice[0].paramName, nestedAggregation)
+	search.Aggregation(aggregationParamName, nestedAggregation)
 	return search
 }
 
