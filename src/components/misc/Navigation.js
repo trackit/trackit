@@ -1,6 +1,9 @@
 import React, {Component} from 'react';
-import { NavLink } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { NavLink, withRouter } from 'react-router-dom';
 import NavbarHeader from './NavbarHeader';
+import Actions from '../../actions';
+
 
 // Styling
 import '../../styles/Navigation.css';
@@ -27,9 +30,9 @@ class Navigation extends Component {
       userMenu = (
         <ul className="nav nav-second-level animated slideInLeft">
           <li>
-            <a>
+            <a href="" onClick={this.props.signOut}>
               <i className="menu-icon fa fa-sign-out"/>
-              <span className="hide-menu">Log out</span>
+              <span className="hide-menu">Sign out</span>
             </a>
           </li>
           <hr className="m-b-0"/>
@@ -111,4 +114,13 @@ class Navigation extends Component {
 
 }
 
-export default Navigation;
+const mapStateToProps = () => ({
+
+});
+const mapDispatchToProps = (dispatch) => ({
+  signOut: () => {
+    dispatch(Actions.Auth.logout())
+  },
+});
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Navigation));

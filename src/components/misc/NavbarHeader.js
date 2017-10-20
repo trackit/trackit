@@ -1,5 +1,7 @@
 import React, {Component} from 'react';
+import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import Actions from '../../actions';
 
 import '../../styles/Navigation.css';
 
@@ -55,9 +57,9 @@ class NavbarHeader extends Component {
                        </Link>
                      </li>
                      <li>
-                       <a>
+                       <a href="" onClick={this.props.signOut}>
                          <i className="fa fa-sign-out"/>
-                         &nbsp;Log out
+                         &nbsp;Sign out
                        </a>
                      </li>
                    </ul>
@@ -74,4 +76,13 @@ class NavbarHeader extends Component {
 
 }
 
-export default NavbarHeader;
+const mapStateToProps = () => ({
+
+});
+const mapDispatchToProps = (dispatch) => ({
+  signOut: () => {
+    dispatch(Actions.Auth.logout())
+  },
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(NavbarHeader);
