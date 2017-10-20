@@ -1,0 +1,22 @@
+.login #logo {
+  width: 100%;
+  max-width: 500px;
+  display: block;
+  margin: auto;
+}
+
+
+@media (min-width: 768px) {
+  /* Vertical centering */
+
+  .login .parent {
+    position: relative;
+    height: 100vh;
+  }
+
+  .login .vertCentered {
+    position:absolute;
+    top: 40%;
+    transform: translateY(-50%);
+  }
+}
