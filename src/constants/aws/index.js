@@ -1,7 +1,7 @@
 import Pricing from './pricingTypes';
-import Access from './accessTypes';
+import Accounts from './accountsTypes';
 
 export default {
 	...Pricing,
-	...Access
+	...Accounts
 };

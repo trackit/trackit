@@ -1,7 +1,7 @@
 import Pricing from './pricingActions';
-import Access from './accessActions';
+import Accounts from './accountsActions';
 
 export default {
 	Pricing,
-	Access
+  Accounts
 };

@@ -1,6 +1,6 @@
-import AccessManagement from './AccessManagementContainer';
+import Accounts from './AccountsContainer';
 
 
 export default {
-  AccessManagement
+  Accounts
 };

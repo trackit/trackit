@@ -4,14 +4,14 @@ import Constants from '../../constants';
 
 const getToken = state => state.auth.token;
 
-export function* getAccessSaga() {
+export function* getAccountsSaga() {
   try {
     const token = yield select(getToken);
-    const res = yield call(API.AWS.Access.getAccess, token);
+    const res = yield call(API.AWS.Accounts.getAccounts, token);
     yield all([
-      put({ type: Constants.AWS_GET_ACCESS_SUCCESS, access: res.data.access }),
+      put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts: res.data }),
     ]);
   } catch (error) {
-    yield put({ type: Constants.AWS_GET_ACCESS_ERROR, error });
+    yield put({ type: Constants.AWS_GET_ACCOUNTS_ERROR, error });
   }
 }

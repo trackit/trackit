@@ -1,8 +1,8 @@
 import { combineReducers } from 'redux';
 import pricing from './pricingReducer';
-import access from './accessReducer';
+import accounts from './accountsReducer';
 
 export default combineReducers({
   pricing,
-  access
+  accounts
 });

@@ -8,7 +8,7 @@ class App extends Component {
     return (
       <div>
         <Containers.Main>
-          <Route path={this.props.match.url + "/setup"} component={Containers.Setup.AWS.AccessManagement}/>
+          <Route path={this.props.match.url + "/setup"} component={Containers.Setup.AWS.Accounts}/>
         </Containers.Main>
       </div>
     );

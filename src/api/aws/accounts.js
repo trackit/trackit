@@ -1,5 +1,5 @@
 import { call } from './../misc.js';
 
-export const getAccess = (token) => {
+export const getAccounts = (token) => {
   return call('/aws', 'GET', null, token);
 };

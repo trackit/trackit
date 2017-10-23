@@ -1,5 +1,5 @@
-import * as Access from './access';
+import * as Accounts from './accounts';
 
 export default {
-  Access,
+  Accounts,
 };
