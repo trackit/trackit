@@ -8,6 +8,7 @@ export const call = (route, method, body=null) => {
       'Accept': 'application/json'
     },
     body: (body !== null ? JSON.stringify(body) : null)
-  }).then(response => ({success: true, ...response }))
+  }).then(data => (data.json()))
+    .then(response => ({success: true, ...response }))
     .then(error => ({success: false, ...error}));
 };
