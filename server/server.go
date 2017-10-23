@@ -54,6 +54,7 @@ func initializeHandlers() {
 		WithRequestId{},
 		WithBackendId{config.BackendId},
 		WithRouteLogging{},
+		routes.WithCorsAllowOrigin{"*"},
 		routes.WithErrorBody{},
 	}
 	logger := jsonlog.DefaultLogger
