@@ -16,32 +16,38 @@ package es
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/sha1sum/aws_signing_client"
 	"gopkg.in/olivere/elastic.v5"
-	"strings"
 )
 
-func checkError(splittedEndpoint []string, creds *credentials.Credentials) error {
-	if creds == nil {
-		return errors.New("Nil credential")
-	} else if _, err := creds.Get(); err != nil {
+const (
+	// The URI contains 5 mendatory parts split by '.'
+	// domainname.region.service.amazonaws.com
+	endpointMetaDataLengthRequirement = 5
+)
+
+// checkParametersError checks errors from NewSignedElasticClient's parameters.
+func checkParametersError(endpointMetaData []string, creds *credentials.Credentials) error {
+	if _, err := creds.Get(); err != nil {
 		return err
-	} else if len(splittedEndpoint) <= 4 {
+	} else if len(endpointMetaData) < endpointMetaDataLengthRequirement {
 		return errors.New("Wrong endpoint parameter")
 	}
 	return nil
 }
 
-// NewSignedElasticClient create a signed *elastic.Client ready for a using with AWS ElasticSearch.
+// NewSignedElasticClient creates a signed *elastic.Client ready for using with AWS ElasticSearch.
 // It takes as parameter:
 //		- endpoint: The endpoint URI gettable from AWS.
-//		- credentials: Credentials from AWS/Credentials.
-func NewSignedElasticClient(endpoint string, credentials *credentials.Credentials) (*elastic.Client, error) {
-	awsSigner := v4.NewSigner(credentials)
+//		- creds: Credentials from AWS/Credentials.
+func NewSignedElasticClient(endpoint string, creds *credentials.Credentials) (*elastic.Client, error) {
+	awsSigner := v4.NewSigner(creds)
 	endpointMetaData := strings.Split(endpoint, ".")
-	if err := checkError(endpointMetaData, credentials); err != nil {
+	if err := checkParametersError(endpointMetaData, creds); err != nil {
 		return nil, err
 	}
 	awsRegion := endpointMetaData[len(endpointMetaData)-4]
