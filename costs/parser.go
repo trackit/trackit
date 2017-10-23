@@ -22,6 +22,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
+// flattenSubAggregation allows to transform an array of map to one flattened map
 func flattenSubAggregation(in *interface{}) {
 	oldTab := (*in).([]interface{})
 	newMap := make(map[string]interface{})
@@ -33,80 +34,80 @@ func flattenSubAggregation(in *interface{}) {
 	*in = newMap
 }
 
-func stripAggregationArchitecture(aggregationName string, aggregationType interface{}, in map[string]interface{}) {
+// stripAggregationArchitecture strips an array by deleting some values and calling flattenSubAggregation
+func stripAggregationArchitecture(aggrName string, aggrType interface{}, in map[string]interface{}) {
 	key, ok := in["key_as_string"]
 	if !ok {
 		key, ok = in["key"]
 	}
-	skey := fmt.Sprintf("%v", key)
-	if ok {
-		if aggregationMapType, ok := aggregationType.(map[string]interface{}); ok && aggregationName[0] == '*' {
-			aggregationType := aggregationMapType["buckets"]
-			flattenSubAggregation(&aggregationType)
+	if skey := fmt.Sprintf("%v", key); ok {
+		if aggrMapType, ok := aggrType.(map[string]interface{}); ok && aggrName[0] == '*' {
+			aggrType := aggrMapType["buckets"]
+			flattenSubAggregation(&aggrType)
 		}
-		in[skey] = aggregationType
+		in[skey] = aggrType
 		delete(in, "key")
 		delete(in, "key_as_string")
 	}
-	delete(in, aggregationName)
+	delete(in, aggrName)
 }
 
-func browseRecursivlyMap(in map[string]interface{}) {
-	for aggregationName, field := range in {
-		if aggregationName[0] != '&' && aggregationName[0] != '*' {
+func browseMapRecursivly(in map[string]interface{}) {
+	for aggrName, field := range in {
+		if aggrName[0] != '&' && aggrName[0] != '*' {
 			continue
 		}
 		field := field.(map[string]interface{})
-		metadata := strings.Split(aggregationName[1:], ".")
-		aggregationTypeName := strings.Replace(metadata[0], ",", ".", -1)
-		aggregationType := field[aggregationTypeName]
-		if aggregationName[0] == '&' {
-			browseRecursivlyTab(&aggregationType)
-		} else if aggregationName[0] == '*' {
-			browseRecursivlyMap(field)
+		metadata := strings.Split(aggrName[1:], ".")
+		aggrTypeName := strings.Replace(metadata[0], ",", ".", -1)
+		aggrType := field[aggrTypeName]
+		if aggrName[0] == '&' {
+			browseTabRecursivly(&aggrType)
+		} else if aggrName[0] == '*' {
+			browseMapRecursivly(field)
 		}
-		stripAggregationArchitecture(aggregationName, aggregationType, in)
+		stripAggregationArchitecture(aggrName, aggrType, in)
 	}
 }
 
-func browseRecursivlyTab(in *interface{}) {
+func browseTabRecursivly(in *interface{}) {
 	tab := (*in).([]interface{})
 	for _, field := range tab {
 		field := field.(map[string]interface{})
 		delete(field, "doc_count")
-		browseRecursivlyMap(field)
+		browseMapRecursivly(field)
 	}
 	flattenSubAggregation(in)
 }
 
-func prepareRecursiveParsing(result map[string]interface{}, aggregationName string, aggregation *json.RawMessage) error {
+func prepareRecursiveParsing(result map[string]interface{}, aggrName string, aggr *json.RawMessage) error {
 	var root map[string]interface{}
-	err := json.Unmarshal(*aggregation, &root)
+	err := json.Unmarshal(*aggr, &root)
 	if err != nil {
 		return err
 	}
-	metadata := strings.Split(aggregationName[1:], ".")
+	metadata := strings.Split(aggrName[1:], ".")
 	name := metadata[len(metadata)-1]
-	aggregationTypeName := strings.Replace(metadata[0], ",", ".", -1)
-	aggregationType := root[aggregationTypeName]
-	if aggregationName[0] == '&' {
-		browseRecursivlyTab(&aggregationType)
-		result[name] = aggregationType
-	} else if aggregationName[0] == '*' {
-		browseRecursivlyMap(root)
-		bucketAggregation := aggregationType.(map[string]interface{})["buckets"]
-		flattenSubAggregation(&bucketAggregation)
-		result[name] = bucketAggregation
+	aggrTypeName := strings.Replace(metadata[0], ",", ".", -1)
+	aggrType := root[aggrTypeName]
+	if aggrName[0] == '&' {
+		browseTabRecursivly(&aggrType)
+		result[name] = aggrType
+	} else if aggrName[0] == '*' {
+		browseMapRecursivly(root)
+		bucketAggr := aggrType.(map[string]interface{})["buckets"]
+		flattenSubAggregation(&bucketAggr)
+		result[name] = bucketAggr
 	} else {
-		result[aggregationName] = root
+		result[aggrName] = root
 	}
 	return nil
 }
 
-// GetParsedElasticSearchResult is used to parse an *elastic.SearchResult
+// GetJSONSimplifiedElasticSearchResult is used to parse an *elastic.SearchResult
 // to a human readable map[string]interface{} that will be able to be
 // transformed to JSON and send to the UI
-func GetParsedElasticSearchResult(esResult *elastic.SearchResult) (map[string]interface{}, error) {
+func GetJSONSimplifiedElasticSearchResult(esResult *elastic.SearchResult) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	for name, aggregation := range esResult.Aggregations {
 		if err := prepareRecursiveParsing(res, name, aggregation); err != nil {
