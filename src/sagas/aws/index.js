@@ -1,6 +1,6 @@
 import { takeLatest } from 'redux-saga/effects';
 import { getAwsPricingSaga } from './pricingSaga';
-import { getAccountsSaga } from './accountsSaga';
+import { getAccountsSaga, newAccountSaga } from './accountsSaga';
 
 import Constants from '../../constants';
 
@@ -10,4 +10,8 @@ export function* watchGetAwsPricing() {
 
 export function* watchGetAccounts() {
   yield takeLatest(Constants.AWS_GET_ACCOUNTS, getAccountsSaga);
+}
+
+export function* watchNewAccount() {
+  yield takeLatest(Constants.AWS_NEW_ACCOUNT, newAccountSaga);
 }
