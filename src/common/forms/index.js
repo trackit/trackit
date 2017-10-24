@@ -1,7 +1,7 @@
 import Auth from './AuthForm';
-import AWSAccess from './AWSAccessForm';
+import AWSAccount from './AWSAccountForm';
 
 export default {
   Auth,
-  AWSAccess
+  AWSAccount
 };
