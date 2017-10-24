@@ -46,3 +46,9 @@ func TestRightParameters(t *testing.T) {
 		t.Errorf("Error should be nil, instead of \"%s\".", err.Error())
 	}
 }
+
+func TestAH(t *testing.T) {
+	var client interface{}
+	client, _ = NewSignedElasticClient(rightEndpoint, credentials.NewSharedCredentials("", ""))
+	client.IndexExists()
+}
