@@ -7,7 +7,7 @@ import Actions from "../../../actions";
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
 
-// MainContainer Component
+// AccountsContainer Component
 class AccountsContainer extends Component {
 
   constructor(props) {
@@ -24,7 +24,6 @@ class AccountsContainer extends Component {
   };
 
   render() {
-    console.log(this.props.accounts);
     return (
       <div className="panel panel-default">
         <div className="panel-heading">
