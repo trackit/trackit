@@ -30,12 +30,16 @@ const (
 	endpointMetaDataLengthRequirement = 5
 )
 
+var (
+	errWrongEndPoint = errors.New("Wrong endpoint parameter")
+)
+
 // checkParametersError checks errors from NewSignedElasticClient's parameters.
 func checkParametersError(endpointMetaData []string, creds *credentials.Credentials) error {
 	if _, err := creds.Get(); err != nil {
 		return err
 	} else if len(endpointMetaData) < endpointMetaDataLengthRequirement {
-		return errors.New("Wrong endpoint parameter")
+		return errWrongEndPoint
 	}
 	return nil
 }
