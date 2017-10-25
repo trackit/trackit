@@ -9,6 +9,7 @@ import PropTypes from "prop-types";
 
 const Validation = Validations.AWSAccount;
 
+// Form Component for new AWS Account
 class FormComponent extends Component {
 
   constructor(props) {

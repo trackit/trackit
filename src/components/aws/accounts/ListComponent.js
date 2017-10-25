@@ -22,6 +22,7 @@ ListItem.propTypes = {
   })
 };
 
+// List Component for AWS Accounts
 class ListComponent extends Component {
 
   render() {

@@ -8,7 +8,7 @@ import PropTypes from "prop-types";
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
 
-// AccountsContainer Component
+// Accounts Container for AWS Accounts
 class AccountsContainer extends Component {
 
   constructor(props) {

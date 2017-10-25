@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import Panels from '.';
 
-// SetupContainer Component
+// Setup Container for Management Panels
 class SetupContainer extends Component {
 
   render() {
