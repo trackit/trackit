@@ -56,8 +56,6 @@ AccountsContainer.propTypes = {
   newExternal: PropTypes.func.isRequired
 };
 
-
-
 const mapStateToProps = (state) => ({
   accounts: state.aws.accounts.all,
   external: state.aws.accounts.external
