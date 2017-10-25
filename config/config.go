@@ -14,51 +14,38 @@
 
 package config
 
-import ()
+import (
+	"flag"
+)
 
-// Configuration holds a configuration for the Trackit server.
-type Configuration struct {
-	// HTTPAddress is the address and port the server shall bind to.
-	HTTPAddress string
-	// SQLProtocol is the name of the SQL database, as used in the protocol in the URL.
-	SQLProtocol string
-	// SQLAddress is the string passed to the SQL driver to connect to the database.
-	SQLAddress string
-	// HashDifficulty is the difficulty used by the hashing function used to store passwords.
-	HashDifficulty int
+const (
+	envVarPrefix = "TRACKIT"
+)
+
+var (
+	// HttpAddress is the address and port the server shall bind to.
+	HttpAddress string
+	// SqlProtocol is the name of the Sql database, as used in the protocol in the URL.
+	SqlProtocol string
+	// SqlAddress is the string passed to the Sql driver to connect to the database.
+	SqlAddress string
 	// AuthIssuer is the issuer included in JWT tokens.
 	AuthIssuer string
 	// AuthSecret is the secret used to sign and verify JWT tokens.
-	AuthSecret []byte
+	AuthSecret string
 	// AwsRegion is the AWS region the product operates in.
 	AwsRegion string
 	// BackendId is an identifier for the current instance of the server.
 	BackendId string
-}
+)
 
-var configurationInitialized = false
-var configuration Configuration
-
-// LoadConfiguration loads the server's configuration.
-func LoadConfiguration() Configuration {
-	if !configurationInitialized {
-		configuration = BuildDefaultConfiguration()
-		configurationInitialized = true
-	}
-	return configuration
-}
-
-// BuildDefaultConfiguration returns a sane default configuration for the
-// server.
-func BuildDefaultConfiguration() Configuration {
-	return Configuration{
-		HTTPAddress:    "[::]:8080",
-		SQLProtocol:    "mysql",
-		SQLAddress:     "root:rootpassword@tcp([::1]:3306)/db",
-		HashDifficulty: 12,
-		AuthIssuer:     "trackit",
-		AuthSecret:     []byte("trackitdefaultsecret"),
-		AwsRegion:      "us-west-2",
-		BackendId:      "dev",
-	}
+func init() {
+	flag.StringVar(&HttpAddress, "http-address", "[::1]:8080", "The port and address the HTTP server listens to.")
+	flag.StringVar(&SqlProtocol, "sql-protocol", "mysql", "The protocol used to communicate with the SQL database.")
+	flag.StringVar(&SqlAddress, "sql-address", "root:rootpassword@tcp(::1)/trackit", "The address (username, password, transport, address and database) for the SQL database.")
+	flag.StringVar(&AuthIssuer, "auth-issuer", "trackit", "The 'iss' field for the JWT tokens.")
+	flag.StringVar(&AuthSecret, "auth-secret", "trackitdefaultsecret", "The secret used to sign and verify JWT tokens.")
+	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
+	flag.StringVar(&BackendId, "backend-id", "devel", "The ID to be sent to clients through the 'X-Backend-ID' field.")
+	flag.Parse()
 }

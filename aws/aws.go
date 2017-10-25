@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -32,20 +33,40 @@ var (
 	ErrNotImplemented = errors.New("Not implemented.")
 	Session           client.ConfigProvider
 	stsService        *sts.STS
+	accountId         string
 )
 
 func init() {
-	c := config.LoadConfiguration()
 	Session = session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(c.AwsRegion),
+		Region: aws.String(config.AwsRegion),
 	}))
 	stsService = sts.New(Session)
+	accountId = initAccountId(stsService)
 }
+
+func initAccountId(s *sts.STS) string {
+	var input sts.GetCallerIdentityInput
+	output, err := s.GetCallerIdentity(&input)
+	if err != nil {
+		log.Fatalf("Failed to get AWS account ID: '%s'.", err.Error())
+	}
+	return *output.Account
+}
+
+func AccountId() string { return accountId }
 
 // GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
 // given user.
-func GetAwsAccountsFromUser(u users.User) ([]AwsAccount, error) {
-	return nil, ErrNotImplemented
+func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
+	dbAwsAccounts, err := models.AwsAccountsByUserID(tx, u.Id)
+	if err == nil {
+		awsAccounts := make([]AwsAccount, len(dbAwsAccounts))
+		for i := range dbAwsAccounts {
+			awsAccounts[i] = awsAccountFromDbAwsAccount(*dbAwsAccounts[i])
+		}
+		return awsAccounts, nil
+	}
+	return nil, err
 }
 
 // CreateAwsAccount registers a new AWS account for a user. It does no error
@@ -68,4 +89,13 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 		logger.Error("Failed to insert AWS account in database.", nil)
 	}
 	return err
+}
+
+func awsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
+	return AwsAccount{
+		Id:       dbAwsAccount.ID,
+		UserId:   dbAwsAccount.UserID,
+		RoleArn:  dbAwsAccount.RoleArn,
+		External: dbAwsAccount.External.String,
+	}
 }
