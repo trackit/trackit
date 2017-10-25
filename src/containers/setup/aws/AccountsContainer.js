@@ -47,7 +47,8 @@ AccountsContainer.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
-      userId: PropTypes.number.isRequired
+      userId: PropTypes.number.isRequired,
+      pretty: PropTypes.string.isRequired
     })
   ),
   external: PropTypes.string,

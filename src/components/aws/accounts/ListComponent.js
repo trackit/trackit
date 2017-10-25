@@ -6,7 +6,7 @@ class ListItem extends Component {
   render() {
     return (
       <div className="account list-group-item">
-        {this.props.account.roleArn}
+        {this.props.account.pretty}
       </div>
     );
   }
@@ -17,7 +17,8 @@ ListItem.propTypes = {
   account: PropTypes.shape({
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
-    userId: PropTypes.number.isRequired
+    userId: PropTypes.number.isRequired,
+    pretty: PropTypes.string.isRequired
   })
 };
 
@@ -40,7 +41,8 @@ ListComponent.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
-      userId: PropTypes.number.isRequired
+      userId: PropTypes.number.isRequired,
+      pretty: PropTypes.string.isRequired
     })
   )
 };
