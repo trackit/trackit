@@ -10,6 +10,7 @@ const roleArnFormat = (value) => {
   if (!regex.exec(value))
     return (<div className="alert alert-warning">{value} is not a valid role ARN.</div>);
 };
+
 export default {
   required,
   roleArnFormat
