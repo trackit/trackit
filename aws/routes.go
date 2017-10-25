@@ -56,17 +56,29 @@ func postAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 }
 
 func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, body postAwsAccountRequestBody) (int, interface{}) {
-	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
+	ctx := r.Context()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	account := AwsAccount{
 		RoleArn:  body.RoleArn,
 		External: body.External,
 		UserId:   user.Id,
 	}
+	if account.External != user.NextExternal {
+		logger.Warning("Tried to add AWS account with bad external.", account)
+		return 400, errors.New("Incorrect external. Use /aws/next to get expected external.")
+	}
 	_, err := GetTemporaryCredentials(account, "validityTest")
 	if err == nil {
 		err = account.CreateAwsAccount(r.Context(), tx)
 		if err == nil {
-			return 200, account
+			user.NextExternal = ""
+			err := user.UpdateNextExternal(ctx, tx)
+			if err == nil {
+				return 200, account
+			} else {
+				logger.Error("Failed to update external.", err.Error())
+				return 500, errors.New("Failed to update external.")
+			}
 		} else {
 			logger.Error("Failed to insert AWS account.", map[string]interface{}{
 				"error":   err.Error(),
