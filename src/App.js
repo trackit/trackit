@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { Route } from 'react-router-dom';
 
 import Containers from './containers';
 
@@ -7,6 +8,7 @@ class App extends Component {
     return (
       <div>
         <Containers.Main>
+          <Route path={this.props.match.url + "/setup"} component={Containers.Setup.Main}/>
         </Containers.Main>
       </div>
     );

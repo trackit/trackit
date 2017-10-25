@@ -41,7 +41,7 @@ class Navigation extends Component {
     }
 
     return(
-      <div>
+      <div className="navigation">
 
         <NavbarHeader />
 

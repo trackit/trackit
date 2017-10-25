@@ -1,7 +1,7 @@
-import * as Auth from './auth';
+import Main from './SetupContainer';
 import AWS from './aws';
 
 export default {
-  Auth,
+  Main,
   AWS
 };
