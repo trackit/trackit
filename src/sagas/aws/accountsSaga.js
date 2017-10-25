@@ -28,3 +28,15 @@ export function* newAccountSaga({ account }) {
     yield put({ type: Constants.AWS_NEW_ACCOUNT_ERROR, error });
   }
 }
+
+export function* newExternalSaga() {
+  try {
+    const token = yield select(getToken);
+    const res = yield call(API.AWS.Accounts.newExternal, token);
+    yield all([
+      put({ type: Constants.AWS_NEW_EXTERNAL_SUCCESS, external: res.data.external })
+    ]);
+  } catch (error) {
+    yield put({ type: Constants.AWS_NEW_EXTERNAL_ERROR, error });
+  }
+}

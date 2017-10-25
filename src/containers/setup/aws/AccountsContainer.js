@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import Components from '../../../components';
 import Actions from "../../../actions";
+import PropTypes from "prop-types";
 
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
@@ -17,10 +18,12 @@ class AccountsContainer extends Component {
 
   componentWillMount() {
     this.props.getAccounts();
+    this.props.newExternal();
   }
 
   addAccount = (account) => {
     this.props.newAccount(account);
+    this.props.newExternal();
   };
 
   render() {
@@ -31,7 +34,7 @@ class AccountsContainer extends Component {
         </div>
         <div className="panel-body">
           <List accounts={this.props.accounts}/>
-          <Form submit={this.addAccount}/>
+          <Form submit={this.addAccount} external={this.props.external}/>
         </div>
       </div>
     );
@@ -39,8 +42,25 @@ class AccountsContainer extends Component {
 
 }
 
+AccountsContainer.propTypes = {
+  accounts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      roleArn: PropTypes.string.isRequired,
+      userId: PropTypes.number.isRequired
+    })
+  ),
+  external: PropTypes.string,
+  getAccounts: PropTypes.func.isRequired,
+  newAccount: PropTypes.func.isRequired,
+  newExternal: PropTypes.func.isRequired
+};
+
+
+
 const mapStateToProps = (state) => ({
-  accounts: state.aws.accounts
+  accounts: state.aws.accounts.all,
+  external: state.aws.accounts.external
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -49,7 +69,10 @@ const mapDispatchToProps = (dispatch) => ({
   },
   newAccount: (account) => {
     dispatch(Actions.AWS.Accounts.newAccount(account))
-  }
+  },
+  newExternal: () => {
+    dispatch(Actions.AWS.Accounts.newExternal())
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(AccountsContainer);

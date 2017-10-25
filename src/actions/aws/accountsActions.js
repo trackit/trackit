@@ -7,5 +7,8 @@ export default {
 	newAccount: (account) => ({
 		type: Constants.AWS_NEW_ACCOUNT,
 		account
+	}),
+	newExternal: () => ({
+		type: Constants.AWS_NEW_EXTERNAL
 	})
 };

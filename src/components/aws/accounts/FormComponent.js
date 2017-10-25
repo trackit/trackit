@@ -5,6 +5,7 @@ import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
 import Validations from '../../../common/forms';
+import PropTypes from "prop-types";
 
 const Validation = Validations.AWSAccount;
 
@@ -18,7 +19,7 @@ class FormComponent extends Component {
   submit = (e) => {
     e.preventDefault();
     let values = this.form.getValues();
-    this.props.submit({roleArn: values.roleArn, external: values.external});
+    this.props.submit({roleArn: values.roleArn, external: values.external, pretty: values.pretty});
   };
 
   render() {
@@ -36,6 +37,18 @@ class FormComponent extends Component {
           }} onSubmit={this.submit}>
 
             <div className="form-group">
+              <label htmlFor="externalId">External</label>
+              <Input
+                type="text"
+                name="external"
+                className="form-control"
+                disabled
+                value={this.props.external}
+                validations={[Validation.required]}
+              />
+            </div>
+
+            <div className="form-group">
               <label htmlFor="roleArn">Role ARN</label>
               <Input
                 name="roleArn"
@@ -44,11 +57,12 @@ class FormComponent extends Component {
                 validations={[Validation.required, Validation.roleArnFormat]}
               />
             </div>
+
             <div className="form-group">
-              <label htmlFor="externalId">External</label>
+              <label htmlFor="pretty">Name</label>
               <Input
                 type="text"
-                name="external"
+                name="pretty"
                 className="form-control"
                 validations={[Validation.required]}
               />
@@ -73,5 +87,11 @@ class FormComponent extends Component {
   }
 
 }
+
+FormComponent.propTypes = {
+  submit: PropTypes.func.isRequired,
+  external: PropTypes.string
+};
+
 
 export default FormComponent;

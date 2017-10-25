@@ -1,6 +1,10 @@
 export default {
   aws: {
-    pricing: []
+    pricing: [],
+    accounts: {
+      all: [],
+      external: null
+    }
   },
   gcp: {
     pricing: []
