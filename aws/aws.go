@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -32,6 +33,7 @@ var (
 	ErrNotImplemented = errors.New("Not implemented.")
 	Session           client.ConfigProvider
 	stsService        *sts.STS
+	accountId         string
 )
 
 func init() {
@@ -39,7 +41,19 @@ func init() {
 		Region: aws.String(config.AwsRegion),
 	}))
 	stsService = sts.New(Session)
+	accountId = initAccountId(stsService)
 }
+
+func initAccountId(s *sts.STS) string {
+	var input sts.GetCallerIdentityInput
+	output, err := s.GetCallerIdentity(&input)
+	if err != nil {
+		log.Fatalf("Failed to get AWS account ID: '%s'.", err.Error())
+	}
+	return *output.Account
+}
+
+func AccountId() string { return accountId }
 
 // GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
 // given user.
