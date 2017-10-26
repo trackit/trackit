@@ -97,7 +97,7 @@ class S3AnalyticsTableComponent extends Component {
               ]
             }
             defaultPageSize={10}
-            className="-striped -highlight"
+            className=" -highlight"
           />
 
 
