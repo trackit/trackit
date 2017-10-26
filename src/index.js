@@ -16,6 +16,8 @@ import 'normalize.css/normalize.css';
 import 'animate.css/animate.min.css';
 import 'react-table/react-table.css'
 import './styles/style.css';
+import './styles/style-sm.css';
+import './styles/style-xs.css';
 
 // Components
 import App from './App';

@@ -1,7 +1,7 @@
 import Page from './PageContainer';
 import Main from './MainContainer';
 import Login from './auth/LoginContainer';
-import S3Analytics from './s3AnalyticsContainer';
+import S3Analytics from './S3AnalyticsContainer';
 
 
 export default {

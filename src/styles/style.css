@@ -6,11 +6,59 @@ body {
 }
 
 .dollar-sign {
-  color: #bbbbbb;
+    color: #bbbbbb;
 }
+
+.card-label {
+  color: #808080;
+  font-weight: 300;
+}
+
+.in-col {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.in-col li {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0 10px;
+}
+
 .total-cell .dollar-sign {
-  color: #1e88e5 ;
+    color: #1e88e5;
 }
+
+.font-light-medium {
+  font-weight: 500 !important;
+}
+
+.font-light {
+  font-weight: 300 !important;
+}
+
+
+
+
+/* BORDERS */
+
+.br {
+    border-right: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bl {
+    border-left: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bt {
+    border-top: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bb {
+    border-bottom: 1px solid rgba(120, 130, 140, .13);
+}
+
 
 /* BUTTONS */
 
@@ -30,6 +78,7 @@ button {
     border-color: #4885ed;
 }
 
+
 /* COLORS */
 
 .red-color {
@@ -40,7 +89,40 @@ button {
     background-color: #d6413b;
 }
 
+.orange-color {
+    color: #ff9800;
+}
+
+.orange-bg {
+    background-color: #ff9800;
+}
+
+.green-color {
+    color: #4caf50;
+}
+
+.green-bg {
+    background-color: #4caf50;
+}
+
+.blue-color {
+    color: #1e88e5;
+}
+
+.blue-bg {
+    background-color: #1e88e5;
+}
+
+
+
 /* MARGIN AND PADDING HELPERS */
+.no-padding {
+  padding: 0px !important;
+}
+
+.no-margin {
+  margin: 0px !important;
+}
 
 .m-b-0 {
     margin-bottom: 0px;
@@ -58,29 +140,116 @@ button {
     margin-right: 0px;
 }
 
+.p-b-0 {
+    padding-bottom: 0px;
+}
+
+.p-l-0 {
+    padding-left: 0px;
+}
+
+.p-t-0 {
+    padding-top: 0px;
+}
+
+.p-r-0 {
+    padding-right: 0px;
+}
+
+.m-b-10 {
+    margin-bottom: 10px;
+}
+
+.m-l-10 {
+    margin-left: 10px;
+}
+
+.m-t-10 {
+    margin-top: 10px;
+}
+
+.m-r-10 {
+    margin-right: 10px;
+}
+
+
+.p-b-10 {
+    padding-bottom: 10px;
+}
+
+.p-l-10 {
+    padding-left: 10px;
+}
+
+.p-t-10 {
+    padding-top: 10px;
+}
+
+.p-r-10 {
+    padding-right: 10px;
+}
+
+.m-b-15 {
+    margin-bottom: 15px;
+}
+
+.m-l-15 {
+    margin-left: 15px;
+}
+
+.m-t-15 {
+    margin-top: 15px;
+}
+
+.m-r-15 {
+    margin-right: 15px;
+}
+
+
+.p-b-15 {
+    padding-bottom: 15px;
+}
+
+.p-l-15 {
+    padding-left: 15px;
+}
+
+.p-t-15 {
+    padding-top: 15px;
+}
+
+.p-r-15 {
+    padding-right: 15px;
+}
+
+
 .white-box {
     background: #fff;
     padding: 25px;
     margin-bottom: 30px;
-    box-shadow: 0 1px 4px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .1);
 }
+
 .white-box .white-box-title {
-  margin: 0px;
-  padding-bottom: 20px;
+    margin: 0px;
+    padding-bottom: 20px;
 }
+
 .white-box.no-padding {
-  padding: 0px;
+    padding: 0px;
 }
+
 .white-box.no-padding .white-box-title {
-  margin: 0px;
-  padding: 20px;
+    margin: 0px;
+    padding: 20px;
 }
+
 .white-box-title .white-box-title-icon {
-  width: 22px;
-  display: inline-block;
-  vertical-align: top;
-  margin: 0px 7px;
-  margin-top: 2px;
+    width: 22px;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0px 7px;
+    margin-top: 2px;
 }
 
 .form-control {
@@ -96,7 +265,7 @@ button {
 }
 
 label {
-  font-weight: 500;
+    font-weight: 500;
 }
 
 
@@ -108,12 +277,13 @@ label {
 }
 
 .ReactTable strong {
-  font-weight: 500;
+    font-weight: 500;
 }
 
 .ReactTable .-pagination .-btn {
-  color: #1e88e5;
+    color: #1e88e5;
 }
+
 
 /* Dropdown menus */
 
