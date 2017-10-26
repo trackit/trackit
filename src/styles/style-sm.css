@@ -1,0 +1,18 @@
+@media (min-width:769px) {
+  .br-sm {
+      border-right: 1px solid rgba(120, 130, 140, .13);
+  }
+
+  .bl-sm {
+      border-left: 1px solid rgba(120, 130, 140, .13);
+  }
+
+  .bt-sm {
+      border-top: 1px solid rgba(120, 130, 140, .13);
+  }
+
+  .bb-sm {
+      border-bottom: 1px solid rgba(120, 130, 140, .13);
+  }
+
+}
