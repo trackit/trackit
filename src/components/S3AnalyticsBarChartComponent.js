@@ -13,7 +13,7 @@ import PropTypes from 'prop-types';
           return 1;
         return -1;
      });
-     dataClone = dataClone.slice(0,15);
+     dataClone = dataClone.slice(0,25);
 
      // Formatting for chart
      const bandwidth = {
@@ -53,8 +53,8 @@ import PropTypes from 'prop-types';
      const data = this.formatDataForChart(this.props.data);
      const layout = {
        barmode: 'stack',
-       showlegend: false,
-       title: 'Most expensive buckets breakdown',
+       showlegend: true,
+       title: 'Buckets breakdown',
        height: 180,
        margin: {
          l: 55,

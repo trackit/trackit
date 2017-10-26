@@ -1,17 +1,17 @@
-@media (min-width:769px) {
-  .br-sm {
+@media (min-width: 991px) {
+  .br-md {
       border-right: 1px solid rgba(120, 130, 140, .13);
   }
 
-  .bl-sm {
+  .bl-md {
       border-left: 1px solid rgba(120, 130, 140, .13);
   }
 
-  .bt-sm {
+  .bt-md {
       border-top: 1px solid rgba(120, 130, 140, .13);
   }
 
-  .bb-sm {
+  .bb-md {
       border-bottom: 1px solid rgba(120, 130, 140, .13);
   }
 

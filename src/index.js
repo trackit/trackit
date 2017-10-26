@@ -18,6 +18,7 @@ import 'react-table/react-table.css'
 import './styles/style.css';
 import './styles/style-sm.css';
 import './styles/style-xs.css';
+import './styles/style-md.css';
 
 // Components
 import App from './App';

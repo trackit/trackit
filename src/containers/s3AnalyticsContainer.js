@@ -27,12 +27,12 @@ class S3AnalyticsContainer extends Component {
         </div>
 
         <div className="row">
-          <div className="col-md-6">
+          <div className="col-md-12">
             <div className="white-box">
               {this.props.s3Data && <Components.S3AnalyticsInfos data={this.props.s3Data}/>}
             </div>
           </div>
-          <div className="col-md-6">
+          <div className="col-md-12">
             <div className="white-box">
               {this.props.s3Data && <Components.S3AnalyticsBarChart elementId="s3BarChart" data={this.props.s3Data}/>}
             </div>
