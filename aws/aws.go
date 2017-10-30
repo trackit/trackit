@@ -3,7 +3,6 @@ package aws
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -20,20 +19,26 @@ import (
 // AwsAccount represents a client's AWS account.
 type AwsAccount struct {
 	Id       int    `json:"id"`
-	UserId   int    `json:"userId"`
+	UserId   int    `json:"-"`
 	RoleArn  string `json:"roleArn"`
 	External string `json:"-"`
 }
 
 const (
+	// assumeRoleDuration is the duration in seconds assumed-role
+	// credentials are requested to last. 3600 seconds is the maximum valid
+	// value.
 	assumeRoleDuration = 3600
 )
 
 var (
-	ErrNotImplemented = errors.New("Not implemented.")
-	Session           client.ConfigProvider
-	stsService        *sts.STS
-	accountId         string
+	// Session is an AWS API session.
+	Session client.ConfigProvider
+	// stsService gives access to the AWS STS API.
+	stsService *sts.STS
+	// accountId is the AWS account ID for the credentials provided to the
+	// server at startup through the standard methods for the AWS SDK.
+	accountId string
 )
 
 func init() {
@@ -44,6 +49,8 @@ func init() {
 	accountId = initAccountId(stsService)
 }
 
+// initAccountId uses the AWS STS API's GetCallerIdentity method to discover
+// the account ID for the AWS account the server uses.
 func initAccountId(s *sts.STS) string {
 	var input sts.GetCallerIdentityInput
 	output, err := s.GetCallerIdentity(&input)
@@ -53,6 +60,7 @@ func initAccountId(s *sts.STS) string {
 	return *output.Account
 }
 
+// AccountId returns the server's AWS account ID.
 func AccountId() string { return accountId }
 
 // GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
@@ -91,6 +99,9 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 	return err
 }
 
+// awsAccountFromDbAwsAccount constructs an aws.AwsAccount from a
+// models.AwsAccount. The distinction exists to decouple database access from
+// the logic of the server.
 func awsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 	return AwsAccount{
 		Id:       dbAwsAccount.ID,

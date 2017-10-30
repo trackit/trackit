@@ -1,7 +1,6 @@
 package aws
 
 import (
-	"math/rand"
 	"testing"
 )
 

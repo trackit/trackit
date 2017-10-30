@@ -1,9 +1,11 @@
 package aws
 
 import (
+	"context"
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/trackit/jsonlog"
 )
 
 // AwsTemporaryCredentials hold temporary credentials and various useful data
@@ -19,7 +21,7 @@ type AwsTemporaryCredentials struct {
 // GetTemporaryCredentials gets temporary credentials in a client's AWS account
 // using the STS AssumeRole feature. The returned credentials will last no more
 // than an hour. The returned credentials are valid iff the error is nil.
-func GetTemporaryCredentials(account AwsAccount, sessionName string) (AwsTemporaryCredentials, error) {
+func GetTemporaryCredentials(ctx context.Context, account AwsAccount, sessionName string) (AwsTemporaryCredentials, error) {
 	durationSeconds := int64(assumeRoleDuration)
 	input := sts.AssumeRoleInput{
 		DurationSeconds: &durationSeconds,
@@ -32,8 +34,14 @@ func GetTemporaryCredentials(account AwsAccount, sessionName string) (AwsTempora
 		SessionName: sessionName,
 	}
 	var err error
-	if result, err := stsService.AssumeRole(&input); err == nil {
+	if result, err := stsService.AssumeRoleWithContext(ctx, &input); err == nil {
 		populateTemporaryCredentials(&temporaryCredentials, result)
+	} else {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to get temporary credentials", map[string]interface{}{
+			"error":   err.Error(),
+			"account": account,
+		})
 	}
 	return temporaryCredentials, err
 }
