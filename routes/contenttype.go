@@ -32,6 +32,8 @@ func bodyIsIgnoredForMethod(method string) bool {
 	switch method {
 	case "GET":
 		return true
+	case "OPTIONS":
+		return true
 	default:
 		return false
 	}
