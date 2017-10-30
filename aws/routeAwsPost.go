@@ -1,0 +1,109 @@
+package aws
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"net/http"
+
+	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit2/routes"
+	"github.com/trackit/trackit2/users"
+)
+
+// postAwsAccountRequestBody is the expected request body for the
+// postAwsAccount request handler.
+type postAwsAccountRequestBody struct {
+	RoleArn  string `json:"roleArn"`
+	External string `json:"external"`
+}
+
+var (
+	errInvalidAccount     = errors.New("Could not validate role and external ID.")
+	errFailCreateAccount  = errors.New("Failed to create AWS account.")
+	errFailUpdateExternal = errors.New("Failed to update external.")
+)
+
+// postAwsAccount is a route handler which lets the user add AwsAccounts to
+// their account.
+func postAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
+	var body postAwsAccountRequestBody
+	err := decodeRequestBody(r, &body)
+	if err == nil && isPostAwsAccountRequestBodyValid(body) {
+		tx := a[db.Transaction].(*sql.Tx)
+		u := a[users.AuthenticatedUser].(users.User)
+		return postAwsAccountWithValidBody(r, tx, u, body)
+	} else {
+		return 400, errors.New("Body is invalid.")
+	}
+}
+
+// isPostAwsAccountRequestBodyValid tests whether the body for postAwsAccount
+// has a valid structure.
+func isPostAwsAccountRequestBodyValid(body postAwsAccountRequestBody) bool {
+	return body.RoleArn != "" && body.External != ""
+}
+
+// postAwsAccountWithValidBody handles the logic of postAwsAccount assuming the
+// request body is valid.
+func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, body postAwsAccountRequestBody) (int, interface{}) {
+	ctx := r.Context()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	account := AwsAccount{
+		RoleArn:  body.RoleArn,
+		External: body.External,
+		UserId:   user.Id,
+	}
+	if account.External != user.NextExternal {
+		logger.Warning("Tried to add AWS account with bad external.", account)
+		return 400, errors.New("Incorrect external. Use /aws/next to get expected external.")
+	} else if err := testAndCreateAwsAccount(ctx, tx, &account, &user); err == nil {
+		return 200, account
+	} else {
+		switch err {
+		case errInvalidAccount:
+			return 400, err
+		default:
+			return 500, err
+		}
+	}
+}
+
+// testAndCreateAwsAccount tests an AwsAccount can be assumed-role and then
+// saves it to the database.
+func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *AwsAccount, user *users.User) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	if _, err := GetTemporaryCredentials(ctx, *account, "validityTest"); err != nil {
+		return errInvalidAccount
+	}
+	if err := account.CreateAwsAccount(ctx, tx); err != nil {
+		logger.Error("Failed to insert AWS account.", newTestAndCreateAwsAccountError(err, *account, *user))
+		return errFailCreateAccount
+	}
+	user.NextExternal = ""
+	if err := user.UpdateNextExternal(ctx, tx); err != nil {
+		logger.Error("Failed to update external.", newTestAndCreateAwsAccountError(err, *account, *user))
+		return errFailUpdateExternal
+	}
+	return nil
+}
+
+// testAndCreateAwsAccountError is used to log errors in
+// testAndCreateAwsAccount.
+type testAndCreateAwsAccountError struct {
+	err     string     `json:"error"`
+	account AwsAccount `json:"account"`
+	user    users.User `json:"user"`
+}
+
+// newTestAndCreateAwsAccountError is used to log errors in
+// testAndCreateAwsAccount.
+func newTestAndCreateAwsAccountError(e error, a AwsAccount, u users.User) testAndCreateAwsAccountError {
+	return testAndCreateAwsAccountError{
+		err:     e.Error(),
+		account: a,
+		user:    u,
+	}
+}
