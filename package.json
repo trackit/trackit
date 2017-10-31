@@ -70,7 +70,11 @@
       "src/**/*.{js,jsx}",
       "!src/**/index.js",
       "!src/**/gcp/***.js",
-      "!src/{actions|constants|store}/***.js"
+      "!src/{config|registerServiceWorker}.js",
+      "!src/{actions|constants|store}/***.js",
+      "!src/sagas/{watcher|misc}.js",
+      "!src/api/auth.js",
+      "!src/api/{aws}/*.js"
     ],
     "setupFiles": [
       "<rootDir>/config/polyfills.js",
