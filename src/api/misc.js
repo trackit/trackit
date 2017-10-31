@@ -1,4 +1,4 @@
-import Config from '../config.js';
+import Config from '../config';
 
 export const call = (route, method, body=null, token=null) => {
   let headers = {
