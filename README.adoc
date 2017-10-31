@@ -6,3 +6,8 @@ usage and spending.
 == Cheking out
 
 In order to check out this project’s dependencies, run `govendor sync -v`.
+
+== Running
+
+In order to build and run the _Docker Compose_ environment, simply run
+`./start.sh`.

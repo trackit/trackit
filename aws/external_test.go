@@ -12,28 +12,35 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package routes
+package aws
 
 import (
-	"net/http"
+	"testing"
 )
 
-// WithErrorBody is a decorator for an HTTP handler. If that handler returns an
-// error, it will wrap it in an ErrorBody structure so that it can correctly be
-// returned to the user as JSON.
-type WithErrorBody struct{}
+const (
+	externalCount = 24
+)
 
-type ErrorBody struct {
-	Error string `json:"error"`
+func TestGenerateExternal(t *testing.T) {
+	var e [externalCount]string
+	for i := range e {
+		e[i] = generateExternal()
+		t.Log(e[i])
+		if len(e[i]) != externalLength {
+			t.Errorf("Length should be %d, is %d.", externalLength, len(e[i]))
+		}
+		for j := range e[:i] {
+			if e[i] == e[j] {
+				t.Errorf("Externals should be unique.")
+			}
+		}
+	}
 }
 
-func (d WithErrorBody) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
-		status, output := h(w, r, a)
-		if err, ok := output.(error); ok {
-			return status, ErrorBody{err.Error()}
-		} else {
-			return status, output
-		}
+func BenchmarkGenerateExternal(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		generateExternal()
 	}
 }

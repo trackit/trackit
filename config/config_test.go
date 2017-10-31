@@ -12,28 +12,22 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package routes
+package config
 
 import (
-	"net/http"
+	"testing"
 )
 
-// WithErrorBody is a decorator for an HTTP handler. If that handler returns an
-// error, it will wrap it in an ErrorBody structure so that it can correctly be
-// returned to the user as JSON.
-type WithErrorBody struct{}
-
-type ErrorBody struct {
-	Error string `json:"error"`
-}
-
-func (d WithErrorBody) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
-		status, output := h(w, r, a)
-		if err, ok := output.(error); ok {
-			return status, ErrorBody{err.Error()}
-		} else {
-			return status, output
+func TestIdentifierToEnvVarName(t *testing.T) {
+	cases := [][2]string{
+		[2]string{"HttpAddress", envVarPrefix + "_HTTP_ADDRESS"},
+		[2]string{"SqlProtocol", envVarPrefix + "_SQL_PROTOCOL"},
+		[2]string{"SqlAddress", envVarPrefix + "_SQL_ADDRESS"},
+		[2]string{"HashDifficulty", envVarPrefix + "_HASH_DIFFICULTY"},
+	}
+	for _, c := range cases {
+		if r := IdentifierToEnvVarName(c[0]); r != c[1] {
+			t.Errorf("Testing with %s, should be %s, is %s.", c[0], c[1], r)
 		}
 	}
 }
