@@ -20,16 +20,16 @@ func messageTask(c chan<- int, i int) Task {
 	}
 }
 
-func TestRunningSchedulerIsRunning(t *testing.T) {
+func TestTickingSchedulerIsTicking(t *testing.T) {
 	var s Scheduler
 	s.Start()
-	if s.Running() != true {
-		t.Errorf("Running scheduler should be marked running, isn't.")
+	if s.Ticking() != true {
+		t.Errorf("Ticking scheduler should be marked running, isn't.")
 	}
 	s.Stop()
 }
 
-func TestRegisterAtRunningScheduler(t *testing.T) {
+func TestRegisterAtTickingScheduler(t *testing.T) {
 	var s Scheduler
 	var a int
 	c := make(chan int)
@@ -55,14 +55,14 @@ out:
 	s.Stop()
 }
 
-func TestNotRunningSchedulerIsNotRunning(t *testing.T) {
+func TestNotTickingSchedulerIsNotTicking(t *testing.T) {
 	var s Scheduler
-	if s.Running() != false {
+	if s.Ticking() != false {
 		t.Errorf("Never started scheduler should not be marked running. Is.")
 	}
 	s.Start()
 	s.Stop()
-	if s.Running() != false {
+	if s.Ticking() != false {
 		t.Errorf("Started-then-stopped scheduler should not be marked running. Is.")
 	}
 }

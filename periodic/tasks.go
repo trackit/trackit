@@ -12,6 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// periodic runs periodic tasks. Tasks can be registered to a Scheduler which
+// may or may not be "ticking", i.e. running its tasks.
 package periodic
 
 import (
@@ -22,7 +24,11 @@ import (
 	"github.com/trackit/jsonlog"
 )
 
+// contextKey is an unexported type to avoid collisions in context.Context
+// values.
 type contextKey uint
+
+// taskSignal is the type for signals sent to task tickers.
 type taskSignal uint
 
 const (
@@ -31,13 +37,18 @@ const (
 	TwiceDaily  = Daily / 2
 	ThriceDaily = Daily / 3
 
+	// TaskTime is a key for a context.Context where the starting time of
+	// the current request is stored.
 	TaskTime = contextKey(iota)
 
+	// taskStop instructs a task ticker to stop running its task and return.
 	taskStop = taskSignal(iota)
 )
 
+// Task is a task that can be scheduled.
 type Task func(context.Context) error
 
+// taskRegistration is a task registration that may or may not be ticking.
 type taskRegistration struct {
 	Name    string `json:"name"`
 	task    Task
@@ -46,18 +57,24 @@ type taskRegistration struct {
 	control chan taskSignal
 }
 
+// Scheduler runs registered periodic tasks. Its zero value is a valid
+// Scheduler that doesn't tick and has no registered task. It may be used in
+// parallel.
 type Scheduler struct {
 	running       bool
 	registrations []taskRegistration
 	mutex         sync.RWMutex
 }
 
-func (s *Scheduler) Running() bool {
+// Ticking returns whether the Scheduler is currently ticking.
+func (s *Scheduler) Ticking() bool {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 	return s.running
 }
 
+// Register registers a Task to the Scheduler to be run at period p. If the
+// Scheduler is ticking, the task starts ticking immediately.
 func (s *Scheduler) Register(t Task, p time.Duration, n string) {
 	r := taskRegistration{
 		task:   t,
@@ -72,6 +89,8 @@ func (s *Scheduler) Register(t Task, p time.Duration, n string) {
 	s.registrations = append(s.registrations, r)
 }
 
+// Start starts a Scheduler. Starting an already started scheduler is
+// functionally a noop, though an error will be logged.
 func (s *Scheduler) Start() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -85,6 +104,8 @@ func (s *Scheduler) Start() {
 	}
 }
 
+// Stop stops a Scheduler. Stopping an already stopped scheduler is
+// functionally a noop, though an error will be logged.
 func (s *Scheduler) Stop() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -96,6 +117,8 @@ func (s *Scheduler) Stop() {
 	}
 }
 
+// start starts a taskRegistration, having it tick and run its task
+// periodically.
 func (t *taskRegistration) start() {
 	if t.control == nil {
 		t.ticker = time.NewTicker(t.Period)
@@ -106,12 +129,16 @@ func (t *taskRegistration) start() {
 	}
 }
 
+// run runs the taskRegistration's task in the current goroutine.
 func (t *taskRegistration) run(d time.Time) error {
 	ctx := context.Background()
 	ctx = context.WithValue(ctx, TaskTime, d)
 	return t.task(ctx)
 }
 
+// getTickerChan gets the taskRegistration's ticker channel, creating it if it
+// doesn’t exist yet. This is the channel where a time.Ticker outputs to run
+// the periodic tasks.
 func (t *taskRegistration) getTickerChan() <-chan time.Time {
 	c := t.ticker
 	if c == nil {
@@ -121,6 +148,8 @@ func (t *taskRegistration) getTickerChan() <-chan time.Time {
 	}
 }
 
+// tick starts periodic tasks in response to ticks from t.ticker. The tasks are
+// started in their own goroutine using t.run.
 func (t *taskRegistration) tick() {
 tickloop:
 	for {
@@ -140,6 +169,8 @@ tickloop:
 	}
 }
 
+// stop stops a taskRegistration from ticking. Currently running tasks are not
+// cancelled.
 func (t *taskRegistration) stop() {
 	if t.control != nil {
 		t.control <- taskStop
