@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package costs gets billing information from an ElasticSearch.
 package costs
 
 import (
@@ -22,12 +23,17 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
-// paramNameToFuncPtr : map of string keys and functions pointer as values. For each possible param
+// aggregationBuilder is an alias for the function type that is used in the
+// aggregationBuilder functions.
+type aggregationBuilder func([]string) []paramAggrAndName
+
+// paramNameToFuncPtr maps parameter names to functions building the aggregations.
+// map of string keys and functions pointer as values. For each possible param
 // after parsing (removing the ':<TAG_KEY>' in the case of the tag), there is a function associated to it
 // that create the Aggregations needed by this param.
 // If a new param, that is only creating aggregations, needs to be added,
-// a functions with the same prototype as the one below should be added to this map.
-var paramNameToFuncPtr = map[string]func([]string) []paramAggrAndName{
+// a functions with an aggregationBuilder prototype need to be added to the list below.
+var paramNameToFuncPtr = map[string]aggregationBuilder{
 	"product": createAggregationPerProduct,
 	"region":  createAggregationPerRegion,
 	"account": createAggregationPerAccount,
@@ -39,108 +45,117 @@ var paramNameToFuncPtr = map[string]func([]string) []paramAggrAndName{
 	"year":    createAggregationPerYear,
 }
 
-// paramAggrAndName : Structure containing paramName and paramAggr, paramName being the name
-// of the parameter, such as "account". paramAggr is the Aggregation that correspond to that param
-// This struct is use to stoer all the aggregations and param name before nesting them.
+// paramAggrAndName is a structure containing the name of the parameter and
+// corresponding aggregation. A parameter is a string that is passed to the
+// GetElasticSearchParams and represents an aggregation. A list of those
+// parameters can be found in the paramNameToFuncPtr map.
 type paramAggrAndName struct {
-	paramName string
-	paramAggr elastic.Aggregation
+	name string
+	aggr elastic.Aggregation
 }
 
-// aggregationMaxSize : Maximum size of an Elastic Search Aggregation
+// aggregationMaxSize is the maximum size of an Elastic Search Aggregation
 const aggregationMaxSize = 0x7FFFFFFF
 
-// createQueryAccountFilter : Creates and return a new *elastic.TermsQuery on the accountList array
+// createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("linked_account_id", accountList)
 }
 
-// createQueryTimeRange : Creates and return a new *elastic.RangeQuery based on the duration
+// createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
 // defined by durationBegin and durationEnd
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
 	return elastic.NewRangeQuery("usage_start_date").
 		From(durationBegin).To(durationEnd)
 }
 
-// createAggregationPerProduct : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerProduct creates and returns a new []paramAggrAndName of size 1 which creates a
 // bucket aggregation on the field 'product_name'
 func createAggregationPerProduct(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "product",
-		paramAggr: elastic.NewTermsAggregation().
-			Field("product_name").Size(aggregationMaxSize)}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "product",
+			aggr: elastic.NewTermsAggregation().
+				Field("product_name").Size(aggregationMaxSize),
+		},
+	}
 }
 
-// createAggregationPerRegion : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerRegion creates and returns a new []paramAggrAndName of size 1 which creates a
 // bucket aggregation on the field 'availability_zone'
 func createAggregationPerRegion(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "region",
-		paramAggr: elastic.NewTermsAggregation().
-			Field("availability_zone").Size(aggregationMaxSize)}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "region",
+			aggr: elastic.NewTermsAggregation().
+				Field("availability_zone").Size(aggregationMaxSize),
+		},
+	}
 }
 
-// createAggregationPerAccount : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerAccount creates and returns a new []paramAggrAndName of size 1 which creates a
 // bucket aggregation on the field 'linked_account_id'
 func createAggregationPerAccount(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "account",
-		paramAggr: elastic.NewTermsAggregation().
-			Field("linked_account_id").Size(aggregationMaxSize)}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "account",
+			aggr: elastic.NewTermsAggregation().
+				Field("linked_account_id").Size(aggregationMaxSize),
+		},
+	}
 }
 
-// createAggregationPerDay : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerDay creates and returns a new []paramAggrAndName of size 1 which creates a
 // date histogram aggregation on the field 'usage_start_date' with a time range of a day
 func createAggregationPerDay(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "day",
-		paramAggr: elastic.NewDateHistogramAggregation().
-			Field("usage_start_date").Interval("day")}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "day",
+			aggr: elastic.NewDateHistogramAggregation().
+				Field("usage_start_date").Interval("day"),
+		},
+	}
 }
 
-// createAggregationPerWeek : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerWeek creates and returns a new []paramAggrAndName of size 1 which creates a
 // date histogram aggregation on the field 'usage_start_date' with a time range of a week
 func createAggregationPerWeek(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "week",
-		paramAggr: elastic.NewDateHistogramAggregation().
-			Field("usage_start_date").Interval("week")}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "week",
+			aggr: elastic.NewDateHistogramAggregation().
+				Field("usage_start_date").Interval("week"),
+		},
+	}
 }
 
-// createAggregationPerMonth : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerMonth creates and returns a new []paramAggrAndName of size 1 which creates a
 // date histogram aggregation on the field 'usage_start_date' with a time range of a month
 func createAggregationPerMonth(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "month",
-		paramAggr: elastic.NewDateHistogramAggregation().
-			Field("usage_start_date").Interval("month")}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "month",
+			aggr: elastic.NewDateHistogramAggregation().
+				Field("usage_start_date").Interval("month"),
+		},
+	}
 }
 
-// createAggregationPerYear : Creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerYear creates and returns a new []paramAggrAndName of size 1 which creates a
 // date histogram aggregation on the field 'usage_start_date' with a time range of a year
 func createAggregationPerYear(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "year",
-		paramAggr: elastic.NewDateHistogramAggregation().
-			Field("usage_start_date").Interval("year")}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "year",
+			aggr: elastic.NewDateHistogramAggregation().
+				Field("usage_start_date").Interval("year"),
+		},
+	}
 }
 
-// createAggregationPerTag : Creates and return a new []paramAggrAndName of size 2, which creates two
-// agregation. The first aggregation is a FilterAggregation on the field 'tag.key', and with a value of
+// createAggregationPerTag creates and returns a new []paramAggrAndName of size 2 which consits
+// of two aggregations that are required for the tag param.
+// The first aggregation is a FilterAggregation on the field 'tag.key', and with a value of
 // the tag key passed in the parameter 'paramSplit' in the form "user:<TAG_KEY_VALUE>".
 // The second aggregation is a TermsAggregation that creates bucket aggregation on the field
 // 'tag.value'.
@@ -148,12 +163,12 @@ func createAggregationPerYear(_ []string) []paramAggrAndName {
 func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 	res := make([]paramAggrAndName, 2)
 	res[0] = paramAggrAndName{
-		paramName: "tag_key",
-		paramAggr: elastic.NewFilterAggregation().
+		name: "tag_key",
+		aggr: elastic.NewFilterAggregation().
 			Filter(elastic.NewTermQuery("tag.key", fmt.Sprintf("user:%v", paramSplit[1])))}
 	res[1] = paramAggrAndName{
-		paramName: "tag_value",
-		paramAggr: elastic.NewTermsAggregation().
+		name: "tag_value",
+		aggr: elastic.NewTermsAggregation().
 			Field("tag.value").Size(aggregationMaxSize)}
 	return res
 }
@@ -161,11 +176,12 @@ func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 // createCostSumAggregation : Creates and return a new []paramAggrAndName of size 1, which creates a
 // SumAggregation on the field 'cost'
 func createCostSumAggregation(_ []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 1)
-	res[0] = paramAggrAndName{
-		paramName: "cost",
-		paramAggr: elastic.NewSumAggregation().Field("cost")}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "cost",
+			aggr: elastic.NewSumAggregation().Field("cost"),
+		},
+	}
 }
 
 // reverseAggregationArray : reverse the paramAggrAndName array that is passed to it
@@ -177,9 +193,9 @@ func reverseAggregationArray(aggregationArray []paramAggrAndName) []paramAggrAnd
 	return aggregationArray
 }
 
-// nestAggregation : takes a slice of paramAggrAndName type, and will nest the different aggregations.
+// nestAggregation takes a slice of paramAggrAndName type, and will nest the different aggregations.
 // Aggregations are nested by creating a chain of SubAggregation
-// A type switch is required for simulating downcasting from the interface elastic.Aggregation.
+// A type switch is required to simulate downcasting from the interface elastic.Aggregation.
 // Current types on the type switch are TermsAggregation, FilterAggregation, SumAggregation and
 // DateHistogramAggregation.
 // If a new function creating a type that is not listed here is added to the paramNameToFuncPtr map
@@ -188,29 +204,29 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 	allAggrSlice = reverseAggregationArray(allAggrSlice)
 	aggrToNest := allAggrSlice[0]
 	for _, baseAggr := range allAggrSlice[1:] {
-		switch assertedBaseAggr := baseAggr.paramAggr.(type) {
+		switch assertedBaseAggr := baseAggr.aggr.(type) {
 		case *elastic.TermsAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.paramName, aggrToNest.paramAggr)
-			aggrToNest = paramAggrAndName{paramName: baseAggr.paramName, paramAggr: aggrBuff}
+			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
+			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
 		case *elastic.FilterAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.paramName, aggrToNest.paramAggr)
-			aggrToNest = paramAggrAndName{paramName: baseAggr.paramName, paramAggr: aggrBuff}
+			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
+			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
 		case *elastic.SumAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.paramName, aggrToNest.paramAggr)
-			aggrToNest = paramAggrAndName{paramName: baseAggr.paramName, paramAggr: aggrBuff}
+			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
+			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
 		case *elastic.DateHistogramAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.paramName, aggrToNest.paramAggr)
-			aggrToNest = paramAggrAndName{paramName: baseAggr.paramName, paramAggr: aggrBuff}
+			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
+			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
 		}
 	}
-	return aggrToNest.paramAggr
+	return aggrToNest.aggr
 }
 
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
 // 	- accountList []string : A slice of strings representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
-//	- durationBeing time.TIme : A time.Time struct representing the begining of the time range in the query
+//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //	- param []string : A slice of strings representing the different parameters, in the nesting order,
 //	that will create aggregations.
@@ -247,7 +263,7 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 		paramAggr := paramNameToFuncPtr[paramNameSplit[0]](paramNameSplit)
 		allAggregationSlice = append(allAggregationSlice, paramAggr...)
 	}
-	aggregationParamName := allAggregationSlice[0].paramName
+	aggregationParamName := allAggregationSlice[0].name
 	nestedAggregation := nestAggregation(allAggregationSlice)
 	search.Aggregation(aggregationParamName, nestedAggregation)
 	return search
