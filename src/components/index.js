@@ -3,5 +3,6 @@ import AWS from './aws';
 
 export default {
   Misc,
-  AWS
+  AWS,
+  S3Analytics,
 };

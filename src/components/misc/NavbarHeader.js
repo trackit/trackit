@@ -5,7 +5,7 @@ import Actions from '../../actions';
 
 import '../../styles/Navigation.css';
 
-import logo from '../../assets/logo-white-sized-spaced.png';
+import logo from '../../assets/logo-white-coloured.png';
 
 class NavbarHeader extends Component {
 

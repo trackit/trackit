@@ -5,6 +5,61 @@ body {
     background: #edf1f5 !important;
 }
 
+.dollar-sign {
+    color: #bbbbbb;
+}
+
+.card-label {
+  color: #808080;
+  font-weight: 300;
+}
+
+.in-col {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.in-col li {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0 10px;
+}
+
+.total-cell .dollar-sign {
+    color: #1e88e5;
+}
+
+.font-light-medium {
+  font-weight: 500 !important;
+}
+
+.font-light {
+  font-weight: 300 !important;
+}
+
+
+
+
+/* BORDERS */
+
+.br {
+    border-right: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bl {
+    border-left: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bt {
+    border-top: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bb {
+    border-bottom: 1px solid rgba(120, 130, 140, .13);
+}
+
+
 /* BUTTONS */
 
 button {
@@ -23,6 +78,7 @@ button {
     border-color: #4885ed;
 }
 
+
 /* COLORS */
 
 .red-color {
@@ -33,29 +89,60 @@ button {
     background-color: #d6413b;
 }
 
-/* MARGIN AND PADDING HELPERS */
-
-.m-b-0 {
-    margin-bottom: 0px;
+.orange-color {
+    color: #ff9800;
 }
 
-.m-l-0 {
-    margin-left: 0px;
+.orange-bg {
+    background-color: #ff9800;
 }
 
-.m-t-0 {
-    margin-top: 0px;
+.green-color {
+    color: #4caf50;
 }
 
-.m-r-0 {
-    margin-right: 0px;
+.green-bg {
+    background-color: #4caf50;
 }
+
+.blue-color {
+    color: #1e88e5;
+}
+
+.blue-bg {
+    background-color: #1e88e5;
+}
+
+
+/* WHITE BOX */
 
 .white-box {
     background: #fff;
     padding: 25px;
     margin-bottom: 30px;
-    box-shadow: 0 1px 4px 0 rgba(0,0,0,.1);
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .1);
+}
+
+.white-box .white-box-title {
+    margin: 0px;
+    padding-bottom: 20px;
+}
+
+.white-box.no-padding {
+    padding: 0px;
+}
+
+.white-box.no-padding .white-box-title {
+    margin: 0px;
+    padding: 20px;
+}
+
+.white-box-title .white-box-title-icon {
+    width: 22px;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0px 7px;
+    margin-top: 2px;
 }
 
 .form-control {
@@ -71,7 +158,7 @@ button {
 }
 
 label {
-  font-weight: 500;
+    font-weight: 500;
 }
 
 
@@ -81,6 +168,15 @@ label {
     -webkit-box-shadow: inset 0 3px 0 0 rgba(213, 65, 60, 1);
     box-shadow: inset 0 3px 0 0 rgba(213, 65, 60, 1);
 }
+
+.ReactTable strong {
+    font-weight: 500;
+}
+
+.ReactTable .-pagination .-btn {
+    color: #1e88e5;
+}
+
 
 /* Dropdown menus */
 
