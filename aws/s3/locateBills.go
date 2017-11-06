@@ -1,9 +1,12 @@
 package s3
 
 import (
-	"context.Context"
+	"context"
+	"regexp"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/trackit/jsonlog"
 )
 
 type BillLocation struct {
@@ -16,12 +19,15 @@ type bucketLocation struct {
 }
 
 func LocateBills(ctx context.Context, ss *s3.S3, cbk func(context.Context, BillLocation) bool) error {
-	buckets, error := listBuckets(ctx, ss)
-	for b := range listBills(ctx, ss, buckets) {
-		if !cbk(ctx, b) {
-			break
+	buckets, err := listBuckets(ctx, ss)
+	if err == nil {
+		for b := range listBills(ctx, ss, buckets) {
+			if !cbk(ctx, b) {
+				break
+			}
 		}
 	}
+	return err
 }
 
 func listBuckets(ctx context.Context, ss *s3.S3) ([]string, error) {
@@ -30,7 +36,7 @@ func listBuckets(ctx context.Context, ss *s3.S3) ([]string, error) {
 	if err == nil {
 		buckets := make([]string, len(output.Buckets))
 		for i := range buckets {
-			buckets[i] = *output.Buckets[i]
+			buckets[i] = *output.Buckets[i].Name
 		}
 		return buckets, nil
 	} else {
@@ -61,13 +67,52 @@ func listBills(ctx context.Context, ss *s3.S3, buckets []string) <-chan BillLoca
 	c := make(chan BillLocation)
 	cc := make(chan (<-chan BillLocation))
 	defer close(cc)
-	go mergecBillLocations(c, cc)
+	go mergecBillLocation(c, cc)
 	for _, b := range buckets {
 		cc <- listBillsFromBucket(ctx, ss, b)
 	}
 	return c
 }
 
-func listBillsFromBucket(ctx context.Context, ss *s3.S3, b string) {
+func filterBillsByKey(in <-chan BillLocation) <-chan BillLocation {
+	out := make(chan BillLocation)
+	go func() {
+		defer close(out)
+		for b := range in {
+			if isBillKey(b) {
+				out <- b
+			}
+		}
+	}()
+	return out
+}
 
+var billKey = regexp.MustCompile(`\d+-aws-billing-detailed-line-items-with-resources-and-tags-\d{4}-\d{2}.csv.zip$`)
+
+func isBillKey(b BillLocation) bool {
+	return billKey.MatchString(b.Key)
+}
+
+func listBillsFromBucket(ctx context.Context, ss *s3.S3, b string) <-chan BillLocation {
+	c := make(chan BillLocation)
+	go func() {
+		defer close(c)
+		input := s3.ListObjectsV2Input{
+			Bucket: &b,
+		}
+		err := ss.ListObjectsV2PagesWithContext(ctx, &input, func(page *s3.ListObjectsV2Output, last bool) bool {
+			for _, o := range page.Contents {
+				c <- BillLocation{
+					Key:    *o.Key,
+					Bucket: b,
+					Region: "",
+				}
+			}
+			return !last
+		})
+		if err != nil {
+			jsonlog.LoggerFromContextOrDefault(ctx).Error("Failed to list objects from bucket.", err.Error())
+		}
+	}()
+	return c
 }
