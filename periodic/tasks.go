@@ -151,7 +151,6 @@ func (t *taskRegistration) getTickerChan() <-chan time.Time {
 // tick starts periodic tasks in response to ticks from t.ticker. The tasks are
 // started in their own goroutine using t.run.
 func (t *taskRegistration) tick() {
-tickloop:
 	for {
 		select {
 		case d := <-t.getTickerChan():
@@ -163,7 +162,7 @@ tickloop:
 				t.control = nil
 				t.ticker.Stop()
 				t.ticker = nil
-				break tickloop
+				return
 			}
 		}
 	}
