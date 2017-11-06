@@ -1,13 +1,12 @@
 export default {
   aws: {
-    pricing: [],
     accounts: {
       all: [],
       external: null
-    }
+    },
+    s3: []
   },
   gcp: {
-    pricing: []
   },
   auth: {
     token: null,

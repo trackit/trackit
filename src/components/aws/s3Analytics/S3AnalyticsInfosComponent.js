@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import {formatBytes, formatPrice} from '../../common/formatters';
+import {formatBytes, formatPrice} from '../../../common/formatters';
 
 // S3AnalyticsInfosComponent Component
 class S3AnalyticsInfosComponent extends Component {

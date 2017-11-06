@@ -1,16 +1,16 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import { NavLink, withRouter } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import NavbarHeader from './NavbarHeader';
 import Actions from '../../actions';
-
 
 // Styling
 import '../../styles/Navigation.css';
 
 // Assets
 
-class Navigation extends Component {
+export class Navigation extends Component {
 
   constructor() {
     super();
@@ -105,7 +105,6 @@ class Navigation extends Component {
               </NavLink>
             </li>
 
-
           </ul>
         </div>
       </div>
@@ -113,6 +112,10 @@ class Navigation extends Component {
   }
 
 }
+
+Navigation.propTypes = {
+  signOut: PropTypes.func.isRequired
+};
 
 const mapStateToProps = () => ({
 

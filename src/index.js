@@ -25,7 +25,6 @@ import './styles/helpers.css';
 import App from './App';
 import Containers from './containers';
 
-
 // Setup
 import configureStore from './store';
 

@@ -2,11 +2,13 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 // import PropTypes from 'prop-types';
 
-import Actions from '../actions';
+import Actions from '../../actions';
 
-import Components from '../components';
+import Components from '../../components';
 
-import s3square from '../assets/s3-square.png';
+import s3square from '../../assets/s3-square.png';
+
+const S3Analytics = Components.AWS.S3Analytics;
 
 // S3AnalyticsContainer Component
 class S3AnalyticsContainer extends Component {
@@ -29,19 +31,19 @@ class S3AnalyticsContainer extends Component {
         <div className="row">
           <div className="col-md-12">
             <div className="white-box">
-              {this.props.s3Data && <Components.S3Analytics.S3AnalyticsInfos data={this.props.s3Data}/>}
+              {this.props.s3Data && <S3Analytics.S3AnalyticsInfos data={this.props.s3Data}/>}
             </div>
           </div>
           <div className="col-md-12">
             <div className="white-box">
-              {this.props.s3Data && <Components.S3Analytics.S3AnalyticsBarChart elementId="s3BarChart" data={this.props.s3Data}/>}
+              {this.props.s3Data && <S3Analytics.S3AnalyticsBarChart elementId="s3BarChart" data={this.props.s3Data}/>}
             </div>
           </div>
 
         </div>
 
         <div className="white-box no-padding">
-          {this.props.s3Data && <Components.S3Analytics.S3AnalyticsTable data={this.props.s3Data}/>}
+          {this.props.s3Data && <S3Analytics.S3AnalyticsTable data={this.props.s3Data}/>}
         </div>
       </div>
     );
@@ -51,7 +53,7 @@ class S3AnalyticsContainer extends Component {
 
 S3AnalyticsContainer.propTypes = {};
 
-const mapStateToProps = ({aws}) => ({s3Data: aws.s3.data});
+const mapStateToProps = ({aws}) => ({s3Data: aws.s3});
 
 const mapDispatchToProps = (dispatch) => ({
   getS3Data: () => {
