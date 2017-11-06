@@ -5,7 +5,12 @@ import IndexRedirect from '../IndexRedirect';
 
 describe('<IndexRedirect/>', () => {
 
-  it('renders a <Redirect /> components', () => {
+  it('renders a <IndexRedirect /> component', () => {
+    const wrapper = shallow(<IndexRedirect/>);
+    expect(wrapper.length).toEqual(1);
+  });
+
+  it('renders a <Redirect /> component inside', () => {
     const wrapper = shallow(<IndexRedirect/>);
     expect(wrapper.find(Redirect)).toHaveLength(1);
   });

@@ -11,7 +11,7 @@ describe("API Calls", () => {
 
   describe("GET method", () => {
 
-    it("handless valid response without token", () => {
+    it("handles valid response without token", () => {
 
       const response = { data: "data" };
       fetchMock.get('*', response);
@@ -23,7 +23,7 @@ describe("API Calls", () => {
 
     });
 
-    it("handless valid response with token", () => {
+    it("handles valid response with token", () => {
 
       fetchMock.get('*', (url, data) => ({ token: data.headers['Authorization'] }));
 
@@ -34,7 +34,7 @@ describe("API Calls", () => {
 
     });
 /*
-    it("handless body without token", () => {
+    it("handles body without token", () => {
 
       const response = { data: "data" };
       fetchMock.get('*', (url, data) => (data.body));
@@ -46,7 +46,7 @@ describe("API Calls", () => {
 
     });
 
-    it("handless body with token", () => {
+    it("handles body with token", () => {
 
       const response = { data: "data" };
       fetchMock.get('*',
@@ -64,7 +64,7 @@ describe("API Calls", () => {
 
   describe("POST method", () => {
 
-    it("handless valid response", () => {
+    it("handles valid response", () => {
 
       const response = { data: "data" };
       fetchMock.post('*', (url, data) => (data.body));
@@ -76,7 +76,7 @@ describe("API Calls", () => {
 
     });
 
-    it("handless valid response with token", () => {
+    it("handles valid response with token", () => {
 
       const response = { data: "data" };
       fetchMock.post('*',
@@ -91,7 +91,7 @@ describe("API Calls", () => {
     });
 
 /*
-    it("handless no body without token", () => {
+    it("handles no body without token", () => {
 
       const response = { data: "data" };
       fetchMock.post('*', response);
@@ -103,7 +103,7 @@ describe("API Calls", () => {
 
     });
 
-    it("handless no body with token", () => {
+    it("handles no body with token", () => {
 
       fetchMock.post('*', (url, data) => ({ token: data.headers['Authorization'] }));
 

@@ -28,7 +28,12 @@ const storeWithAuth = {
 
 describe('<PrivateRoute/>', () => {
 
-  it('renders a <Route /> components', () => {
+  it('renders a <PrivateRoute /> component', () => {
+    const wrapper = shallow(<PrivateRoute component={emptyDiv} store={storeWithoutAuth}/>);
+    expect(wrapper.length).toEqual(1);
+  });
+
+  it('renders a <Route /> component inside', () => {
     const wrapper = shallow(<PrivateRoute component={emptyDiv} store={storeWithoutAuth}/>);
     expect(wrapper.find(Route)).toHaveLength(1);
   });

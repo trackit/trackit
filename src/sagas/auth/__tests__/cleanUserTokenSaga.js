@@ -4,7 +4,7 @@ import Constants from '../../../constants';
 
 describe("Clean User Token Saga", () => {
 
-  it("handless saga", () => {
+  it("handles saga", () => {
 
     let saga = cleanUserTokenSaga();
 

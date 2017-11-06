@@ -6,7 +6,7 @@ const token = "42";
 
 describe("Logout Saga", () => {
 
-  it("handless saga with available token", () => {
+  it("handles saga with available token", () => {
 
     let saga = logoutSaga();
 
@@ -24,7 +24,7 @@ describe("Logout Saga", () => {
 
   });
 
-  it("handless saga with unavailable token", () => {
+  it("handles saga with unavailable token", () => {
 
     let saga = logoutSaga();
 

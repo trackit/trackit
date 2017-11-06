@@ -12,7 +12,7 @@ describe("Login Saga", () => {
   const invalidResponse = { success: true, token };
   const noResponse = { success: false };
 
-  it("handless saga with valid data", () => {
+  it("handles saga with valid data", () => {
 
     let saga = loginSaga(credentials);
 
@@ -31,7 +31,7 @@ describe("Login Saga", () => {
 
   });
 
-  it("handless saga with invalid data", () => {
+  it("handles saga with invalid data", () => {
 
     let saga = loginSaga(credentials);
 
@@ -45,7 +45,7 @@ describe("Login Saga", () => {
 
   });
 
-  it("handless saga with no response", () => {
+  it("handles saga with no response", () => {
 
     let saga = loginSaga(credentials);
 

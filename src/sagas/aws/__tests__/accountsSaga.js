@@ -15,7 +15,7 @@ describe("Accounts Saga", () => {
     const invalidResponse = { success: true, accounts };
     const noResponse = { success: false };
 
-    it("handless saga with valid data", () => {
+    it("handles saga with valid data", () => {
 
       let saga = getAccountsSaga();
 
@@ -34,7 +34,7 @@ describe("Accounts Saga", () => {
 
     });
 
-    it("handless saga with invalid data", () => {
+    it("handles saga with invalid data", () => {
 
       let saga = getAccountsSaga();
 
@@ -51,7 +51,7 @@ describe("Accounts Saga", () => {
 
     });
 
-    it("handless saga with no response", () => {
+    it("handles saga with no response", () => {
 
       let saga = getAccountsSaga();
 
@@ -77,7 +77,7 @@ describe("Accounts Saga", () => {
     const invalidResponse = { success: true, account };
     const noResponse = { success: false };
 
-    it("handless saga with valid data", () => {
+    it("handles saga with valid data", () => {
 
       let saga = newAccountSaga({account});
 
@@ -97,7 +97,7 @@ describe("Accounts Saga", () => {
 
     });
 
-    it("handless saga with invalid data", () => {
+    it("handles saga with invalid data", () => {
 
       let saga = newAccountSaga({account});
 
@@ -114,7 +114,7 @@ describe("Accounts Saga", () => {
 
     });
 
-    it("handless saga with no response", () => {
+    it("handles saga with no response", () => {
 
       let saga = newAccountSaga({account});
 
@@ -140,7 +140,7 @@ describe("Accounts Saga", () => {
     const invalidResponse = { success: true, external };
     const noResponse = { success: false };
 
-    it("handless saga with valid data", () => {
+    it("handles saga with valid data", () => {
 
       let saga = newExternalSaga();
 
@@ -159,7 +159,7 @@ describe("Accounts Saga", () => {
 
     });
 
-    it("handless saga with invalid data", () => {
+    it("handles saga with invalid data", () => {
 
       let saga = newExternalSaga();
 
@@ -176,7 +176,7 @@ describe("Accounts Saga", () => {
 
     });
 
-    it("handless saga with no response", () => {
+    it("handles saga with no response", () => {
 
       let saga = newExternalSaga();
 
