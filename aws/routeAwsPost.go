@@ -58,7 +58,7 @@ func postAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 // isPostAwsAccountRequestBodyValid tests whether the body for postAwsAccount
 // has a valid structure.
 func isPostAwsAccountRequestBodyValid(body postAwsAccountRequestBody) bool {
-	return body.RoleArn != "" && body.External != "" && body.Pretty != ""
+	return body.RoleArn != "" && body.External != ""
 }
 
 // postAwsAccountWithValidBody handles the logic of postAwsAccount assuming the
