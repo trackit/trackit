@@ -32,6 +32,7 @@ import (
 type postAwsAccountRequestBody struct {
 	RoleArn  string `json:"roleArn"`
 	External string `json:"external"`
+	Pretty   string `json:"pretty"`
 }
 
 var (
@@ -57,7 +58,7 @@ func postAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 // isPostAwsAccountRequestBodyValid tests whether the body for postAwsAccount
 // has a valid structure.
 func isPostAwsAccountRequestBodyValid(body postAwsAccountRequestBody) bool {
-	return body.RoleArn != "" && body.External != ""
+	return body.RoleArn != "" && body.External != "" && body.Pretty != ""
 }
 
 // postAwsAccountWithValidBody handles the logic of postAwsAccount assuming the
@@ -69,6 +70,7 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 		RoleArn:  body.RoleArn,
 		External: body.External,
 		UserId:   user.Id,
+		Pretty:   body.Pretty,
 	}
 	if account.External != user.NextExternal {
 		logger.Warning("Tried to add AWS account with bad external.", account)

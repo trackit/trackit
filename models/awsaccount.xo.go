@@ -12,6 +12,7 @@ import (
 type AwsAccount struct {
 	ID       int            `json:"id"`       // id
 	UserID   int            `json:"user_id"`  // user_id
+	Pretty   string         `json:"pretty"`   // pretty
 	RoleArn  string         `json:"role_arn"` // role_arn
 	External sql.NullString `json:"external"` // external
 
@@ -40,14 +41,14 @@ func (aa *AwsAccount) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_account (` +
-		`user_id, role_arn, external` +
+		`user_id, pretty, role_arn, external` +
 		`) VALUES (` +
-		`?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, aa.UserID, aa.RoleArn, aa.External)
-	res, err := db.Exec(sqlstr, aa.UserID, aa.RoleArn, aa.External)
+	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External)
+	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External)
 	if err != nil {
 		return err
 	}
@@ -81,12 +82,12 @@ func (aa *AwsAccount) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_account SET ` +
-		`user_id = ?, role_arn = ?, external = ?` +
+		`user_id = ?, pretty = ?, role_arn = ?, external = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, aa.UserID, aa.RoleArn, aa.External, aa.ID)
-	_, err = db.Exec(sqlstr, aa.UserID, aa.RoleArn, aa.External, aa.ID)
+	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.ID)
+	_, err = db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.ID)
 	return err
 }
 
@@ -144,7 +145,7 @@ func AwsAccountByID(db XODB, id int) (*AwsAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, role_arn, external ` +
+		`id, user_id, pretty, role_arn, external ` +
 		`FROM trackit.aws_account ` +
 		`WHERE id = ?`
 
@@ -154,7 +155,7 @@ func AwsAccountByID(db XODB, id int) (*AwsAccount, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.RoleArn, &aa.External)
+	err = db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +171,7 @@ func AwsAccountsByUserID(db XODB, userID int) ([]*AwsAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, role_arn, external ` +
+		`id, user_id, pretty, role_arn, external ` +
 		`FROM trackit.aws_account ` +
 		`WHERE user_id = ?`
 
@@ -190,7 +191,7 @@ func AwsAccountsByUserID(db XODB, userID int) ([]*AwsAccount, error) {
 		}
 
 		// scan
-		err = q.Scan(&aa.ID, &aa.UserID, &aa.RoleArn, &aa.External)
+		err = q.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External)
 		if err != nil {
 			return nil, err
 		}
