@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+import configparser
+import os
+import subprocess
+import sys
+
+AWS_CREDENTIALS_FILE='/home/schube/.aws/credentials'
+
+def get_profile_config(profile):
+    c = configparser.ConfigParser()
+    c.read(AWS_CREDENTIALS_FILE)
+    return c[profile]
+
+def main(profile, cmd):
+    profile_config = get_profile_config(profile)
+    env = os.environ.copy()
+    env['AWS_ACCESS_KEY_ID'] = profile_config['aws_access_key_id']
+    env['AWS_SECRET_ACCESS_KEY'] = profile_config['aws_secret_access_key']
+    child = subprocess.Popen(cmd, env=env)
+    child.wait()
+
+if __name__ == '__main__':
+    if len(sys.argv) >= 2:
+        profile = sys.argv[1]
+        cmd = sys.argv[2:]
+        main(profile, cmd)
