@@ -4,49 +4,35 @@ import (
 	"context"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trackit/jsonlog"
 )
 
-type BillLocation struct {
-	Region string
+type BillKey struct {
+	Region       string
+	Bucket       string
+	Key          string
+	LastModified time.Time
+}
+
+type BillRepository struct {
 	Bucket string
-	Key    string
+	Prefix string
 }
 
-type bucketLocation struct {
-}
-
-func LocateBills(ctx context.Context, ss *s3.S3, cbk func(context.Context, BillLocation) bool) error {
-	buckets, err := listBuckets(ctx, ss)
-	if err == nil {
-		for b := range listBills(ctx, ss, buckets) {
-			if !cbk(ctx, b) {
-				break
-			}
+func LocateBills(ctx context.Context, ss *s3.S3, repositories []BillRepository, cbk func(context.Context, BillKey) bool) {
+	for b := range listBills(ctx, ss, repositories) {
+		if !cbk(ctx, b) {
+			break
 		}
-	}
-	return err
-}
-
-func listBuckets(ctx context.Context, ss *s3.S3) ([]string, error) {
-	input := s3.ListBucketsInput{}
-	output, err := ss.ListBucketsWithContext(ctx, &input)
-	if err == nil {
-		buckets := make([]string, len(output.Buckets))
-		for i := range buckets {
-			buckets[i] = *output.Buckets[i].Name
-		}
-		return buckets, nil
-	} else {
-		return nil, err
 	}
 }
 
 // mergecBillLocation implements the fan-in pattern by merging to the out
 // channel the input from the channels read on cs.
-func mergecBillLocation(out chan<- BillLocation, cs <-chan <-chan BillLocation) {
+func mergecBillLocation(out chan<- BillKey, cs <-chan <-chan BillKey) {
 	var wg sync.WaitGroup
 	for c := range cs {
 		wg.Add(1)
@@ -63,19 +49,19 @@ func mergecBillLocation(out chan<- BillLocation, cs <-chan <-chan BillLocation) 
 	}()
 }
 
-func listBills(ctx context.Context, ss *s3.S3, buckets []string) <-chan BillLocation {
-	c := make(chan BillLocation)
-	cc := make(chan (<-chan BillLocation))
+func listBills(ctx context.Context, ss *s3.S3, repositories []BillRepository) <-chan BillKey {
+	c := make(chan BillKey)
+	cc := make(chan (<-chan BillKey))
 	defer close(cc)
 	go mergecBillLocation(c, cc)
-	for _, b := range buckets {
-		cc <- listBillsFromBucket(ctx, ss, b)
+	for _, r := range repositories {
+		cc <- listBillsFromRepository(ctx, ss, r)
 	}
 	return c
 }
 
-func filterBillsByKey(in <-chan BillLocation) <-chan BillLocation {
-	out := make(chan BillLocation)
+func filterBillsByKey(in <-chan BillKey) <-chan BillKey {
+	out := make(chan BillKey)
 	go func() {
 		defer close(out)
 		for b := range in {
@@ -89,23 +75,25 @@ func filterBillsByKey(in <-chan BillLocation) <-chan BillLocation {
 
 var billKey = regexp.MustCompile(`\d+-aws-billing-detailed-line-items-with-resources-and-tags-\d{4}-\d{2}.csv.zip$`)
 
-func isBillKey(b BillLocation) bool {
+func isBillKey(b BillKey) bool {
 	return billKey.MatchString(b.Key)
 }
 
-func listBillsFromBucket(ctx context.Context, ss *s3.S3, b string) <-chan BillLocation {
-	c := make(chan BillLocation)
+func listBillsFromRepository(ctx context.Context, ss *s3.S3, r BillRepository) <-chan BillKey {
+	c := make(chan BillKey)
 	go func() {
 		defer close(c)
 		input := s3.ListObjectsV2Input{
-			Bucket: &b,
+			Bucket: &r.Bucket,
+			Prefix: &r.Prefix,
 		}
 		err := ss.ListObjectsV2PagesWithContext(ctx, &input, func(page *s3.ListObjectsV2Output, last bool) bool {
 			for _, o := range page.Contents {
-				c <- BillLocation{
-					Key:    *o.Key,
-					Bucket: b,
-					Region: "",
+				c <- BillKey{
+					Key:          *o.Key,
+					Bucket:       r.Bucket,
+					Region:       "",
+					LastModified: *o.LastModified,
 				}
 			}
 			return !last
@@ -114,5 +102,5 @@ func listBillsFromBucket(ctx context.Context, ss *s3.S3, b string) <-chan BillLo
 			jsonlog.LoggerFromContextOrDefault(ctx).Error("Failed to list objects from bucket.", err.Error())
 		}
 	}()
-	return c
+	return filterBillsByKey(c)
 }
