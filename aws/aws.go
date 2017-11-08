@@ -34,6 +34,7 @@ import (
 type AwsAccount struct {
 	Id       int    `json:"id"`
 	UserId   int    `json:"-"`
+	Pretty   string `json:"pretty"`
 	RoleArn  string `json:"roleArn"`
 	External string `json:"-"`
 }
@@ -99,6 +100,7 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 	dbAwsAccount := models.AwsAccount{
 		UserID:  a.UserId,
 		RoleArn: a.RoleArn,
+		Pretty:  a.Pretty,
 		External: sql.NullString{
 			Valid:  a.External != "",
 			String: a.External,
@@ -120,6 +122,7 @@ func awsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 	return AwsAccount{
 		Id:       dbAwsAccount.ID,
 		UserId:   dbAwsAccount.UserID,
+		Pretty:   dbAwsAccount.Pretty,
 		RoleArn:  dbAwsAccount.RoleArn,
 		External: dbAwsAccount.External.String,
 	}
