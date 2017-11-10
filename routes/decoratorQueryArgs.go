@@ -61,11 +61,13 @@ type (
 	}
 
 	// QueryArg defines an argument by its name and its type. A description
-	// can be used for documentation purposes.
+	// can be used for documentation purposes. The argument will be mandatory
+	// if you notice it.
 	QueryArg struct {
 		Name        string
 		Description string
 		Type        QueryParser
+		Mandatory   bool
 	}
 
 	// RequiredQueryArgs contains all the arguments to parse in the URL.
@@ -145,7 +147,7 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 		} else {
 			return http.StatusBadRequest, fmt.Errorf("query arg '%s': %s", arg.Name, err.Error())
 		}
-	} else {
+	} else if arg.Mandatory {
 		return http.StatusBadRequest, fmt.Errorf("query arg '%s': not found", arg.Name)
 	}
 	return http.StatusOK, nil

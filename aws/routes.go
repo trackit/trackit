@@ -27,6 +27,13 @@ import (
 	"github.com/trackit/trackit2/users"
 )
 
+var (
+	// QueryArgAwsAccounts allows to get the AWS Account IDs in the URL Parameters
+	// with routes.RequiredQueryArgs. This AWS Account IDs will be a slice of Uint
+	// stored in the routes.Arguments map with itself for key.
+	QueryArgAwsAccounts = routes.QueryArg{"aa", "AWS Account IDs", routes.QueryArgUintSlice{}, false}
+)
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getAwsAccount).With(
@@ -34,6 +41,7 @@ func init() {
 				Summary:     "get aws accounts' data",
 				Description: "Gets the data for all of the user's AWS accounts.",
 			},
+			routes.RequiredQueryArgs{QueryArgAwsAccounts},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
 			routes.RequestContentType{"application/json"},
