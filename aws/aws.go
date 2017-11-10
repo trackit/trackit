@@ -137,6 +137,20 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 	return err
 }
 
+// UpdateAWSAccount updates an AWS account for a user. It does no error
+// checking: the caller should check themselves that the AWS account exists.
+// Only the Pretty will be updated.
+func (a *AwsAccount) UpdateAWSAccount(ctx context.Context, tx *sql.Tx) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbAwsAccount, _ := models.AwsAccountByID(tx, a.Id)
+	dbAwsAccount.Pretty = a.Pretty
+	err := dbAwsAccount.Update(tx)
+	if err != nil {
+		logger.Error("Failed to update AWS account in database.", nil)
+	}
+	return err
+}
+
 // awsAccountFromDbAwsAccount constructs an aws.AwsAccount from a
 // models.AwsAccount. The distinction exists to decouple database access from
 // the logic of the server.
