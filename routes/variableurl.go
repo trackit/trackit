@@ -54,7 +54,7 @@ func (d ParseInt) Decorate(h IntermediateHandler) IntermediateHandler {
 		splitURL := strings.Split(r.URL.Path, "/")
 		index := incrementIndex(a) - 1
 		if len(splitURL) > index {
-			if i, err := strconv.ParseInt(splitURL[index], 10, 0); err == nil {
+			if i, err := strconv.Atoi(splitURL[index]); err == nil {
 				a[d.ArgName] = i
 				return h(w, r, a)
 			}
