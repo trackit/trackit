@@ -29,6 +29,19 @@ export function* newAccountSaga({ account }) {
   }
 }
 
+export function* deleteAccountSaga({ accountID }) {
+  try {
+    const token = yield select(getToken);
+    yield call(API.AWS.Accounts.deleteAccount, accountID, token);
+    yield all([
+      put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),
+      put({ type: Constants.AWS_GET_ACCOUNTS })
+    ]);
+  } catch (error) {
+    yield put({ type: Constants.AWS_DELETE_ACCOUNT_ERROR, error });
+  }
+}
+
 export function* newExternalSaga() {
   try {
     const token = yield select(getToken);

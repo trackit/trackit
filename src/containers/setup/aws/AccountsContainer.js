@@ -14,6 +14,7 @@ class AccountsContainer extends Component {
   constructor(props) {
     super(props);
     this.addAccount = this.addAccount.bind(this);
+    this.deleteAccount = this.deleteAccount.bind(this);
   }
 
   componentWillMount() {
@@ -26,6 +27,10 @@ class AccountsContainer extends Component {
     this.props.newExternal();
   };
 
+  deleteAccount = (accountID) => {
+    this.props.deleteAccount(accountID);
+  };
+
   render() {
     return (
       <div className="panel panel-default">
@@ -33,7 +38,7 @@ class AccountsContainer extends Component {
           <h3 className="panel-title">AWS Accounts</h3>
         </div>
         <div className="panel-body">
-          <List accounts={this.props.accounts}/>
+          <List accounts={this.props.accounts} delete={this.deleteAccount}/>
           <Form submit={this.addAccount} external={this.props.external}/>
         </div>
       </div>
@@ -48,7 +53,7 @@ AccountsContainer.propTypes = {
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
       userId: PropTypes.number.isRequired,
-      pretty: PropTypes.string.isRequired
+      pretty: PropTypes.string
     })
   ),
   external: PropTypes.string,
@@ -68,6 +73,9 @@ const mapDispatchToProps = (dispatch) => ({
   },
   newAccount: (account) => {
     dispatch(Actions.AWS.Accounts.newAccount(account))
+  },
+  deleteAccount: (accountID) => {
+    dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
   },
   newExternal: () => {
     dispatch(Actions.AWS.Accounts.newExternal())
