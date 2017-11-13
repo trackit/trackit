@@ -65,7 +65,6 @@ class FormComponent extends Component {
                 type="text"
                 name="pretty"
                 className="form-control"
-                validations={[Validation.required]}
               />
             </div>
 
