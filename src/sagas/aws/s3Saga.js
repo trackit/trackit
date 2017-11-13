@@ -4,7 +4,7 @@ import Constants from '../../constants';
 
 export function* getS3DataSaga() {
   try {
-    const s3Data = yield call(API.s3.getS3Data);
+    const s3Data = yield call(API.AWS.S3.getS3Data);
     yield all([
       put({ type: Constants.AWS_GET_S3_DATA_SUCCESS, s3Data }),
     ]);

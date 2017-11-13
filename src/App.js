@@ -10,7 +10,7 @@ class App extends Component {
           <div className="app-container" style={{paddingLeft: '60px'}}>
             <Route
               path={this.props.match.url + '/s3'}
-              component={Containers.S3Analytics}
+              component={Containers.AWS.S3Analytics}
             />
             <Route
               path={this.props.match.url + "/setup"}
