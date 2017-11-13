@@ -82,7 +82,7 @@ class Navigation extends Component {
             <li>
               <NavLink to='/app/s3' activeClassName="active">
                 <i className="menu-icon fa fa-bar-chart"/>
-                <span className="hide-menu">S3 Analytics</span>
+                <span className="hide-menu">AWS S3 Analytics</span>
               </NavLink>
             </li>
             <li>
