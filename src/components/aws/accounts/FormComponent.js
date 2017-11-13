@@ -20,15 +20,35 @@ class FormComponent extends Component {
   submit = (e) => {
     e.preventDefault();
     let values = this.form.getValues();
-    this.props.submit({roleArn: values.roleArn, external: values.external, pretty: values.pretty});
+    let account = {
+      roleArn: values.roleArn,
+      pretty: values.pretty
+    };
+    if (this.props.account === undefined && this.props.external)
+      account.external = values.external;
+    this.props.submit(account);
   };
 
   render() {
+    const actionTitle = (this.props.account !== undefined ? "Edit" : "Add") + " an account";
+    const external = (this.props.account !== undefined ? "" : (
+      <div className="form-group">
+        <label htmlFor="externalId">External</label>
+        <Input
+          type="text"
+          name="external"
+          className="form-control"
+          disabled
+          value={this.props.external}
+          validations={[Validation.required]}
+        />
+      </div>
+    ));
     return (
       <div className="panel panel-default">
 
         <div className="panel-heading">
-          <h3 className="panel-title">Add an account</h3>
+          <h3 className="panel-title">{actionTitle}</h3>
         </div>
 
         <div className="panel-body">
@@ -37,17 +57,7 @@ class FormComponent extends Component {
             this.form = form;
           }} onSubmit={this.submit}>
 
-            <div className="form-group">
-              <label htmlFor="externalId">External</label>
-              <Input
-                type="text"
-                name="external"
-                className="form-control"
-                disabled
-                value={this.props.external}
-                validations={[Validation.required]}
-              />
-            </div>
+            {external}
 
             <div className="form-group">
               <label htmlFor="roleArn">Role ARN</label>
@@ -55,6 +65,7 @@ class FormComponent extends Component {
                 name="roleArn"
                 type="text"
                 className="form-control"
+                value={(this.props.account !== undefined ? this.props.account.roleArn : undefined)}
                 validations={[Validation.required, Validation.roleArnFormat]}
               />
             </div>
@@ -64,6 +75,7 @@ class FormComponent extends Component {
               <Input
                 type="text"
                 name="pretty"
+                value={(this.props.account !== undefined ? this.props.account.pretty : undefined)}
                 className="form-control"
               />
             </div>
@@ -89,6 +101,12 @@ class FormComponent extends Component {
 }
 
 FormComponent.propTypes = {
+  account: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    roleArn: PropTypes.string.isRequired,
+    userId: PropTypes.number.isRequired,
+    pretty: PropTypes.string
+  }),
   submit: PropTypes.func.isRequired,
   external: PropTypes.string
 };
