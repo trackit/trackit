@@ -69,8 +69,7 @@ func initializeHandlers() {
 	}
 }
 
-func applyDecoratorsAndHandle(p string, ih routes.IntermediateHandler, ds []routes.Decorator) {
-	ih = routes.ApplyDecorators(ih, ds...)
-	h := http.StripPrefix(p, ih)
+func applyDecoratorsAndHandle(p string, h routes.IntermediateHandler, ds []routes.Decorator) {
+	h = routes.ApplyDecorators(h, ds...)
 	http.Handle(p, h)
 }

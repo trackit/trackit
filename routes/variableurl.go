@@ -1,123 +1,194 @@
+//   Copyright 2017 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package routes
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
 type (
-	parseIndex uint
+	// QueryArgInt is a type allowing to know the expected int
+	// type for the argument. QueryArgInt can be interfaced to
+	// QueryArgType.
+	QueryArgInt struct{}
 
-	ArgName string
+	// QueryArgUint is a type allowing to know the expected uint
+	// type for the argument. QueryArgUint can be interfaced to
+	// QueryArgType.
+	QueryArgUint struct{}
 
-	ParseInt struct {
-		ArgName ArgName
+	// QueryArgString is a type allowing to know the expected string
+	// type for the argument. QueryArgString can be interfaced to
+	// QueryArgType.
+	QueryArgString struct{}
+
+	// QueryArgIntSlice is a type allowing to know the expected []int
+	// type for the argument. QueryArgIntSlice can be interfaced to
+	// QueryArgType.
+	QueryArgIntSlice struct{}
+
+	// QueryArgUintSlice is a type allowing to know the expected []uint
+	// type for the argument. QueryArgUintSlice can be interfaced to
+	// QueryArgType.
+	QueryArgUintSlice struct{}
+
+	// QueryArgStringSlice is a type allowing to know the expected []string
+	// type for the argument. QueryArgStringSlice can be interfaced to
+	// QueryArgType.
+	QueryArgStringSlice struct{}
+
+	// QueryArgType is an interface used by all the type above. The Parse
+	// method takes the raw value of the argument and returns its typed value.
+	// An error can be returned if the value could not be parse. The error's
+	// message contains %s which has to be replaced by the argument's name
+	// before being displayed.
+	QueryArgType interface {
+		Parse(string) (interface{}, error)
 	}
-	ParseFloat32 struct {
-		ArgName ArgName
+
+	// QueryArg is a structure defining an argument by its name and its type.
+	QueryArg struct {
+		Name string
+		Type QueryArgType
 	}
-	ParseFloat64 struct {
-		ArgName ArgName
-	}
-	ParseString struct {
-		ArgName ArgName
-	}
-	ParseVoid struct {
-		Required string
-	}
-	ParseEnd struct{}
+
+	// WithQueryArg is a slice of QueryArg. That is the type that contains all
+	// the arguments to parse in the URL. WithQueryArg has a method Decorate
+	// called to apply the decorators on an endpoint.
+	WithQueryArg []QueryArg
 )
 
-const (
-	index = parseIndex(iota)
-)
-
-var (
-	badURLTypeMessage  = ErrorBody{"Bad URL type."}
-	badURLTypeCode     = 400
-	notFoundURLMessage = ErrorBody{"Not Found."}
-	notFoundURLCode    = 404
-)
-
-func incrementIndex(a Arguments) int {
-	if _, ok := a[index]; ok {
-		a[index] = a[index].(int) + 1
-	} else {
-		a[index] = 1
+// Parse is the method of QueryArgInt allowing to type the row value to
+// an int value. It can return an error, the error's message contains %s
+// which has to be replaced by the argument's name before being displayed.
+func (d QueryArgInt) Parse(val string) (interface{}, error) {
+	if i, err := strconv.ParseInt(val, 10, 64); err == nil {
+		return i, nil
 	}
-	return a[index].(int)
+	return nil, errors.New("argument \"%s\" must be an int")
 }
 
-func (d ParseInt) Decorate(h IntermediateHandler) IntermediateHandler {
+// Parse is the method of QueryArgUint allowing to type the row value to
+// an uint value. It can return an error, the error's message contains %s
+// which has to be replaced by the argument's name before being displayed.
+func (d QueryArgUint) Parse(val string) (interface{}, error) {
+	if i, err := strconv.ParseUint(val, 10, 64); err == nil {
+		return i, nil
+	}
+	return nil, errors.New("argument \"%s\" must be an uint")
+}
+
+// Parse is the method of QueryArgString allowing to type the row value to
+// a string value. It can't return an error since the row value is already
+// string typed.
+func (d QueryArgString) Parse(val string) (interface{}, error) {
+	return val, nil
+}
+
+// Parse is the method of QueryArgIntSlice allowing to type the row value to
+// a []int value. It can return an error, the error's message contains %s
+// which has to be replaced by the argument's name before being displayed.
+func (d QueryArgIntSlice) Parse(val string) (interface{}, error) {
+	vals := strings.Split(val, ",")
+	res := make([]int64, 0, len(vals))
+	for _, v := range vals {
+		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+			res = append(res, i)
+		} else {
+			return nil, errors.New("argument \"%s\" must be a slice of int")
+		}
+	}
+	return res, nil
+}
+
+// Parse is the method of QueryArgUintSlice allowing to type the row value to
+// a []uint value. It can return an error, the error's message contains %s
+// which has to be replaced by the argument's name before being displayed.
+func (d QueryArgUintSlice) Parse(val string) (interface{}, error) {
+	vals := strings.Split(val, ",")
+	res := make([]uint64, 0, len(vals))
+	for _, v := range vals {
+		if i, err := strconv.ParseUint(v, 10, 64); err == nil {
+			res = append(res, i)
+		} else {
+			return nil, errors.New("argument \"%s\" must be a slice of uint")
+		}
+	}
+	return res, nil
+}
+
+// Parse is the method of QueryArgStringSlice allowing to type the row value to
+// a []string value. It can return an error, the error's message contains %s
+// which has to be replaced by the argument's name before being displayed.
+func (d QueryArgStringSlice) Parse(val string) (interface{}, error) {
+	res := strings.Split(val, ",")
+	if len(res) > 0 {
+		return res, nil
+	}
+	return nil, errors.New("argument \"%s\" must be a slice of string")
+}
+
+// Decorate is the function called to apply the decorators to an endpoint. It returns
+// a function. This function produces a 400 error code with a json error message or
+// calls the next IntermediateHandler.
+// The goal of this function is to get the URL parameters to store them in
+// the Arguments.
+//
+// To use this decorator, create a var:
+// 		QueryArgProductsName = QueryArg{"productsName", QueryArgStringSlice{}}
+//
+// In this example, we need a slice of string called productsName that will be
+// our products name so we indicate to the decorator with QueryArgStringSlice{}.
+//
+// Then, register your endpoint as usual:
+//			Register(
+//				"/products/cost",
+//				getProductsCost,
+//				RequireMethod{"GET"},
+//				RequireContentType{"application/json"},
+//				db.WithTransaction{db.Db},
+//				users.WithAuthenticatedUser{},
+//				WithQueryArg{QueryArgProductsName},
+//			)
+//
+// See the last decorator WithQueryArg{QueryArgProductsName}, it will store
+// a slice of product name in the arguments.
+//
+// Thus, if the user calls
+//		/products/cost?productsName=EC2,ES,RDS
+// you will be able to get the productsName with the key productsName in the
+// arguments. The value will be ["EC2", "ES", "RDS"].
+func (d WithQueryArg) Decorate(h IntermediateHandler) IntermediateHandler {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
-		splitURL := strings.Split(r.URL.Path, "/")
-		index := incrementIndex(a) - 1
-		if len(splitURL) > index {
-			if i, err := strconv.Atoi(splitURL[index]); err == nil {
-				a[d.ArgName] = i
-				return h(w, r, a)
+		for _, arg := range d {
+			if rawVal := r.URL.Query().Get(arg.Name); rawVal != "" {
+				if val, err := arg.Type.Parse(rawVal); err == nil {
+					a[arg.Name] = val
+				} else {
+					msg := fmt.Sprintf(err.Error(), arg.Name)
+					return 400, ErrorBody{msg}
+				}
+			} else {
+				msg := fmt.Sprintf("argument \"%s\" not found", arg.Name)
+				return 400, ErrorBody{msg}
 			}
-			return badURLTypeCode, badURLTypeMessage
 		}
-		return notFoundURLCode, notFoundURLMessage
+		return h(w, r, a)
 	}
-}
-
-func (d ParseFloat32) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
-		splitURL := strings.Split(r.URL.Path, "/")
-		index := incrementIndex(a) - 1
-		if len(splitURL) > index {
-			if i, err := strconv.ParseFloat(splitURL[index], 32); err == nil {
-				a[d.ArgName] = i
-				return h(w, r, a)
-			}
-			return badURLTypeCode, badURLTypeMessage
-		}
-		return notFoundURLCode, notFoundURLMessage
-	}
-}
-
-func (d ParseFloat64) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
-		splitURL := strings.Split(r.URL.Path, "/")
-		index := incrementIndex(a) - 1
-		if len(splitURL) > index {
-			if i, err := strconv.ParseFloat(splitURL[index], 64); err == nil {
-				a[d.ArgName] = i
-				return h(w, r, a)
-			}
-			return badURLTypeCode, badURLTypeMessage
-		}
-		return notFoundURLCode, notFoundURLMessage
-	}
-}
-
-func (d ParseString) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
-		splitURL := strings.Split(r.URL.Path, "/")
-		index := incrementIndex(a) - 1
-		if len(splitURL) > index {
-			a[d.ArgName] = splitURL[index]
-			return h(w, r, a)
-		}
-		return notFoundURLCode, notFoundURLMessage
-	}
-}
-
-func (d ParseVoid) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
-		splitURL := strings.Split(r.URL.Path, "/")
-		index := incrementIndex(a) - 1
-		if (len(splitURL) == index && d.Required == "") ||
-			(len(splitURL) > index && splitURL[index] == d.Required) {
-			return h(w, r, a)
-		}
-		return notFoundURLCode, notFoundURLMessage
-	}
-}
-
-func (d ParseEnd) Decorate(h IntermediateHandler) IntermediateHandler {
-	return ParseVoid{""}.Decorate(h)
 }
