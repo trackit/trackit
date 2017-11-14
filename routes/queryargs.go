@@ -134,14 +134,9 @@ func (d QueryArgUintSlice) Parse(val string) (interface{}, error) {
 }
 
 // Parse is the method of QueryArgStringSlice allowing to type the row value to
-// a []string value. It can return an error, the error's message contains %s
-// which has to be replaced by the argument's name before being displayed.
+// a []string value. It can't return an error since it only calls strings.Split().
 func (d QueryArgStringSlice) Parse(val string) (interface{}, error) {
-	res := strings.Split(val, ",")
-	if len(res) > 0 {
-		return res, nil
-	}
-	return nil, errors.New("argument \"%s\" must be a slice of string")
+	return strings.Split(val, ","), nil
 }
 
 // Decorate is the function called to apply the decorators to an endpoint. It returns
