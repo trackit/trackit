@@ -6,7 +6,7 @@ import { formatBytes, formatPrice } from '../../../common/formatters';
 
 
 // S3AnalyticsTableComponent Component
-class S3AnalyticsTableComponent extends Component {
+class TableComponent extends Component {
 
     render() {
       return (
@@ -99,19 +99,25 @@ class S3AnalyticsTableComponent extends Component {
             defaultPageSize={10}
             className=" -highlight"
           />
-
-
-
-
-
         </div>
       );
     }
 
 }
 
-S3AnalyticsTableComponent.propTypes = {
-  data : PropTypes.array.isRequired,
+TableComponent.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      size: PropTypes.number.isRequired,
+      storage_cost: PropTypes.number.isRequired,
+      bw_cost: PropTypes.number.isRequired,
+      total_cost: PropTypes.number.isRequired,
+      transfer_in: PropTypes.number.isRequired,
+      transfer_out: PropTypes.number.isRequired,
+      chargify: PropTypes.oneOf(['not_synced', 'in_sync', 'synced'])
+    })
+  ),
 };
 
-export default S3AnalyticsTableComponent;
+export default TableComponent;

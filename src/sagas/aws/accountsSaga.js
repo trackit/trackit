@@ -36,7 +36,7 @@ export function* newAccountSaga({ account }) {
 
 export function* deleteAccountSaga({ accountID }) {
   try {
-    const token = yield select(getToken);
+    const token = yield getToken();
     yield call(API.AWS.Accounts.deleteAccount, accountID, token);
     yield all([
       put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),

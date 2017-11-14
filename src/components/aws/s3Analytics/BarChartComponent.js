@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 
  // S3AnalyticsBarChart Component
- class S3AnalyticsBarChart extends Component {
+ class BarChart extends Component {
 
-   formatDataForChart(data) {
+   formatDataForChart() {
      // Cloning the data
-     let dataClone = data.slice(0);
+     let dataClone = this.props.data.slice(0);
      // Extracting X first buckets by price
      dataClone = dataClone.sort((a,b) => {
         if (a.total_cost < b.total_cost)
@@ -39,18 +39,19 @@ import PropTypes from 'prop-types';
          bordercolor: '#ffffff',
        }
      };
-     for (let i = 0; i < dataClone.length; i += 1) {
-       const tmp = dataClone[i];
-       bandwidth.x.push(tmp._id);
-       storage.x.push(tmp._id);
-       bandwidth.y.push(tmp.bw_cost.toFixed(2));
-       storage.y.push(tmp.storage_cost.toFixed(2));
-     }
+
+     dataClone.forEach((item) => {
+       bandwidth.x.push(item._id);
+       bandwidth.y.push(item.bw_cost.toFixed(2));
+       storage.x.push(item._id);
+       storage.y.push(item.storage_cost.toFixed(2));
+     });
+
      return [bandwidth, storage];
    }
 
    componentDidMount() {
-     const data = this.formatDataForChart(this.props.data);
+     const data = this.formatDataForChart();
      const layout = {
        barmode: 'stack',
        showlegend: true,
@@ -81,9 +82,19 @@ import PropTypes from 'prop-types';
    }
  }
 
-S3AnalyticsBarChart.propTypes = {
+BarChart.propTypes = {
   elementId: PropTypes.string.isRequired,
-  data: PropTypes.array.isRequired,
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      size: PropTypes.number.isRequired,
+      storage_cost: PropTypes.number.isRequired,
+      bw_cost: PropTypes.number.isRequired,
+      total_cost: PropTypes.number.isRequired,
+      transfer_in: PropTypes.number.isRequired,
+      transfer_out: PropTypes.number.isRequired,
+    })
+  ),
 };
 
- export default S3AnalyticsBarChart;
+export default BarChart;
