@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {Redirect} from "react-router-dom";
-// import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 
 // Form imports
 import Form from 'react-validation/build/form';
@@ -17,7 +17,7 @@ import logo from '../../assets/logo-coloured.png';
 const Validation = Validations.Auth;
 
 // LoginContainer Component
-class LoginContainer extends Component {
+export class LoginContainer extends Component {
 
   constructor(props) {
     super(props);
@@ -31,7 +31,7 @@ class LoginContainer extends Component {
   };
 
   render() {
-    if (this.props.token !== null)
+    if (this.props.token)
       return (<Redirect to="/"/>);
     return (
       <div className="login">
@@ -90,7 +90,10 @@ class LoginContainer extends Component {
 
 }
 
-LoginContainer.propTypes = {};
+LoginContainer.propTypes = {
+  login: PropTypes.func.isRequired,
+  token: PropTypes.string
+};
 
 const mapStateToProps = (state) => ({token: state.auth.token});
 

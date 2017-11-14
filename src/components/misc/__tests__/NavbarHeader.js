@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavbarHeader } from '../NavbarHeader';
-import { shallow } from "enzyme/build/index";
+import { shallow } from "enzyme";
 
 const props = {
   signOut: jest.fn()

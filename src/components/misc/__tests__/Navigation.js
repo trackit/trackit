@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigation } from '../Navigation';
-import { shallow } from "enzyme/build/index";
+import { shallow } from "enzyme";
 
 const props = {
   signOut: jest.fn()
