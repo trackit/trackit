@@ -27,13 +27,5 @@ describe('<BarChartComponent />', () => {
     const div = wrapper.find(`div#${props.elementId}`);
     expect(div.length).toBe(1);
   });
-/*
-  it('calculates totals based on data', () => {
-    const wrapper = shallow(<InfosComponent {...props}/>);
-    const totals = wrapper.instance().extractTotals();
-    expect(totals.buckets).toBe(props.data.length);
-    expect(totals.size).toBe(props.data[0].size);
-    expect(totals.storage_cost).toBe(props.data[0].storage_cost);
-  });
-*/
+
 });

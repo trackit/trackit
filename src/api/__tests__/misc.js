@@ -33,33 +33,7 @@ describe("API Calls", () => {
         });
 
     });
-/*
-    it("handles body without token", () => {
 
-      const response = { data: "data" };
-      fetchMock.get('*', (url, data) => (data.body));
-
-      call('/test', 'GET', response, null)
-        .then((result) => {
-          expect(result).toEqual({success: true, data: response});
-        });
-
-    });
-
-    it("handles body with token", () => {
-
-      const response = { data: "data" };
-      fetchMock.get('*',
-        (url, data) => ({ ...JSON.parse(data.body), token: data.headers['Authorization'] })
-      );
-
-      call('/test', 'GET', response, token)
-        .then((result) => {
-          expect(result).toEqual({success: true, data: { ...response, token }});
-        });
-
-    });
-*/
   });
 
   describe("POST method", () => {
@@ -90,30 +64,6 @@ describe("API Calls", () => {
 
     });
 
-/*
-    it("handles no body without token", () => {
-
-      const response = { data: "data" };
-      fetchMock.post('*', response);
-
-      call('/test', 'POST', null, null)
-        .then((result) => {
-          expect(result).toEqual({success: true, data: response});
-        });
-
-    });
-
-    it("handles no body with token", () => {
-
-      fetchMock.post('*', (url, data) => ({ token: data.headers['Authorization'] }));
-
-      call('/test', 'POST', null, token)
-        .then((result) => {
-          expect(result).toEqual({success: true, data: { token }});
-        });
-
-    });
-*/
   });
 
 });
