@@ -14,7 +14,7 @@ const s3BucketFormat = (value) => {
 };
 
 const pathFormat = (value) => {
-  const regex = /(?:\/(.{0,1024}))?$/;
+  const regex = /^(?:\/(.{0,1024}))?$/;
   if (!regex.exec(value))
     return (<div className="alert alert-warning">{value} is not a valid path.</div>);
 };
