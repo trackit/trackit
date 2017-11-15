@@ -1,16 +1,27 @@
 import React from 'react';
-
-const required = (value) => {
-  if (!value.toString().trim().length)
-    return (<div className="alert alert-warning">This field is required</div>);
-};
+import Misc from "./MiscForm";
 
 const roleArnFormat = (value) => {
-  const regex = /arn:aws:iam::[\d]{12}:role\/(?:[a-zA-Z0-9+=,.@-_](?:\/[a-zA-Z0-9+=,.@-_])?)+/;
-  if (!regex.exec(value))
-    return (<div className="alert alert-warning">{value} is not a valid role ARN.</div>);
+const regex = /arn:aws:iam::[\d]{12}:role\/(?:[a-zA-Z0-9+=,.@_-](?:\/[a-zA-Z0-9+=,.@_-])?)+/;
+if (!regex.exec(value))
+  return (<div className="alert alert-warning">{value} is not a valid role ARN.</div>);
 };
+
+const s3BucketFormat = (value) => {
+  const regex = /^s3:\/\/((?![^/]{1,61}\.\.[^/]{1,61})[a-z.-]{3,63})$/;
+  if (!regex.exec(value))
+    return (<div className="alert alert-warning">{value} is not a valid S3 bucket.</div>);
+};
+
+const pathFormat = (value) => {
+  const regex = /(?:\/(.{0,1024}))?$/;
+  if (!regex.exec(value))
+    return (<div className="alert alert-warning">{value} is not a valid path.</div>);
+};
+
 export default {
-  required,
-  roleArnFormat
+  required: Misc.required,
+  roleArnFormat,
+  s3BucketFormat,
+  pathFormat
 };
