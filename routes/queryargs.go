@@ -23,39 +23,38 @@ import (
 )
 
 type (
-	// QueryArgInt denotes an int query argument. It fulfills the QueryArgType
+	// QueryArgInt denotes an int query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgInt struct{}
 
-	// QueryArgUint denotes an uint query argument. It fulfills the QueryArgType
+	// QueryArgUint denotes an uint query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgUint struct{}
 
-	// QueryArgString denotes a string query argument. It fulfills the QueryArgType
+	// QueryArgString denotes a string query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgString struct{}
 
-	// QueryArgIntSlice denotes a []int query argument. It fulfills the QueryArgType
+	// QueryArgIntSlice denotes a []int query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgIntSlice struct{}
 
-	// QueryArgUintSlice denotes a []uint query argument. It fulfills the QueryArgType
+	// QueryArgUintSlice denotes a []uint query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgUintSlice struct{}
 
-	// QueryArgType is fulfilled by all the type above. The Parse method
-	// takes the raw value of the argument and returns its typed value.
+	// QueryParser parses a string and returns a typed value.
 	// An error can be returned if the value could not be parse. The error's
 	// message contains %s which has to be replaced by the argument's name
 	// before being displayed.
-	QueryArgType interface {
-		Parse(string) (interface{}, error)
+	QueryParser interface {
+		QueryParse(string) (interface{}, error)
 	}
 
 	// QueryArg defines an argument by its name and its type.
 	QueryArg struct {
 		Name string
-		Type QueryArgType
+		Type QueryParser
 	}
 
 	// WithQueryArg contains all the arguments to parse in the URL.
@@ -64,33 +63,33 @@ type (
 	WithQueryArg []QueryArg
 )
 
-// Parse parses an int. A nil error indicates a success. With this func,
+// QueryParse parses an int. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
-func (d QueryArgInt) Parse(val string) (interface{}, error) {
+func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
 	if i, err := strconv.ParseInt(val, 10, 64); err == nil {
 		return int(i), nil
 	}
 	return nil, errors.New("argument \"%s\" must be an int")
 }
 
-// Parse parses an uint. A nil error indicates a success. With this func,
+// QueryParse parses an uint. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
-func (d QueryArgUint) Parse(val string) (interface{}, error) {
+func (d QueryArgUint) QueryParse(val string) (interface{}, error) {
 	if i, err := strconv.ParseUint(val, 10, 64); err == nil {
 		return uint(i), nil
 	}
 	return nil, errors.New("argument \"%s\" must be an uint")
 }
 
-// Parse parses a string. A nil error indicates a success. With this func,
+// QueryParse parses a string. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
-func (d QueryArgString) Parse(val string) (interface{}, error) {
+func (d QueryArgString) QueryParse(val string) (interface{}, error) {
 	return val, nil
 }
 
-// Parse parses an []int. A nil error indicates a success. With this func,
+// QueryParse parses an []int. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
-func (d QueryArgIntSlice) Parse(val string) (interface{}, error) {
+func (d QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]int, 0, len(vals))
 	for _, v := range vals {
@@ -103,9 +102,9 @@ func (d QueryArgIntSlice) Parse(val string) (interface{}, error) {
 	return res, nil
 }
 
-// Parse parses an []uint. A nil error indicates a success. With this func,
+// QueryParse parses an []uint. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
-func (d QueryArgUintSlice) Parse(val string) (interface{}, error) {
+func (d QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]uint, 0, len(vals))
 	for _, v := range vals {
@@ -120,7 +119,7 @@ func (d QueryArgUintSlice) Parse(val string) (interface{}, error) {
 
 func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, ErrorBody) {
 	if rawVal := r.URL.Query().Get(arg.Name); rawVal != "" {
-		if val, err := arg.Type.Parse(rawVal); err == nil {
+		if val, err := arg.Type.QueryParse(rawVal); err == nil {
 			a[arg] = val
 		} else {
 			msg := fmt.Sprintf(err.Error(), arg.Name)
