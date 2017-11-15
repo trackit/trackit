@@ -66,7 +66,8 @@ type (
 // QueryParse parses an int. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
 func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
-	if i, err := strconv.ParseInt(val, 10, 64); err == nil {
+	if i, err := strconv.ParseInt(val, 10, 64); err == nil &&
+		i <= int64(^int(0)) && i >= int64(-^int(0)-1) {
 		return int(i), nil
 	}
 	return nil, errors.New("argument \"%s\" must be an int")
@@ -75,7 +76,8 @@ func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
 // QueryParse parses an uint. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
 func (d QueryArgUint) QueryParse(val string) (interface{}, error) {
-	if i, err := strconv.ParseUint(val, 10, 64); err == nil {
+	if i, err := strconv.ParseUint(val, 10, 64); err == nil &&
+		i <= uint64(^uint(0)) {
 		return uint(i), nil
 	}
 	return nil, errors.New("argument \"%s\" must be an uint")
