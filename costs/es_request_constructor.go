@@ -161,16 +161,16 @@ func createAggregationPerYear(_ []string) []paramAggrAndName {
 // 'tag.value'.
 // No SubAggregation is created in this fuction, as it needs to be created in the nestAggregation function
 func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
-	res := make([]paramAggrAndName, 2)
-	res[0] = paramAggrAndName{
-		name: "tag_key",
-		aggr: elastic.NewFilterAggregation().
-			Filter(elastic.NewTermQuery("tag.key", fmt.Sprintf("user:%v", paramSplit[1])))}
-	res[1] = paramAggrAndName{
-		name: "tag_value",
-		aggr: elastic.NewTermsAggregation().
-			Field("tag.value").Size(aggregationMaxSize)}
-	return res
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "tag_key",
+			aggr: elastic.NewFilterAggregation().
+				Filter(elastic.NewTermQuery("tag.key", fmt.Sprintf("user:%v", paramSplit[1])))},
+		paramAggrAndName{
+			name: "tag_value",
+			aggr: elastic.NewTermsAggregation().
+				Field("tag.value").Size(aggregationMaxSize)},
+	}
 }
 
 // createCostSumAggregation : Creates and return a new []paramAggrAndName of size 1, which creates a
@@ -184,7 +184,7 @@ func createCostSumAggregation(_ []string) []paramAggrAndName {
 	}
 }
 
-// reverseAggregationArray : reverse the paramAggrAndName array that is passed to it
+// reverseAggregationArray : reverse the paramAggrAndName slice that is passed to it
 func reverseAggregationArray(aggregationArray []paramAggrAndName) []paramAggrAndName {
 	for i := len(aggregationArray)/2 - 1; i >= 0; i-- {
 		opp := len(aggregationArray) - 1 - i
@@ -209,9 +209,6 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
 			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
 		case *elastic.FilterAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
-			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
-		case *elastic.SumAggregation:
 			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
 			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
 		case *elastic.DateHistogramAggregation:
