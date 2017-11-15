@@ -22,6 +22,12 @@ import (
 	"strings"
 )
 
+const (
+	maxUint = ^uint(0)
+	maxInt  = int(maxUint >> 1)
+	minInt  = -maxInt - 1
+)
+
 type (
 	// QueryArgInt denotes an int query argument. It fulfills the QueryParser
 	// interface.
@@ -66,9 +72,6 @@ type (
 // QueryParse parses an int. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
 func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
-	maxInt := int(^uint(0) >> 1)
-	minInt := -maxInt - 1
-	fmt.Printf("%v\n", minInt)
 	if i, err := strconv.ParseInt(val, 10, 64); err == nil &&
 		i <= int64(maxInt) && i >= int64(minInt) {
 		return int(i), nil
@@ -79,7 +82,6 @@ func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
 // QueryParse parses an uint. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
 func (d QueryArgUint) QueryParse(val string) (interface{}, error) {
-	maxUint := ^uint(0)
 	if i, err := strconv.ParseUint(val, 10, 64); err == nil &&
 		i <= uint64(maxUint) {
 		return uint(i), nil
@@ -99,7 +101,8 @@ func (d QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]int, 0, len(vals))
 	for _, v := range vals {
-		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+		if i, err := strconv.ParseInt(v, 10, 64); err == nil &&
+			i <= int64(maxInt) && i >= int64(minInt) {
 			res = append(res, int(i))
 		} else {
 			return nil, errors.New("argument \"%s\" must be a slice of int")
@@ -114,7 +117,8 @@ func (d QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]uint, 0, len(vals))
 	for _, v := range vals {
-		if i, err := strconv.ParseUint(v, 10, 64); err == nil {
+		if i, err := strconv.ParseUint(v, 10, 64); err == nil &&
+			i <= uint64(maxUint) {
 			res = append(res, uint(i))
 		} else {
 			return nil, errors.New("argument \"%s\" must be a slice of uint")
