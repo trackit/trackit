@@ -7,41 +7,29 @@ import PropTypes from "prop-types";
 
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
+const Panel = Components.Misc.Panel;
 
 // Accounts Container for AWS Accounts
 class AccountsContainer extends Component {
-
-  constructor(props) {
-    super(props);
-    this.addAccount = this.addAccount.bind(this);
-    this.deleteAccount = this.deleteAccount.bind(this);
-  }
 
   componentWillMount() {
     this.props.getAccounts();
     this.props.newExternal();
   }
 
-  addAccount = (account) => {
-    this.props.newAccount(account);
-    this.props.newExternal();
-  };
-
-  deleteAccount = (accountID) => {
-    this.props.deleteAccount(accountID);
-  };
-
   render() {
     return (
-      <div className="panel panel-default">
-        <div className="panel-heading">
-          <h3 className="panel-title">AWS Accounts</h3>
-        </div>
-        <div className="panel-body">
-          <List accounts={this.props.accounts} delete={this.deleteAccount}/>
-          <Form submit={this.addAccount} external={this.props.external}/>
-        </div>
-      </div>
+      <Panel title="AWS Accounts" collapsible>
+        <List
+          accounts={this.props.accounts}
+          accountActions={this.props.accountActions}
+          billActions={this.props.billActions}
+        />
+        <Form
+          submit={this.props.accountActions.new}
+          external={this.props.external}
+        />
+      </Panel>
     );
   }
 
@@ -52,13 +40,27 @@ AccountsContainer.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
-      userId: PropTypes.number.isRequired,
-      pretty: PropTypes.string
+      pretty: PropTypes.string,
+      bills: PropTypes.arrayOf(
+        PropTypes.shape({
+          bucket: PropTypes.string.isRequired,
+          path: PropTypes.string.isRequired
+        })
+      )
     })
   ),
   external: PropTypes.string,
   getAccounts: PropTypes.func.isRequired,
-  newAccount: PropTypes.func.isRequired,
+  accountActions: PropTypes.shape({
+    new: PropTypes.func.isRequired,
+    edit: PropTypes.func.isRequired,
+    delete: PropTypes.func.isRequired,
+  }).isRequired,
+  billActions: PropTypes.shape({
+    new: PropTypes.func.isRequired,
+    edit: PropTypes.func.isRequired,
+    delete: PropTypes.func.isRequired,
+  }).isRequired,
   newExternal: PropTypes.func.isRequired
 };
 
@@ -71,11 +73,27 @@ const mapDispatchToProps = (dispatch) => ({
   getAccounts: () => {
     dispatch(Actions.AWS.Accounts.getAccounts())
   },
-  newAccount: (account) => {
-    dispatch(Actions.AWS.Accounts.newAccount(account))
+  accountActions: {
+    new: (account) => {
+      dispatch(Actions.AWS.Accounts.newAccount(account))
+    },
+    edit: (account) => {
+      dispatch(Actions.AWS.Accounts.editAccount(account))
+    },
+    delete: (accountID) => {
+      dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
+    },
   },
-  deleteAccount: (accountID) => {
-    dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
+  billActions: {
+    new: (accountID, bill) => {
+      dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
+    },
+    edit: (accountID, bill) => {
+      dispatch(Actions.AWS.Accounts.editAccountBill(accountID, bill))
+    },
+    delete: (accountID, bill) => {
+      dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, bill));
+    },
   },
   newExternal: () => {
     dispatch(Actions.AWS.Accounts.newExternal())

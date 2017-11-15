@@ -1,10 +1,6 @@
 import React from 'react';
 import Validator from 'validator';
-
-const required = (value) => {
-  if (!value.toString().trim().length)
-    return (<div className="alert alert-warning">This field is required</div>);
-};
+import Misc from './MiscForm';
 
 const email = (value) => {
   if (!Validator.isEmail(value))
@@ -12,6 +8,6 @@ const email = (value) => {
 };
 
 export default {
-  required,
+  required: Misc.required,
   email
 };
