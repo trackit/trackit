@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-AWS_CREDENTIALS_FILE='/home/schube/.aws/credentials'
+AWS_CREDENTIALS_FILE = os.path.expanduser('~/.aws/credentials')
 
 def get_profile_config(profile):
     c = configparser.ConfigParser()
