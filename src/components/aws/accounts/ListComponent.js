@@ -46,18 +46,18 @@ class ListItem extends Component {
     const actions = (!this.state.editForm ? (
       <div className="btn-group btn-group-xs pull-right" role="group">
 
-        <button type="button" className="btn btn-default" onClick={this.toggleEditForm}>
+        <button type="button" className="btn btn-default edit" onClick={this.toggleEditForm}>
           <span className="glyphicon glyphicon-pencil" aria-hidden="true"/> Edit
         </button>
 
-        <button type="button" className="btn btn-default" onClick={this.deleteAccount}>
+        <button type="button" className="btn btn-default delete" onClick={this.deleteAccount}>
           <span className="glyphicon glyphicon-remove" aria-hidden="true"/> Delete
         </button>
 
       </div>
     ) : (
       <div className="btn-group btn-group-xs pull-right" role="group">
-        <button type="button" className="btn btn-default" onClick={this.toggleEditForm}>
+        <button type="button" className="btn btn-default hide" onClick={this.toggleEditForm}>
           <span className="glyphicon glyphicon-remove" aria-hidden="true"/> Hide
         </button>
       </div>
