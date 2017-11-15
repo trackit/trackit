@@ -26,14 +26,14 @@ class Panel extends Component {
       </div>
     ) : null);
     const collapseIcon = (this.props.collapsible ? (
-      <div className="pull-right" onClick={this.toggleCollapse}>
+      <div className="pull-right">
         <span className={"glyphicon glyphicon-chevron-" + (this.state.collapsed ? "down" : "up")} aria-hidden="true"/>
       </div>
     ) : null);
     return(
       <div className="panel panel-default">
 
-        <div className="panel-heading">
+        <div className="panel-heading" onClick={this.toggleCollapse}>
           <h3 className="panel-title pull-left">{this.props.title}</h3>
           {collapseIcon}
           <div className="clearfix"/>
