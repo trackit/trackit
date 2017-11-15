@@ -56,11 +56,6 @@ describe('<FormComponent />', () => {
     expect(input.prop("value")).toBe(propsWithExternal.external);
   });
 
-  it('renders 3 <Input /> components inside', () => {
-    const wrapper = shallow(<FormComponent {...props}/>);
-    const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(3);
-  });
 /*
   it('renders 3 <Input /> components inside with accounts data', () => {
     const wrapper = shallow(<FormComponent {...propsWithAccount}/>);
