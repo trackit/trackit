@@ -1,5 +1,9 @@
 import { put, call, all } from 'redux-saga/effects';
-import { getAccountsSaga, newAccountSaga, newExternalSaga } from '../accountsSaga';
+import {
+  getAccountsSaga, newAccountSaga, editAccountSaga, deleteAccountSaga,
+  newExternalSaga,
+  newAccountBillSaga, editAccountBillSaga, deleteAccountBillSaga
+} from '../accountsSaga';
 import { getToken } from '../../misc';
 import API from '../../../api';
 import Constants from '../../../constants';
@@ -90,6 +94,7 @@ describe("Accounts Saga", () => {
       expect(saga.next(validResponse).value)
         .toEqual(all([
           put({ type: Constants.AWS_NEW_ACCOUNT_SUCCESS, account }),
+          put({ type: Constants.AWS_NEW_EXTERNAL }),
           put({ type: Constants.AWS_GET_ACCOUNTS })
         ]));
 
@@ -126,6 +131,32 @@ describe("Accounts Saga", () => {
 
       expect(saga.next(noResponse).value)
         .toEqual(put({ type: Constants.AWS_NEW_ACCOUNT_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Edit Account", () => {
+
+    it("handles saga", () => {
+
+      const account = {roleArn: "roleArn"};
+
+      let saga = editAccountSaga({account});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.editAccount, account, token));
+
+      expect(saga.next().value)
+        .toEqual(all([
+          put({ type: Constants.AWS_EDIT_ACCOUNT_SUCCESS }),
+          put({ type: Constants.AWS_GET_ACCOUNTS })
+        ]));
 
       expect(saga.next().done).toBe(true);
 
@@ -188,6 +219,117 @@ describe("Accounts Saga", () => {
 
       expect(saga.next(noResponse).value)
         .toEqual(put({ type: Constants.AWS_NEW_EXTERNAL_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Delete Account", () => {
+
+    it("handles saga", () => {
+
+      const accountID = 42;
+
+      let saga = deleteAccountSaga({accountID});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccount, accountID, token));
+
+      expect(saga.next().value)
+        .toEqual(all([
+          put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),
+          put({ type: Constants.AWS_GET_ACCOUNTS })
+        ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+});
+
+describe("Account Bills Saga", () => {
+
+  describe("New Account Bill", () => {
+
+    it("handles saga", () => {
+
+      const accountID = 42;
+      const bill = {bucket: "test"};
+
+      let saga = newAccountBillSaga({accountID, bill});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.newAccountBill, accountID, bill, token));
+
+      expect(saga.next().value)
+        .toEqual(all([
+          put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
+          put({ type: Constants.AWS_GET_ACCOUNTS })
+        ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Edit Account Bill", () => {
+
+    it("handles saga", () => {
+
+      const accountID = 42;
+      const bill = {bucket: "test"};
+
+      let saga = editAccountBillSaga({accountID, bill});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.editAccountBill, accountID, bill, token));
+
+      expect(saga.next().value)
+        .toEqual(all([
+          put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
+          put({ type: Constants.AWS_GET_ACCOUNTS })
+        ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Delete Account Bill", () => {
+
+    it("handles saga", () => {
+
+      const accountID = 42;
+      const bill = {bucket: "test"};
+
+      let saga = deleteAccountBillSaga({accountID, bill});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccountBill, accountID, bill, token));
+
+      expect(saga.next().value)
+        .toEqual(all([
+          put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
+          put({ type: Constants.AWS_GET_ACCOUNTS })
+        ]));
 
       expect(saga.next().done).toBe(true);
 
