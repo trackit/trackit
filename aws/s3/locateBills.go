@@ -1,3 +1,17 @@
+//   Copyright 2017 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package s3
 
 import (
@@ -26,12 +40,6 @@ type BillKey struct {
 	Bucket       string
 	Key          string
 	LastModified time.Time
-}
-
-// BillRepository is a location where the server may look for bill objects.
-type BillRepository struct {
-	Bucket string
-	Prefix string
 }
 
 // LocateBills searches the repositories for bill objects and calls cbk for
@@ -95,7 +103,7 @@ func filterBillsByKey(in <-chan BillKey) <-chan BillKey {
 	go func() {
 		defer close(out)
 		for b := range in {
-			if isBillKey(b) {
+			if isAwsBillKey(b) {
 				out <- b
 			}
 		}
@@ -107,8 +115,8 @@ func filterBillsByKey(in <-chan BillKey) <-chan BillKey {
 // ingest.
 var billKey = regexp.MustCompile(`\d+-aws-billing-detailed-line-items-with-resources-and-tags-\d{4}-\d{2}.csv.zip$`)
 
-// isBillKey tests whether an S3 key looks like that of a bill object.
-func isBillKey(b BillKey) bool {
+// isAwsBillKey tests whether an S3 key looks like that of a bill object.
+func isAwsBillKey(b BillKey) bool {
 	return billKey.MatchString(b.Key)
 }
 
@@ -118,10 +126,11 @@ func listBillsFromRepository(
 	sess *session.Session,
 	r BillRepository,
 ) (<-chan BillKey, error) {
-	s3svc, err := serviceForBucketRegion(ctx, sess, r)
+	region, err := getBucketRegion(ctx, sess, r)
 	if err != nil {
 		return nil, err
 	}
+	s3svc := serviceForBucketRegion(sess, region)
 	c := make(chan BillKey)
 	go func() {
 		defer close(c)
@@ -130,7 +139,7 @@ func listBillsFromRepository(
 			Bucket: &r.Bucket,
 			Prefix: &r.Prefix,
 		}
-		err := s3svc.ListObjectsV2PagesWithContext(ctx, &input, listBillsFromRepositoryPage(c, r, l))
+		err := s3svc.ListObjectsV2PagesWithContext(ctx, &input, listBillsFromRepositoryPage(c, r, l, region))
 		if err != nil {
 			l.Error("Failed to list objects from bucket.", err.Error())
 		}
@@ -143,16 +152,17 @@ func listBillsFromRepository(
 // page if less than MaxCheckedKeysByRepository keys where encountered.
 func listBillsFromRepositoryPage(
 	c chan<- BillKey,
-	r BillRepository,
+	br BillRepository,
 	l jsonlog.Logger,
+	region string,
 ) func(*s3.ListObjectsV2Output, bool) bool {
 	count := 0
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
 			c <- BillKey{
 				Key:          *o.Key,
-				Bucket:       r.Bucket,
-				Region:       "",
+				Bucket:       br.Bucket,
+				Region:       region,
 				LastModified: *o.LastModified,
 			}
 		}
@@ -160,15 +170,15 @@ func listBillsFromRepositoryPage(
 		if count < MaxCheckedKeysByRepository {
 			return !last
 		} else {
-			l.Warning("Checked maximum amount of keys for repository.", r)
+			l.Warning("Checked maximum amount of keys for repository.", br)
 			return false
 		}
 	}
 }
 
-// serviceForBucketRegion determines the region an S3 bucket resides in an
-// returns a S3 service instance for that region.
-func serviceForBucketRegion(ctx context.Context, sess *session.Session, r BillRepository) (*s3.S3, error) {
+// serviceForBucketRegion determines the region an S3 bucket resides in and
+// returns that as a string.
+func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepository) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	s3svc := s3.New(sess)
 	input := s3.GetBucketLocationInput{
@@ -180,8 +190,13 @@ func serviceForBucketRegion(ctx context.Context, sess *session.Session, r BillRe
 			"bucket": r.Bucket,
 			"region": region,
 		})
-		return s3.New(sess.Copy(&aws.Config{Region: &region})), nil
+		return region, nil
 	} else {
-		return nil, err
+		return "", err
 	}
+}
+
+// serviceForBucketRegion returns an S3 service for the given region.
+func serviceForBucketRegion(sess *session.Session, region string) *s3.S3 {
+	return s3.New(sess.Copy(&aws.Config{Region: &region}))
 }
