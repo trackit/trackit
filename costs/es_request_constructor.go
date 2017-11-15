@@ -159,7 +159,7 @@ func createAggregationPerYear(_ []string) []paramAggrAndName {
 // the tag key passed in the parameter 'paramSplit' in the form "user:<TAG_KEY_VALUE>".
 // The second aggregation is a TermsAggregation that creates bucket aggregation on the field
 // 'tag.value'.
-// No SubAggregation is created in this fuction, as it needs to be created in the nestAggregation function
+// No SubAggregation is created in this function, as it needs to be created in the nestAggregation function
 func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
