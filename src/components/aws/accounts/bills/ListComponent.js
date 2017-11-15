@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import Form from './FormComponent';
 
-class ListItem extends Component {
+export class ListItem extends Component {
 
   constructor(props) {
     super(props);
