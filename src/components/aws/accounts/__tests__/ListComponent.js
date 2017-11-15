@@ -1,27 +1,47 @@
 import React from 'react';
 import ListComponent, { ListItem } from '../ListComponent';
 import { shallow } from 'enzyme';
+import accountsActions from "../../../../actions/aws/accountsActions";
+
+const actionsProps = {
+  accountActions: {
+    new: jest.fn(),
+    edit: jest.fn(),
+    delete: jest.fn(),
+  },
+  billActions: {
+    new: jest.fn(),
+    edit: jest.fn(),
+    delete: jest.fn(),
+  }
+};
+
+const accountWithoutBills = {
+  id: 42,
+  userId: 42,
+  roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
+  pretty: "Name",
+  bills: []
+};
+
+const accountWithBills = {
+  id: 42,
+  userId: 42,
+  roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
+  pretty: "Name",
+  bills: []
+};
 
 describe('<ListComponent />', () => {
 
   const props = {
-    delete: jest.fn(),
+    ...actionsProps,
     accounts: []
   };
 
   const propsWithAccounts = {
     ...props,
-    accounts: [{
-      id: 42,
-      userId: 42,
-      roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
-      pretty: "Name"
-    }, {
-      id: 84,
-      userId: 84,
-      roleArn: "arn:aws:iam::000000000002:role2/TEST_ROLE_2",
-      pretty: "Name2"
-    }]
+    accounts: [accountWithoutBills, accountWithoutBills]
   };
 
   it('renders a <ListComponent /> component', () => {
@@ -52,13 +72,8 @@ describe('<ListComponent />', () => {
 describe('<ListItem />', () => {
 
   const props = {
-    delete: jest.fn(),
-    account: {
-      id: 42,
-      userId: 42,
-      roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
-      pretty: "Name"
-    }
+    ...actionsProps,
+    account: accountWithoutBills
   };
 
   it('renders a <ListItem /> component', () => {
@@ -83,6 +98,20 @@ describe('<ListItem />', () => {
     expect(wrapper.state('editForm')).toBe(false);
     wrapper.find('button.btn.edit').prop('onClick')({ preventDefault() {} });
     expect(wrapper.state('editForm')).toBe(true);
+  });
+
+  it('can edit item', () => {
+    const wrapper = shallow(<ListItem {...props}/>);
+    expect(props.accountActions.edit.mock.calls.length).toBe(0);
+    wrapper.instance().editAccount(accountWithBills);
+    expect(props.accountActions.edit.mock.calls.length).toBe(1);
+  });
+
+  it('can delete item', () => {
+    const wrapper = shallow(<ListItem {...props}/>);
+    expect(props.accountActions.delete.mock.calls.length).toBe(0);
+    wrapper.find('button.btn.delete').prop('onClick')({ preventDefault() {} });
+    expect(props.accountActions.delete.mock.calls.length).toBe(1);
   });
 
 });

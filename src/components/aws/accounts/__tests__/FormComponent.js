@@ -4,7 +4,6 @@ import { shallow } from 'enzyme';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
-import ListComponent from "../ListComponent";
 
 const props = {
   submit: jest.fn()
@@ -13,6 +12,16 @@ const props = {
 const propsWithExternal = {
   ...props,
   external: "external_test"
+};
+
+const propsWithAccount = {
+  ...props,
+  account: {
+    id: 42,
+    roleArn: "arn:aws:iam::000000000000:role/TEST_ROLE",
+    pretty: "pretty",
+    bills: []
+  }
 };
 
 describe('<FormComponent />', () => {
@@ -52,5 +61,11 @@ describe('<FormComponent />', () => {
     const inputs = wrapper.find(Input);
     expect(inputs.length).toBe(3);
   });
-
+/*
+  it('renders 3 <Input /> components inside with accounts data', () => {
+    const wrapper = shallow(<FormComponent {...propsWithAccount}/>);
+    const inputs = wrapper.find(Input);
+    expect(inputs.length).toBe(3);
+  });
+*/
 });
