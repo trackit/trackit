@@ -17,10 +17,10 @@ class ListItem extends Component {
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
     this.bills = [{
-      "bucket": "s3://test",
+      "bucket": "s3://te.st",
       "path": "/path/to/bills"
     },{
-      "bucket": "s3://issou",
+      "bucket": "s3://another.test",
       "path": "/another/path"
     }]
   }
