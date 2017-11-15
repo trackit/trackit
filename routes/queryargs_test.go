@@ -22,19 +22,18 @@ import (
 )
 
 var (
-	QueryArgTestInt         = QueryArg{"testInt", QueryArgInt{}}
-	QueryArgTestUint        = QueryArg{"testUint", QueryArgUint{}}
-	QueryArgTestString      = QueryArg{"testString", QueryArgString{}}
-	QueryArgTestIntSlice    = QueryArg{"testIntSlice", QueryArgIntSlice{}}
-	QueryArgTestUintSlice   = QueryArg{"testUintSlice", QueryArgUintSlice{}}
-	QueryArgTestStringSlice = QueryArg{"testStringSlice", QueryArgStringSlice{}}
+	QueryArgTestInt       = QueryArg{"testInt", QueryArgInt{}}
+	QueryArgTestUint      = QueryArg{"testUint", QueryArgUint{}}
+	QueryArgTestString    = QueryArg{"testString", QueryArgString{}}
+	QueryArgTestIntSlice  = QueryArg{"testIntSlice", QueryArgIntSlice{}}
+	QueryArgTestUintSlice = QueryArg{"testUintSlice", QueryArgUintSlice{}}
 )
 
 func argHandler(r *http.Request, a Arguments) (int, interface{}) {
 	return 200, a
 }
 
-func stringSliceIsEqual(first, second []string) bool {
+func intSliceIsEqual(first, second []int) bool {
 	if len(first) != len(second) {
 		return false
 	}
@@ -46,19 +45,7 @@ func stringSliceIsEqual(first, second []string) bool {
 	return true
 }
 
-func intSliceIsEqual(first, second []int64) bool {
-	if len(first) != len(second) {
-		return false
-	}
-	for id := range first {
-		if first[id] != second[id] {
-			return false
-		}
-	}
-	return true
-}
-
-func uintSliceIsEqual(first, second []uint64) bool {
+func uintSliceIsEqual(first, second []uint) bool {
 	if len(first) != len(second) {
 		return false
 	}
@@ -72,14 +59,32 @@ func uintSliceIsEqual(first, second []uint64) bool {
 
 func sliceIsEqual(first, second interface{}) bool {
 	switch first.(type) {
-	case []int64:
-		return intSliceIsEqual(first.([]int64), second.([]int64))
-	case []uint64:
-		return uintSliceIsEqual(first.([]uint64), second.([]uint64))
-	case []string:
-		return stringSliceIsEqual(first.([]string), second.([]string))
+	case []int:
+		return intSliceIsEqual(first.([]int), second.([]int))
+	case []uint:
+		return uintSliceIsEqual(first.([]uint), second.([]uint))
 	default:
 		return false
+	}
+}
+
+func TestOverflowIntArg(t *testing.T) {
+	h := ApplyDecorators(
+		baseIntermediate(argHandler),
+		RequireMethod{"GET"},
+		WithQueryArg{QueryArgTestInt},
+	)
+	overflowInt64Str := "9223372036854775808"
+	request := httptest.NewRequest("GET", "/test?testInt="+overflowInt64Str, nil)
+	response := httptest.NewRecorder()
+	status, body := h(response, request, Arguments{})
+	if status != 400 {
+		t.Errorf("Expected 400. Got %d (%s)", status, body)
+	}
+	if errorBody, ok := body.(ErrorBody); !ok {
+		t.Errorf("Expected ErrorBody.")
+	} else if errorBody.Error != "argument \"testInt\" must be an int" {
+		t.Errorf("Expected (%v). Got (%v)", "argument \"testInt\" must be an int", errorBody.Error)
 	}
 }
 
@@ -96,9 +101,9 @@ func TestRightUintArg(t *testing.T) {
 		t.Errorf("Expected 200. Got %d (%s)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
-	} else if testUint, ok := args["testUint"]; !ok {
+	} else if testUint, ok := args[QueryArgTestUint]; !ok {
 		t.Errorf("testUint not in the arguments.")
-	} else if testUint.(uint64) != uint64(84) {
+	} else if testUint.(uint) != 84 {
 		t.Errorf("testUint: Expected 84. Got %v", testUint)
 	}
 }
@@ -122,26 +127,6 @@ func TestNegativeUintArg(t *testing.T) {
 	}
 }
 
-func TestStringSliceArg(t *testing.T) {
-	h := ApplyDecorators(
-		baseIntermediate(argHandler),
-		RequireMethod{"GET"},
-		WithQueryArg{QueryArgTestStringSlice},
-	)
-	request := httptest.NewRequest("GET", "/test?testStringSlice=is,it,a,test", nil)
-	response := httptest.NewRecorder()
-	status, body := h(response, request, Arguments{})
-	if status != 200 {
-		t.Errorf("Expected 200. Got %d (%s)", status, body)
-	} else if args, ok := body.(Arguments); !ok {
-		t.Errorf("Expected type Arguments.")
-	} else if testStringSlice, ok := args["testStringSlice"]; !ok {
-		t.Errorf("testStringSlice not in the arguments.")
-	} else if !stringSliceIsEqual(testStringSlice.([]string), []string{"is", "it", "a", "test"}) {
-		t.Errorf("testStringSlice: Expected [is it a test]. Got %v", testStringSlice)
-	}
-}
-
 func TestMultipleArg(t *testing.T) {
 	h := ApplyDecorators(
 		baseIntermediate(argHandler),
@@ -152,7 +137,6 @@ func TestMultipleArg(t *testing.T) {
 			QueryArgTestString,
 			QueryArgTestIntSlice,
 			QueryArgTestUintSlice,
-			QueryArgTestStringSlice,
 		},
 	)
 	paramsURL := []string{
@@ -161,15 +145,13 @@ func TestMultipleArg(t *testing.T) {
 		"&testString=test1,test2",
 		"&testIntSlice=-21,-42,1",
 		"&testUintSlice=21,0",
-		"&testStringSlice=test1,test2",
 	}
 	slices := []interface{}{
-		int64(-84),
-		uint64(21),
+		int(-84),
+		uint(21),
 		string("test1,test2"),
-		[]int64{-21, -42, 1},
-		[]uint64{21, 0},
-		[]string{"test1", "test2"},
+		[]int{-21, -42, 1},
+		[]uint{21, 0},
 	}
 	request := httptest.NewRequest("GET", "/test"+strings.Join(paramsURL, ""), nil)
 	response := httptest.NewRecorder()
@@ -179,7 +161,13 @@ func TestMultipleArg(t *testing.T) {
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
 	} else {
-		for id, name := range []string{"testInt", "testUint", "testString", "testIntSlice", "testUintSlice", "testStringSlice"} {
+		for id, name := range []QueryArg{
+			QueryArgTestInt,
+			QueryArgTestUint,
+			QueryArgTestString,
+			QueryArgTestIntSlice,
+			QueryArgTestUintSlice,
+		} {
 			if slice, ok := args[name]; !ok {
 				t.Errorf("%s not in the arguments.", name)
 			} else {
