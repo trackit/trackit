@@ -18,45 +18,46 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/trackit/jsonlog"
-
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
 )
 
 func init() {
-	routes.Register(
-		"/aws",
-		routeAws,
-		routes.RequireMethod{"POST", "GET"},
-		routes.RequireContentType{"application/json"},
-		db.WithTransaction{db.Db},
-		users.WithAuthenticatedUser{},
-	)
-	routes.Register(
-		"/aws/next",
-		nextExternal,
-		routes.RequireMethod{"GET"},
-		db.WithTransaction{db.Db},
-		users.WithAuthenticatedUser{},
-	)
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getAwsAccount).With(
+			routes.Documentation{
+				Summary:     "get aws accounts' data",
+				Description: "Gets the data for all of the user's AWS accounts.",
+			},
+		),
+		http.MethodPost: routes.H(postAwsAccount).With(
+			routes.RequestContentType{"application/json"},
+			routes.Documentation{
+				Summary:     "add an aws account",
+				Description: "Adds an AWS account to the user's list of accounts, validating it before succeeding.",
+			},
+		),
+	}.H().With(
+		users.RequireAuthenticatedUser{},
+		db.RequestTransaction{},
+		routes.Documentation{
+			Summary: "interact with user's aws accounts",
+		},
+	).Register("/aws")
 }
 
-// routeAws is a route handler for /aws. It delegates the handling to
-// postAwsAccount or getAwsAccount depending on the method from the HTTP
-// request.
-func routeAws(r *http.Request, a routes.Arguments) (int, interface{}) {
-	switch r.Method {
-	case "POST":
-		return postAwsAccount(r, a)
-	case "GET":
-		return getAwsAccount(r, a)
-	default:
-		logger := jsonlog.LoggerFromContextOrDefault(r.Context())
-		logger.Error("Bad method. Did 'RequireMethod' do its job?", r.Method)
-		return 500, nil
-	}
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(nextExternal).With(
+			db.RequestTransaction{},
+			users.RequireAuthenticatedUser{},
+			routes.Documentation{
+				Summary:     "get data to add next aws account",
+				Description: "Gets data the user must have in order to successfully set up their account with the product.",
+			},
+		),
+	}.H().Register("/aws/next")
 }
 
 // decodeRequestBody decodes a JSON request body and returns nil in case it

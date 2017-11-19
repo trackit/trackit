@@ -1,17 +1,3 @@
-//   Copyright 2017 MSolution.IO
-//
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
-//
-//       http://www.apache.org/licenses/LICENSE-2.0
-//
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
-
 package routes
 
 import (
@@ -23,9 +9,10 @@ import (
 )
 
 const (
-	maxUint = ^uint(0)
-	maxInt  = int(maxUint >> 1)
-	minInt  = -maxInt - 1
+	maxUint             = ^uint(0)
+	maxInt              = int(maxUint >> 1)
+	minInt              = -maxInt - 1
+	TagRequiredQueryArg = "required:allof:queryarg"
 )
 
 type (
@@ -33,7 +20,7 @@ type (
 	// interface.
 	QueryArgInt struct{}
 
-	// QueryArgUint denotes an uint query argument. It fulfills the QueryParser
+	// QueryArgUint denotes a uint query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgUint struct{}
 
@@ -55,18 +42,20 @@ type (
 	// before being displayed.
 	QueryParser interface {
 		QueryParse(string) (interface{}, error)
+		FormatName() string
 	}
 
 	// QueryArg defines an argument by its name and its type.
 	QueryArg struct {
-		Name string
-		Type QueryParser
+		Name        string
+		Description string
+		Type        QueryParser
 	}
 
 	// WithQueryArg contains all the arguments to parse in the URL.
 	// WithQueryArg has a method Decorate called to apply the decorators
 	// on an endpoint.
-	WithQueryArg []QueryArg
+	RequiredQueryArgs []QueryArg
 )
 
 // QueryParse parses an int. A nil error indicates a success. With this func,
@@ -76,27 +65,33 @@ func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
 		i <= int64(maxInt) && i >= int64(minInt) {
 		return int(i), nil
 	}
-	return nil, errors.New("argument \"%s\" must be an int")
+	return nil, errors.New("must be an int")
 }
 
-// QueryParse parses an uint. A nil error indicates a success. With this func,
-// QueryArgInt fulfills QueryArgType.
+func (d QueryArgInt) FormatName() string       { return "int" }
+func (d QueryArgUint) FormatName() string      { return "uint" }
+func (d QueryArgString) FormatName() string    { return "string" }
+func (d QueryArgIntSlice) FormatName() string  { return "[]int" }
+func (d QueryArgUintSlice) FormatName() string { return "[]uint" }
+
+// QueryParse parses a uint. A nil error indicates a success. With this func,
+// QueryArgUint fulfills QueryArgType.
 func (d QueryArgUint) QueryParse(val string) (interface{}, error) {
 	if i, err := strconv.ParseUint(val, 10, 64); err == nil &&
 		i <= uint64(maxUint) {
 		return uint(i), nil
 	}
-	return nil, errors.New("argument \"%s\" must be an uint")
+	return nil, errors.New("must be a uint")
 }
 
 // QueryParse parses a string. A nil error indicates a success. With this func,
-// QueryArgInt fulfills QueryArgType.
+// QueryArgString fulfills QueryArgType.
 func (d QueryArgString) QueryParse(val string) (interface{}, error) {
 	return val, nil
 }
 
 // QueryParse parses an []int. A nil error indicates a success. With this func,
-// QueryArgInt fulfills QueryArgType.
+// QueryArgIntSlice fulfills QueryArgType.
 func (d QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]int, 0, len(vals))
@@ -105,14 +100,14 @@ func (d QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
 			i <= int64(maxInt) && i >= int64(minInt) {
 			res = append(res, int(i))
 		} else {
-			return nil, errors.New("argument \"%s\" must be a slice of int")
+			return nil, errors.New("must be a slice of int")
 		}
 	}
 	return res, nil
 }
 
 // QueryParse parses an []uint. A nil error indicates a success. With this func,
-// QueryArgInt fulfills QueryArgType.
+// QueryArgUintSlice fulfills QueryArgType.
 func (d QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]uint, 0, len(vals))
@@ -121,25 +116,23 @@ func (d QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 			i <= uint64(maxUint) {
 			res = append(res, uint(i))
 		} else {
-			return nil, errors.New("argument \"%s\" must be a slice of uint")
+			return nil, errors.New("must be a slice of uint")
 		}
 	}
 	return res, nil
 }
 
-func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, ErrorBody) {
+func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 	if rawVal := r.URL.Query().Get(arg.Name); rawVal != "" {
 		if val, err := arg.Type.QueryParse(rawVal); err == nil {
 			a[arg] = val
 		} else {
-			msg := fmt.Sprintf(err.Error(), arg.Name)
-			return 400, ErrorBody{msg}
+			return http.StatusBadRequest, fmt.Errorf("query arg '%s': %s", arg.Name, err.Error())
 		}
 	} else {
-		msg := fmt.Sprintf("argument \"%s\" not found", arg.Name)
-		return 400, ErrorBody{msg}
+		return http.StatusBadRequest, fmt.Errorf("query arg '%s': not found", arg.Name)
 	}
-	return 200, ErrorBody{}
+	return http.StatusOK, nil
 }
 
 // Decorate is the function called to apply the decorators to an endpoint. It returns
@@ -147,13 +140,33 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, ErrorBody) {
 // calls the next IntermediateHandler.
 // The goal of this function is to get the URL parameters to store them in
 // the Arguments.
-func (d WithQueryArg) Decorate(h IntermediateHandler) IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
-		for _, arg := range d {
-			if code, err := parseArg(arg, r, a); code != 200 {
+func (qa RequiredQueryArgs) Decorate(h Handler) Handler {
+	return Handler{
+		Func:          qa.getFunc(h.Func),
+		Documentation: qa.getDocumentation(h.Documentation),
+	}
+}
+
+func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
+		for _, arg := range qa {
+			if code, err := parseArg(arg, r, a); code != http.StatusOK {
 				return code, err
 			}
 		}
-		return h(w, r, a)
+		return hf(w, r, a)
 	}
+}
+
+func (qa RequiredQueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
+	if hd.Tags == nil {
+		hd.Tags = make(Tags)
+	}
+	tk := hd.Tags[TagRequiredQueryArg]
+	ts := make([]string, len(qa))
+	for i := range qa {
+		ts[i] = fmt.Sprintf("%s:%s:%s", qa[i].Name, qa[i].Type.FormatName(), qa[i].Description)
+	}
+	hd.Tags[TagRequiredQueryArg] = append(tk, ts...)
+	return hd
 }

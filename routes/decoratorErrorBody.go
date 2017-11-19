@@ -18,20 +18,25 @@ import (
 	"net/http"
 )
 
-// WithErrorBody is a decorator for an HTTP handler. If that handler returns an
-// error, it will wrap it in an ErrorBody structure so that it can correctly be
-// returned to the user as JSON.
-type WithErrorBody struct{}
+// ErrorBody is a decorator for an HTTP handler. If that handler returns an
+// error, it will wrap it in a structure so that it can correctly be returned
+// to the user as JSON.
+type ErrorBody struct{}
 
-type ErrorBody struct {
+type errorBody struct {
 	Error string `json:"error"`
 }
 
-func (d WithErrorBody) Decorate(h IntermediateHandler) IntermediateHandler {
+func (d ErrorBody) Decorate(h Handler) Handler {
+	h.Func = d.getFunc(h.Func)
+	return h
+}
+
+func (_ ErrorBody) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
-		status, output := h(w, r, a)
+		status, output := hf(w, r, a)
 		if err, ok := output.(error); ok {
-			return status, ErrorBody{err.Error()}
+			return status, errorBody{err.Error()}
 		} else {
 			return status, output
 		}

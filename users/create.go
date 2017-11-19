@@ -34,13 +34,27 @@ var (
 )
 
 func init() {
-	routes.Register(
-		"/user",
-		createUser,
-		routes.RequireMethod{"POST"},
-		routes.RequireContentType{"application/json"},
-		db.WithTransaction{db.Db},
-	)
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(createUser).With(
+			routes.RequestContentType{"application/json"},
+			routes.Documentation{
+				Summary:     "register a new user",
+				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
+			},
+		),
+		http.MethodGet: routes.H(me).With(
+			RequireAuthenticatedUser{},
+			routes.Documentation{
+				Summary:     "get the current user",
+				Description: "Responds with the currently authenticated user's data.",
+			},
+		),
+	}.H().With(
+		db.RequestTransaction{db.Db},
+		routes.Documentation{
+			Summary: "register or get the user",
+		},
+	).Register("/user")
 }
 
 type createUserRequestBody struct {

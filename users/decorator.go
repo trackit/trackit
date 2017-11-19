@@ -23,15 +23,22 @@ import (
 	"github.com/trackit/trackit2/routes"
 )
 
-type WithAuthenticatedUser struct{}
+type RequireAuthenticatedUser struct{}
 
-type withAuthenticatedUserArgumentKey uint
+type authenticatedUserArgumentKey uint
 
 const (
-	AuthenticatedUser = withAuthenticatedUserArgumentKey(iota)
+	AuthenticatedUser            = authenticatedUserArgumentKey(iota)
+	TagRequireUserAuthentication = "require:userauth"
 )
 
-func (d WithAuthenticatedUser) Decorate(h routes.IntermediateHandler) routes.IntermediateHandler {
+func (d RequireAuthenticatedUser) Decorate(h routes.Handler) routes.Handler {
+	h.Func = d.getFunc(h.Func)
+	h.Documentation = d.getDocumentation(h.Documentation)
+	return h
+}
+
+func (_ RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
 		auth := r.Header["Authorization"]
 		tx := a[db.Transaction].(*sql.Tx)
@@ -39,9 +46,17 @@ func (d WithAuthenticatedUser) Decorate(h routes.IntermediateHandler) routes.Int
 			tokenString := auth[0]
 			if user, err := testToken(tx, tokenString); err == nil {
 				a[AuthenticatedUser] = user
-				return h(w, r, a)
+				return hf(w, r, a)
 			}
 		}
-		return 401, errors.New("Invalid or missing token.")
+		return http.StatusUnauthorized, errors.New("invalid or missing token")
 	}
+}
+
+func (_ RequireAuthenticatedUser) getDocumentation(hd routes.HandlerDocumentation) routes.HandlerDocumentation {
+	if hd.Tags == nil {
+		hd.Tags = make(routes.Tags)
+	}
+	hd.Tags[TagRequireUserAuthentication] = []string{"authenticated"}
+	return hd
 }
