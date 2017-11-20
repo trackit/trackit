@@ -2,7 +2,9 @@ import React from 'react';
 import { LoginContainer } from '../LoginContainer';
 import { shallow } from "enzyme";
 import {Redirect} from "react-router-dom";
-import Form from 'react-validation/build/form';
+import Components from '../../../components';
+
+const Form = Components.Auth.Form;
 
 const props = {
   login: jest.fn()
