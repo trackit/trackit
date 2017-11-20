@@ -94,7 +94,7 @@ func TestRegistration(t *testing.T) {
 	resetRegisteredHandlers()
 }
 
-const testMethodMuxerDocumentationExpected = `{"summary":"Interacts with foo.","components":{"GET":{"summary":"Gets foo.","componentType":"method"},"POST":{"summary":"Posts foo.","componentType":"method"}}}`
+const testMethodMuxerDocumentationExpected = `{"summary":"Interacts with foo.","components":{"method:GET":{"summary":"Gets foo."},"method:POST":{"summary":"Posts foo."}}}`
 
 func TestMethodMuxerDocumentation(t *testing.T) {
 	h := MethodMuxer{

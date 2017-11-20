@@ -53,7 +53,7 @@ type requestLogData struct {
 type RouteLog struct{}
 
 func (rl RouteLog) Decorate(h Handler) Handler {
-	h.Func = getFunc(h.Func)
+	h.Func = rl.getFunc(h.Func)
 	return h
 }
 

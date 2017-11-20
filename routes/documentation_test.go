@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-const testDocumentationExpected = `{"/doc":{"summary":"get the api's documentation","components":{"GET":{"summary":"get the api's documentation","description":"Get the api's documentation in structured (JSON) format. This documentation is automatically generated from the definition of the route handlers and thus should always be up to date. The same documentation can be obtained for specific routes using the OPTIONS request on them.","componentType":"method"}}}}`
+const testDocumentationExpected = `{"/doc":{"summary":"get the api's documentation","components":{"method:GET":{"summary":"get the api's documentation","description":"Get the api's documentation in structured (JSON) format. This documentation is automatically generated from the definition of the route handlers and thus should always be up to date. The same documentation can be obtained for specific routes using the OPTIONS request on them."}}}}`
 
 func TestDocumentationHandler(t *testing.T) {
 	h := DocumentationHandler()

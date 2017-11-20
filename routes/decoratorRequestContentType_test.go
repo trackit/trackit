@@ -21,7 +21,7 @@ import (
 	"testing"
 )
 
-const testDocumentedHandlerWithRequestContentTypeExpected = `{"summary":"Get yourself some foo","description":"The route gives you some foo.","tags":{"required:oneof:contenttype":["application/json","application/csv"]}}`
+const testDocumentedHandlerWithRequestContentTypeExpected = `{"summary":"Get yourself some foo","description":"The route gives you some foo.","tags":{"require:contenttype":["application/json","application/csv"]}}`
 
 func TestDocumentedHandlerDocumentationWithRequestContentType(t *testing.T) {
 	h := H(getFoo).With(
