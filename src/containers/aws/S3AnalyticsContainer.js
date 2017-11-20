@@ -67,10 +67,12 @@ S3AnalyticsContainer.propTypes = {
   getS3Data: PropTypes.func.isRequired
 };
 
+/* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   s3Data: aws.s3
 });
 
+/* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   getS3Data: () => {
     dispatch(Actions.AWS.S3.getS3Data())

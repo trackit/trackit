@@ -64,11 +64,13 @@ AccountsContainer.propTypes = {
   newExternal: PropTypes.func.isRequired
 };
 
+/* istanbul ignore next */
 const mapStateToProps = (state) => ({
   accounts: state.aws.accounts.all,
   external: state.aws.accounts.external
 });
 
+/* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   getAccounts: () => {
     dispatch(Actions.AWS.Accounts.getAccounts())
