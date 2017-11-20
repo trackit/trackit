@@ -117,9 +117,11 @@ Navigation.propTypes = {
   signOut: PropTypes.func.isRequired
 };
 
+/* istanbul ignore next */
 const mapStateToProps = () => ({
-
 });
+
+/* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   signOut: () => {
     dispatch(Actions.Auth.logout())

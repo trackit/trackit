@@ -71,10 +71,14 @@ describe('<Panel />', () => {
   });
 
   it('can collapse body', () => {
-    const wrapper = shallow(<Panel {...propsCollapsed}/>);
-    expect(wrapper.state('collapsed')).toBe(true);
-    wrapper.find('div.panel-heading').prop('onClick')({ preventDefault() {} });
-    expect(wrapper.state('collapsed')).toBe(false);
+    const wrapperCollapsible = shallow(<Panel {...propsCollapsed}/>);
+    expect(wrapperCollapsible.state('collapsed')).toBe(true);
+    wrapperCollapsible.find('div.panel-heading').prop('onClick')({ preventDefault() {} });
+    expect(wrapperCollapsible.state('collapsed')).toBe(false);
+    const wrapperNonCollapsible = shallow(<Panel {...props}/>);
+    expect(wrapperNonCollapsible.state('collapsed')).toBe(false);
+    wrapperNonCollapsible.find('div.panel-heading').prop('onClick')({ preventDefault() {} });
+    expect(wrapperNonCollapsible.state('collapsed')).toBe(false);
   });
 
 });
