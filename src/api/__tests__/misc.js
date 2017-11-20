@@ -11,12 +11,12 @@ describe("API Calls", () => {
 
   describe("GET method", () => {
 
-    it("handles valid response without token", () => {
+    it("handles valid response", () => {
 
       const response = { data: "data" };
       fetchMock.get('*', response);
 
-      call('/test', 'GET', null, null)
+      call('/test', 'GET')
         .then((result) => {
           expect(result).toEqual({success: true, data: response});
         });
@@ -43,7 +43,7 @@ describe("API Calls", () => {
       const response = { data: "data" };
       fetchMock.post('*', (url, data) => (data.body));
 
-      call('/test', 'POST', response, null)
+      call('/test', 'POST', response,)
         .then((result) => {
           expect(result).toEqual({success: true, data: response});
         });
