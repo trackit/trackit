@@ -1,4 +1,6 @@
+import { shallow } from 'enzyme';
 import { noNeg, capitalizeFirstLetter, formatBytes, formatPrice } from '../formatters';
+import Containers from "../../containers";
 
 describe('Formatters', () => {
 
@@ -32,6 +34,36 @@ describe('Formatters', () => {
 
     it('should return capitalized value', () => {
       expect(capitalizeFirstLetter(invalidInput)).toBe(validInput);
+    });
+
+  });
+
+  describe('FormatBytes', () => {
+
+    const validInput = 42;
+    const zeroValue = "0 Bytes";
+
+    it('should return formatted value', () => {
+      expect(formatBytes(validInput)).toBe(validInput + " Bytes");
+    });
+
+    it('should return zero value', () => {
+      expect(formatBytes(0)).toBe(zeroValue);
+    });
+
+  });
+
+  describe('FormatPrice', () => {
+
+    const validInput = 42.042;
+    const formattedValue = "42.04";
+
+    it('should return formatted value', () => {
+      const output = shallow(formatPrice(validInput));
+      expect(output.length).toBe(1);
+      const spans = output.find("span");
+      expect(spans.length).toBe(2);
+      expect(spans.first().props().children[1]).toBe(formattedValue);
     });
 
   });
