@@ -11,11 +11,12 @@ type BackendId struct {
 }
 
 func (d BackendId) Decorate(h Handler) Handler {
-	h.Func = d.getBackendIdFunc(h.Func)
+	h.Func = d.getFunc(h.Func)
 	return h
 }
 
-func (d BackendId) getBackendIdFunc(hf HandlerFunc) HandlerFunc {
+// getFunc returns a decorated handler function for BackendId.
+func (d BackendId) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		w.Header()["X-Backend-ID"] = []string{d.BackendId}
 		return hf(w, r, a)

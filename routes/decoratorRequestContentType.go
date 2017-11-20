@@ -11,6 +11,9 @@ const (
 	TagRequiredContentType    = "require:contenttype"
 )
 
+// RequestContentType decorates handlers and requires requests to be of a given
+// content type. Requests with a content type not in the RequestContentType
+// list will be rejected with a http.StatusBadRequest.
 type RequestContentType []string
 
 func (rct RequestContentType) Decorate(h Handler) Handler {
@@ -19,6 +22,7 @@ func (rct RequestContentType) Decorate(h Handler) Handler {
 	return h
 }
 
+// getFunc builds the handler function for RequestContentType.Decorate
 func (rct RequestContentType) getFunc(hf HandlerFunc) HandlerFunc {
 	supportedContentTypes := rct.getCtMap()
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {

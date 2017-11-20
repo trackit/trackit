@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	maxUint             = ^uint(0)
-	maxInt              = int(maxUint >> 1)
-	minInt              = -maxInt - 1
+	maxUint = ^uint(0)
+	maxInt  = int(maxUint >> 1)
+	minInt  = -maxInt - 1
+	// TagRequiredQueryArg is the tag used to document required query args.
 	TagRequiredQueryArg = "required:allof:queryarg"
 )
 
@@ -36,25 +37,26 @@ type (
 	// interface.
 	QueryArgUintSlice struct{}
 
-	// QueryParser parses a string and returns a typed value.
-	// An error can be returned if the value could not be parse. The error's
-	// message contains %s which has to be replaced by the argument's name
-	// before being displayed.
+	// QueryParser parses a string and returns a typed value. An error can
+	// be returned if the value could not be parsed.
 	QueryParser interface {
+		// QueryParse parses a query string argument.
 		QueryParse(string) (interface{}, error)
+		// FormatName returns the name of the parameter type.
 		FormatName() string
 	}
 
-	// QueryArg defines an argument by its name and its type.
+	// QueryArg defines an argument by its name and its type. A description
+	// can be used for documentation purposes.
 	QueryArg struct {
 		Name        string
 		Description string
 		Type        QueryParser
 	}
 
-	// WithQueryArg contains all the arguments to parse in the URL.
-	// WithQueryArg has a method Decorate called to apply the decorators
-	// on an endpoint.
+	// RequiredQueryArgs contains all the arguments to parse in the URL.
+	// RequiredQueryArgs has a method Decorate called to apply the
+	// decorators on an endpoint.
 	RequiredQueryArgs []QueryArg
 )
 
@@ -147,6 +149,7 @@ func (qa RequiredQueryArgs) Decorate(h Handler) Handler {
 	}
 }
 
+// getFunc builds a handler function for RequiredQueryArgs.Decorate
 func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		for _, arg := range qa {
@@ -158,6 +161,7 @@ func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 }
 
+// getDocumentation builds the documentation for RequiredQueryArgs.Decorate
 func (qa RequiredQueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
 	if hd.Tags == nil {
 		hd.Tags = make(Tags)

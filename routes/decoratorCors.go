@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// Cors is a decorator which adds support for CORS to the handler.
 type Cors struct {
 	AllowOrigin      []string
 	AllowHeaders     []string
@@ -29,6 +30,7 @@ func (c Cors) Decorate(h Handler) Handler {
 	return h
 }
 
+// getFunc builds a handler function for Cors.Decorate.
 func (_ Cors) getFunc(
 	hf HandlerFunc,
 	hd HandlerDocumentation,

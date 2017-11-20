@@ -39,11 +39,12 @@ type requestLogData struct {
 type RouteLog struct{}
 
 func (rl RouteLog) Decorate(h Handler) Handler {
-	h.Func = getRouteLogFunc(h.Func)
+	h.Func = getFunc(h.Func)
 	return h
 }
 
-func getRouteLogFunc(hf HandlerFunc) HandlerFunc {
+// getFunc builds the route handler function for RouteLog.Decorate.
+func (_ RouteLog) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		l.Info("Received request.", getRequestLogData(r))

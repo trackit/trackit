@@ -1,5 +1,7 @@
 package routes
 
+// Documentation decorates a handler to document it. Summary, Description and
+// Tags will be set on the documentation if not zero.
 type Documentation HandlerDocumentationBody
 
 func (d Documentation) Decorate(h Handler) Handler {

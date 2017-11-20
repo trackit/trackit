@@ -11,12 +11,13 @@ import (
 // to the response in the `X-Request-ID` HTTP header.
 type RequestId struct{}
 
-func (_ RequestId) Decorate(h Handler) Handler {
-	h.Func = getRequestIdFunc(h.Func)
+func (ri RequestId) Decorate(h Handler) Handler {
+	h.Func = ri.getFunc(h.Func)
 	return h
 }
 
-func getRequestIdFunc(hf HandlerFunc) HandlerFunc {
+// getFunc builds the handler function for RequestId.Decorate
+func (_ RequestId) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		requestId := uuid.NewV1().String()
 		r = requestWithLoggedContextValue(r, contextKeyRequestId, "requestId", requestId)

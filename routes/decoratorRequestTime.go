@@ -10,11 +10,12 @@ import (
 type RequestTime struct{}
 
 func (d RequestTime) Decorate(h Handler) Handler {
-	h.Func = getRequestTimeFunc(h.Func)
+	h.Func = d.getFunc(h.Func)
 	return h
 }
 
-func getRequestTimeFunc(hf HandlerFunc) HandlerFunc {
+// getFunc builds the handler function for RequestTime.Decorate
+func (_ RequestTime) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		now := time.Now()
 		r = requestWithLoggedContextValue(r, contextKeyRequestTime, "requestTime", now)

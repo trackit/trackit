@@ -32,6 +32,7 @@ func (d ErrorBody) Decorate(h Handler) Handler {
 	return h
 }
 
+// getFunc builds the handler function for ErrorBody.Decorate.
 func (_ ErrorBody) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		status, output := hf(w, r, a)

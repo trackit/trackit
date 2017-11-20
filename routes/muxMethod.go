@@ -9,8 +9,14 @@ const (
 	ErrMethodNotAllowed = constError("Method is not allowed.")
 )
 
+// MethodMuxer multiplexes requests based on their method. If a request arrives
+// with a method not in the map, MethodMuxer responds with
+// http.StatusMethodNotAllowed.
 type MethodMuxer map[string]Handler
 
+// H builds a handler from the MethodMuxer. If the MethodMuxer has only one
+// element, the summary of the single handler's documentation will be copied
+// over to the MethodMuxer's.
 func (mm MethodMuxer) H() Handler {
 	return Handler{
 		Func:          mm.handlerFunc(),
@@ -19,6 +25,7 @@ func (mm MethodMuxer) H() Handler {
 	}
 }
 
+// handlerFunc builds the handler function for MethodMuxer.H.
 func (mm MethodMuxer) handlerFunc() HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		if h, ok := mm[r.Method]; ok {
@@ -29,6 +36,7 @@ func (mm MethodMuxer) handlerFunc() HandlerFunc {
 	}
 }
 
+// documentation builds the documentation for MethodMuxer.H.
 func (mm MethodMuxer) documentation() HandlerDocumentation {
 	var hd HandlerDocumentation
 	hd.Components = make(map[string]HandlerDocumentation)
@@ -42,6 +50,7 @@ func (mm MethodMuxer) documentation() HandlerDocumentation {
 	return hd
 }
 
+// methods compiles a map of methods supported by the MethodMuxer.
 func (mm MethodMuxer) methods() map[string]bool {
 	o := make(map[string]bool)
 	for m := range mm {

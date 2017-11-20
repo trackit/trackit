@@ -62,11 +62,15 @@ func initializeHandlers() {
 	}
 }
 
+// applyDecoratorsAndHandle applies a list of decorators to a handler and
+// registers it.
 func applyDecoratorsAndHandle(p string, h routes.Handler, ds []routes.Decorator) {
 	h = h.With(ds...)
 	http.Handle(p, h)
 }
 
+// getBackendId returns an ID unique to the current process. It can also be set
+// in the config to a determined string. It contains the build number.
 func getBackendId() string {
 	if config.BackendId != "" {
 		return config.BackendId

@@ -4,22 +4,19 @@ import (
 	"net/http"
 )
 
-const (
-	ComponentMethod      = "method"
-	ComponentRequirement = "requirement"
-	ComponentRequest     = "request"
-	ComponentResponse    = "response"
-	ComponentBody        = "body"
-)
-
+// Tags is a map of tags on a documentation.
 type Tags map[string][]string
 
+// HandlerDocumentationBody represents the values forming the body of a
+// documentation component.
 type HandlerDocumentationBody struct {
 	Summary     string `json:"summary"`
 	Description string `json:"description,omitempty"`
 	Tags        Tags   `json:"tags,omitempty"`
 }
 
+// HandlerDocumentation represent a handler's documentation. It can have a tree
+// of component subdocumentations.
 type HandlerDocumentation struct {
 	HandlerDocumentationBody
 	Components map[string]HandlerDocumentation `json:"components,omitempty"`
@@ -37,6 +34,8 @@ var documentationHandler = MethodMuxer{
 	}),
 }.H()
 
+// DocumentationHandler returns a Handler which responds to http.MehodGet
+// requests with a JSON representation of all registered routes.
 func DocumentationHandler() Handler {
 	return documentationHandler
 }
