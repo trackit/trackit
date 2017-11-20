@@ -325,6 +325,12 @@
 			"revisionTime": "2017-10-07T15:42:58Z"
 		},
 		{
+			"checksumSHA1": "Uv6a/M9wO8QyNfKOHuQIg1X03Fg=",
+			"path": "gopkg.in/olivere/elastic.v5",
+			"revision": "2a08d39723b7f4df92b96e2dff891a60952714d6",
+			"revisionTime": "2017-09-26T20:05:24Z"
+		},
+		{
 			"checksumSHA1": "IrHyX6UdBMWh2ZYHPuJZRGyITX8=",
 			"path": "gopkg.in/rana/ora.v4",
 			"revision": "02c78afd6b5b18edaac96e4f3fc03ac4ceb73320",
