@@ -10,7 +10,7 @@ const Form = Components.AWS.Accounts.Form;
 const Panel = Components.Misc.Panel;
 
 // Accounts Container for AWS Accounts
-class AccountsContainer extends Component {
+export class AccountsContainer extends Component {
 
   componentWillMount() {
     this.props.getAccounts();
