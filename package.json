@@ -50,6 +50,7 @@
     "react-validation": "~3.0.6",
     "redux": "~3.7.2",
     "redux-saga": "~0.15.6",
+    "redux-test-utils": "^0.2.1",
     "style-loader": "0.18.2",
     "sw-precache-webpack-plugin": "0.11.4",
     "url-loader": "0.5.9",
