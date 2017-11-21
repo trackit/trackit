@@ -20,6 +20,10 @@ const props = {
 
 describe('<S3AnalyticsContainer />', () => {
 
+  beforeEach(() => {
+    props.getS3Data.mockReset();
+  });
+
   it('renders a <S3AnalyticsContainer /> component', () => {
     const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
     expect(wrapper.length).toBe(1);
