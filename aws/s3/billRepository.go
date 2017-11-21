@@ -61,7 +61,7 @@ func init() {
 // BillRepository is a location where the server may look for bill objects.
 type BillRepository struct {
 	Id           int    `json:"id"`
-	AwsAccountId int    `json:"id"`
+	AwsAccountId int    `json:"awsAccountId"`
 	Bucket       string `json:"bucket"`
 	Prefix       string `json:"prefix"`
 }
