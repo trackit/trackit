@@ -42,11 +42,11 @@ func storeAttributeRegion(name string, value interface{}, dbAwsProduct *models.A
 	dbAwsRegion, err := models.AwsRegionByPretty(db.Db, value.(string))
 	if err != nil {
 		var newDbAwsRegion models.AwsRegion
-		logger.Error("Error during dbAwsRegion fetching: %v\n", err)
+		logger.Error("Error during dbAwsRegion fetching", err)
 		newDbAwsRegion.Pretty = value.(string)
 		newDbAwsRegion.Region = value.(string)
 		if err := newDbAwsRegion.Insert(db.Db); err != nil {
-			logger.Error("Error during dbAwsRegion inserting: %v\n", err)
+			logger.Error("Error during dbAwsRegion inserting", err)
 		}
 		dbAwsRegion = &newDbAwsRegion
 	}
@@ -110,11 +110,11 @@ func importResult(reader io.ReadCloser, logger jsonlog.Logger) {
 	defer reader.Close()
 	body, err := ioutil.ReadAll(reader)
 	if err != nil {
-		logger.Error("Body reading failed: %v\n", err)
+		logger.Error("Body reading failed", err)
 	}
 	var bodyMap map[string]interface{}
 	if err = json.Unmarshal(body, &bodyMap); err != nil {
-		logger.Error("JSON Unmarshal failed: %v\n", err)
+		logger.Error("JSON Unmarshal failed", err)
 		return
 	}
 	for _, product := range bodyMap["products"].(map[string]interface{}) {
@@ -170,7 +170,7 @@ func downloadJSON(logger jsonlog.Logger) (io.ReadCloser, error) {
 	}
 	err = dbAfp.Save(db.Db)
 	if err != nil {
-		logger.Error("Error during dbAfp saving: %v\n", err)
+		logger.Error("Error during dbAfp saving", err)
 		return nil, err
 	}
 	return res.Body, nil
