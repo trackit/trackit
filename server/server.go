@@ -48,6 +48,7 @@ func initializeHandlers() {
 		routes.RouteLog{},
 		routes.BackendId{backendId},
 		routes.ErrorBody{},
+		routes.PanicAsError{},
 		routes.Cors{
 			AllowCredentials: true,
 			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization"},
