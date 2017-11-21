@@ -23,7 +23,7 @@ import PropTypes from 'prop-types';
        type: 'bar',
        opacity: 0.8,
        marker: {
-         color: '#1e88e5 ',
+         color: '#1e88e5',
        }
      };
      const storage = {
