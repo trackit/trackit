@@ -17,6 +17,7 @@ package aws
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -90,6 +91,20 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 		return awsAccounts, nil
 	}
 	return nil, err
+}
+
+// GetAwsAccountWithIdFromUser returns a user's AWS accounts if it belongs to
+// the user.
+func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount, error) {
+	var aa AwsAccount
+	if dbaa, err := models.AwsAccountByID(tx, aaid); err != nil {
+		return aa, err
+	} else if dbaa.UserID != u.Id {
+		return aa, errors.New("aws account does not belong to the user")
+	} else {
+		aa = awsAccountFromDbAwsAccount(*dbaa)
+		return aa, nil
+	}
 }
 
 // CreateAwsAccount registers a new AWS account for a user. It does no error

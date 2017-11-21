@@ -16,15 +16,54 @@ package s3
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"regexp"
+
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit2/aws"
+	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/models"
+	"github.com/trackit/trackit2/routes"
+	"github.com/trackit/trackit2/users"
 )
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getBillRepository).With(
+			routes.Documentation{
+				Summary:     "get aws account's bill repositories",
+				Description: "Gets the list of bill repositories for an AWS account.",
+			},
+		),
+		http.MethodPost: routes.H(postBillRepository).With(
+			routes.RequestContentType{"application/json"},
+			routes.Documentation{
+				Summary:     "add a new bill repository to an aws account",
+				Description: "Adds a bill repository to an AWS account.",
+			},
+		),
+	}.H().With(
+		db.RequestTransaction{db.Db},
+		users.RequireAuthenticatedUser{},
+		routes.RequiredQueryArgs{aws.AwsAccountQueryArg},
+		aws.RequireAwsAccount{},
+		routes.Documentation{
+			Summary:     "interact with aws account's bill repositories",
+			Description: "A bill repository is an S3 location (bucket+prefix) where Cost And Usage Reports can be found.",
+		},
+	).Register("/aws/billrepository")
+}
 
 // BillRepository is a location where the server may look for bill objects.
 type BillRepository struct {
-	Bucket string
-	Prefix string
+	Id           int    `json:"id"`
+	AwsAccountId int    `json:"id"`
+	Bucket       string `json:"bucket"`
+	Prefix       string `json:"prefix"`
 }
 
 func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (BillRepository, error) {
@@ -56,7 +95,96 @@ func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepo
 
 func billRepoFromDbBillRepo(dbBillRepo models.AwsBillRepository) BillRepository {
 	return BillRepository{
+		Id:     dbBillRepo.ID,
 		Bucket: dbBillRepo.Bucket,
 		Prefix: dbBillRepo.Prefix,
 	}
+}
+
+func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
+	var body BillRepository
+	err := decodeRequestBody(r, &body)
+	if err == nil {
+		err = isBillRepositoryValid(body)
+	}
+	if err == nil {
+		tx := a[db.Transaction].(*sql.Tx)
+		aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+		return postBillRepositoryWithValidBody(r, tx, aa, body)
+	} else {
+		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
+	}
+}
+
+// decodeRequestBody decodes a JSON request body and returns nil in case it
+// could do so.
+func decodeRequestBody(request *http.Request, structuredBody interface{}) error {
+	return json.NewDecoder(request.Body).Decode(structuredBody)
+}
+
+func postBillRepositoryWithValidBody(r *http.Request, tx *sql.Tx, aa aws.AwsAccount, body BillRepository) (int, interface{}) {
+	br, err := CreateBillRepository(aa, body, tx)
+	if err == nil {
+		return http.StatusOK, br
+	} else {
+		l := jsonlog.LoggerFromContextOrDefault(r.Context())
+		l.Error("Failed to create bill repository.", map[string]interface{}{
+			"billRepository": br,
+			"error":          err.Error(),
+		})
+		return 500, errors.New("Failed to create bill repository.")
+	}
+
+}
+
+const noTwoDotsInBucketNameRegex = `^[a-z-](?:[a-z0-9.-]?[a-z0-9-])+$`
+
+var noTwoDotsInBucketName = regexp.MustCompile(noTwoDotsInBucketNameRegex)
+
+func isBillRepositoryValid(br BillRepository) error {
+	if err := isBucketNameValid(br.Bucket); err != nil {
+		return err
+	} else if err := isPrefixValid(br.Prefix); err != nil {
+		return err
+	} else {
+		return nil
+	}
+}
+
+func isBucketNameValid(bn string) error {
+	if l := len(bn); l < 3 {
+		return errors.New("bucket name shall be no shorter than 3 chars")
+	} else if l > 63 {
+		return errors.New("bucket name shall be no longer than 63 chars")
+	} else if !noTwoDotsInBucketName.MatchString(bn) {
+		return errors.New(fmt.Sprintf("bucket name shall satisfy the regexp /%s/", noTwoDotsInBucketNameRegex))
+	} else {
+		return nil
+	}
+}
+
+func isPrefixValid(p string) error {
+	l := len([]byte(p))
+	if l > 1024 {
+		return errors.New("key prefix shall be no longer than 1024 chars")
+	} else {
+		return nil
+	}
+}
+
+func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
+	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+	tx := a[db.Transaction].(*sql.Tx)
+	if brs, err := GetBillRepositoriesForAwsAccount(aa, tx); err == nil {
+		return http.StatusOK, brs
+	} else {
+		l := jsonlog.LoggerFromContextOrDefault(r.Context())
+		l.Error("Failed to get aws account's bill repositories.", map[string]interface{}{
+			"user":       a[users.AuthenticatedUser].(users.User),
+			"awsAccount": aa,
+			"error":      err.Error(),
+		})
+		return http.StatusInternalServerError, errors.New("Failed to retrieve bill repositories.")
+	}
+
 }
