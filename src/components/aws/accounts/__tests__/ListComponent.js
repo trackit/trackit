@@ -20,7 +20,6 @@ const accountWithoutBills = {
   id: 42,
   userId: 42,
   roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
-  pretty: "Name",
   bills: []
 };
 
@@ -43,6 +42,15 @@ describe('<ListComponent />', () => {
     ...props,
     accounts: [accountWithoutBills, accountWithoutBills]
   };
+
+  beforeEach(() => {
+    actionsProps.accountActions.new.mockReset();
+    actionsProps.accountActions.edit.mockReset();
+    actionsProps.accountActions.delete.mockReset();
+    actionsProps.billActions.new.mockReset();
+    actionsProps.billActions.edit.mockReset();
+    actionsProps.billActions.delete.mockReset();
+  });
 
   it('renders a <ListComponent /> component', () => {
     const wrapper = shallow(<ListComponent {...props}/>);
@@ -75,6 +83,15 @@ describe('<ListItem />', () => {
     ...actionsProps,
     account: accountWithoutBills
   };
+
+  beforeEach(() => {
+    actionsProps.accountActions.new.mockReset();
+    actionsProps.accountActions.edit.mockReset();
+    actionsProps.accountActions.delete.mockReset();
+    actionsProps.billActions.new.mockReset();
+    actionsProps.billActions.edit.mockReset();
+    actionsProps.billActions.delete.mockReset();
+  });
 
   it('renders a <ListItem /> component', () => {
     const wrapper = shallow(<ListItem {...props}/>);

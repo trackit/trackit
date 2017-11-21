@@ -8,24 +8,24 @@ const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
 const Panel = Components.Misc.Panel;
 
-const accountActions = {
-  new: jest.fn(),
-  edit: jest.fn(),
-  delete: jest.fn(),
-};
-
-const billActions = {
-  new: jest.fn(),
-  edit: jest.fn(),
-  delete: jest.fn(),
+const defaultActions = {
+  accountActions: {
+    new: jest.fn(),
+    edit: jest.fn(),
+    delete: jest.fn(),
+  },
+  billActions: {
+    new: jest.fn(),
+    edit: jest.fn(),
+    delete: jest.fn(),
+  }
 };
 
 const props = {
+  ...defaultActions,
   accounts: [],
   external: "external",
   getAccounts: jest.fn(),
-  accountActions,
-  billActions,
   newExternal: jest.fn()
 };
 
@@ -44,6 +44,15 @@ const state = {
 };
 
 describe('<AccountsContainer />', () => {
+
+  beforeEach(() => {
+    defaultActions.accountActions.new.mockReset();
+    defaultActions.accountActions.edit.mockReset();
+    defaultActions.accountActions.delete.mockReset();
+    defaultActions.billActions.new.mockReset();
+    defaultActions.billActions.edit.mockReset();
+    defaultActions.billActions.delete.mockReset();
+  });
 
   it('renders a <AccountsContainer /> component', () => {
     const wrapper = shallow(<AccountsContainer {...props} />);

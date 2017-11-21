@@ -8,6 +8,10 @@ const props = {
 
 describe('<Navigation />', () => {
 
+  beforeEach(() => {
+    props.signOut.mockReset();
+  });
+
   it('renders a <Navigation /> component', () => {
     const wrapper = shallow(<Navigation {...props}/>);
     expect(wrapper.length).toEqual(1);

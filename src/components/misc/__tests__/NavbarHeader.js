@@ -8,6 +8,10 @@ const props = {
 
 describe('<NavbarHeader />', () => {
 
+  beforeEach(() => {
+    props.signOut.mockReset();
+  });
+
   it('renders a <NavbarHeader /> component', () => {
     const wrapper = shallow(<NavbarHeader {...props}/>);
     expect(wrapper.length).toBe(1);

@@ -11,11 +11,15 @@ const props = {
 };
 
 const propsWithToken = {
-  login: jest.fn(),
+  ...props,
   token: "token"
 };
 
 describe('<LoginContainer />', () => {
+
+  beforeEach(() => {
+    props.login.mockReset();
+  });
 
   it('renders a <LoginContainer /> component', () => {
     const wrapper = shallow(<LoginContainer {...props}/>);
