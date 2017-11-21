@@ -1,6 +1,5 @@
 import { shallow } from 'enzyme';
 import { noNeg, capitalizeFirstLetter, formatBytes, formatPrice } from '../formatters';
-import Containers from "../../containers";
 
 describe('Formatters', () => {
 

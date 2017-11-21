@@ -1,8 +1,7 @@
 import React from 'react';
-import ConnectecAccountsContainer, { AccountsContainer } from '../AccountsContainer';
+import { AccountsContainer } from '../AccountsContainer';
 import Components from '../../../../components';
 import { shallow } from 'enzyme';
-import { createMockStore } from 'redux-test-utils';
 
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
@@ -27,20 +26,6 @@ const props = {
   external: "external",
   getAccounts: jest.fn(),
   newExternal: jest.fn()
-};
-
-const state = {
-  aws: {
-    accounts: {
-      all: [{
-        id: 42,
-        roleArn: "role",
-        pretty: "pretty",
-        bills: []
-      }],
-      external: "external"
-    }
-  }
 };
 
 describe('<AccountsContainer />', () => {

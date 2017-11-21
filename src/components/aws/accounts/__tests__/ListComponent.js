@@ -1,7 +1,6 @@
 import React from 'react';
 import ListComponent, { ListItem } from '../ListComponent';
 import { shallow } from 'enzyme';
-import accountsActions from "../../../../actions/aws/accountsActions";
 
 const actionsProps = {
   accountActions: {

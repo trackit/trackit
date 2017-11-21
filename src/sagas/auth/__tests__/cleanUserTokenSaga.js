@@ -1,4 +1,4 @@
-import { put, all } from 'redux-saga/effects';
+import { put } from 'redux-saga/effects';
 import cleanUserTokenSaga from '../cleanUserTokenSaga';
 import Constants from '../../../constants';
 
