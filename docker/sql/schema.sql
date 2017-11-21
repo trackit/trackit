@@ -52,3 +52,38 @@ CREATE TABLE aws_bill_repository (
 CREATE VIEW aws_bill_repository_due_update AS
 	SELECT * FROM aws_bill_repository WHERE next_update <= NOW()
 ;
+
+CREATE TABLE aws_fetch_pricing (
+	id INTEGER NOT NULL AUTO_INCREMENT,
+	product VARCHAR(255) NOT NULL,
+	etag VARCHAR(255) NOT NULL,
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT UNIQUE KEY (product)
+);
+
+CREATE TABLE aws_region (
+	id INTEGER NOT NULL AUTO_INCREMENT,
+	region VARCHAR(255) NOT NULL,
+	pretty VARCHAR(255) NOT NULL,
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT UNIQUE KEY (region),
+	CONSTRAINT UNIQUE KEY (pretty)
+);
+
+CREATE TABLE aws_product_ec2 (
+	id INTEGER NOT NULL AUTO_INCREMENT,
+	sku VARCHAR(255) NOT NULL,
+	region_id INTEGER NOT NULL, /* DO TABLE REGION */
+	instance_type VARCHAR(255) NOT NULL,
+	current_generation INTEGER(1) NOT NULL,
+	vcpu INTEGER NOT NULL,
+	memory VARCHAR(255) NOT NULL,
+	storage VARCHAR(255) NOT NULL,
+	network_performance VARCHAR(255) NOT NULL,
+	tenancy VARCHAR(255) NOT NULL,
+	operating_system VARCHAR(255) NOT NULL,
+	ecu INTEGER NOT NULL,
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT UNIQUE KEY (sku),
+	CONSTRAINT FOREIGN KEY (region_id) REFERENCES aws_region(id)
+);
