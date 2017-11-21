@@ -3,15 +3,23 @@ jobs:
   build:
     working_directory: ~/
     docker:
-      - image: circleci/node:4.8.2
+      - image: circleci/node:7.10
     steps:
       - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
       - run:
           name: update-npm
           command: 'sudo npm install -g npm@latest'
       - run:
           name: install-npm
           command: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
       - run:
           name: test
           command: npm test
