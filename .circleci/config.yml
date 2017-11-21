@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: ~/
+    working_directory: ~/trackit2-client
     docker:
       - image: circleci/node:7.10
     steps:
