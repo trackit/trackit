@@ -24,7 +24,19 @@ const propsWithAccount = {
   }
 };
 
+const form = {
+  getValues: () => ({
+    roleArn: "roleArn",
+    pretty: "pretty",
+    external: "external"
+  })
+};
+
 describe('<FormComponent />', () => {
+
+  beforeEach(() => {
+    props.submit.mockReset();
+  });
 
   it('renders a <FormComponent /> component', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
@@ -56,11 +68,28 @@ describe('<FormComponent />', () => {
     expect(input.prop("value")).toBe(propsWithExternal.external);
   });
 
-/*
-  it('renders 3 <Input /> components inside with accounts data', () => {
+  it('can submit info to create account', () => {
+    const wrapper = shallow(<FormComponent {...propsWithExternal}/>);
+    const instance = wrapper.instance();
+    instance.form = form;
+    expect(props.submit.mock.calls.length).toBe(0);
+    wrapper.instance().submit({ preventDefault(){} });
+    expect(props.submit.mock.calls.length).toBe(1);
+  });
+
+  it('renders 2 <Input /> components inside with accounts data', () => {
     const wrapper = shallow(<FormComponent {...propsWithAccount}/>);
     const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(3);
+    expect(inputs.length).toBe(2);
   });
-*/
+
+  it('can submit info to update account', () => {
+    const wrapper = shallow(<FormComponent {...propsWithAccount}/>);
+    const instance = wrapper.instance();
+    instance.form = form;
+    expect(props.submit.mock.calls.length).toBe(0);
+    wrapper.instance().submit({ preventDefault(){} });
+    expect(props.submit.mock.calls.length).toBe(1);
+  });
+
 });

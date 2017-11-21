@@ -18,7 +18,18 @@ const propsWithBill = {
   }
 };
 
+const form = {
+  getValues: () => ({
+    bucket: "bucket",
+    path: "path"
+  })
+};
+
 describe('<FormComponent />', () => {
+
+  beforeEach(() => {
+    props.submit.mockReset();
+  });
 
   it('renders a <FormComponent /> component', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
@@ -43,11 +54,19 @@ describe('<FormComponent />', () => {
     expect(button.length).toBe(1);
   });
 
-/*
-  it('renders 3 <Input /> components inside with accounts data', () => {
+  it('renders 2 <Input /> components inside with bill data', () => {
     const wrapper = shallow(<FormComponent {...propsWithBill}/>);
     const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(3);
+    expect(inputs.length).toBe(2);
   });
-*/
+
+  it('can submit info to update bill', () => {
+    const wrapper = shallow(<FormComponent {...propsWithBill}/>);
+    const instance = wrapper.instance();
+    instance.form = form;
+    expect(props.submit.mock.calls.length).toBe(0);
+    wrapper.instance().submit({ preventDefault(){} });
+    expect(props.submit.mock.calls.length).toBe(1);
+  });
+
 });

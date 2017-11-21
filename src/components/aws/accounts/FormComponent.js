@@ -62,7 +62,12 @@ class FormComponent extends Component {
 
     return (
       <Panel title={actionVerb + " an account"} collapsible defaultCollapse>
-        <Form ref={form => { this.form = form; }} onSubmit={this.submit} >
+        <Form
+          ref={
+            /* istanbul ignore next */
+            (form) => {this.form = form;}
+          }
+          onSubmit={this.submit}>
 
           {external}
 

@@ -38,10 +38,12 @@ export class FormComponent extends Component {
               <img src={logo} id="logo" alt="TrackIt logo" />
 
               <hr />
-              <Form ref={
-                /* istanbul ignore next */
-                (form) => {this.form = form;}
-              } onSubmit={this.submit}>
+              <Form
+                ref={
+                  /* istanbul ignore next */
+                  (form) => {this.form = form;}
+                }
+                onSubmit={this.submit}>
 
                 <div className="form-group">
                   <label htmlFor="email">Email address</label>

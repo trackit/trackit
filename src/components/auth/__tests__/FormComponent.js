@@ -7,7 +7,18 @@ const props = {
   submit: jest.fn()
 };
 
+const form = {
+  getValues: () => ({
+    email: "email",
+    password: "password"
+  })
+};
+
 describe('<FormComponent />', () => {
+
+  beforeEach(() => {
+    props.submit.mockReset();
+  });
 
   it('renders a <FormComponent /> component', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
@@ -23,7 +34,7 @@ describe('<FormComponent />', () => {
   it('can submit credentials to log user in', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
     const instance = wrapper.instance();
-    instance.form = { getValues: () => ({email: "email", password: "password"}) };
+    instance.form = form;
     expect(props.submit.mock.calls.length).toBe(0);
     wrapper.instance().submit({ preventDefault(){} });
     expect(props.submit.mock.calls.length).toBe(1);
