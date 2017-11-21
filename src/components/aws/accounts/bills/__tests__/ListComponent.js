@@ -26,6 +26,12 @@ describe('<ListComponent />', () => {
     bills: [bill, bill]
   };
 
+  beforeEach(() => {
+    defaultProps.new.mockReset();
+    defaultProps.edit.mockReset();
+    defaultProps.delete.mockReset();
+  });
+
   it('renders a <ListComponent /> component', () => {
     const wrapper = shallow(<ListComponent {...props}/>);
     expect(wrapper.length).toBe(1);
@@ -89,14 +95,14 @@ describe('<ListItem />', () => {
     expect(wrapper.state('editForm')).toBe(true);
     wrapper.instance().editBill(bill);
     expect(wrapper.state('editForm')).toBe(false);
-//    expect(props.edit.mock.calls.length).toBe(1);
+    expect(props.edit.mock.calls.length).toBe(1);
   });
-/*
+
   it('can delete item', () => {
     const wrapper = shallow(<ListItem {...props}/>);
     expect(props.delete.mock.calls.length).toBe(0);
     wrapper.find('button.btn.delete').prop('onClick')({ preventDefault() {} });
     expect(props.delete.mock.calls.length).toBe(1);
   });
-*/
+
 });

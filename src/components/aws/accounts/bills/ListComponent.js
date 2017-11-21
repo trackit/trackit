@@ -22,8 +22,8 @@ export class ListItem extends Component {
   };
 
   editBill = (body) => {
-    console.log(body);
     this.setState({ editForm: false });
+    this.props.edit(body);
   };
 
   deleteBill = (e) => {
@@ -40,7 +40,7 @@ export class ListItem extends Component {
           <span className="glyphicon glyphicon-pencil" aria-hidden="true"/> Edit
         </button>
 
-        <button type="button" className="btn btn-default delete" onClick={this.deleteAccount}>
+        <button type="button" className="btn btn-default delete" onClick={this.deleteBill}>
           <span className="glyphicon glyphicon-remove" aria-hidden="true"/> Delete
         </button>
 
