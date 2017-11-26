@@ -91,7 +91,7 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 // saves it to the database.
 func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *AwsAccount, user *users.User) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	if _, err := GetTemporaryCredentials(ctx, *account, "validityTest"); err != nil {
+	if _, err := GetTemporaryCredentials(*account, "validityTest"); err != nil {
 		return errInvalidAccount
 	}
 	if err := account.CreateAwsAccount(ctx, tx); err != nil {
