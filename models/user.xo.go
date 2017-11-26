@@ -131,7 +131,7 @@ func (u *User) Delete(db XODB) error {
 
 // UserByEmail retrieves a row from 'trackit.user' as a User.
 //
-// Generated from index 'email'.
+// Generated from index 'unique_email'.
 func UserByEmail(db XODB, email string) (*User, error) {
 	var err error
 

@@ -19,7 +19,7 @@ CREATE TABLE user (
 	email         VARCHAR(254) NOT NULL,
 	auth          VARCHAR(255) NOT NULL,
 	next_external VARCHAR(96)      NULL,
-	CONSTRAINT primary_id   PRIMARY KEY (id),
+	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT unique_email UNIQUE KEY (email)
 );
 
@@ -31,18 +31,19 @@ CREATE TABLE aws_account (
 	pretty   VARCHAR(255) NOT NULL,
 	role_arn VARCHAR(255) NOT NULL,
 	external VARCHAR(255) NOT NULL,
-	CONSTRAINT primary_id   PRIMARY KEY (id),
-	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_user   FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE aws_bill_repository (
-	id             INTEGER       NOT NULL AUTO_INCREMENT,
-	created        TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	modified       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	aws_account_id INTEGER       NOT NULL,
-	bucket         VARCHAR(63)   NOT NULL,
-	prefix         VARCHAR(1024) NOT NULL,
-	CONSTRAINT primary_id          PRIMARY KEY (id),
-	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE,
-	CONSTRAINT unique_per_account  UNIQUE  KEY (aws_account_id, bucket, prefix)
+	id                   INTEGER       NOT NULL AUTO_INCREMENT,
+	created              TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	modified             TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	aws_account_id       INTEGER       NOT NULL,
+	bucket               VARCHAR(63)   NOT NULL,
+	prefix               VARCHAR(1024) NOT NULL,
+	last_imported_period DATE          NOT NULL DEFAULT "1970-01-01",
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_aws_account    FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+--	CONSTRAINT unique_per_account     UNIQUE  KEY (aws_account_id, bucket, prefix)
 );

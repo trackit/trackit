@@ -113,13 +113,10 @@ func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount
 func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount := models.AwsAccount{
-		UserID:  a.UserId,
-		RoleArn: a.RoleArn,
-		Pretty:  a.Pretty,
-		External: sql.NullString{
-			Valid:  a.External != "",
-			String: a.External,
-		},
+		UserID:   a.UserId,
+		RoleArn:  a.RoleArn,
+		Pretty:   a.Pretty,
+		External: a.External,
 	}
 	err := dbAwsAccount.Insert(db)
 	if err == nil {
@@ -139,6 +136,6 @@ func awsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 		UserId:   dbAwsAccount.UserID,
 		Pretty:   dbAwsAccount.Pretty,
 		RoleArn:  dbAwsAccount.RoleArn,
-		External: dbAwsAccount.External.String,
+		External: dbAwsAccount.External,
 	}
 }

@@ -22,7 +22,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     ports:
-      - '127.0.0.1:8080:80'
+      - '127.0.0.1:8580:80'
     networks:
       - app
 networks:

@@ -5,14 +5,16 @@ package models
 
 import (
 	"errors"
+	"time"
 )
 
 // AwsBillRepository represents a row from 'trackit.aws_bill_repository'.
 type AwsBillRepository struct {
-	ID           int    `json:"id"`             // id
-	AwsAccountID int    `json:"aws_account_id"` // aws_account_id
-	Bucket       string `json:"bucket"`         // bucket
-	Prefix       string `json:"prefix"`         // prefix
+	ID                 int       `json:"id"`                   // id
+	AwsAccountID       int       `json:"aws_account_id"`       // aws_account_id
+	Bucket             string    `json:"bucket"`               // bucket
+	Prefix             string    `json:"prefix"`               // prefix
+	LastImportedPeriod time.Time `json:"last_imported_period"` // last_imported_period
 
 	// xo fields
 	_exists, _deleted bool
@@ -39,14 +41,14 @@ func (abr *AwsBillRepository) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`aws_account_id, bucket, prefix` +
+		`aws_account_id, bucket, prefix, last_imported_period` +
 		`) VALUES (` +
-		`?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix)
-	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod)
+	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod)
 	if err != nil {
 		return err
 	}
@@ -80,12 +82,12 @@ func (abr *AwsBillRepository) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_bill_repository SET ` +
-		`aws_account_id = ?, bucket = ?, prefix = ?` +
+		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_period = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.ID)
-	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.ID)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod, abr.ID)
+	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod, abr.ID)
 	return err
 }
 
@@ -135,15 +137,41 @@ func (abr *AwsBillRepository) AwsAccount(db XODB) (*AwsAccount, error) {
 	return AwsAccountByID(db, abr.AwsAccountID)
 }
 
+// AwsBillRepositoryByID retrieves a row from 'trackit.aws_bill_repository' as a AwsBillRepository.
+//
+// Generated from index 'aws_bill_repository_id_pkey'.
+func AwsBillRepositoryByID(db XODB, id int) (*AwsBillRepository, error) {
+	var err error
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`id, aws_account_id, bucket, prefix, last_imported_period ` +
+		`FROM trackit.aws_bill_repository ` +
+		`WHERE id = ?`
+
+	// run query
+	XOLog(sqlstr, id)
+	abr := AwsBillRepository{
+		_exists: true,
+	}
+
+	err = db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedPeriod)
+	if err != nil {
+		return nil, err
+	}
+
+	return &abr, nil
+}
+
 // AwsBillRepositoriesByAwsAccountID retrieves a row from 'trackit.aws_bill_repository' as a AwsBillRepository.
 //
-// Generated from index 'aws_account_id'.
+// Generated from index 'foreign_aws_account'.
 func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRepository, error) {
 	var err error
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix ` +
+		`id, aws_account_id, bucket, prefix, last_imported_period ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE aws_account_id = ?`
 
@@ -163,7 +191,7 @@ func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRep
 		}
 
 		// scan
-		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix)
+		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedPeriod)
 		if err != nil {
 			return nil, err
 		}
@@ -172,30 +200,4 @@ func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRep
 	}
 
 	return res, nil
-}
-
-// AwsBillRepositoryByID retrieves a row from 'trackit.aws_bill_repository' as a AwsBillRepository.
-//
-// Generated from index 'aws_bill_repository_id_pkey'.
-func AwsBillRepositoryByID(db XODB, id int) (*AwsBillRepository, error) {
-	var err error
-
-	// sql query
-	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix ` +
-		`FROM trackit.aws_bill_repository ` +
-		`WHERE id = ?`
-
-	// run query
-	XOLog(sqlstr, id)
-	abr := AwsBillRepository{
-		_exists: true,
-	}
-
-	err = db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	return &abr, nil
 }
