@@ -35,7 +35,7 @@ func (d PanicAsError) Decorate(h Handler) Handler {
 func (_ PanicAsError) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
 		defer func() {
-			if rc := recover(); r != nil {
+			if rc := recover(); rc != nil {
 				status, output = handlePanic(r.Context(), rc)
 			}
 		}()
