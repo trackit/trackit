@@ -17,6 +17,8 @@ package routes
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/trackit/trackit2/config"
 )
 
 // RegisteredHandlers is the list of all route handlers that were registered.
@@ -63,7 +65,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	status, output := h.Func(w, r, arguments)
 	w.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(output)
+	e := json.NewEncoder(w)
+	if config.PrettyJsonResponses {
+		e.SetIndent("", "\t")
+	}
+	e.Encode(output)
 }
 
 func (h Handler) With(ds ...Decorator) Handler {
