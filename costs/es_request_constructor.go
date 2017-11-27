@@ -59,7 +59,11 @@ const aggregationMaxSize = 0x7FFFFFFF
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
-	return elastic.NewTermsQuery("linked_account_id", accountList)
+	accountListFormatted := make([]interface{}, len(accountList))
+	for i, v := range accountList {
+		accountListFormatted[i] = v
+	}
+	return elastic.NewTermsQuery("linked_account_id", accountListFormatted...)
 }
 
 // createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
@@ -219,7 +223,7 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 	return aggrToNest.aggr
 }
 
-// GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES.
 // It takes as paramters :
 // 	- accountList []string : A slice of strings representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'

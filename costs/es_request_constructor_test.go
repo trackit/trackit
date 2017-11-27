@@ -15,6 +15,7 @@
 package costs
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -35,7 +36,7 @@ func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
 		"123456",
 		"98765432",
 	}
-	expectedResult := `{"terms":{"linked_account_id":[["123456","98765432"]]}}`
+	expectedResult := `{"terms":{"linked_account_id":["123456","98765432"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -54,7 +55,7 @@ func TestQueryAccountFiltersSingleAccount(t *testing.T) {
 	linkedAccountID := []string{
 		"123456",
 	}
-	expectedResult := `{"terms":{"linked_account_id":[["123456"]]}}`
+	expectedResult := `{"terms":{"linked_account_id":["123456"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -407,5 +408,326 @@ func TestAggregationNestingWithAllHandledElasticAggregationTypes(t *testing.T) {
 	}
 	if string(jsonResult) != expectedResult {
 		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonResult))
+	}
+}
+
+func TestElasticSearchParamWithNoResults(t *testing.T) {
+	client, err := elastic.NewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	accountList := []string{"123456"}
+	durationBegin, _ := time.Parse("2006-1-2 15:04", "2017-01-12 11:23")
+	durationEnd, _ := time.Parse("2006-1-2 15:04", "2017-05-23 11:23")
+	params := []string{"product"}
+	index := "awsdetailedlineitem"
+	expectedResult := `{
+	"product": {
+		"doc_count_error_upper_bound": 0,
+		"sum_other_doc_count": 0,
+		"buckets": []
+	}
+}`
+	searchService := GetElasticSearchParams(accountList, durationBegin, durationEnd, params, client, index)
+	res, err := searchService.Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "	")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(aggregationMarshalled) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(aggregationMarshalled))
+	}
+}
+
+func TestElasticSearchParamWithFewResultsAndNoAggregationNesting(t *testing.T) {
+	client, err := elastic.NewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	accountList := []string{"394125495069"}
+	durationBegin, _ := time.Parse("2006-1-2 15:04", "2017-01-12 11:23")
+	durationEnd, _ := time.Parse("2006-1-2 15:04", "2017-05-23 11:23")
+	params := []string{"product"}
+	index := "awsdetailedlineitem"
+	expectedResult := `{
+	"product": {
+		"doc_count_error_upper_bound": 0,
+		"sum_other_doc_count": 0,
+		"buckets": [
+			{
+				"key": "Amazon Elastic Compute Cloud",
+				"doc_count": 49,
+				"cost": {
+					"value": 0.14448613000000002
+				}
+			},
+			{
+				"key": "Amazon DynamoDB",
+				"doc_count": 18,
+				"cost": {
+					"value": 2.0E-8
+				}
+			},
+			{
+				"key": "Amazon Simple Storage Service",
+				"doc_count": 13,
+				"cost": {
+					"value": 2.4008000000000002E-4
+				}
+			},
+			{
+				"key": "AWS Lambda",
+				"doc_count": 7,
+				"cost": {
+					"value": 2.34E-6
+				}
+			},
+			{
+				"key": "Amazon Elasticsearch Service",
+				"doc_count": 3,
+				"cost": {
+					"value": 0.1993281
+				}
+			},
+			{
+				"key": "Amazon RDS Service",
+				"doc_count": 3,
+				"cost": {
+					"value": 0.0016027799999999998
+				}
+			},
+			{
+				"key": "Amazon Simple Notification Service",
+				"doc_count": 3,
+				"cost": {
+					"value": 0.0
+				}
+			},
+			{
+				"key": "Amazon EC2 Container Registry (ECR)",
+				"doc_count": 1,
+				"cost": {
+					"value": 2.765E-5
+				}
+			},
+			{
+				"key": "Amazon Route 53",
+				"doc_count": 1,
+				"cost": {
+					"value": 3.6E-6
+				}
+			},
+			{
+				"key": "Amazon Simple Queue Service",
+				"doc_count": 1,
+				"cost": {
+					"value": 0.0
+				}
+			},
+			{
+				"key": "AmazonCloudWatch",
+				"doc_count": 1,
+				"cost": {
+					"value": 0.0
+				}
+			}
+		]
+	}
+}`
+	searchService := GetElasticSearchParams(accountList, durationBegin, durationEnd, params, client, index)
+	res, err := searchService.Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "	")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(aggregationMarshalled) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(aggregationMarshalled))
+	}
+}
+
+func TestElasticSearchParamWithFewResultsAndNesting(t *testing.T) {
+	client, err := elastic.NewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	accountList := []string{"394125495069"}
+	durationBegin, _ := time.Parse("2006-1-2 15:04", "2017-01-12 11:23")
+	durationEnd, _ := time.Parse("2006-1-2 15:04", "2017-05-23 11:23")
+	params := []string{"product", "region", "day"}
+	index := "awsdetailedlineitem"
+	expectedResult := `{
+	"product": {
+		"doc_count_error_upper_bound": 0,
+		"sum_other_doc_count": 0,
+		"buckets": [
+			{
+				"key": "Amazon Elastic Compute Cloud",
+				"doc_count": 49,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": [
+						{
+							"key": "us-west-2a",
+							"doc_count": 1,
+							"day": {
+								"buckets": [
+									{
+										"key_as_string": "2017-05-16T00:00:00.000Z",
+										"key": 1494892800000,
+										"doc_count": 1,
+										"cost": {
+											"value": 0.1
+										}
+									}
+								]
+							}
+						},
+						{
+							"key": "us-west-2c",
+							"doc_count": 1,
+							"day": {
+								"buckets": [
+									{
+										"key_as_string": "2017-05-16T00:00:00.000Z",
+										"key": 1494892800000,
+										"doc_count": 1,
+										"cost": {
+											"value": 0.012
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"key": "Amazon DynamoDB",
+				"doc_count": 18,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "Amazon Simple Storage Service",
+				"doc_count": 13,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "AWS Lambda",
+				"doc_count": 7,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "Amazon Elasticsearch Service",
+				"doc_count": 3,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "Amazon RDS Service",
+				"doc_count": 3,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": [
+						{
+							"key": "us-west-2",
+							"doc_count": 2,
+							"day": {
+								"buckets": [
+									{
+										"key_as_string": "2017-05-16T00:00:00.000Z",
+										"key": 1494892800000,
+										"doc_count": 2,
+										"cost": {
+											"value": 0.00160269
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"key": "Amazon Simple Notification Service",
+				"doc_count": 3,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "Amazon EC2 Container Registry (ECR)",
+				"doc_count": 1,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "Amazon Route 53",
+				"doc_count": 1,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "Amazon Simple Queue Service",
+				"doc_count": 1,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			},
+			{
+				"key": "AmazonCloudWatch",
+				"doc_count": 1,
+				"region": {
+					"doc_count_error_upper_bound": 0,
+					"sum_other_doc_count": 0,
+					"buckets": []
+				}
+			}
+		]
+	}
+}`
+	searchService := GetElasticSearchParams(accountList, durationBegin, durationEnd, params, client, index)
+	res, err := searchService.Do(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "	")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(aggregationMarshalled) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(aggregationMarshalled))
 	}
 }
