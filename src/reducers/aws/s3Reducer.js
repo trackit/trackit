@@ -5,7 +5,7 @@ export default (state={}, action) => {
     case Constants.AWS_GET_S3_DATA_SUCCESS:
       return {
         ...state,
-        data: action.s3Data.data
+        data: action.s3Data
       };
     case Constants.AWS_GET_S3_DATA_ERROR:
       return {
