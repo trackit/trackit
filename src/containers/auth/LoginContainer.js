@@ -19,11 +19,16 @@ const Validation = Validations.Auth;
 // LoginContainer Component
 class LoginContainer extends Component {
 
-  submit(e) {
+  constructor(props) {
+    super(props);
+    this.submit = this.submit.bind(this);
+  }
+
+  submit = (e) => {
     e.preventDefault();
     let values = this.form.getValues();
     this.props.login(values.email, values.password);
-  }
+  };
 
   render() {
     if (this.props.token !== null)
@@ -41,7 +46,7 @@ class LoginContainer extends Component {
               <hr />
               <Form ref={form => {
                 this.form = form;
-              }} onSubmit={this.submit.bind(this)}>
+              }} onSubmit={this.submit}>
 
                 <div className="form-group">
                   <label htmlFor="email">Email address</label>

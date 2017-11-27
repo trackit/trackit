@@ -1,7 +1,7 @@
 import * as Auth from './auth';
-import * as s3 from './s3';
+import AWS from './aws';
 
 export default {
   Auth,
-  s3,
+  AWS,
 };

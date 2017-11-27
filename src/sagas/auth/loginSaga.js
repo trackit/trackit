@@ -6,8 +6,8 @@ import Constants from '../../constants';
 export default function* loginSaga({ username, password }) {
   try {
     const res = yield call(API.Auth.login, username, password);
-    if (res.success && res.token)
-      setToken(res.token);
+    if (res.success && res.data.token)
+      setToken(res.data.token);
     yield all([
       put({ type: Constants.LOGIN_REQUEST_SUCCESS }),
       put({ type: Constants.GET_USER_TOKEN }),

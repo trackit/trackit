@@ -45,8 +45,8 @@ ReactDOM.render((
         <BrowserRouter>
           <div>
             <Route exact path="/" component={IndexRedirect}/>
-            <Route path="/login" component={Containers.Login}/>
-            <PrivateRoute path="/app" component={App} store={store} />
+            <Route path="/login" component={Containers.Auth.Login}/>
+            <PrivateRoute path="/app" component={App} store={store}/>
           </div>
         </BrowserRouter>
       </Provider>
