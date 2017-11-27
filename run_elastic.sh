@@ -6,10 +6,9 @@ docker run -d --rm --name=es-go-tests -p 9200:9200  -e "http.host=0.0.0.0" -e "t
 sleep 20
 wget "https://s3-us-west-2.amazonaws.com/trackit-public-artifacts/elasticsearch/awsdetailedlineitem/es_data.ndjson"
 wget "https://s3-us-west-2.amazonaws.com/trackit-public-artifacts/elasticsearch/awsdetailedlineitem/mapping.json"
-awsdetailedlineitem_mapping=$(cat mapping.json)
 curl -XPUT 'localhost:9200/awsdetailedlineitem?pretty' -H 'Content-Type: application/json' -d'
 {}
 '
-curl -XPUT 'localhost:9200/awsdetailedlineitem/_mapping/a_ws_detailed_lineitem?pretty' -H 'Content-Type: application/json' -d"$awsdetailedlineitem_mapping"
+curl -XPUT 'localhost:9200/awsdetailedlineitem/_mapping/a_ws_detailed_lineitem?pretty' -H 'Content-Type: application/json' -d"@mapping.json"
 curl -s -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/_bulk' --data-binary "@es_data.ndjson"
 rm -f es_data.ndjson mapping.json

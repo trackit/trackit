@@ -313,7 +313,7 @@ func TestAggregationNestingWithCoupleElementsSlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jsonResult, err := json.MarshalIndent(src, "", "	")
+	jsonResult, err := json.MarshalIndent(src, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,7 +353,7 @@ func TestAggregationNestingWithFewElementsSlice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jsonResult, err := json.MarshalIndent(src, "", "	")
+	jsonResult, err := json.MarshalIndent(src, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -402,7 +402,7 @@ func TestAggregationNestingWithAllHandledElasticAggregationTypes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jsonResult, err := json.MarshalIndent(src, "", "	")
+	jsonResult, err := json.MarshalIndent(src, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -433,7 +433,7 @@ func TestElasticSearchParamWithNoResults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "	")
+	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -542,7 +542,7 @@ func TestElasticSearchParamWithFewResultsAndNoAggregationNesting(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "	")
+	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -723,7 +723,7 @@ func TestElasticSearchParamWithFewResultsAndNesting(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "	")
+	aggregationMarshalled, err := json.MarshalIndent(res.Aggregations, "", "\t")
 	if err != nil {
 		t.Fatal(err)
 	}
