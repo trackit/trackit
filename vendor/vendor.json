@@ -271,10 +271,22 @@
 			"revisionTime": "2017-03-21T23:07:31Z"
 		},
 		{
-			"checksumSHA1": "GSEtpje73qM1d4p7DsQolilsZrI=",
+			"checksumSHA1": "jU7Zabwi/UEGIoNyWOYt4TFflfA=",
 			"path": "github.com/trackit/jsonlog",
-			"revision": "d693ccc8f433b6b854bc41a69a5903b66f2bd1fa",
-			"revisionTime": "2017-10-10T15:46:04Z"
+			"revision": "01bd840fe38589853b7c3728f982f0cb4bd8e4fa",
+			"revisionTime": "2017-10-31T17:32:46Z"
+		},
+		{
+			"checksumSHA1": "UWjVYmoHlIfHzVIskELHiJQtMOI=",
+			"path": "golang.org/x/crypto/bcrypt",
+			"revision": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3",
+			"revisionTime": "2017-09-30T17:45:11Z"
+		},
+		{
+			"checksumSHA1": "oVPHWesOmZ02vLq2fglGvf+AMgk=",
+			"path": "golang.org/x/crypto/blowfish",
+			"revision": "9419663f5a44be8b34ca85f08abc5fe1be11f8a3",
+			"revisionTime": "2017-09-30T17:45:11Z"
 		},
 		{
 			"checksumSHA1": "MCeXr2RNeiG1XG6V+er1OR0qyeo=",
@@ -311,6 +323,12 @@
 			"path": "golang.org/x/tools/imports",
 			"revision": "0b88a3aa0751a3accc5cadec90e6c9bc88e8219e",
 			"revisionTime": "2017-10-07T15:42:58Z"
+		},
+		{
+			"checksumSHA1": "Uv6a/M9wO8QyNfKOHuQIg1X03Fg=",
+			"path": "gopkg.in/olivere/elastic.v5",
+			"revision": "2a08d39723b7f4df92b96e2dff891a60952714d6",
+			"revisionTime": "2017-09-26T20:05:24Z"
 		},
 		{
 			"checksumSHA1": "IrHyX6UdBMWh2ZYHPuJZRGyITX8=",

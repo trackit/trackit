@@ -32,8 +32,9 @@ var (
 // User is a user of the platform. It is different from models.User which is
 // the database representation of a User.
 type User struct {
-	Id    int    `json:"id"`
-	Email string `json:"email"`
+	Id           int    `json:"id"`
+	Email        string `json:"email"`
+	NextExternal string `json:"-"`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
@@ -54,6 +55,21 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 		}
 	}
 	return userFromDbUser(dbUser), err
+}
+
+func (u User) UpdateNextExternal(ctx context.Context, db models.XODB) error {
+	dbUser, err := models.UserByID(db, u.Id)
+	if err == nil {
+		if u.NextExternal == "" {
+			dbUser.NextExternal.Valid = false
+		} else {
+			dbUser.NextExternal.Valid = true
+			dbUser.NextExternal.String = u.NextExternal
+		}
+		return dbUser.Update(db)
+	} else {
+		return err
+	}
 }
 
 // Delete deletes the user. A nil error indicates a success.
@@ -121,8 +137,12 @@ func GetUserWithEmailAndPassword(ctx context.Context, db models.XODB, email stri
 
 // userFromDbUser builds a users.User from a models.User.
 func userFromDbUser(dbUser models.User) User {
-	return User{
+	u := User{
 		Id:    dbUser.ID,
 		Email: dbUser.Email,
 	}
+	if dbUser.NextExternal.Valid {
+		u.NextExternal = dbUser.NextExternal.String
+	}
+	return u
 }

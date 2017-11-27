@@ -16,23 +16,54 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit2/config"
+)
+
+const (
+	retryCount   = 15
+	retrySeconds = 2
 )
 
 var Db *sql.DB
 
 func init() {
+	fatalIfError(initDb())
+	fatalIfError(attemptDbConnection())
+}
+
+func fatalIfError(err error) {
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+}
+
+func initDb() error {
 	var err error
-	config := config.LoadConfiguration()
-	Db, err = sql.Open(config.SQLProtocol, config.SQLAddress)
-	if err != nil {
-		log.Fatal(err.Error())
+	Db, err = sql.Open(config.SqlProtocol, config.SqlAddress)
+	return err
+}
+
+func attemptDbConnection() error {
+	var err error
+	logger := jsonlog.DefaultLogger
+	for r := retryCount; r > 0; r-- {
+		err = Db.Ping()
+		if err == nil {
+			logger.Info("Successfully connected to database.", nil)
+			return nil
+		} else if r > 1 {
+			logger.Warning(fmt.Sprintf("Failed to connect to database. Retrying in %d seconds.", retrySeconds), err.Error())
+			time.Sleep(retrySeconds * time.Second)
+		} else {
+			logger.Error(fmt.Sprintf("Failed to connect to database. Not retrying.", retrySeconds), err.Error())
+		}
 	}
-	err = Db.Ping()
-	if err != nil {
-		log.Fatal(err.Error())
-	}
+	return err
 }

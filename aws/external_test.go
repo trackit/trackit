@@ -12,19 +12,35 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package costs
+package aws
 
 import (
-	"net/http"
-
-	"github.com/trackit/jsonlog"
+	"testing"
 )
 
-// HandleRequest is a dummy request handler function. It does nothing except
-// some logging and returns static data.
-func HandleRequest(response http.ResponseWriter, request *http.Request) {
-	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	logger.Debug("Request headers.", request.Header)
-	response.WriteHeader(200)
-	response.Write([]byte("Costs."))
+const (
+	externalCount = 24
+)
+
+func TestGenerateExternal(t *testing.T) {
+	var e [externalCount]string
+	for i := range e {
+		e[i] = generateExternal()
+		t.Log(e[i])
+		if len(e[i]) != externalLength {
+			t.Errorf("Length should be %d, is %d.", externalLength, len(e[i]))
+		}
+		for j := range e[:i] {
+			if e[i] == e[j] {
+				t.Errorf("Externals should be unique.")
+			}
+		}
+	}
+}
+
+func BenchmarkGenerateExternal(b *testing.B) {
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		generateExternal()
+	}
 }

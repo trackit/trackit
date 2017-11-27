@@ -12,36 +12,31 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package users
+package aws
 
 import (
 	"database/sql"
 	"errors"
 	"net/http"
 
+	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/routes"
+	"github.com/trackit/trackit2/users"
 )
 
-type WithAuthenticatedUser struct{}
-
-type withAuthenticatedUserArgumentKey uint
-
-const (
-	AuthenticatedUser = withAuthenticatedUserArgumentKey(iota)
-)
-
-func (d WithAuthenticatedUser) Decorate(h routes.IntermediateHandler) routes.IntermediateHandler {
-	return func(w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
-		auth := r.Header["Authorization"]
-		tx := a[db.Transaction].(*sql.Tx)
-		if auth != nil && len(auth) == 1 {
-			tokenString := auth[0]
-			if user, err := testToken(tx, tokenString); err == nil {
-				a[AuthenticatedUser] = user
-				return h(w, r, a)
-			}
-		}
-		return 401, errors.New("Invalid or missing token.")
+// getAwsAccount is a route handler which returns the caller's list of
+// AwsAccounts.
+func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
+	u := a[users.AuthenticatedUser].(users.User)
+	tx := a[db.Transaction].(*sql.Tx)
+	l := jsonlog.LoggerFromContextOrDefault(r.Context())
+	awsAccounts, err := GetAwsAccountsFromUser(u, tx)
+	if err == nil {
+		return 200, awsAccounts
+	} else {
+		l.Error("Failed to get user's AWS accounts.", err.Error())
+		return 500, errors.New("Failed to retrieve AWS accounts.")
 	}
 }

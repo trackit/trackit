@@ -79,7 +79,9 @@ func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx
 	if err == nil {
 		return logAuthenticatedUserIn(request, user)
 	} else {
-		logger.Warning("Authentication failure.", body)
+		logger.Warning("Authentication failure.", struct {
+			Email string `json:"user"`
+		}{user.Email})
 		return 403, errors.New("Authentication failure.")
 	}
 }
