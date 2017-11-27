@@ -5,6 +5,5 @@ import TimerangeSelector from './TimerangeSelector';
 export default {
   Panel,
   Navigation,
-  Panel,
   TimerangeSelector,
 };
