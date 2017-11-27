@@ -1,14 +1,14 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-// import PropTypes from 'prop-types';
+import PropTypes from 'prop-types';
 
 import Actions from '../../actions';
 
 import Components from '../../components';
 
 import s3square from '../../assets/s3-square.png';
-import PropTypes from "prop-types";
 
+const TimerangeSelector = Components.Misc.TimerangeSelector;
 const S3Analytics = Components.AWS.S3Analytics;
 
 // S3AnalyticsContainer Component
@@ -23,10 +23,17 @@ export class S3AnalyticsContainer extends Component {
       <div className="container-fluid">
 
         <div className="white-box">
-          <h3 className="white-box-title no-padding">
+          <h3 className="white-box-title no-padding inline-block">
             <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
             AWS S3 Analytics
           </h3>
+          <div className="inline-block pull-right">
+            <TimerangeSelector
+              startDate={this.props.s3View.startDate}
+              endDate={this.props.s3View.endDate}
+              setDatesFunc={this.props.setS3ViewDates}
+            />
+          </div>
         </div>
 
         <div className="row">
@@ -37,7 +44,7 @@ export class S3AnalyticsContainer extends Component {
           </div>
           <div className="col-md-12">
             <div className="white-box">
-              {this.props.s3Data.length && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.s3Data}/>}
+              {this.props.s3Data && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.s3Data}/>}
             </div>
           </div>
 
@@ -64,19 +71,28 @@ S3AnalyticsContainer.propTypes = {
       transfer_out: PropTypes.number.isRequired,
     })
   ),
-  getS3Data: PropTypes.func.isRequired
+  s3View: PropTypes.shape({
+    startDate: PropTypes.object.isRequired,
+    endDate: PropTypes.object.isRequired,
+  }),
+  getS3Data: PropTypes.func.isRequired,
+  setS3ViewDates: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
-  s3Data: aws.s3
+  s3Data: aws.s3.data,
+  s3View: aws.s3.view,
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   getS3Data: () => {
     dispatch(Actions.AWS.S3.getS3Data())
-  }
+  },
+  setS3ViewDates: (startDate, endDate) => {
+    dispatch(Actions.AWS.S3.setS3ViewDates(startDate, endDate))
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(S3AnalyticsContainer);

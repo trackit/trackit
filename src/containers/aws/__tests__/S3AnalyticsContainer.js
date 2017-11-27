@@ -1,12 +1,15 @@
 import React from 'react';
 import { S3AnalyticsContainer } from '../S3AnalyticsContainer';
 import Components from '../../../components';
+import Moment from 'moment';
 import { shallow } from "enzyme";
 
+const TimerangeSelector = Components.Misc.TimerangeSelector;
 const S3Analytics = Components.AWS.S3Analytics;
 
 const props = {
   getS3Data: jest.fn(),
+  setS3ViewDates: jest.fn(),
   s3Data: [{
     _id: "id",
     size: 42,
@@ -15,7 +18,11 @@ const props = {
     total_cost: 42,
     transfer_in: 42,
     transfer_out: 42
-  }]
+  }],
+  s3View: {
+    startDate: Moment(),
+    endDate: Moment(),
+  }
 };
 
 describe('<S3AnalyticsContainer />', () => {
@@ -27,6 +34,12 @@ describe('<S3AnalyticsContainer />', () => {
   it('renders a <S3AnalyticsContainer /> component', () => {
     const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
     expect(wrapper.length).toBe(1);
+  });
+
+  it('renders <TimerangeSelector/> component', () => {
+    const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
+    const navigation = wrapper.find(TimerangeSelector);
+    expect(navigation.length).toBe(1);
   });
 
   it('renders <S3Analytics.Infos/> component', () => {
