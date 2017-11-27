@@ -43,7 +43,12 @@ CREATE TABLE aws_bill_repository (
 	bucket               VARCHAR(63)   NOT NULL,
 	prefix               VARCHAR(1024) NOT NULL,
 	last_imported_period DATE          NOT NULL DEFAULT "1970-01-01",
+	next_update DATETIME               NOT NULL DEFAULT "1970-01-01 00:00:00",
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account    FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 --	CONSTRAINT unique_per_account     UNIQUE  KEY (aws_account_id, bucket, prefix)
 );
+
+CREATE VIEW aws_bill_repository_due_update AS
+	SELECT * FROM aws_bill_repository WHERE next_update <= NOW()
+;

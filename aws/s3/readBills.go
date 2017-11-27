@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -40,13 +39,29 @@ var (
 
 const maxManifestSize = 0x8000
 
+type billTime time.Time
+
+const billTimeFormat = `"20060102T150405Z"`
+
+func (t *billTime) UnmarshalJSON(b []byte) error {
+	tt, err := time.Parse(billTimeFormat, string(b))
+	if err == nil {
+		*t = billTime(tt)
+	}
+	return err
+}
+
 type manifest struct {
-	SourceBucket string   `json:"sourceBucket"`
-	Bucket       string   `json:"bucket"`
-	ReportKeys   []string `json:"reportKeys"`
-	Compression  string   `json:"compression"`
-	ReportName   string   `json:"reportName"`
-	Account      string   `json:"account"`
+	SourceBucket  string   `json:"sourceBucket"`
+	Bucket        string   `json:"bucket"`
+	ReportKeys    []string `json:"reportKeys"`
+	Compression   string   `json:"compression"`
+	ReportName    string   `json:"reportName"`
+	Account       string   `json:"account"`
+	BillingPeriod struct {
+		Start billTime `json:"start"`
+		End   billTime `json:"end"`
+	} `json:"billingPeriod"`
 }
 
 // BillKey is a key where a bill object may be found.
@@ -63,61 +78,96 @@ type billRepositoryWithRegion struct {
 }
 
 type LineItem struct {
-	LineItemId       string            `csv:"identity/LineItemId"`
-	TimeInterval     string            `csv:"identity/TimeInterval"`
-	InvoiceId        string            `csv:"bill/InvoiceId"`
-	UsageAccountId   string            `csv:"lineItem/UsageAccountId"`
-	UsageStartDate   string            `csv:"lineItem/UsageStartDate"`
-	UsageEndDate     string            `csv:"lineItem/UsageEndDate"`
-	ProductCode      string            `csv:"lineItem/ProductCode"`
-	UsageType        string            `csv:"lineItem/UsageType"`
-	Operation        string            `csv:"lineItem/Operation"`
-	AvailabilityZone string            `csv:"lineItem/AvailabilityZone"`
-	ResourceId       string            `csv:"lineItem/ResourceId"`
-	CurrencyCode     string            `csv:"lineItem/CurrencyCode"`
-	UnblendedCost    string            `csv:"lineItem/UnblendedCost"`
-	Any              map[string]string `csv:",any"`
+	LineItemId         string            `csv:"identity/LineItemId"         json:"lineItemId"`
+	TimeInterval       string            `csv:"identity/TimeInterval"       json:"-"`
+	InvoiceId          string            `csv:"bill/InvoiceId"              json:"invoiceId"`
+	BillingPeriodStart string            `csv:"bill/BillingPeriodStartDate" json:"-"`
+	BillingPeriodEnd   string            `csv:"bill/BillingPeriodEndDate"   json:"-"`
+	UsageAccountId     string            `csv:"lineItem/UsageAccountId"     json:"usageAccountId"`
+	UsageStartDate     string            `csv:"lineItem/UsageStartDate"     json:"usageStartDate"`
+	UsageEndDate       string            `csv:"lineItem/UsageEndDate"       json:"usageEndDate""`
+	ProductCode        string            `csv:"lineItem/ProductCode"        json:"productCode"`
+	UsageType          string            `csv:"lineItem/UsageType"          json:"usageType"`
+	Operation          string            `csv:"lineItem/Operation"          json:"operation"`
+	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"   json:"availabilityZone"`
+	ResourceId         string            `csv:"lineItem/ResourceId"         json:"resourceId"`
+	CurrencyCode       string            `csv:"lineItem/CurrencyCode"       json:"currencyCode"`
+	UnblendedCost      string            `csv:"lineItem/UnblendedCost"      json:"unblendedCost"`
+	Any                map[string]string `csv:",any"                        json:"-"`
+	Tags               map[string]string `csv:"-"                           json:"tags,omitempty"`
 }
 
-type OnLineItem func(LineItem) bool
+func (li LineItem) EsId() string {
+	return fmt.Sprintf("%s/%s", li.TimeInterval, li.LineItemId)
+}
 
-func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli OnLineItem) error {
+type OnLineItem func(LineItem, bool)
+type ManifestPredicate func(manifest) bool
+
+func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli OnLineItem, mp ManifestPredicate) (time.Time, error) {
+	var lastManifest time.Time
 	s3svc, brr, err := getServiceForRepository(ctx, aa, br)
 	if err != nil {
-		return err
+		return lastManifest, err
 	}
 	jsonlog.LoggerFromContextOrDefault(ctx).Debug("Obtained S3 service to read bills.", map[string]interface{}{"account": aa, "billRepository": br})
-	mc := getManifests(ctx, s3svc, getManifestKeys(ctx, getKeys(ctx, s3svc, brr)))
-	importBills(ctx, s3svc, mc, oli)
-	return nil
+	mck := getKeys(ctx, s3svc, brr)
+	mck = getManifestKeys(ctx, mck)
+	mc := getManifests(ctx, s3svc, mck)
+	mc = selectManifests(mp, mc, &lastManifest)
+	lastManifest = importBills(ctx, s3svc, mc, oli)
+	return lastManifest, nil
 }
 
-func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	out := make(chan LineItem)
-	outs := make(chan (<-chan LineItem))
-	go mergecLineItem(out, outs)
-	for m := range manifests {
-		if billIsInteresting(m) {
-			l.Debug("Will attempt ingesting bills.", m)
-			for _, s := range m.ReportKeys {
-				l.Debug("Will attempt ingesting bill part.", map[string]interface{}{"key": s, "manifest": m})
-				outs <- importBill(ctx, s3svc, s, m, oli)
-			}
-		} else {
-			l.Debug("Reports do not interest us.", m)
-		}
-	}
-}
-
-func billIsInteresting(_ manifest) bool {
-	return true
-}
-
-func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, oli OnLineItem) <-chan LineItem {
-	out := make(chan LineItem)
+func selectManifests(mp ManifestPredicate, mc <-chan manifest, lm *time.Time) <-chan manifest {
+	out := make(chan manifest)
 	go func() {
 		defer close(out)
+		for m := range mc {
+			if mp(m) {
+				out <- m
+			}
+		}
+	}()
+	return out
+}
+
+func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) time.Time {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	outs, out := mergecdLineItem()
+	var lastPeriodStart time.Time
+	var timeParseHasErrored bool
+	for m := range manifests {
+		l.Debug("Will attempt ingesting bills.", m)
+		for _, s := range m.ReportKeys {
+			l.Debug("Will attempt ingesting bill part.", map[string]interface{}{"key": s, "manifest": m})
+			outs <- importBill(ctx, s3svc, s, m)
+		}
+	}
+	close(outs)
+	for lineItem := range out {
+		t, err := time.Parse(time.RFC3339, lineItem.BillingPeriodStart)
+		if err != nil && !timeParseHasErrored {
+			timeParseHasErrored = true
+			l.Error("Failed to parse lineitem billing period start.", map[string]interface{}{
+				"format": time.RFC3339,
+				"error":  err.Error(),
+				"string": lineItem.BillingPeriodStart,
+			})
+		} else if err == nil && t.After(lastPeriodStart) {
+			lastPeriodStart = t
+		}
+		oli(lineItem, true)
+	}
+	oli(LineItem{}, false)
+	return lastPeriodStart
+}
+
+// importBill imports
+func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan LineItem {
+	outs, out := mergecdLineItem()
+	go func() {
+		defer close(outs)
 		ctx, cancel := context.WithCancel(ctx)
 		l := jsonlog.LoggerFromContextOrDefault(ctx)
 		reader, err := getBillReader(ctx, s3svc, s, m)
@@ -125,24 +175,29 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, oli OnL
 			l.Error("Failed to read bill.", err.Error())
 		} else {
 			l.Debug("Reading bill.", map[string]interface{}{"key": s, "manifest": m})
-			readBill(ctx, cancel, reader, s, m, oli)
+			outs <- readBill(ctx, cancel, reader, s, m)
 		}
 	}()
 	return out
 }
 
-func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, oli OnLineItem) {
-	defer reader.Close()
-	csvDecoder := csv.NewDecoder(reader)
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	for r := range records(ctx, &csvDecoder) {
-		if r.InvoiceId == "" {
-			cancel()
-			logger.Info("Canceled non-final report import.", map[string]interface{}{"key": s, "manifest": m})
-			return
+func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest) <-chan LineItem {
+	out := make(chan LineItem)
+	go func() {
+		defer reader.Close()
+		defer close(out)
+		csvDecoder := csv.NewDecoder(reader)
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		for r := range records(ctx, &csvDecoder) {
+			if r.InvoiceId == "" {
+				cancel()
+				logger.Info("Canceled non-final report import.", map[string]interface{}{"key": s, "manifest": m})
+				return
+			}
+			out <- r
 		}
-		oli(r)
-	}
+	}()
+	return out
 }
 
 func records(ctx context.Context, d *csv.Decoder) <-chan LineItem {
@@ -173,12 +228,15 @@ func records(ctx context.Context, d *csv.Decoder) <-chan LineItem {
 	return out
 }
 
+// decodeRecord decodes a LineItem from a csv.Reader.
 func decodeRecord(d *csv.Decoder) (LineItem, error) {
 	var record LineItem
 	err := d.ReadRecord(&record)
 	return record, err
 }
 
+// getBillReader returns a ReadCloser for a const and usage report. It will use
+// the object described by the key s and the manifest m.
 func getBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) (io.ReadCloser, error) {
 	switch m.Compression {
 	case "GZIP":
@@ -189,6 +247,8 @@ func getBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) (io.
 	}
 }
 
+// getGzipBillReader returns a ReadCloser for a GZIP-compressed S3 object which
+// is downloaded on the fly.
 func getGzipBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) (io.ReadCloser, error) {
 	input := s3.GetObjectInput{
 		Bucket: &m.Bucket,
@@ -201,10 +261,10 @@ func getGzipBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) 
 	}
 }
 
+// getManifests downloads the manifest whose keys are sent to the in channel.
+// It immediately returns with a channel where manifest objects will be sent.
 func getManifests(ctx context.Context, s3svc *s3.S3, in <-chan BillKey) <-chan manifest {
-	out := make(chan manifest)
-	outs := make(chan (<-chan manifest))
-	go mergecManifest(out, outs)
+	outs, out := mergecdManifest()
 	go func() {
 		defer close(outs)
 		s3mgr := s3manager.NewDownloaderWithClient(s3svc)
@@ -215,44 +275,9 @@ func getManifests(ctx context.Context, s3svc *s3.S3, in <-chan BillKey) <-chan m
 	return out
 }
 
-// mergecLineItem implements the fan-in pattern by merging to the out
-// channel the input from the channels read on cs.
-func mergecLineItem(out chan<- LineItem, cs <-chan <-chan LineItem) {
-	var wg sync.WaitGroup
-	for c := range cs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for u := range c {
-				out <- u
-			}
-		}()
-	}
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-}
-
-// mergecManifest implements the fan-in pattern by merging to the out
-// channel the input from the channels read on cs.
-func mergecManifest(out chan<- manifest, cs <-chan <-chan manifest) {
-	var wg sync.WaitGroup
-	for c := range cs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for u := range c {
-				out <- u
-			}
-		}()
-	}
-	go func() {
-		wg.Wait()
-		close(out)
-	}()
-}
-
+// readManifest downloads and parses a manifest file asynchronously. Returns a
+// channel where at most one manifest object will be sent, then the channel
+// will be closed.
 func readManifest(ctx context.Context, s3mgr *s3manager.Downloader, bk BillKey) <-chan manifest {
 	out := make(chan manifest)
 	go func() {
@@ -292,7 +317,7 @@ func getServiceForRepository(ctx context.Context, aa taws.AwsAccount, br BillRep
 	if err != nil {
 		return nil, brr, err
 	}
-	jsonlog.LoggerFromContextOrDefault(ctx).Debug("Obtained credentials to read bills.", map[string]interface{}{"account": aa, "billRepository": br})
+	jsonlog.LoggerFromContextOrDefault(ctx).Debug("Obtained credentials to read bills.", map[string]interface{}{"awsAccount": aa, "billRepository": br})
 	sess := session.New(&aws.Config{Credentials: creds, Region: &config.AwsRegion})
 	region, err := getBucketRegion(ctx, sess, br)
 	if err != nil {

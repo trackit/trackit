@@ -93,17 +93,27 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	return nil, err
 }
 
-// GetAwsAccountWithIdFromUser returns a user's AWS accounts if it belongs to
-// the user.
-func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount, error) {
+// GetAwsAccountWithId returns an AWS account.
+func GetAwsAccountWithId(aaid int, tx *sql.Tx) (AwsAccount, error) {
 	var aa AwsAccount
 	if dbaa, err := models.AwsAccountByID(tx, aaid); err != nil {
 		return aa, err
-	} else if dbaa.UserID != u.Id {
-		return aa, errors.New("aws account does not belong to the user")
 	} else {
 		aa = awsAccountFromDbAwsAccount(*dbaa)
 		return aa, nil
+	}
+}
+
+// GetAwsAccountWithIdFromUser returns a user's AWS accounts if it belongs to
+// the user.
+func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount, error) {
+	var aaz AwsAccount
+	if aa, err := GetAwsAccountWithId(aaid, tx); err != nil {
+		return aaz, err
+	} else if aa.UserId == u.Id {
+		return aa, nil
+	} else {
+		return aaz, errors.New("aws account does not belong to the user")
 	}
 }
 

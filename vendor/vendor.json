@@ -295,6 +295,12 @@
 			"revisionTime": "2017-03-21T23:07:31Z"
 		},
 		{
+			"checksumSHA1": "HFiK6Kpn5U8RYYPLwtssqGAsYBE=",
+			"path": "github.com/sha1sum/aws_signing_client",
+			"revision": "9088e4c7b34b3174ae879fc975deb18ac62ac8d3",
+			"revisionTime": "2017-05-14T20:27:02Z"
+		},
+		{
 			"checksumSHA1": "fXENG3ndXoSruFRlAH+HnfAiN3g=",
 			"path": "github.com/trackit/jsonlog",
 			"revision": "36b6a128f6562df64a87de1e2cb53028ecf32958",
@@ -347,6 +353,24 @@
 			"path": "golang.org/x/tools/imports",
 			"revision": "0b88a3aa0751a3accc5cadec90e6c9bc88e8219e",
 			"revisionTime": "2017-10-07T15:42:58Z"
+		},
+		{
+			"checksumSHA1": "ukcPS/1bzYNgAUiuUXO7LqEq7xg=",
+			"path": "gopkg.in/olivere/elastic.v5",
+			"revision": "79ff368708b3a2a9da641dc831d95fd0782bf4ef",
+			"revisionTime": "2017-11-24T22:04:31Z"
+		},
+		{
+			"checksumSHA1": "Z/5tTcmNfSOHMkcLDkxN93PQ410=",
+			"path": "gopkg.in/olivere/elastic.v5/config",
+			"revision": "79ff368708b3a2a9da641dc831d95fd0782bf4ef",
+			"revisionTime": "2017-11-24T22:04:31Z"
+		},
+		{
+			"checksumSHA1": "pCApZfp2CeDnWbNVsyzNO62ZUXA=",
+			"path": "gopkg.in/olivere/elastic.v5/uritemplates",
+			"revision": "79ff368708b3a2a9da641dc831d95fd0782bf4ef",
+			"revisionTime": "2017-11-24T22:04:31Z"
 		},
 		{
 			"checksumSHA1": "IrHyX6UdBMWh2ZYHPuJZRGyITX8=",

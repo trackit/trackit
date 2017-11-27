@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -58,12 +59,20 @@ func init() {
 	).Register("/aws/billrepository")
 }
 
+const (
+	reportUpdateInterval        = 12 * time.Hour
+	reportUpdateVariationAfter  = 6 * time.Hour
+	reportUpdateVariationBefore = 2 * time.Hour
+)
+
 // BillRepository is a location where the server may look for bill objects.
 type BillRepository struct {
-	Id           int    `json:"id"`
-	AwsAccountId int    `json:"awsAccountId"`
-	Bucket       string `json:"bucket"`
-	Prefix       string `json:"prefix"`
+	Id                 int       `json:"id"`
+	AwsAccountId       int       `json:"awsAccountId"`
+	Bucket             string    `json:"bucket"`
+	Prefix             string    `json:"prefix"`
+	LastImportedPeriod time.Time `json:"lastImportedPeriod"`
+	NextUpdate         time.Time `json:"nextUpdate"`
 }
 
 func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (BillRepository, error) {
@@ -188,3 +197,12 @@ func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 
 }
+
+/*
+func AwsBillRepositoriesWithDueUpdate(ctx context.Context, db models.XODB) ([]BillRepository, error) {
+	dbRepos, err := models.AwsBillRepositoriesWithDueUpdate(db)
+	if err != nil {
+
+	}
+}
+*/
