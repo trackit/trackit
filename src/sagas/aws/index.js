@@ -10,4 +10,5 @@ export function* watchGetAwsPricing() {
 
 export function* watchGetAwsS3Data() {
   yield takeLatest(Constants.AWS_GET_S3_DATA, getS3DataSaga);
+  yield takeLatest(Constants.AWS_SET_S3_VIEW_DATES, getS3DataSaga);
 }
