@@ -15,6 +15,7 @@ import 'font-awesome/css/font-awesome.min.css';
 import 'normalize.css/normalize.css';
 import 'animate.css/animate.min.css';
 import 'react-table/react-table.css'
+import 'react-bootstrap-daterangepicker/css/daterangepicker.css';
 import './styles/style.css';
 import './styles/style-sm.css';
 import './styles/style-xs.css';
