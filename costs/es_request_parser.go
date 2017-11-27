@@ -22,7 +22,8 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
-// flattenSubAggregation allows to transform an array of map to one flattened map
+// flattenSubAggregation allows to transform an array
+// of map to one flattened map.
 func flattenSubAggregation(in *interface{}) {
 	oldTab := (*in).([]interface{})
 	newMap := make(map[string]interface{})
@@ -34,7 +35,8 @@ func flattenSubAggregation(in *interface{}) {
 	*in = newMap
 }
 
-// stripAggregationArchitecture strips an array by deleting some values and calling flattenSubAggregation
+// stripAggregationArchitecture strips an array by
+// deleting some values and calling flattenSubAggregation.
 func stripAggregationArchitecture(aggrName string, aggrType interface{}, in map[string]interface{}) {
 	key, ok := in["key_as_string"]
 	if !ok {
@@ -52,6 +54,8 @@ func stripAggregationArchitecture(aggrName string, aggrType interface{}, in map[
 	delete(in, aggrName)
 }
 
+// browseMapRecursivly browses a map and calls browseMapRecursivly or
+// browseTabRecursivly, and stripAggregationArchitecture for each fields.
 func browseMapRecursivly(in map[string]interface{}) {
 	for aggrName, field := range in {
 		if aggrName[0] != '&' && aggrName[0] != '*' {
@@ -70,6 +74,8 @@ func browseMapRecursivly(in map[string]interface{}) {
 	}
 }
 
+// browseTabRecursivly browses a map and calls browseMapRecursivly.
+// In the end it calls flattenSubAggregation to flat the array.
 func browseTabRecursivly(in *interface{}) {
 	tab := (*in).([]interface{})
 	for _, field := range tab {
@@ -80,6 +86,8 @@ func browseTabRecursivly(in *interface{}) {
 	flattenSubAggregation(in)
 }
 
+// prepareRecursiveParsing prepares the first run of the recursive and
+// calls browseMapRecursivly or browseTabRecursivly.
 func prepareRecursiveParsing(result map[string]interface{}, aggrName string, aggr *json.RawMessage) error {
 	var root map[string]interface{}
 	err := json.Unmarshal(*aggr, &root)
@@ -106,7 +114,9 @@ func prepareRecursiveParsing(result map[string]interface{}, aggrName string, agg
 
 // GetJSONSimplifiedElasticSearchResult is used to parse an *elastic.SearchResult
 // to a human readable map[string]interface{} that will be able to be
-// transformed to JSON and send to the UI
+// transformed to JSON and send to the UI.
+// It will only parse aggregations with the name &buckets.{{name}} or *value.{{name}}
+// i.e. &buckets.regions and *value.cost.
 func GetJSONSimplifiedElasticSearchResult(esResult *elastic.SearchResult) (map[string]interface{}, error) {
 	res := make(map[string]interface{})
 	for name, aggregation := range esResult.Aggregations {
