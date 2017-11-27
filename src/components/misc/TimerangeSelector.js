@@ -12,8 +12,6 @@ class TimerangeSelector extends Component {
   }
 
   handleApply(event, picker) {
-    console.log(event);
-    console.log(picker);
     this.props.setDatesFunc(picker.startDate, picker.endDate);
   }
 
