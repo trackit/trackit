@@ -3,5 +3,5 @@ import AWS from './aws';
 
 export default {
   Auth,
-  AWS
+  AWS,
 };
