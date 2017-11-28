@@ -34,7 +34,7 @@ class FormComponent extends Component {
   render() {
     const actionVerb = (this.props.bill !== undefined ? "Edit" : "Add");
 
-    const button = (this.props.account !== undefined ? (
+    const button = (this.props.bill !== undefined ? (
       <div>
         <span className="glyphicon glyphicon-pencil" aria-hidden="true"/>&nbsp;Save
       </div>
@@ -46,7 +46,12 @@ class FormComponent extends Component {
 
     return (
       <Panel title={actionVerb + " a bill location"} collapsible defaultCollapse={!this.props.bill}>
-        <Form ref={form => { this.form = form; }} onSubmit={this.submit}>
+        <Form
+          ref={
+            /* istanbul ignore next */
+            form => { this.form = form; }
+          }
+          onSubmit={this.submit}>
 
           <div className="form-group">
             <label htmlFor="bucket">S3 Bucket</label>

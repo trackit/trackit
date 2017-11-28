@@ -1,13 +1,13 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import moment from 'moment';
+import Moment from 'moment';
 import DateRangePicker from 'react-bootstrap-daterangepicker';
 
 class TimerangeSelector extends Component {
 
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.handleApply = this.handleApply.bind(this);
   }
 
@@ -18,21 +18,21 @@ class TimerangeSelector extends Component {
   render() {
 
     const ranges = {
-     'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-     'Last 30 Days': [moment().subtract(29, 'days'), moment()],
-     'This Month': [moment().startOf('month'), moment()],
-     'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
-     'This Year': [moment().startOf('year'), moment()],
-     'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+     'Last 7 Days': [Moment().subtract(6, 'days'), Moment()],
+     'Last 30 Days': [Moment().subtract(29, 'days'), Moment()],
+     'This Month': [Moment().startOf('month'), Moment()],
+     'Last Month': [Moment().subtract(1, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
+     'This Year': [Moment().startOf('year'), Moment()],
+     'Last Year': [Moment().subtract(1, 'year').startOf('year'), Moment().subtract(1, 'year').endOf('year')]
     };
 
     return(
       <DateRangePicker
-        parentEl={"body"}
-        startDate={moment(this.props.startDate)}
-        endDate={moment(this.props.endDate)}
+        parentEl="body"
+        startDate={Moment(this.props.startDate)}
+        endDate={Moment(this.props.endDate)}
         ranges={ranges}
-        opens={'left'}
+        opens="left"
         onApply={this.handleApply}
       >
           <button className="btn btn-default">
@@ -48,7 +48,7 @@ class TimerangeSelector extends Component {
     );
   }
 
-};
+}
 
 TimerangeSelector.propTypes = {
   startDate: PropTypes.object.isRequired,

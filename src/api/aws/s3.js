@@ -283,7 +283,6 @@ const mockData = [
   }
 ];
 
-
 export const getS3Data = () => {
-  return {data : mockData};
+  return { success: true, data: mockData };
 };

@@ -6,7 +6,7 @@ import Bills from './bills';
 
 const Panel = Misc.Panel;
 
-class ListItem extends Component {
+export class ListItem extends Component {
 
   constructor(props) {
     super(props);
