@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	//"reflect"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -31,7 +30,7 @@ func (scd SimplifiedCostsDocument) ToJsonable() map[string]interface{} {
 		if c.HasValue {
 			children[c.Key] = c.Value
 		} else {
-			children[c.Key] = c.toJsonable()
+			children[c.Key] = c.ToJsonable()
 		}
 	}
 	return map[string]interface{}{
@@ -57,21 +56,22 @@ var (
 	ErrNoSingleAggregationBranch = errors.New("document's aggregations branch")
 	ErrFailedJsonParsing         = errors.New("failed to parse JSON document")
 	ErrKeyNotFound               = errors.New("could not find 'key' field")
+	ErrNoAggregation             = errors.New("found no next aggregation and no value")
 )
 
 func SimplifyCostsDocument(ctx context.Context, sr *elastic.SearchResult) (SimplifiedCostsDocument, error) {
 	var scdz SimplifiedCostsDocument
 	if len(sr.Aggregations) == 1 {
-		for _, v := range sr.Aggregations {
+		for k, v := range sr.Aggregations {
 			if v != nil {
-				return simplifyCostsDocumentWithSingleAggregation(ctx, v)
+				return simplifyCostsDocumentWithSingleAggregation(ctx, k, sr.Aggregations[k])
 			}
 		}
 	}
 	return scdz, ErrNoSingleRootAggregation
 }
 
-func simplifyCostsDocumentWithSingleAggregation(ctx context.Context, rm *json.RawMessage) (SimplifiedCostsDocument, error) {
+func simplifyCostsDocumentWithSingleAggregation(ctx context.Context, rootAgg string, rm *json.RawMessage) (SimplifiedCostsDocument, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedDocument bucket
 	var scdz SimplifiedCostsDocument
@@ -80,7 +80,7 @@ func simplifyCostsDocumentWithSingleAggregation(ctx context.Context, rm *json.Ra
 		logger.Error("Failed to parse JSON costs document.", err.Error())
 		return scdz, ErrFailedJsonParsing
 	} else {
-		return simplifyCostsDocumentRec(ctx, parsedDocument, true)
+		return simplifyCostsDocumentRec(ctx, map[string]interface{}{rootAgg: parsedDocument}, true)
 	}
 }
 
@@ -93,7 +93,7 @@ func simplifyCostsDocumentRec(ctx context.Context, doc bucket, root bool) (Simpl
 			return scd, err
 		}
 	}
-	if value, ok := getValue(doc); ok {
+	if value, ok := getValue(ctx, doc); ok {
 		scd.HasValue = true
 		scd.Value = value
 		return scd, nil
@@ -120,12 +120,15 @@ func getKey(doc bucket) (string, error) {
 	return "", ErrKeyNotFound
 }
 
-func getValue(doc bucket) (float64, bool) {
+func getValue(ctx context.Context, doc bucket) (float64, bool) {
+	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	if value, ok := doc[BucketValueKey]; ok {
 		if tvalue, ok := value.(map[string]interface{}); ok {
 			if valuevalue, ok := tvalue[BucketValueValueKey]; ok {
 				if tvaluevalue, ok := valuevalue.(float64); ok {
 					return tvaluevalue, true
+				} else {
+					logger.Warning(fmt.Sprintf("Found non float value: %[1]T %[1]v.", valuevalue), nil)
 				}
 			}
 		}
@@ -135,7 +138,7 @@ func getValue(doc bucket) (float64, bool) {
 
 func getChildren(ctx context.Context, doc bucket) (string, []SimplifiedCostsDocument, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
-	if childKey, err := getChildKey(doc); err != nil {
+	if childKey, err := getChildKey(ctx, doc); err != nil {
 		logger.Error("Failed to get child key.", err.Error())
 		logger.Debug("Document is.", doc)
 		return "", nil, err
@@ -168,7 +171,7 @@ func getChildren(ctx context.Context, doc bucket) (string, []SimplifiedCostsDocu
 	}
 }
 
-func getChildKey(doc map[string]interface{}) (string, error) {
+func getChildKey(ctx context.Context, doc map[string]interface{}) (string, error) {
 	var childKey string
 	for k := range doc {
 		if strings.HasPrefix(k, BucketPrefix) {
@@ -178,6 +181,9 @@ func getChildKey(doc map[string]interface{}) (string, error) {
 				childKey = strings.TrimPrefix(k, BucketPrefix)
 			}
 		}
+	}
+	if childKey == "" {
+		return childKey, ErrNoAggregation
 	}
 	return childKey, nil
 }
