@@ -30,8 +30,12 @@ const (
 )
 
 var (
-	jwtIssuer = config.AuthIssuer
-	jwtSecret = []byte(config.AuthSecret)
+	jwtIssuer                = config.AuthIssuer
+	jwtSecret                = []byte(config.AuthSecret)
+	ErrInvalidClaims         = errors.New("claims are invalid")
+	ErrCannotReadToken       = errors.New("failed to read token")
+	ErrMissingToken          = errors.New("missing or duplicate token")
+	ErrFailedToValidateToken = errors.New("failed to validate token")
 )
 
 // getPasswordHash generates a hash string for a given password.
@@ -95,11 +99,13 @@ func testToken(tx *sql.Tx, tokenString string) (User, error) {
 				userId := claims.Subject
 				user, err = GetUserWithId(tx, userId)
 			} else {
-				err = errors.New("Claims are invalid.")
+				err = ErrInvalidClaims
 			}
 		} else {
-			err = errors.New("Failed to read token.")
+			err = ErrCannotReadToken
 		}
+	} else {
+		err = ErrCannotReadToken
 	}
 	return user, err
 }

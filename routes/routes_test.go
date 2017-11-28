@@ -33,7 +33,15 @@ func postFoo(r *http.Request, a Arguments) (int, interface{}) {
 	return http.StatusOK, postFooResponse
 }
 
-const testDocumentedHandlerExpected = `{"summary":"Get yourself some foo","description":"The route gives you some foo.","tags":{"foo":["yes"]}}`
+const testDocumentedHandlerExpected = `{
+	"summary": "Get yourself some foo",
+	"description": "The route gives you some foo.",
+	"tags": {
+		"foo": [
+			"yes"
+		]
+	}
+}`
 
 func TestDocumentedHandlerDocumentation(t *testing.T) {
 	h := H(getFoo).With(
@@ -43,7 +51,7 @@ func TestDocumentedHandlerDocumentation(t *testing.T) {
 			Tags:        Tags{"foo": []string{"yes"}},
 		},
 	)
-	bytes, err := json.Marshal(h.Documentation)
+	bytes, err := json.MarshalIndent(h.Documentation, "", "\t")
 	if err == nil && string(bytes) != testDocumentedHandlerExpected {
 		t.Errorf("JSON documentation should be '%s', is '%s' instead.", testDocumentedHandlerExpected, string(bytes))
 	} else if err != nil {
@@ -94,14 +102,24 @@ func TestRegistration(t *testing.T) {
 	resetRegisteredHandlers()
 }
 
-const testMethodMuxerDocumentationExpected = `{"summary":"Interacts with foo.","components":{"method:GET":{"summary":"Gets foo."},"method:POST":{"summary":"Posts foo."}}}`
+const testMethodMuxerDocumentationExpected = `{
+	"summary": "Interacts with foo.",
+	"components": {
+		"method:GET": {
+			"summary": "Gets foo."
+		},
+		"method:POST": {
+			"summary": "Posts foo."
+		}
+	}
+}`
 
 func TestMethodMuxerDocumentation(t *testing.T) {
 	h := MethodMuxer{
 		http.MethodGet:  H(getFoo).With(Documentation{Summary: "Gets foo."}),
 		http.MethodPost: H(postFoo).With(Documentation{Summary: "Posts foo."}),
 	}.H().With(Documentation{Summary: "Interacts with foo."})
-	bytes, err := json.Marshal(h.Documentation)
+	bytes, err := json.MarshalIndent(h.Documentation, "", "\t")
 	if err == nil && string(bytes) != testMethodMuxerDocumentationExpected {
 		t.Errorf("JSON documentation should be '%s', is '%s' instead.", testMethodMuxerDocumentationExpected, string(bytes))
 	} else if err != nil {

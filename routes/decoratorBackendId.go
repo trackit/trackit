@@ -19,7 +19,7 @@ import (
 )
 
 // BackendId is a decorator which adds a backend ID to incoming requests. It
-// adds it to tthe response in the `X-Backend-ID` HTTP header.
+// adds it to the response in the `X-Backend-ID` HTTP header.
 type BackendId struct {
 	BackendId string
 }

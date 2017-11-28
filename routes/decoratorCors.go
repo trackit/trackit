@@ -28,15 +28,14 @@ type Cors struct {
 }
 
 func (c Cors) Decorate(h Handler) Handler {
-	mm := h.methods
-	ms := make([]string, 0, len(mm)+1)
-	ms = append(ms, http.MethodOptions)
-	for m, v := range mm {
-		if v {
-			ms = append(ms, m)
+	handledMethods := make([]string, 0, len(h.methods)+1)
+	handledMethods = append(handledMethods, http.MethodOptions)
+	for m, handled := range h.methods {
+		if handled {
+			handledMethods = append(handledMethods, m)
 		}
 	}
-	acaMethods := []string{strings.Join(ms, ",")}
+	acaMethods := []string{strings.Join(handledMethods, ",")}
 	acaOrigin := []string{strings.Join(c.AllowOrigin, ",")}
 	acaHeaders := []string{strings.Join(c.AllowHeaders, ",")}
 	acaCredentials := []string{fmt.Sprintf("%t", c.AllowCredentials)}

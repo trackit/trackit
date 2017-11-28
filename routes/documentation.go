@@ -36,15 +36,20 @@ type HandlerDocumentation struct {
 	Components map[string]HandlerDocumentation `json:"components,omitempty"`
 }
 
+const (
+	documentationDescription = "Get the api's documentation in " +
+		"structured (JSON) format. This documentation is " +
+		"automatically generated from the definition of the route " +
+		"handlers and thus should always be up to date. The same " +
+		"documentation can be obtained for specific routes using the " +
+		"OPTIONS request on them."
+	documentationSummary = "get the api's documentation"
+)
+
 var documentationHandler = MethodMuxer{
 	http.MethodGet: H(getDocumentation).With(Documentation{
-		Summary: "get the api's documentation",
-		Description: ("Get the api's documentation in structured (JSON) " +
-			"format. This documentation is automatically " +
-			"generated from the definition of the route handlers " +
-			"and thus should always be up to date. The same " +
-			"documentation can be obtained for specific routes " +
-			"using the OPTIONS request on them."),
+		Summary:     documentationSummary,
+		Description: documentationDescription,
 	}),
 }.H()
 

@@ -21,7 +21,20 @@ import (
 	"testing"
 )
 
-const testDocumentedHandlerWithRequestContentTypeExpected = `{"summary":"Get yourself some foo","description":"The route gives you some foo.","tags":{"require:contenttype":["application/json","application/csv"]}}`
+func init() {
+
+}
+
+const testDocumentedHandlerWithRequestContentTypeExpected = `{
+	"summary": "Get yourself some foo",
+	"description": "The route gives you some foo.",
+	"tags": {
+		"require:contenttype": [
+			"application/json",
+			"application/csv"
+		]
+	}
+}`
 
 func TestDocumentedHandlerDocumentationWithRequestContentType(t *testing.T) {
 	h := H(getFoo).With(
@@ -31,9 +44,13 @@ func TestDocumentedHandlerDocumentationWithRequestContentType(t *testing.T) {
 		},
 		RequestContentType{"application/json", "application/csv"},
 	)
-	bytes, err := json.Marshal(h.Documentation)
+	bytes, err := json.MarshalIndent(h.Documentation, "", "\t")
 	if err == nil && string(bytes) != testDocumentedHandlerWithRequestContentTypeExpected {
-		t.Errorf("JSON documentation should be '%s', is '%s' instead.", testDocumentedHandlerWithRequestContentTypeExpected, string(bytes))
+		t.Errorf(
+			"JSON documentation should be '%s', is '%s' instead.",
+			testDocumentedHandlerWithRequestContentTypeExpected,
+			string(bytes),
+		)
 	} else if err != nil {
 		t.Errorf("Error should be nil, is '%s' instead.", err.Error())
 	}
@@ -78,7 +95,11 @@ func TestDocumentedHandlerWithBadRequestContentType(t *testing.T) {
 	}
 	if rt, ok := r.(error); ok {
 		if rt != ErrUnsupportedContentType {
-			t.Errorf("Response should be '%s', is '%s' instead.", ErrUnsupportedContentType.Error(), rt.Error())
+			t.Errorf(
+				"Response should be '%s', is '%s' instead.",
+				ErrUnsupportedContentType.Error(),
+				rt.Error(),
+			)
 		}
 	} else {
 		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)

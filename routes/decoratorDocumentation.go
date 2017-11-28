@@ -19,20 +19,20 @@ package routes
 type Documentation HandlerDocumentationBody
 
 func (d Documentation) Decorate(h Handler) Handler {
-	n := h.Documentation
+	newDocs := h.Documentation
 	if d.Summary != "" {
-		n.Summary = d.Summary
+		newDocs.Summary = d.Summary
 	}
 	if d.Description != "" {
-		n.Description = d.Description
+		newDocs.Description = d.Description
 	}
 	for k, v := range d.Tags {
-		if n.Tags == nil {
-			n.Tags = make(Tags)
+		if newDocs.Tags == nil {
+			newDocs.Tags = make(Tags)
 		}
-		t := n.Tags[k]
-		n.Tags[k] = append(t, v...)
+		t := newDocs.Tags[k]
+		newDocs.Tags[k] = append(t, v...)
 	}
-	h.Documentation = n
+	h.Documentation = newDocs
 	return h
 }
