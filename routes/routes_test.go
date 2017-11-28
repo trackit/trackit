@@ -162,3 +162,19 @@ func TestMethodMuxerMethodNotAllowed(t *testing.T) {
 		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrMethodNotAllowed, r)
 	}
 }
+
+func TestHandlerServeHttp(t *testing.T) {
+	h := H(getFoo)
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	response := httptest.NewRecorder()
+	h.ServeHTTP(response, request)
+	if response.Code != http.StatusOK {
+		t.Errorf("Response status should be %d, is %d instead.", http.StatusOK, response.Code)
+	}
+	var responseBody string
+	if err := json.Unmarshal(response.Body.Bytes(), &responseBody); err != nil {
+		t.Errorf("Failed to parse body as string: '%s'.", response.Body.String())
+	} else if responseBody != getFooResponse {
+		t.Errorf("String body should be '%s', is '%s' instead.", getFooResponse, responseBody)
+	}
+}

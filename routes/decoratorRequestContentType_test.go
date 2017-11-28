@@ -91,13 +91,95 @@ func TestDocumentedHandlerWithBadRequestContentType(t *testing.T) {
 	request.Header["Content-Type"] = []string{"text/html"}
 	s, r := h.Func(nil, request, nil)
 	if s != http.StatusBadRequest {
-		t.Errorf("Status code should be %d, is %d instead.", http.StatusOK, s)
+		t.Errorf("Status code should be %d, is %d instead.", http.StatusBadRequest, s)
 	}
 	if rt, ok := r.(error); ok {
 		if rt != ErrUnsupportedContentType {
 			t.Errorf(
 				"Response should be '%s', is '%s' instead.",
 				ErrUnsupportedContentType.Error(),
+				rt.Error(),
+			)
+		}
+	} else {
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+	}
+}
+
+func TestIgnoredMethod(t *testing.T) {
+	for _, method := range [...]string{http.MethodGet, http.MethodHead, http.MethodDelete, http.MethodOptions} {
+		h := H(getFoo).With(
+			Documentation{
+				Summary:     "Get yourself some foo",
+				Description: "The route gives you some foo.",
+			},
+			RequestContentType{"application/json", "application/csv"},
+		)
+		request := httptest.NewRequest(method, "/", nil)
+		s, r := h.Func(nil, request, nil)
+		if s != http.StatusOK {
+			t.Errorf("Status code should be %d, is %d instead.", http.StatusOK, s)
+		}
+		if rt, ok := r.(string); ok {
+			if rt != getFooResponse {
+				t.Errorf(
+					"Response should be '%s', is '%s' instead.",
+					getFooResponse,
+					rt,
+				)
+			}
+		} else {
+			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", getFooResponse, r)
+		}
+	}
+}
+
+func TestNoRequestContentType(t *testing.T) {
+	h := H(getFoo).With(
+		Documentation{
+			Summary:     "Get yourself some foo",
+			Description: "The route gives you some foo.",
+		},
+		RequestContentType{"application/json", "application/csv"},
+	)
+	request := httptest.NewRequest(http.MethodPut, "/", nil)
+	request.Header["Content-Type"] = []string{}
+	s, r := h.Func(nil, request, nil)
+	if s != http.StatusBadRequest {
+		t.Errorf("Status code should be %d, is %d instead.", http.StatusBadRequest, s)
+	}
+	if rt, ok := r.(error); ok {
+		if rt != ErrMissingContentType {
+			t.Errorf(
+				"Response should be '%s', is '%s' instead.",
+				ErrMissingContentType.Error(),
+				rt.Error(),
+			)
+		}
+	} else {
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+	}
+}
+
+func TestMultipleRequestContentTypes(t *testing.T) {
+	h := H(getFoo).With(
+		Documentation{
+			Summary:     "Get yourself some foo",
+			Description: "The route gives you some foo.",
+		},
+		RequestContentType{"application/json", "application/csv"},
+	)
+	request := httptest.NewRequest(http.MethodPut, "/", nil)
+	request.Header["Content-Type"] = []string{"application/json", "text/html"}
+	s, r := h.Func(nil, request, nil)
+	if s != http.StatusBadRequest {
+		t.Errorf("Status code should be %d, is %d instead.", http.StatusBadRequest, s)
+	}
+	if rt, ok := r.(error); ok {
+		if rt != ErrMultipleContentTypes {
+			t.Errorf(
+				"Response should be '%s', is '%s' instead.",
+				ErrMultipleContentTypes.Error(),
 				rt.Error(),
 			)
 		}
