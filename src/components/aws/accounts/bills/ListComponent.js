@@ -1,84 +1,64 @@
 import React, { Component } from 'react';
+import List, {
+  ListItem,
+  ListItemText,
+} from 'material-ui/List';
+import Misc from '../../../misc';
 import PropTypes from 'prop-types';
-
 import Form from './FormComponent';
 
-class ListItem extends Component {
+const Dialog = Misc.Dialog;
+const DeleteConfirmation = Misc.DeleteConfirmation;
+
+class Item extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      editForm: false
-    };
-    this.toggleEditForm = this.toggleEditForm.bind(this);
     this.editBill = this.editBill.bind(this);
     this.deleteBill = this.deleteBill.bind(this);
   }
 
-  toggleEditForm = (e) => {
-    e.preventDefault();
-    const editForm = !this.state.editForm;
-    this.setState({ editForm });
-  };
-
   editBill = (body) => {
-    console.log(body);
-    this.setState({ editForm: false });
+    this.props.edit(body);
   };
 
-  deleteBill = (e) => {
-    e.preventDefault();
+  deleteBill = () => {
     this.props.delete(this.props.bill.id);
   };
 
   render() {
 
-    const actions = (!this.state.editForm ? (
-      <div className="btn-group btn-group-xs pull-right" role="group">
-
-        <button type="button" className="btn btn-default edit" onClick={this.toggleEditForm}>
-          <span className="glyphicon glyphicon-pencil" aria-hidden="true"/> Edit
-        </button>
-
-        <button type="button" className="btn btn-default delete" onClick={this.deleteAccount}>
-          <span className="glyphicon glyphicon-remove" aria-hidden="true"/> Delete
-        </button>
-
-      </div>
-    ) : (
-      <div className="btn-group btn-group-xs pull-right" role="group">
-        <button type="button" className="btn btn-default hide" onClick={this.toggleEditForm}>
-          <span className="glyphicon glyphicon-remove" aria-hidden="true"/> Hide
-        </button>
-      </div>
-    ));
-
-    const editForm = (this.state.editForm ? (
-      <Form submit={this.editBill} bill={this.props.bill} account={this.props.account} />
-    ) : null);
-
     return (
-      <li className="bill list-group-item">
+      <ListItem divider>
 
-        <span className="bill-bucket">
-          {this.props.bill.bucket}
-        </span>
+        <ListItemText
+          disableTypography
+          primary={this.props.bill.bucket + this.props.bill.path}
+        />
 
-        <span className="bill-path">
-          {this.props.bill.path}
-        </span>
+        <div>
 
-        {actions}
+          <div className="inline-block">
+            <Form
+              account={this.props.account}
+              bill={this.props.bill}
+              submit={this.editBill}
+            />
+          </div>
+          &nbsp;
+          <div className="inline-block">
+            <DeleteConfirmation entity="account" confirm={this.deleteBill}/>
+          </div>
 
-        {editForm}
+        </div>
 
-      </li>
+      </ListItem>
     );
   }
 
 }
 
-ListItem.propTypes = {
+Item.propTypes = {
   account: PropTypes.number.isRequired,
   bill: PropTypes.shape({
     bucket: PropTypes.string.isRequired,
@@ -94,17 +74,30 @@ class ListComponent extends Component {
   render() {
     let noBills = (!this.props.bills.length ? <div className="alert alert-warning" role="alert">No bills available</div> : "");
     return (
-      <ul className="bills list-group list-group-flush">
-        {noBills}
-        {this.props.bills.map((bill, index) => (
-          <ListItem
-            key={index}
-            bill={bill}
-            account={this.props.account}
-            edit={this.props.edit}
-            delete={this.props.delete}/>
-        ))}
-      </ul>
+      <Dialog
+        buttonName="Bills locations"
+        title="Bills locations"
+        secondActionName="Close"
+      >
+
+        <Form
+          account={this.props.account}
+          submit={this.editBill}
+        />
+
+        <List>
+          {noBills}
+          {this.props.bills.map((bill, index) => (
+            <Item
+              key={index}
+              bill={bill}
+              account={this.props.account}
+              edit={this.props.edit}
+              delete={this.props.delete}/>
+          ))}
+        </List>
+
+      </Dialog>
     );
   }
 

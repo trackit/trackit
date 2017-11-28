@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
-
-// Form imports
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from 'material-ui/Dialog';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
@@ -18,8 +21,23 @@ class FormComponent extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      open: false
+    };
+    this.openDialog = this.openDialog.bind(this);
+    this.closeDialog = this.closeDialog.bind(this);
     this.submit = this.submit.bind(this);
   }
+
+  openDialog = (e) => {
+    e.preventDefault();
+    this.setState({open: true});
+  };
+
+  closeDialog = (e) => {
+    e.preventDefault();
+    this.setState({open: false});
+  };
 
   submit = (e) => {
     e.preventDefault();
@@ -45,43 +63,62 @@ class FormComponent extends Component {
     ));
 
     return (
-      <Panel title={actionVerb + " a bill location"} collapsible defaultCollapse={!this.props.bill}>
-        <Form ref={form => { this.form = form; }} onSubmit={this.submit}>
+      <div>
 
-          <div className="form-group">
-            <label htmlFor="bucket">S3 Bucket</label>
-            <Input
-              name="bucket"
-              type="text"
-              className="form-control"
-              value={(this.props.bill !== undefined ? this.props.bill.bucket : "s3://")}
-              validations={[Validation.required, Validation.s3BucketFormat]}
-            />
-          </div>
+        <button className="btn btn-default" onClick={this.openDialog}>
+          {this.props.bill !== undefined ? "Edit" : "Add"}
+        </button>
 
-          <div className="form-group">
-            <label htmlFor="path">Path</label>
-            <Input
-              type="text"
-              name="path"
-              value={(this.props.bill !== undefined ? this.props.bill.path : undefined)}
-              className="form-control"
-              validations={[Validation.required, Validation.pathFormat]}
-            />
-          </div>
+        <Dialog open={this.state.open} fullWidth>
 
-          <div>
-            <Button
-              className="btn btn-primary btn-block"
-              type="submit"
-            >
-              {button}
-            </Button>
-          </div>
+          <DialogTitle>{this.props.account !== undefined ? "Edit this" : "Add a"} bill location</DialogTitle>
 
-        </Form>
+          <DialogContent>
 
-      </Panel>
+            <Form ref={form => { this.form = form; }} onSubmit={this.submit}>
+
+              <div className="form-group">
+                <label htmlFor="bucket">S3 Bucket</label>
+                <Input
+                  name="bucket"
+                  type="text"
+                  className="form-control"
+                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "s3://")}
+                  validations={[Validation.required, Validation.s3BucketFormat]}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="path">Path</label>
+                <Input
+                  type="text"
+                  name="path"
+                  value={(this.props.bill !== undefined ? this.props.bill.path : undefined)}
+                  className="form-control"
+                  validations={[Validation.required, Validation.pathFormat]}
+                />
+              </div>
+
+              <DialogActions>
+
+                <button className="btn btn-default pull-left" onClick={this.closeDialog}>
+                  Cancel
+                </button>
+
+                <Button
+                  className="btn btn-primary btn-block"
+                  type="submit"
+                >
+                  {this.props.bill !== undefined ? "Save" : "Add"}
+                </Button>
+
+              </DialogActions>
+
+            </Form>
+
+          </DialogContent>
+        </Dialog>
+      </div>
     );
   }
 
