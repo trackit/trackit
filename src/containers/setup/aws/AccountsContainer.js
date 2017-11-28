@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import Components from '../../../components';
 import Actions from "../../../actions";
 import PropTypes from "prop-types";
+import s3square from '../../../assets/s3-square.png';
 
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
@@ -19,16 +20,30 @@ class AccountsContainer extends Component {
 
   render() {
     return (
-      <Panel title="AWS Accounts" collapsible>
+      <Panel>
+
+        <div>
+
+          <h3 className="white-box-title no-padding inline-block">
+            <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+            AWS Accounts
+          </h3>
+
+          <div className="inline-block pull-right">
+            <Form
+              submit={this.props.accountActions.new}
+              external={this.props.external}
+            />
+          </div>
+
+        </div>
+
         <List
           accounts={this.props.accounts}
           accountActions={this.props.accountActions}
           billActions={this.props.billActions}
         />
-        <Form
-          submit={this.props.accountActions.new}
-          external={this.props.external}
-        />
+
       </Panel>
     );
   }
