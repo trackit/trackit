@@ -20,7 +20,9 @@ import (
 	"strings"
 )
 
-// Cors is a decorator which adds support for CORS to the handler.
+// Cors is a decorator which adds support for CORS to the handler. The Headers,
+// Origin and Credentials are configured with the structure, while the Methods
+// are determined from the handler.
 type Cors struct {
 	AllowOrigin      []string
 	AllowHeaders     []string
