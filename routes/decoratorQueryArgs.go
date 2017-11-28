@@ -157,10 +157,9 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 // The goal of this function is to get the URL parameters to store them in
 // the Arguments.
 func (qa RequiredQueryArgs) Decorate(h Handler) Handler {
-	return Handler{
-		Func:          qa.getFunc(h.Func),
-		Documentation: qa.getDocumentation(h.Documentation),
-	}
+	h.Func = qa.getFunc(h.Func)
+	h.Documentation = qa.getDocumentation(h.Documentation)
+	return h
 }
 
 // getFunc builds a handler function for RequiredQueryArgs.Decorate
