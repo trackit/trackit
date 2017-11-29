@@ -26,6 +26,24 @@ const (
 	tagPrefix = `resourceTags/user:`
 )
 
+/*
+func UpdateDueReports(ctx context.Context, tx *sql.Tx) error {
+	aas := make(map[int]aws.AwsAccount)
+	brs := aws.AwsBillRepositoriesWithDueUpdate(tx)
+	for _, br := range repositoriesWithDueUpdate {
+		var aa AwsAccount
+		if aa, ok := aas[br.AwsAccountId]; !ok {
+			aa, err := aws.GetAwsAccountWithId(br.AwsAccountId, tx)
+			if err != nil {
+				return err
+			}
+			aas[br.AwsAccountId] = aa
+		}
+		go UpdateReport(ctx, aa, br)
+	}
+}
+*/
+
 // UpdateReport updates the elasticsearch database with new data from usage and
 // cost reports.
 func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (latestManifest time.Time, err error) {

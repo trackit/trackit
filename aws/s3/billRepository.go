@@ -15,6 +15,7 @@
 package s3
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -134,6 +135,7 @@ func decodeRequestBody(request *http.Request, structuredBody interface{}) error 
 func postBillRepositoryWithValidBody(r *http.Request, tx *sql.Tx, aa aws.AwsAccount, body BillRepository) (int, interface{}) {
 	br, err := CreateBillRepository(aa, body, tx)
 	if err == nil {
+		go UpdateReport(context.Background(), aa, br)
 		return http.StatusOK, br
 	} else {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
@@ -141,7 +143,7 @@ func postBillRepositoryWithValidBody(r *http.Request, tx *sql.Tx, aa aws.AwsAcco
 			"billRepository": br,
 			"error":          err.Error(),
 		})
-		return 500, errors.New("Failed to create bill repository.")
+		return http.StatusInternalServerError, errors.New("failed to create bill repository")
 	}
 
 }

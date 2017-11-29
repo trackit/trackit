@@ -56,13 +56,13 @@ func attemptDbConnection() error {
 	for r := retryCount; r > 0; r-- {
 		err = Db.Ping()
 		if err == nil {
-			logger.Info("Successfully connected to database.", nil)
+			logger.Info("Successfully connected to SQL database.", nil)
 			return nil
 		} else if r > 1 {
-			logger.Warning(fmt.Sprintf("Failed to connect to database. Retrying in %d seconds.", retrySeconds), err.Error())
+			logger.Warning(fmt.Sprintf("Failed to connect to SQL database. Retrying in %d seconds.", retrySeconds), err.Error())
 			time.Sleep(retrySeconds * time.Second)
 		} else {
-			logger.Error(fmt.Sprintf("Failed to connect to database. Not retrying.", retrySeconds), err.Error())
+			logger.Error("Failed to connect to SQL database. Not retrying.", err.Error())
 		}
 	}
 	return err

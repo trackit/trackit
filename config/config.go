@@ -39,6 +39,11 @@ var (
 	BackendId string
 	// PrettyJsonResponses, if set, indicates JSON HTTP responses should be pretty.
 	PrettyJsonResponses bool
+	// EsAuth is the authentication used to connect to the ElasticSearch database.
+	// It can be 'basic:user:password' for basic authentication.
+	EsAuthentication string
+	// EsAddress is the address where the ElasticSearch database resides.
+	EsAddress string
 )
 
 func init() {
@@ -49,6 +54,8 @@ func init() {
 	flag.StringVar(&AuthSecret, "auth-secret", "trackitdefaultsecret", "The secret used to sign and verify JWT tokens.")
 	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
 	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
+	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
+	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.Parse()
 }
