@@ -1,0 +1,411 @@
+//   Copyright 2017 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+package costs
+
+import (
+	"encoding/json"
+	"testing"
+	"time"
+
+	"gopkg.in/olivere/elastic.v5"
+)
+
+func createAndConfigureTestClient(t *testing.T) *elastic.Client {
+	client, err := elastic.NewClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return client
+}
+
+func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
+	linkedAccountID := []string{
+		"123456",
+		"98765432",
+	}
+	expectedResult := `{"terms":{"linked_account_id":[["123456","98765432"]]}}`
+	res := createQueryAccountFilter(linkedAccountID)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestQueryAccountFiltersSingleAccount(t *testing.T) {
+	linkedAccountID := []string{
+		"123456",
+	}
+	expectedResult := `{"terms":{"linked_account_id":[["123456"]]}}`
+	res := createQueryAccountFilter(linkedAccountID)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestQueryTimeRange(t *testing.T) {
+	durationBegin, _ := time.Parse("2006-1-2 15:04", "2017-01-12 11:23")
+	durationEnd, _ := time.Parse("2006-1-2 15:04", "2017-05-23 11:23")
+	expectedResult := `{"range":{"usage_start_date":{"from":"2017-01-12T11:23:00Z","include_lower":true,"include_upper":true,"to":"2017-05-23T11:23:00Z"}}}`
+
+	res := createQueryTimeRange(durationBegin, durationEnd)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerProduct(t *testing.T) {
+	res := createAggregationPerProduct([]string{""})
+	expectedResult := `{"terms":{"field":"product_name","size":2147483647}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerRegion(t *testing.T) {
+	res := createAggregationPerRegion([]string{""})
+	expectedResult := `{"terms":{"field":"availability_zone","size":2147483647}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerAccount(t *testing.T) {
+	res := createAggregationPerAccount([]string{""})
+	expectedResult := `{"terms":{"field":"linked_account_id","size":2147483647}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerDay(t *testing.T) {
+	res := createAggregationPerDay([]string{""})
+	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"day"}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerMonth(t *testing.T) {
+	res := createAggregationPerMonth([]string{""})
+	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"month"}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestCostSumAggregation(t *testing.T) {
+	res := createCostSumAggregation([]string{""})
+	expectedResult := `{"sum":{"field":"cost"}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerWeek(t *testing.T) {
+	res := createAggregationPerWeek([]string{""})
+	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"week"}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerYear(t *testing.T) {
+	res := createAggregationPerYear([]string{""})
+	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"year"}}`
+	src, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonRes, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonRes) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonRes))
+	}
+}
+
+func TestAggregationPerTag(t *testing.T) {
+	res := createAggregationPerTag([]string{"tag", "test"})
+	expectedFirstResult := `{"filter":{"term":{"tag.key":"user:test"}}}`
+	expectedSecondResult := `{"terms":{"field":"tag.value","size":2147483647}}`
+	srcFirst, err := res[0].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	srcSecond, err := res[1].aggr.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonResFirst, err := json.Marshal(srcFirst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonResFirst) != expectedFirstResult {
+		t.Fatalf("Expected %v but got %v", expectedFirstResult, string(jsonResFirst))
+	}
+	jsonResSecond, err := json.Marshal(srcSecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonResSecond) != expectedSecondResult {
+		t.Fatalf("Expected %v but got %v", expectedSecondResult, string(jsonResSecond))
+	}
+}
+
+func TestReverseAggregationArray(t *testing.T) {
+	sliceTobeReversed := []paramAggrAndName{
+		paramAggrAndName{
+			name: "first",
+			aggr: nil},
+		paramAggrAndName{
+			name: "second",
+			aggr: nil},
+		paramAggrAndName{
+			name: "thrice",
+			aggr: nil}}
+	expectedReversedSlice := []paramAggrAndName{
+		paramAggrAndName{
+			name: "thrice",
+			aggr: nil},
+		paramAggrAndName{
+			name: "second",
+			aggr: nil},
+		paramAggrAndName{
+			name: "first",
+			aggr: nil}}
+	reversedSlice := reverseAggregationArray(sliceTobeReversed)
+	for i, val := range reversedSlice {
+		if val.name != expectedReversedSlice[i].name {
+			t.Fatalf("Expected %v on index %v but got %v", expectedReversedSlice[i].name, i, val.name)
+		}
+	}
+}
+
+func TestAggregationNestingWithSingleElementSlice(t *testing.T) {
+	singleAggregationSlice := createAggregationPerAccount([]string{""})
+	expectedResult := `{"terms":{"field":"linked_account_id","size":2147483647}}`
+	res := nestAggregation(singleAggregationSlice)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonResult, err := json.Marshal(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonResult) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonResult))
+	}
+}
+
+func TestAggregationNestingWithCoupleElementsSlice(t *testing.T) {
+	coupleAggregationSlice := createAggregationPerTag([]string{"", "test"})
+	expectedResult := `{
+	"aggregations": {
+		"tag_value": {
+			"terms": {
+				"field": "tag.value",
+				"size": 2147483647
+			}
+		}
+	},
+	"filter": {
+		"term": {
+			"tag.key": "user:test"
+		}
+	}
+}`
+	res := nestAggregation(coupleAggregationSlice)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonResult, err := json.MarshalIndent(src, "", "	")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonResult) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonResult))
+	}
+}
+
+func TestAggregationNestingWithFewElementsSlice(t *testing.T) {
+	fewAggregationSlice := createAggregationPerTag([]string{"", "test"})
+	buffAggregation := createCostSumAggregation([]string{""})
+	fewAggregationSlice = append(fewAggregationSlice, buffAggregation...)
+	expectedResult := `{
+	"aggregations": {
+		"tag_value": {
+			"aggregations": {
+				"cost": {
+					"sum": {
+						"field": "cost"
+					}
+				}
+			},
+			"terms": {
+				"field": "tag.value",
+				"size": 2147483647
+			}
+		}
+	},
+	"filter": {
+		"term": {
+			"tag.key": "user:test"
+		}
+	}
+}`
+	res := nestAggregation(fewAggregationSlice)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonResult, err := json.MarshalIndent(src, "", "	")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonResult) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonResult))
+	}
+}
+
+func TestAggregationNestingWithAllHandledElasticAggregationTypes(t *testing.T) {
+	allTypesSlice := createAggregationPerYear([]string{""})
+	allTypesSlice = append(allTypesSlice, createAggregationPerTag([]string{"", "test"})...)
+	allTypesSlice = append(allTypesSlice, createAggregationPerProduct([]string{""})...)
+	expectedResult := `{
+	"aggregations": {
+		"tag_key": {
+			"aggregations": {
+				"tag_value": {
+					"aggregations": {
+						"product": {
+							"terms": {
+								"field": "product_name",
+								"size": 2147483647
+							}
+						}
+					},
+					"terms": {
+						"field": "tag.value",
+						"size": 2147483647
+					}
+				}
+			},
+			"filter": {
+				"term": {
+					"tag.key": "user:test"
+				}
+			}
+		}
+	},
+	"date_histogram": {
+		"field": "usage_start_date",
+		"interval": "year"
+	}
+}`
+	res := nestAggregation(allTypesSlice)
+	src, err := res.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	jsonResult, err := json.MarshalIndent(src, "", "	")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(jsonResult) != expectedResult {
+		t.Fatalf("Expected %v but got %v", expectedResult, string(jsonResult))
+	}
+}

@@ -176,3 +176,60 @@ func TestMultipleArg(t *testing.T) {
 		}
 	}
 }
+
+func TestMissingIntSlice(t *testing.T) {
+	h := H(argHandler).With(
+		RequiredQueryArgs{
+			QueryArgTestIntSlice,
+		},
+	)
+	paramsURL := []string{
+		"testString=test",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}
+
+func TestBadIntSlice(t *testing.T) {
+	h := H(argHandler).With(
+		RequiredQueryArgs{
+			QueryArgTestIntSlice,
+		},
+	)
+	paramsURL := []string{
+		"testIntSlice=test",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}
+
+func TestBadUintSlice(t *testing.T) {
+	h := H(argHandler).With(
+		RequiredQueryArgs{
+			QueryArgTestUintSlice,
+		},
+	)
+	paramsURL := []string{
+		"testUintSlice=test",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}

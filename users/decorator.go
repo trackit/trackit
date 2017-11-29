@@ -16,8 +16,9 @@ package users
 
 import (
 	"database/sql"
-	"errors"
 	"net/http"
+
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/routes"
@@ -40,6 +41,7 @@ func (d RequireAuthenticatedUser) Decorate(h routes.Handler) routes.Handler {
 
 func (_ RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
+		logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 		auth := r.Header["Authorization"]
 		tx := a[db.Transaction].(*sql.Tx)
 		if auth != nil && len(auth) == 1 {
@@ -47,9 +49,15 @@ func (_ RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerF
 			if user, err := testToken(tx, tokenString); err == nil {
 				a[AuthenticatedUser] = user
 				return hf(w, r, a)
+			} else if err != ErrCannotReadToken && err != ErrInvalidClaims {
+				logger.Error("Abnormal authentication failure.", err.Error())
+				return http.StatusInternalServerError, ErrFailedToValidateToken
+			} else {
+				return http.StatusUnauthorized, err
 			}
+		} else {
+			return http.StatusUnauthorized, ErrMissingToken
 		}
-		return http.StatusUnauthorized, errors.New("invalid or missing token")
 	}
 }
 

@@ -33,11 +33,6 @@ type RegisteredHandler struct {
 	Handler
 }
 
-// type Handler interface {
-// 	Handle(http.ResponseWriter, *http.Request, Arguments) (int, interface{})
-// 	Documentation() HandlerDocumentation
-// }
-
 type HandlerFunc func(http.ResponseWriter, *http.Request, Arguments) (int, interface{})
 
 type Handler struct {
