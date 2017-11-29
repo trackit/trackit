@@ -17,6 +17,7 @@ package aws
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -92,19 +93,40 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	return nil, err
 }
 
+// GetAwsAccountWithId returns an AWS account.
+func GetAwsAccountWithId(aaid int, tx *sql.Tx) (AwsAccount, error) {
+	var aa AwsAccount
+	if dbaa, err := models.AwsAccountByID(tx, aaid); err != nil {
+		return aa, err
+	} else {
+		aa = awsAccountFromDbAwsAccount(*dbaa)
+		return aa, nil
+	}
+}
+
+// GetAwsAccountWithIdFromUser returns a user's AWS accounts if it belongs to
+// the user.
+func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount, error) {
+	var aaz AwsAccount
+	if aa, err := GetAwsAccountWithId(aaid, tx); err != nil {
+		return aaz, err
+	} else if aa.UserId == u.Id {
+		return aa, nil
+	} else {
+		return aaz, errors.New("aws account does not belong to the user")
+	}
+}
+
 // CreateAwsAccount registers a new AWS account for a user. It does no error
 // checking: the caller should check themselves that the role ARN exists and is
 // correctly configured.
 func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount := models.AwsAccount{
-		UserID:  a.UserId,
-		RoleArn: a.RoleArn,
-		Pretty:  a.Pretty,
-		External: sql.NullString{
-			Valid:  a.External != "",
-			String: a.External,
-		},
+		UserID:   a.UserId,
+		RoleArn:  a.RoleArn,
+		Pretty:   a.Pretty,
+		External: a.External,
 	}
 	err := dbAwsAccount.Insert(db)
 	if err == nil {
@@ -124,6 +146,6 @@ func awsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 		UserId:   dbAwsAccount.UserID,
 		Pretty:   dbAwsAccount.Pretty,
 		RoleArn:  dbAwsAccount.RoleArn,
-		External: dbAwsAccount.External.String,
+		External: dbAwsAccount.External,
 	}
 }

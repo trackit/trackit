@@ -22,6 +22,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	_ "github.com/trackit/trackit2/aws"
+	_ "github.com/trackit/trackit2/aws/s3"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/users"
@@ -48,7 +49,7 @@ func initializeHandlers() {
 		routes.RouteLog{},
 		routes.BackendId{backendId},
 		routes.ErrorBody{},
-		routes.PanicAsError{},
+		//routes.PanicAsError{},
 		routes.Cors{
 			AllowCredentials: true,
 			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization"},

@@ -39,16 +39,23 @@ var (
 	BackendId string
 	// PrettyJsonResponses, if set, indicates JSON HTTP responses should be pretty.
 	PrettyJsonResponses bool
+	// EsAuth is the authentication used to connect to the ElasticSearch database.
+	// It can be 'basic:user:password' for basic authentication.
+	EsAuthentication string
+	// EsAddress is the address where the ElasticSearch database resides.
+	EsAddress string
 )
 
 func init() {
 	flag.StringVar(&HttpAddress, "http-address", "[::1]:8080", "The port and address the HTTP server listens to.")
 	flag.StringVar(&SqlProtocol, "sql-protocol", "mysql", "The protocol used to communicate with the SQL database.")
-	flag.StringVar(&SqlAddress, "sql-address", "root:rootpassword@tcp(::1)/trackit", "The address (username, password, transport, address and database) for the SQL database.")
+	flag.StringVar(&SqlAddress, "sql-address", "trackit:trackitpassword@tcp(127.0.0.1)/trackit", "The address (username, password, transport, address and database) for the SQL database.")
 	flag.StringVar(&AuthIssuer, "auth-issuer", "trackit", "The 'iss' field for the JWT tokens.")
 	flag.StringVar(&AuthSecret, "auth-secret", "trackitdefaultsecret", "The secret used to sign and verify JWT tokens.")
 	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
 	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
+	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
+	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.Parse()
 }
