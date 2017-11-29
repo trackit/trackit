@@ -11,3 +11,9 @@ In order to check out this project’s dependencies, run `govendor sync -v`.
 
 In order to build and run the _Docker Compose_ environment, simply run
 `./start.sh`.
+
+== API documentation
+
+The API exposes its own documentation on the `GET /docs` route, in JSON format.
+Also, the documentation for each route can be retrieved by an `OPTIONS`
+request. We are working on an actual viewer for this.
