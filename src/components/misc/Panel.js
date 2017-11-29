@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from "prop-types";
 
-class PanelItem extends Component {
+export class PanelItem extends Component {
 
   render() {
     return (
