@@ -72,7 +72,17 @@ Item.propTypes = {
 class ListComponent extends Component {
 
   render() {
-    let noBills = (!this.props.bills.length ? <div className="alert alert-warning" role="alert">No bills available</div> : "");
+    let noBills = (!this.props.bills || !this.props.bills.length ? <div className="alert alert-warning" role="alert">No bills available</div> : "");
+    let bills = (this.props.bills && this.props.bills.length ? (
+      this.props.bills.map((bill, index) => (
+        <Item
+          key={index}
+          bill={bill}
+          account={this.props.account}
+          edit={this.props.edit}
+          delete={this.props.delete}/>
+      ))
+    ) : null);
     return (
       <Dialog
         buttonName="Bills locations"
@@ -82,19 +92,12 @@ class ListComponent extends Component {
 
         <Form
           account={this.props.account}
-          submit={this.editBill}
+          submit={this.props.new}
         />
 
         <List>
           {noBills}
-          {this.props.bills.map((bill, index) => (
-            <Item
-              key={index}
-              bill={bill}
-              account={this.props.account}
-              edit={this.props.edit}
-              delete={this.props.delete}/>
-          ))}
+          {bills}
         </List>
 
       </Dialog>

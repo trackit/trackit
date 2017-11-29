@@ -10,10 +10,6 @@ import Button from 'react-validation/build/button';
 import Validations from '../../../../common/forms';
 import PropTypes from "prop-types";
 
-import Misc from '../../../misc';
-
-const Panel = Misc.Panel;
-
 const Validation = Validations.AWSAccount;
 
 // Form Component for new AWS Account
@@ -50,8 +46,6 @@ class FormComponent extends Component {
   };
 
   render() {
-    const actionVerb = (this.props.bill !== undefined ? "Edit" : "Add");
-
     const button = (this.props.account !== undefined ? (
       <div>
         <span className="glyphicon glyphicon-pencil" aria-hidden="true"/>&nbsp;Save

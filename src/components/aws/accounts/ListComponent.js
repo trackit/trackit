@@ -9,7 +9,6 @@ import Misc from '../../misc';
 import Form from './FormComponent';
 import Bills from './bills';
 
-const Panel = Misc.Panel;
 const DeleteConfirmation = Misc.DeleteConfirmation;
 
 class Item extends Component {
@@ -53,32 +52,6 @@ class Item extends Component {
   };
 
   render() {
-
-    const editForm = (this.state.editForm ? (
-      <div>
-
-        <Form submit={this.editAccount} account={this.props.account} billActions={this.props.billActions}/>
-
-        <Panel title="Bills locations" collapsible defaultCollapse >
-
-          <Bills.List
-            account={this.props.account.id}
-            bills={this.bills}
-            new={this.props.billActions.new}
-            edit={this.props.billActions.edit}
-            delete={this.props.billActions.delete}
-          />
-
-          <Bills.Form
-            account={this.props.account.id}
-            submit={this.props.billActions.new}
-          />
-
-        </Panel>
-
-      </div>
-    ) : null);
-
     return (
       <div>
 
@@ -162,17 +135,20 @@ class ListComponent extends Component {
 
   render() {
     let noAccounts = (!this.props.accounts || !this.props.accounts.length ? <div className="alert alert-warning" role="alert">No account available</div> : "");
+    let accounts = (this.props.accounts && this.props.accounts.length ? (
+      this.props.accounts.map((account, index) => (
+        <Item
+          key={index}
+          account={account}
+          accountActions={this.props.accountActions}
+          billActions={this.props.billActions}
+        />
+      ))
+    ) : null);
     return (
       <List disablePadding>
         {noAccounts}
-        {this.props.accounts.map((account, index) => (
-          <Item
-            key={index}
-            account={account}
-            accountActions={this.props.accountActions}
-            billActions={this.props.billActions}
-          />
-        ))}
+        {accounts}
       </List>
     );
   }
