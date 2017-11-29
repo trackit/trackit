@@ -8,8 +8,6 @@ then
 	build_number="$build_number-devel"
 fi
 
-CGO_ENABLED=0 GOOS=linux go build \
-	-a \
-	-installsuffix cgo \
+go build \
 	-ldflags "-X main.buildNumber=$build_number" \
 	-o main

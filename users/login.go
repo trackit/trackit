@@ -38,13 +38,16 @@ type loginResponseBody struct {
 }
 
 func init() {
-	routes.Register(
-		"/login",
-		logIn,
-		routes.RequireMethod{"POST"},
-		routes.RequireContentType{"application/json"},
-		db.WithTransaction{db.Db},
-	)
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(logIn).With(
+			routes.RequestContentType{"application/json"},
+			db.RequestTransaction{db.Db},
+			routes.Documentation{
+				Summary:     "log in as a user",
+				Description: "Logs a user in based on an e-mail/password couple and returns a JWT token and the user's data.",
+			},
+		),
+	}.H().Register("/user/login")
 }
 
 // LogIn handles users attempting to log in. It shall return a valid token the
@@ -101,16 +104,6 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 		logger.Error("Failed to generate token.", err.Error())
 		return 500, errors.New("Failed to generate token.")
 	}
-}
-
-func init() {
-	routes.Register(
-		"/user/me",
-		me,
-		routes.RequireMethod{"GET"},
-		db.WithTransaction{db.Db},
-		WithAuthenticatedUser{},
-	)
 }
 
 // TestToken tests a token's validity. For a valid token, it returns the user

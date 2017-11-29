@@ -18,22 +18,22 @@ import (
 	"net/http"
 )
 
-// WithErrorBody is a decorator for an HTTP handler. If that handler returns an
-// error, it will wrap it in an ErrorBody structure so that it can correctly be
-// returned to the user as JSON.
-type WithErrorBody struct{}
-
-type ErrorBody struct {
-	Error string `json:"error"`
+// BackendId is a decorator which adds a backend ID to incoming requests. It
+// adds it to the response in the `X-Backend-ID` HTTP header. It is useful in
+// correlating requests with logs.
+type BackendId struct {
+	BackendId string
 }
 
-func (d WithErrorBody) Decorate(h IntermediateHandler) IntermediateHandler {
+func (d BackendId) Decorate(h Handler) Handler {
+	h.Func = d.getFunc(h.Func)
+	return h
+}
+
+// getFunc returns a decorated handler function for BackendId.
+func (d BackendId) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
-		status, output := h(w, r, a)
-		if err, ok := output.(error); ok {
-			return status, ErrorBody{err.Error()}
-		} else {
-			return status, output
-		}
+		w.Header()["X-Backend-ID"] = []string{d.BackendId}
+		return hf(w, r, a)
 	}
 }

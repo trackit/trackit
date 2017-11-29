@@ -37,6 +37,8 @@ var (
 	AwsRegion string
 	// BackendId is an identifier for the current instance of the server.
 	BackendId string
+	// PrettyJsonResponses, if set, indicates JSON HTTP responses should be pretty.
+	PrettyJsonResponses bool
 )
 
 func init() {
@@ -46,6 +48,7 @@ func init() {
 	flag.StringVar(&AuthIssuer, "auth-issuer", "trackit", "The 'iss' field for the JWT tokens.")
 	flag.StringVar(&AuthSecret, "auth-secret", "trackitdefaultsecret", "The secret used to sign and verify JWT tokens.")
 	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
-	flag.StringVar(&BackendId, "backend-id", "devel", "The ID to be sent to clients through the 'X-Backend-ID' field.")
+	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
+	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.Parse()
 }

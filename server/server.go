@@ -18,29 +18,23 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
+
 	_ "github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/users"
 )
 
-// contextKey represents a key in a context. Using an unexported type in this
-// fashion ensures there can be no collision with a key from some other
-// package.
-type contextKey int
-
-const (
-	// contextKeyRequestId is the key for a request's random ID stored in
-	// its context.
-	contextKeyRequestId = contextKey(iota)
-	// contextKeyRequestTime is the key for the time a request was
-	// received, which is stored in its context.
-	contextKeyRequestTime
-)
+var buildNumber string
+var backendId = getBackendId()
 
 func main() {
 	logger := jsonlog.DefaultLogger
+	logger.Info("Started.", struct {
+		BackendId string `json:"backendId"`
+	}{backendId})
 	initializeHandlers()
 	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
 	err := http.ListenAndServe(config.HttpAddress, nil)
@@ -50,26 +44,38 @@ func main() {
 // initializeHandlers sets the HTTP server up with handler functions.
 func initializeHandlers() {
 	globalDecorators := []routes.Decorator{
-		WithRequestTime{},
-		WithRequestId{},
-		WithBackendId{config.BackendId},
-		WithRouteLogging{},
-		routes.WithCors{
+		routes.RequestId{},
+		routes.RouteLog{},
+		routes.BackendId{backendId},
+		routes.ErrorBody{},
+		routes.PanicAsError{},
+		routes.Cors{
 			AllowCredentials: true,
 			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization"},
-			AllowMethods:     []string{"GET", "POST"},
 			AllowOrigin:      []string{"*"},
 		},
-		routes.WithErrorBody{},
 	}
 	logger := jsonlog.DefaultLogger
+	routes.DocumentationHandler().Register("/docs")
 	for _, rh := range routes.RegisteredHandlers {
 		applyDecoratorsAndHandle(rh.Pattern, rh.Handler, globalDecorators)
 		logger.Info(fmt.Sprintf("Registered route %s.", rh.Pattern), nil)
 	}
 }
 
-func applyDecoratorsAndHandle(p string, h routes.IntermediateHandler, ds []routes.Decorator) {
-	h = routes.ApplyDecorators(h, ds...)
+// applyDecoratorsAndHandle applies a list of decorators to a handler and
+// registers it.
+func applyDecoratorsAndHandle(p string, h routes.Handler, ds []routes.Decorator) {
+	h = h.With(ds...)
 	http.Handle(p, h)
+}
+
+// getBackendId returns an ID unique to the current process. It can also be set
+// in the config to a determined string. It contains the build number.
+func getBackendId() string {
+	if config.BackendId != "" {
+		return config.BackendId
+	} else {
+		return fmt.Sprintf("%s-%s", uuid.NewV1().String(), buildNumber)
+	}
 }

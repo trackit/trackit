@@ -22,11 +22,11 @@ import (
 )
 
 var (
-	QueryArgTestInt       = QueryArg{"testInt", QueryArgInt{}}
-	QueryArgTestUint      = QueryArg{"testUint", QueryArgUint{}}
-	QueryArgTestString    = QueryArg{"testString", QueryArgString{}}
-	QueryArgTestIntSlice  = QueryArg{"testIntSlice", QueryArgIntSlice{}}
-	QueryArgTestUintSlice = QueryArg{"testUintSlice", QueryArgUintSlice{}}
+	QueryArgTestInt       = QueryArg{"testInt", "Test signed integer", QueryArgInt{}}
+	QueryArgTestUint      = QueryArg{"testUint", "Test unsigned integer", QueryArgUint{}}
+	QueryArgTestString    = QueryArg{"testString", "Test string", QueryArgString{}}
+	QueryArgTestIntSlice  = QueryArg{"testIntSlice", "Test signed integer slice", QueryArgIntSlice{}}
+	QueryArgTestUintSlice = QueryArg{"testUintSlice", "Test unsigned integer slice", QueryArgUintSlice{}}
 )
 
 func argHandler(r *http.Request, a Arguments) (int, interface{}) {
@@ -68,35 +68,33 @@ func sliceIsEqual(first, second interface{}) bool {
 	}
 }
 
+const testOverflowIntArgExpectedError = `query arg 'testInt': must be an int`
+
 func TestOverflowIntArg(t *testing.T) {
-	h := ApplyDecorators(
-		baseIntermediate(argHandler),
-		RequireMethod{"GET"},
-		WithQueryArg{QueryArgTestInt},
+	h := H(argHandler).With(
+		RequiredQueryArgs{QueryArgTestInt},
 	)
 	overflowInt64Str := "9223372036854775808"
 	request := httptest.NewRequest("GET", "/test?testInt="+overflowInt64Str, nil)
 	response := httptest.NewRecorder()
-	status, body := h(response, request, Arguments{})
+	status, body := h.Func(response, request, Arguments{})
 	if status != 400 {
 		t.Errorf("Expected 400. Got %d (%s)", status, body)
 	}
-	if errorBody, ok := body.(ErrorBody); !ok {
-		t.Errorf("Expected ErrorBody.")
-	} else if errorBody.Error != "argument \"testInt\" must be an int" {
-		t.Errorf("Expected (%v). Got (%v)", "argument \"testInt\" must be an int", errorBody.Error)
+	if err, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	} else if err.Error() != testOverflowIntArgExpectedError {
+		t.Errorf("Expected (%v). Got (%v)", testOverflowIntArgExpectedError, err.Error())
 	}
 }
 
 func TestRightUintArg(t *testing.T) {
-	h := ApplyDecorators(
-		baseIntermediate(argHandler),
-		RequireMethod{"GET"},
-		WithQueryArg{QueryArgTestUint},
+	h := H(argHandler).With(
+		RequiredQueryArgs{QueryArgTestUint},
 	)
 	request := httptest.NewRequest("GET", "/test?testUint=84", nil)
 	response := httptest.NewRecorder()
-	status, body := h(response, request, Arguments{})
+	status, body := h.Func(response, request, Arguments{})
 	if status != 200 {
 		t.Errorf("Expected 200. Got %d (%s)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
@@ -108,30 +106,28 @@ func TestRightUintArg(t *testing.T) {
 	}
 }
 
+const testNegativeUintArgExpectedError = `query arg 'testUint': must be a uint`
+
 func TestNegativeUintArg(t *testing.T) {
-	h := ApplyDecorators(
-		baseIntermediate(argHandler),
-		RequireMethod{"GET"},
-		WithQueryArg{QueryArgTestUint},
+	h := H(argHandler).With(
+		RequiredQueryArgs{QueryArgTestUint},
 	)
 	request := httptest.NewRequest("GET", "/test?testUint=-21", nil)
 	response := httptest.NewRecorder()
-	status, body := h(response, request, Arguments{})
+	status, body := h.Func(response, request, Arguments{})
 	if status != 400 {
 		t.Errorf("Expected 400. Got %d (%s)", status, body)
 	}
-	if errorBody, ok := body.(ErrorBody); !ok {
-		t.Errorf("Expected ErrorBody.")
-	} else if errorBody.Error != "argument \"testUint\" must be an uint" {
-		t.Errorf("Expected (%v). Got (%v)", "argument \"testUint\" must be an uint", errorBody.Error)
+	if err, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	} else if err.Error() != testNegativeUintArgExpectedError {
+		t.Errorf("Expected (%v). Got (%v)", testNegativeUintArgExpectedError, err.Error())
 	}
 }
 
 func TestMultipleArg(t *testing.T) {
-	h := ApplyDecorators(
-		baseIntermediate(argHandler),
-		RequireMethod{"GET"},
-		WithQueryArg{
+	h := H(argHandler).With(
+		RequiredQueryArgs{
 			QueryArgTestInt,
 			QueryArgTestUint,
 			QueryArgTestString,
@@ -140,11 +136,11 @@ func TestMultipleArg(t *testing.T) {
 		},
 	)
 	paramsURL := []string{
-		"?testInt=-84",
-		"&testUint=21",
-		"&testString=test1,test2",
-		"&testIntSlice=-21,-42,1",
-		"&testUintSlice=21,0",
+		"testInt=-84",
+		"testUint=21",
+		"testString=test1,test2",
+		"testIntSlice=-21,-42,1",
+		"testUintSlice=21,0",
 	}
 	slices := []interface{}{
 		int(-84),
@@ -153,11 +149,11 @@ func TestMultipleArg(t *testing.T) {
 		[]int{-21, -42, 1},
 		[]uint{21, 0},
 	}
-	request := httptest.NewRequest("GET", "/test"+strings.Join(paramsURL, ""), nil)
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
 	response := httptest.NewRecorder()
-	status, body := h(response, request, Arguments{})
+	status, body := h.Func(response, request, Arguments{})
 	if status != 200 {
-		t.Errorf("Expected 200. Got %d (%s)", status, body)
+		t.Errorf("Expected 200. Got %d (%v)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
 	} else {
@@ -178,5 +174,62 @@ func TestMultipleArg(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+func TestMissingIntSlice(t *testing.T) {
+	h := H(argHandler).With(
+		RequiredQueryArgs{
+			QueryArgTestIntSlice,
+		},
+	)
+	paramsURL := []string{
+		"testString=test",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}
+
+func TestBadIntSlice(t *testing.T) {
+	h := H(argHandler).With(
+		RequiredQueryArgs{
+			QueryArgTestIntSlice,
+		},
+	)
+	paramsURL := []string{
+		"testIntSlice=test",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}
+
+func TestBadUintSlice(t *testing.T) {
+	h := H(argHandler).With(
+		RequiredQueryArgs{
+			QueryArgTestUintSlice,
+		},
+	)
+	paramsURL := []string{
+		"testUintSlice=test",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
 	}
 }
