@@ -10,7 +10,7 @@ import Form from './FormComponent';
 const Dialog = Misc.Dialog;
 const DeleteConfirmation = Misc.DeleteConfirmation;
 
-class Item extends Component {
+export class Item extends Component {
 
   constructor(props) {
     super(props);

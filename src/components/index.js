@@ -1,9 +1,9 @@
-import DeclareSetup from './DeclareSetupComponent';
 import Misc from './misc';
+import Auth from './auth';
 import AWS from './aws';
 
 export default {
-  DeclareSetup,
   Misc,
+  Auth,
   AWS,
 };

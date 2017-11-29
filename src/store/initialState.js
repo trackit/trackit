@@ -2,7 +2,6 @@ import moment from 'moment';
 
 export default {
   aws: {
-    pricing: [],
     accounts: {
       all: [],
       external: null

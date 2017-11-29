@@ -1,13 +1,14 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import Actions from '../../actions';
 
 import '../../styles/Navigation.css';
 
 import logo from '../../assets/logo-white-coloured.png';
 
-class NavbarHeader extends Component {
+export class NavbarHeader extends Component {
 
   constructor() {
     super();
@@ -76,9 +77,15 @@ class NavbarHeader extends Component {
 
 }
 
-const mapStateToProps = () => ({
+NavbarHeader.propTypes = {
+  signOut: PropTypes.func.isRequired
+};
 
+/* istanbul ignore next */
+const mapStateToProps = () => ({
 });
+
+/* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   signOut: () => {
     dispatch(Actions.Auth.logout())

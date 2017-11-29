@@ -77,7 +77,10 @@ class FormComponent extends Component {
 
           <DialogContent>
 
-            <Form ref={form => { this.form = form; }} onSubmit={this.submit} >
+            <Form ref={
+              /* istanbul ignore next */
+              form => { this.form = form; }
+            } onSubmit={this.submit} >
 
               {external}
 

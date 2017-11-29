@@ -4,9 +4,9 @@ import PropTypes from 'prop-types';
 import {formatBytes, formatPrice} from '../../../common/formatters';
 
 // S3AnalyticsInfosComponent Component
-class S3AnalyticsInfosComponent extends Component {
+class InfosComponent extends Component {
 
-  extractTotals(data) {
+  extractTotals() {
     const res = {
       buckets: 0,
       size: 0,
@@ -14,18 +14,18 @@ class S3AnalyticsInfosComponent extends Component {
       storage_cost: 0
     };
 
-    for (let i = 0; i < data.length; i += 1) {
-      const tmp = data[i];
+    this.props.data.forEach((item) => {
       res.buckets++;
-      res.size += tmp.size;
-      res.bandwidth_cost += tmp.bw_cost;
-      res.storage_cost += tmp.storage_cost;
-    }
+      res.size += item.size;
+      res.bandwidth_cost += item.bw_cost;
+      res.storage_cost += item.storage_cost;
+    });
+
     return res;
   }
 
   render() {
-    const totals = this.extractTotals(this.props.data);
+    const totals = this.extractTotals();
 
     return (
       <div>
@@ -96,8 +96,18 @@ class S3AnalyticsInfosComponent extends Component {
 
 }
 
-S3AnalyticsInfosComponent.propTypes = {
-  data: PropTypes.array.isRequired
+InfosComponent.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      _id: PropTypes.string.isRequired,
+      size: PropTypes.number.isRequired,
+      storage_cost: PropTypes.number.isRequired,
+      bw_cost: PropTypes.number.isRequired,
+      total_cost: PropTypes.number.isRequired,
+      transfer_in: PropTypes.number.isRequired,
+      transfer_out: PropTypes.number.isRequired
+    })
+  ),
 };
 
-export default S3AnalyticsInfosComponent;
+export default InfosComponent;

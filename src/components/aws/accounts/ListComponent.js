@@ -3,7 +3,6 @@ import List, {
   ListItem,
   ListItemText,
 } from 'material-ui/List';
-import Collapse from 'material-ui/transitions/Collapse';
 import PropTypes from 'prop-types';
 import Misc from '../../misc';
 import Form from './FormComponent';
@@ -11,17 +10,12 @@ import Bills from './bills';
 
 const DeleteConfirmation = Misc.DeleteConfirmation;
 
-class Item extends Component {
+export class Item extends Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      showBills: false
-    };
-    this.toggleBills = this.toggleBills.bind(this);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
-    this.test = this.test.bind(this);
     this.bills = [{
       "bucket": "s3://te.st",
       "path": "/path/to/bills"
@@ -31,12 +25,6 @@ class Item extends Component {
     }]
   }
 
-  toggleBills = (e) => {
-    e.preventDefault();
-    const showBills = !this.state.showBills;
-    this.setState({ showBills });
-  };
-
   editAccount = (body) => {
     this.setState({ editForm: false });
     this.props.accountActions.edit(body);
@@ -44,11 +32,6 @@ class Item extends Component {
 
   deleteAccount = () => {
     this.props.accountActions.delete(this.props.account.id);
-  };
-
-  test = (e) => {
-    e.preventDefault();
-    console.log("hehe");
   };
 
   render() {
@@ -88,18 +71,6 @@ class Item extends Component {
           </div>
 
         </ListItem>
-
-        <Collapse in={this.state.showBills} transitionDuration="auto" unmountOnExit>
-
-          <Bills.List
-            account={this.props.account.id}
-            bills={this.bills}
-            new={this.props.billActions.new}
-            edit={this.props.billActions.edit}
-            delete={this.props.billActions.delete}
-          />
-
-        </Collapse>
 
       </div>
     );

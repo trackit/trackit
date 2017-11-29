@@ -1,9 +1,9 @@
-import S3AnalyticsBarChart from './S3AnalyticsBarChartComponent';
-import S3AnalyticsInfos from './S3AnalyticsInfosComponent';
-import S3AnalyticsTable from './S3AnalyticsTableComponent';
+import BarChart from './BarChartComponent';
+import Infos from './InfosComponent';
+import Table from './TableComponent';
 
 export default {
-  S3AnalyticsBarChart,
-  S3AnalyticsTable,
-  S3AnalyticsInfos,
+  BarChart,
+  Table,
+  Infos,
 };
