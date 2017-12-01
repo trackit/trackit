@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 )
 
@@ -14,14 +15,15 @@ type bodyEchoTest struct {
 }
 
 func bodyEchoHandler(r *http.Request, a Arguments) (int, interface{}) {
-	body := a[argumentKeyJsonBody].(bodyEchoTest)
+	var body bodyEchoTest
+	MustJsonRequestBody(a, &body)
 	return http.StatusOK, body
 }
 
 func TestEchoHandler(t *testing.T) {
 	example := bodyEchoTest{"test", 42}
 	arguments := make(Arguments)
-	arguments[argumentKeyJsonBody] = example
+	arguments[argumentKeyJsonBody] = reflect.ValueOf(example)
 	status, response := bodyEchoHandler(nil, arguments)
 	if status != http.StatusOK {
 		t.Errorf("Status code should be %d, is %d.", http.StatusOK, status)

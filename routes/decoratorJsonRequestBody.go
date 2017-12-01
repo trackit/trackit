@@ -40,7 +40,7 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 			logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 			err := validate(body.Interface())
 			if err == nil {
-				a[argumentKeyJsonBody] = reflect.Indirect(body).Interface()
+				a[argumentKeyJsonBody] = reflect.Indirect(body)
 				return hf(w, r, a)
 			} else if verr, ok := err.(req.ValidationError); ok {
 				return http.StatusBadRequest, verr
@@ -81,5 +81,33 @@ func (jrb JsonRequestBody) getExampleString() string {
 		return "FAIL"
 	} else {
 		return string(bytes)
+	}
+}
+
+func MustJsonRequestBody(a Arguments, ptr interface{}) {
+	err := GetJsonRequestBody(a, ptr)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func GetJsonRequestBody(a Arguments, ptr interface{}) error {
+	body := a[argumentKeyJsonBody]
+	if body == nil {
+		return errors.New("json body not found")
+	} else {
+		return copyBodyTo(body.(reflect.Value), ptr)
+	}
+}
+
+func copyBodyTo(val reflect.Value, dst interface{}) error {
+	dstType := reflect.TypeOf(dst)
+	if dstType.Kind() != reflect.Ptr {
+		return errors.New("destination is not pointer")
+	} else if dstType.Elem() != val.Type() {
+		return errors.New("incompatible types")
+	} else {
+		reflect.Indirect(reflect.ValueOf(dst)).Set(val)
+		return nil
 	}
 }
