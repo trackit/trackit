@@ -9,5 +9,4 @@ const (
 	// contextKeyRequestId is the key for a request's random ID stored in
 	// its context.
 	contextKeyRequestId = contextKey(iota)
-	contextKeyJsonBody
 )

@@ -32,7 +32,7 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 	if validate == nil {
 		handleWithValidation = func(w http.ResponseWriter, r *http.Request, a Arguments, body reflect.Value) (int, interface{}) {
-			a[contextKeyJsonBody] = reflect.Indirect(body).Interface()
+			a[argumentKeyJsonBody] = reflect.Indirect(body).Interface()
 			return hf(w, r, a)
 		}
 	} else {
@@ -40,7 +40,7 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 			logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 			err := validate(body.Interface())
 			if err == nil {
-				a[contextKeyJsonBody] = reflect.Indirect(body).Interface()
+				a[argumentKeyJsonBody] = reflect.Indirect(body).Interface()
 				return hf(w, r, a)
 			} else if verr, ok := err.(req.ValidationError); ok {
 				return http.StatusBadRequest, verr

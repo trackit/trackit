@@ -14,14 +14,14 @@ type bodyEchoTest struct {
 }
 
 func bodyEchoHandler(r *http.Request, a Arguments) (int, interface{}) {
-	body := a[contextKeyJsonBody].(bodyEchoTest)
+	body := a[argumentKeyJsonBody].(bodyEchoTest)
 	return http.StatusOK, body
 }
 
 func TestEchoHandler(t *testing.T) {
 	example := bodyEchoTest{"test", 42}
 	arguments := make(Arguments)
-	arguments[contextKeyJsonBody] = example
+	arguments[argumentKeyJsonBody] = example
 	status, response := bodyEchoHandler(nil, arguments)
 	if status != http.StatusOK {
 		t.Errorf("Status code should be %d, is %d.", http.StatusOK, status)
