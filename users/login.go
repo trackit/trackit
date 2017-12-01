@@ -16,7 +16,6 @@ package users
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -58,17 +57,6 @@ func logIn(request *http.Request, a routes.Arguments) (int, interface{}) {
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
 	return logInWithValidBody(request, body, tx)
-}
-
-// decodeRequestBody decodes a JSON request body and returns nil in case it
-// could do so.
-func decodeRequestBody(request *http.Request, structuredBody interface{}) error {
-	return json.NewDecoder(request.Body).Decode(structuredBody)
-}
-
-// isLoginRequestBodyValid checks the validity of a log in request body.
-func isLoginRequestBodyValid(body loginRequestBody) bool {
-	return body.Email != "" && body.Password != ""
 }
 
 // logInWithValidBody tries to authenticate and log a user in using a
