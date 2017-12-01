@@ -67,3 +67,25 @@ func TestFailedValidation(t *testing.T) {
 		t.Errorf("Response should be error %q, is error %q.", expectedError, errorResponse.Error())
 	}
 }
+
+const expectedDoc = `{
+	"summary": "",
+	"components": {
+		"input:body:example": {
+			"summary": "input body example",
+			"description": "{\n\t\"foo\": \"test\",\n\t\"bar\": 42\n}"
+		}
+	}
+}`
+
+func TestDocumentation(t *testing.T) {
+	example := bodyEchoTest{"test", 42}
+	handler := H(bodyEchoHandler).With(
+		JsonRequestBody{example},
+	)
+	doc, _ := json.MarshalIndent(handler.Documentation, "", "\t")
+	sdoc := string(doc)
+	if sdoc != expectedDoc {
+		t.Errorf("Documentation should be %q, is %q.", expectedDoc, sdoc)
+	}
+}

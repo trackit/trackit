@@ -18,6 +18,7 @@ type JsonRequestBody struct {
 
 func (jrb JsonRequestBody) Decorate(h Handler) Handler {
 	h.Func = jrb.getFunc(h.Func)
+	h.Documentation = jrb.getDocumentation(h.Documentation)
 	return h
 }
 
@@ -58,5 +59,27 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 		} else {
 			return handleWithValidation(w, r, a, body)
 		}
+	}
+}
+
+func (jrb JsonRequestBody) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
+	if hd.Components == nil {
+		hd.Components = make(map[string]HandlerDocumentation)
+	}
+	hd.Components["input:body:example"] = HandlerDocumentation{
+		HandlerDocumentationBody: HandlerDocumentationBody{
+			Summary:     "input body example",
+			Description: jrb.getExampleString(),
+		},
+	}
+	return hd
+}
+
+func (jrb JsonRequestBody) getExampleString() string {
+	bytes, err := json.MarshalIndent(jrb.Example, "", "\t")
+	if err != nil {
+		return "FAIL"
+	} else {
+		return string(bytes)
 	}
 }
