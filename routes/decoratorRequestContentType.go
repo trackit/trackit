@@ -22,7 +22,7 @@ const (
 	ErrUnsupportedContentType = constError("bad content type")
 	ErrMultipleContentTypes   = constError("multiple content types")
 	ErrMissingContentType     = constError("missing content type")
-	TagRequiredContentType    = "require:contenttype"
+	TagRequiredContentType    = "required:contenttype"
 )
 
 // RequestContentType decorates handlers and requires requests to be of a given
