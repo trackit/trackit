@@ -31,6 +31,7 @@ const (
 	// contextKeyRequestId is the key for a request's random ID stored in
 	// its context.
 	contextKeyRequestId = contextKey(iota)
+	contextKeyJsonBody
 )
 
 // requestLogData is the set of fields from an HTTP request that are logged

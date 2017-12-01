@@ -52,10 +52,15 @@ func exposedValidator(iv internalValidator, typ reflect.Type) Validator {
 	} else {
 		return func(in interface{}) error {
 			ityp := reflect.TypeOf(in)
-			if ityp != typ {
+			ival := reflect.ValueOf(in)
+			if ityp != typ && ityp.Kind() == reflect.Ptr {
+				ityp = ityp.Elem()
+				ival = ival.Elem()
+			}
+			if ityp != typ && (ityp.Kind() != reflect.Ptr || ityp.Elem() != typ) {
 				return ErrCannotValidateType
 			} else {
-				return iv(reflect.ValueOf(in))
+				return iv(ival)
 			}
 		}
 	}
