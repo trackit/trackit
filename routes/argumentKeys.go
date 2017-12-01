@@ -4,7 +4,7 @@ package routes
 type argumentKey int
 
 const (
-	// argumentKeyJsonBody associates with a request body as produced by
-	// the JsonRequestBody decorator.
-	argumentKeyJsonBody = argumentKey(iota)
+	// argumentKeyBody associates with a request body as produced by the
+	// RequestBody decorator.
+	argumentKeyBody = argumentKey(iota)
 )

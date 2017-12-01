@@ -16,14 +16,14 @@ type bodyEchoTest struct {
 
 func bodyEchoHandler(r *http.Request, a Arguments) (int, interface{}) {
 	var body bodyEchoTest
-	MustJsonRequestBody(a, &body)
+	MustRequestBody(a, &body)
 	return http.StatusOK, body
 }
 
 func TestEchoHandler(t *testing.T) {
 	example := bodyEchoTest{"test", 42}
 	arguments := make(Arguments)
-	arguments[argumentKeyJsonBody] = reflect.ValueOf(example)
+	arguments[argumentKeyBody] = reflect.ValueOf(example)
 	status, response := bodyEchoHandler(nil, arguments)
 	if status != http.StatusOK {
 		t.Errorf("Status code should be %d, is %d.", http.StatusOK, status)
@@ -36,7 +36,7 @@ func TestEchoHandler(t *testing.T) {
 func TestSuccessfulValidation(t *testing.T) {
 	example := bodyEchoTest{"test", 42}
 	handler := H(bodyEchoHandler).With(
-		JsonRequestBody{example},
+		RequestBody{example},
 	)
 	bs, _ := json.Marshal(example)
 	requestBody := bytes.NewBuffer(bs)
@@ -54,7 +54,7 @@ func TestFailedValidation(t *testing.T) {
 	const expectedError = "foo: value is zero"
 	example := bodyEchoTest{"", 42}
 	handler := H(bodyEchoHandler).With(
-		JsonRequestBody{example},
+		RequestBody{example},
 	)
 	bs, _ := json.Marshal(example)
 	requestBody := bytes.NewBuffer(bs)
@@ -83,7 +83,7 @@ const expectedDoc = `{
 func TestDocumentation(t *testing.T) {
 	example := bodyEchoTest{"test", 42}
 	handler := H(bodyEchoHandler).With(
-		JsonRequestBody{example},
+		RequestBody{example},
 	)
 	doc, _ := json.MarshalIndent(handler.Documentation, "", "\t")
 	sdoc := string(doc)

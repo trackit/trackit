@@ -12,27 +12,27 @@ import (
 	"github.com/trackit/trackit2/util/req"
 )
 
-type JsonRequestBody struct {
+type RequestBody struct {
 	Example interface{}
 }
 
-func (jrb JsonRequestBody) Decorate(h Handler) Handler {
-	h.Func = jrb.getFunc(h.Func)
-	h.Documentation = jrb.getDocumentation(h.Documentation)
+func (rb RequestBody) Decorate(h Handler) Handler {
+	h.Func = rb.getFunc(h.Func)
+	h.Documentation = rb.getDocumentation(h.Documentation)
 	return h
 }
 
-func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
-	validate, err := req.CreateValidator(jrb.Example)
+func (rb RequestBody) getFunc(hf HandlerFunc) HandlerFunc {
+	validate, err := req.CreateValidator(rb.Example)
 	var handleWithValidation func(http.ResponseWriter, *http.Request, Arguments, reflect.Value) (int, interface{})
 	if err != nil {
 		logger := jsonlog.DefaultLogger
-		logger.Error("Failed to build validator for type %T.", jrb.Example)
+		logger.Error("Failed to build validator for type %T.", rb.Example)
 		os.Exit(1)
 	}
 	if validate == nil {
 		handleWithValidation = func(w http.ResponseWriter, r *http.Request, a Arguments, body reflect.Value) (int, interface{}) {
-			a[argumentKeyJsonBody] = reflect.Indirect(body).Interface()
+			a[argumentKeyBody] = reflect.Indirect(body).Interface()
 			return hf(w, r, a)
 		}
 	} else {
@@ -40,7 +40,7 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 			logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 			err := validate(body.Interface())
 			if err == nil {
-				a[argumentKeyJsonBody] = reflect.Indirect(body)
+				a[argumentKeyBody] = reflect.Indirect(body)
 				return hf(w, r, a)
 			} else if verr, ok := err.(req.ValidationError); ok {
 				return http.StatusBadRequest, verr
@@ -52,7 +52,7 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		logger := jsonlog.LoggerFromContextOrDefault(r.Context())
-		body := reflect.New(reflect.TypeOf(jrb.Example))
+		body := reflect.New(reflect.TypeOf(rb.Example))
 		if err := json.NewDecoder(r.Body).Decode(body.Interface()); err != nil {
 			logger.Warning("Failed to parse request body.", err.Error())
 			return http.StatusBadRequest, errors.New("failed to parse request body")
@@ -62,21 +62,21 @@ func (jrb JsonRequestBody) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 }
 
-func (jrb JsonRequestBody) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
+func (rb RequestBody) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
 	if hd.Components == nil {
 		hd.Components = make(map[string]HandlerDocumentation)
 	}
 	hd.Components["input:body:example"] = HandlerDocumentation{
 		HandlerDocumentationBody: HandlerDocumentationBody{
 			Summary:     "input body example",
-			Description: jrb.getExampleString(),
+			Description: rb.getExampleString(),
 		},
 	}
 	return hd
 }
 
-func (jrb JsonRequestBody) getExampleString() string {
-	bytes, err := json.MarshalIndent(jrb.Example, "", "\t")
+func (rb RequestBody) getExampleString() string {
+	bytes, err := json.MarshalIndent(rb.Example, "", "\t")
 	if err != nil {
 		return "FAIL"
 	} else {
@@ -84,17 +84,17 @@ func (jrb JsonRequestBody) getExampleString() string {
 	}
 }
 
-func MustJsonRequestBody(a Arguments, ptr interface{}) {
-	err := GetJsonRequestBody(a, ptr)
+func MustRequestBody(a Arguments, ptr interface{}) {
+	err := GetRequestBody(a, ptr)
 	if err != nil {
 		panic(err)
 	}
 }
 
-func GetJsonRequestBody(a Arguments, ptr interface{}) error {
-	body := a[argumentKeyJsonBody]
+func GetRequestBody(a Arguments, ptr interface{}) error {
+	body := a[argumentKeyBody]
 	if body == nil {
-		return errors.New("json body not found")
+		return errors.New("request body not found")
 	} else {
 		return copyBodyTo(body.(reflect.Value), ptr)
 	}
