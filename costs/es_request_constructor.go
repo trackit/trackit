@@ -59,13 +59,17 @@ const aggregationMaxSize = 0x7FFFFFFF
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
-	return elastic.NewTermsQuery("linked_account_id", accountList)
+	accountListFormatted := make([]interface{}, len(accountList))
+	for i, v := range accountList {
+		accountListFormatted[i] = v
+	}
+	return elastic.NewTermsQuery("usageAccountId", accountListFormatted...)
 }
 
 // createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
 // defined by durationBegin and durationEnd
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
-	return elastic.NewRangeQuery("usage_start_date").
+	return elastic.NewRangeQuery("usageStartDate").
 		From(durationBegin).To(durationEnd)
 }
 
@@ -74,9 +78,9 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 func createAggregationPerProduct(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "product",
+			name: "by-product",
 			aggr: elastic.NewTermsAggregation().
-				Field("product_name").Size(aggregationMaxSize),
+				Field("productCode").Size(aggregationMaxSize),
 		},
 	}
 }
@@ -86,9 +90,9 @@ func createAggregationPerProduct(_ []string) []paramAggrAndName {
 func createAggregationPerRegion(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "region",
+			name: "by-region",
 			aggr: elastic.NewTermsAggregation().
-				Field("availability_zone").Size(aggregationMaxSize),
+				Field("availabilityZone").Size(aggregationMaxSize),
 		},
 	}
 }
@@ -98,9 +102,9 @@ func createAggregationPerRegion(_ []string) []paramAggrAndName {
 func createAggregationPerAccount(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "account",
+			name: "by-account",
 			aggr: elastic.NewTermsAggregation().
-				Field("linked_account_id").Size(aggregationMaxSize),
+				Field("usageAccountId").Size(aggregationMaxSize),
 		},
 	}
 }
@@ -110,9 +114,9 @@ func createAggregationPerAccount(_ []string) []paramAggrAndName {
 func createAggregationPerDay(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "day",
+			name: "by-day",
 			aggr: elastic.NewDateHistogramAggregation().
-				Field("usage_start_date").Interval("day"),
+				Field("usageStartDate").MinDocCount(0).Interval("day"),
 		},
 	}
 }
@@ -122,9 +126,9 @@ func createAggregationPerDay(_ []string) []paramAggrAndName {
 func createAggregationPerWeek(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "week",
+			name: "by-week",
 			aggr: elastic.NewDateHistogramAggregation().
-				Field("usage_start_date").Interval("week"),
+				Field("usageStartDate").MinDocCount(0).Interval("week"),
 		},
 	}
 }
@@ -134,9 +138,9 @@ func createAggregationPerWeek(_ []string) []paramAggrAndName {
 func createAggregationPerMonth(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "month",
+			name: "by-month",
 			aggr: elastic.NewDateHistogramAggregation().
-				Field("usage_start_date").Interval("month"),
+				Field("usageStartDate").MinDocCount(0).Interval("month"),
 		},
 	}
 }
@@ -146,9 +150,9 @@ func createAggregationPerMonth(_ []string) []paramAggrAndName {
 func createAggregationPerYear(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "year",
+			name: "by-year",
 			aggr: elastic.NewDateHistogramAggregation().
-				Field("usage_start_date").Interval("year"),
+				Field("usageStartDate").MinDocCount(0).Interval("year"),
 		},
 	}
 }
@@ -163,7 +167,7 @@ func createAggregationPerYear(_ []string) []paramAggrAndName {
 func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "tag_key",
+			name: "by-tag_key",
 			aggr: elastic.NewFilterAggregation().
 				Filter(elastic.NewTermQuery("tag.key", fmt.Sprintf("user:%v", paramSplit[1])))},
 		paramAggrAndName{
@@ -178,8 +182,8 @@ func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 func createCostSumAggregation(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
-			name: "cost",
-			aggr: elastic.NewSumAggregation().Field("cost"),
+			name: "value",
+			aggr: elastic.NewSumAggregation().Field("unblendedCost"),
 		},
 	}
 }
@@ -250,7 +254,9 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	durationEnd time.Time, params []string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	query = query.Filter(createQueryAccountFilter(accountList))
+	if len(accountList) > 0 {
+		query = query.Filter(createQueryAccountFilter(accountList))
+	}
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
 	params = append(params, "cost")
