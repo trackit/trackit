@@ -30,8 +30,8 @@ import (
 // postAwsAccountRequestBody is the expected request body for the
 // postAwsAccount request handler.
 type postAwsAccountRequestBody struct {
-	RoleArn  string `json:"roleArn"`
-	External string `json:"external"`
+	RoleArn  string `json:"roleArn"  req:"nonzero"`
+	External string `json:"external" req:"nonzero"`
 	Pretty   string `json:"pretty"`
 }
 
@@ -45,20 +45,10 @@ var (
 // their account.
 func postAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var body postAwsAccountRequestBody
-	err := decodeRequestBody(r, &body)
-	if err == nil && isPostAwsAccountRequestBodyValid(body) {
-		tx := a[db.Transaction].(*sql.Tx)
-		u := a[users.AuthenticatedUser].(users.User)
-		return postAwsAccountWithValidBody(r, tx, u, body)
-	} else {
-		return 400, errors.New("Body is invalid.")
-	}
-}
-
-// isPostAwsAccountRequestBodyValid tests whether the body for postAwsAccount
-// has a valid structure.
-func isPostAwsAccountRequestBodyValid(body postAwsAccountRequestBody) bool {
-	return body.RoleArn != "" && body.External != ""
+	routes.MustRequestBody(a, &body)
+	tx := a[db.Transaction].(*sql.Tx)
+	u := a[users.AuthenticatedUser].(users.User)
+	return postAwsAccountWithValidBody(r, tx, u, body)
 }
 
 // postAwsAccountWithValidBody handles the logic of postAwsAccount assuming the

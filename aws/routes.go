@@ -37,6 +37,11 @@ func init() {
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
 			routes.RequestContentType{"application/json"},
+			routes.RequestBody{postAwsAccountRequestBody{
+				RoleArn:  "arn:aws:iam::123456789012:role/example",
+				External: "LlzrwHeiM-SGKRLPgaGbeucx_CJC@QBl,_vOEF@o",
+				Pretty:   "My AWS account",
+			}},
 			routes.Documentation{
 				Summary:     "add an aws account",
 				Description: "Adds an AWS account to the user's list of accounts, validating it before succeeding.",
