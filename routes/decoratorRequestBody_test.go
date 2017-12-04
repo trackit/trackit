@@ -76,6 +76,10 @@ const expectedDoc = `{
 		"input:body:example": {
 			"summary": "input body example",
 			"description": "{\n\t\"foo\": \"test\",\n\t\"bar\": 42\n}"
+		},
+		"input:body:schema": {
+			"summary": "input body schema",
+			"description": "{\n\t\"foo\": ¡string!,\n\t\"bar\": ¿int?\n}"
 		}
 	}
 }`

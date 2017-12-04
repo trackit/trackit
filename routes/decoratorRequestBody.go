@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -72,15 +73,34 @@ func (rb RequestBody) getDocumentation(hd HandlerDocumentation) HandlerDocumenta
 			Description: rb.getExampleString(),
 		},
 	}
+	hd.Components["input:body:schema"] = HandlerDocumentation{
+		HandlerDocumentationBody: HandlerDocumentationBody{
+			Summary:     "input body schema",
+			Description: rb.getSchemaString(),
+		},
+	}
 	return hd
 }
 
 func (rb RequestBody) getExampleString() string {
 	bytes, err := json.MarshalIndent(rb.Example, "", "\t")
 	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to create example string.", err.Error())
 		return "FAIL"
 	} else {
 		return string(bytes)
+	}
+}
+
+func (rb RequestBody) getSchemaString() string {
+	buf := bytes.NewBuffer(make([]byte, 2048))
+	buf.Reset()
+	err := req.GetSchema(buf, reflect.TypeOf(rb.Example))
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to create schema string.", err.Error())
+		return "FAIL"
+	} else {
+		return buf.String()
 	}
 }
 
