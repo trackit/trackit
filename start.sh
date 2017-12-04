@@ -2,6 +2,7 @@
 
 set -ex
 
+rm -f ./server/main
 if [[ ! -f "server/main" ]]
 then
 	pushd "server"
