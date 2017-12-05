@@ -90,19 +90,19 @@ describe('<ListItem />', () => {
 
   it('can edit item', () => {
     const wrapper = shallow(<ListItem {...props}/>);
-    expect(props.edit.mock.calls.length).toBe(0);
+    expect(props.edit).not.toHaveBeenCalled();
     wrapper.find('button.btn.edit').prop('onClick')({ preventDefault() {} });
     expect(wrapper.state('editForm')).toBe(true);
     wrapper.instance().editBill(bill);
     expect(wrapper.state('editForm')).toBe(false);
-    expect(props.edit.mock.calls.length).toBe(1);
+    expect(props.edit).toHaveBeenCalled();
   });
 
   it('can delete item', () => {
     const wrapper = shallow(<ListItem {...props}/>);
-    expect(props.delete.mock.calls.length).toBe(0);
+    expect(props.delete).not.toHaveBeenCalled();
     wrapper.find('button.btn.delete').prop('onClick')({ preventDefault() {} });
-    expect(props.delete.mock.calls.length).toBe(1);
+    expect(props.delete).toHaveBeenCalled();
   });
 
 });
