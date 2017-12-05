@@ -118,16 +118,16 @@ describe('<ListItem />', () => {
 
   it('can edit item', () => {
     const wrapper = shallow(<ListItem {...props}/>);
-    expect(props.accountActions.edit.mock.calls.length).toBe(0);
+    expect(props.accountActions.edit).not.toHaveBeenCalled();
     wrapper.instance().editAccount(accountWithBills);
-    expect(props.accountActions.edit.mock.calls.length).toBe(1);
+    expect(props.accountActions.edit).toHaveBeenCalled();
   });
 
   it('can delete item', () => {
     const wrapper = shallow(<ListItem {...props}/>);
-    expect(props.accountActions.delete.mock.calls.length).toBe(0);
+    expect(props.accountActions.delete).not.toHaveBeenCalled();
     wrapper.find('button.btn.delete').prop('onClick')({ preventDefault() {} });
-    expect(props.accountActions.delete.mock.calls.length).toBe(1);
+    expect(props.accountActions.delete).toHaveBeenCalled();
   });
 
 });

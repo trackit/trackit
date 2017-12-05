@@ -35,9 +35,9 @@ describe('<FormComponent />', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
     const instance = wrapper.instance();
     instance.form = form;
-    expect(props.submit.mock.calls.length).toBe(0);
+    expect(props.submit).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault(){} });
-    expect(props.submit.mock.calls.length).toBe(1);
+    expect(props.submit).toHaveBeenCalled();
   });
 
 });

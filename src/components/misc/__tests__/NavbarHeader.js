@@ -20,9 +20,9 @@ describe('<NavbarHeader />', () => {
   it('dispatches a logout action', () => {
     const wrapper = shallow(<NavbarHeader {...props}/>);
     const logout = wrapper.find('a');
-    expect(props.signOut.mock.calls.length).toBe(0);
+    expect(props.signOut).not.toHaveBeenCalled();
     logout.prop('onClick')();
-    expect(props.signOut.mock.calls.length).toBe(1);
+    expect(props.signOut).toHaveBeenCalled();
   });
 
   it('renders without user menu', () => {
