@@ -2,6 +2,7 @@
   "name": "trackit2",
   "version": "0.1.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "animate.css": "~3.5.2",
     "autoprefixer": "7.1.2",
