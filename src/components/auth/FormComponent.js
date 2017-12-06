@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 
 // Form imports
@@ -27,6 +28,85 @@ export class FormComponent extends Component {
   };
 
   render() {
+    const password = (this.props.registration ? (
+      <div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <Input
+            type="password"
+            name="password"
+            className="form-control"
+            validations={[Validation.required, Validation.passwordConfirmation]}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Confirm your password</label>
+          <Input
+            type="password"
+            name="passwordConfirmation"
+            className="form-control"
+            validations={[Validation.required, Validation.passwordConfirmation]}
+          />
+        </div>
+      </div>
+    ) : (
+      <div className="form-group">
+        <label htmlFor="password">Password</label>
+        <Input
+          type="password"
+          name="password"
+          className="form-control"
+          validations={[Validation.required]}
+        />
+      </div>
+    ));
+
+    const buttons = (this.props.registration ? (
+      <div className="row">
+
+        <Button
+          className="btn btn-primary col-md-5"
+          type="submit"
+        >
+          <i className="fa fa-user-plus" />
+          &nbsp;
+          Register
+        </Button>
+
+        <NavLink
+          exact to='/login'
+          className="btn btn-primary col-md-5 col-md-offset-2"
+        >
+          <i className="fa fa-sign-in" />
+          &nbsp;
+          Sign in
+        </NavLink>
+
+      </div>
+    ) : (
+      <div className="row">
+
+        <Button
+          className="btn btn-primary col-md-5"
+          type="submit"
+        >
+          <i className="fa fa-sign-in" />
+          &nbsp;
+          Sign in
+        </Button>
+
+        <NavLink
+          exact to='/register'
+          className="btn btn-primary col-md-5 col-md-offset-2"
+        >
+          <i className="fa fa-user-plus" />
+          &nbsp;
+          Sign up
+        </NavLink>
+
+      </div>
+    ));
+
     return (
       <div className="login">
         <div className="row">
@@ -54,26 +134,11 @@ export class FormComponent extends Component {
                     validations={[Validation.required, Validation.email]}
                   />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <Input
-                    type="password"
-                    name="password"
-                    className="form-control"
-                    validations={[Validation.required]}
-                  />
-                </div>
 
-                <div>
-                  <Button
-                    className="btn btn-primary btn-block"
-                    type="submit"
-                  >
-                    <i className="fa fa-sign-in" />
-                    &nbsp;
-                    Sign in
-                  </Button>
-                </div>
+                {password}
+
+                {buttons}
+
               </Form>
 
             </div>
@@ -88,7 +153,12 @@ export class FormComponent extends Component {
 }
 
 FormComponent.propTypes = {
-  submit: PropTypes.func.isRequired
+  submit: PropTypes.func.isRequired,
+  registration: PropTypes.bool
 };
 
-export default FormComponent;
+FormComponent.defaultProps = {
+  registration: false
+};
+
+export default withRouter(FormComponent);
