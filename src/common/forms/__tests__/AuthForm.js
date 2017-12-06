@@ -16,4 +16,29 @@ describe('Authentication Form Validation', () => {
 
   });
 
+  describe('Password Confirmation', () => {
+
+    const validConfirmation = {
+      passwordConfirmation: [{
+        value: "password"
+      }]
+    };
+
+    const invalidConfirmation = {
+      passwordConfirmation: [{
+        value: "passw0rd"
+      }]
+    };
+
+    it('should render no error', () => {
+      expect(Validation.passwordConfirmation("password", null, validConfirmation)).toBe(undefined);
+    });
+
+    it('should render an error', () => {
+      const result = render(Validation.passwordConfirmation("password", null, invalidConfirmation));
+      expect(result.hasClass("alert alert-warning")).toBe(true);
+    });
+
+  });
+
 });
