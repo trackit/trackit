@@ -20,11 +20,15 @@ class DialogComponent extends Component {
 
   openDialog = (e) => {
     e.preventDefault();
+    if (this.props.onOpen)
+      this.props.onOpen();
     this.setState({open: true});
   };
 
   closeDialog = (e) => {
     e.preventDefault();
+    if (this.props.onClose)
+      this.props.onClose();
     this.setState({open: false});
   };
 
@@ -91,7 +95,9 @@ DialogComponent.propTypes = {
   actionName: PropTypes.string,
   actionFunction: PropTypes.func,
   secondActionName: PropTypes.string,
-  children: PropTypes.node
+  children: PropTypes.node,
+  onOpen: PropTypes.func,
+  onClose: PropTypes.func,
 };
 
 DialogComponent.defaultProps = {

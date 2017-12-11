@@ -8,13 +8,25 @@ export function* getAccountsSaga() {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.getAccounts, token);
     if (res.success && res.hasOwnProperty("data"))
-      yield all([
-        put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts: res.data }),
-      ]);
+      yield put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts: res.data });
     else
       throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_GET_ACCOUNTS_ERROR, error });
+  }
+}
+
+export function* getAccountBillsSaga({ accountID }) {
+  try {
+    const token = yield getToken();
+    const res = yield call(API.AWS.Accounts.getAccountBills, accountID, token);
+    console.log(res);
+    if (res.success && res.hasOwnProperty("data"))
+      yield put({ type: Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS, bills: res.data });
+    else
+      throw Error("Error with request");
+  } catch (error) {
+    yield put({ type: Constants.AWS_GET_ACCOUNT_BILLS_ERROR, error });
   }
 }
 
@@ -67,7 +79,7 @@ export function* editAccountBillSaga({ accountID, bill }) {
     yield call(API.AWS.Accounts.editAccountBill, accountID, bill, token);
     yield all([
       put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNTS })
+      put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
     ]);
   } catch (error) {
     yield put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_ERROR, error });

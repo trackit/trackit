@@ -136,12 +136,6 @@ FormComponent.propTypes = {
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
     pretty: PropTypes.string,
-    bills: PropTypes.arrayOf(
-      PropTypes.shape({
-        bucket: PropTypes.string.isRequired,
-        path: PropTypes.string.isRequired
-      })
-    ),
   }),
   submit: PropTypes.func.isRequired,
   external: PropTypes.string

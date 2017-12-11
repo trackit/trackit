@@ -7,6 +7,10 @@ export function* watchGetAccounts() {
   yield takeLatest(Constants.AWS_GET_ACCOUNTS, AccountsSaga.getAccountsSaga);
 }
 
+export function* watchGetAccountBills() {
+  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILLS, AccountsSaga.getAccountBillsSaga);
+}
+
 export function* watchNewAccount() {
   yield takeLatest(Constants.AWS_NEW_ACCOUNT, AccountsSaga.newAccountSaga);
 }

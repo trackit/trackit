@@ -16,13 +16,6 @@ export class Item extends Component {
     super(props);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
-    this.bills = [{
-      "bucket": "s3://te.st",
-      "path": "/path/to/bills"
-    },{
-      "bucket": "s3://another.test",
-      "path": "/another/path"
-    }]
   }
 
   editAccount = (body) => {
@@ -48,13 +41,7 @@ export class Item extends Component {
           <div>
 
             <div className="inline-block">
-              <Bills.List
-                account={this.props.account.id}
-                bills={this.bills}
-                new={this.props.billActions.new}
-                edit={this.props.billActions.edit}
-                delete={this.props.billActions.delete}
-              />
+              <Bills.List account={this.props.account.id} />
             </div>
             &nbsp;
             <div className="inline-block">
@@ -83,19 +70,8 @@ Item.propTypes = {
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
     pretty: PropTypes.string,
-    bills: PropTypes.arrayOf(
-      PropTypes.shape({
-        bucket: PropTypes.string.isRequired,
-        path: PropTypes.string.isRequired
-      })
-    ),
   }),
   accountActions: PropTypes.shape({
-    edit: PropTypes.func.isRequired,
-    delete: PropTypes.func.isRequired,
-  }).isRequired,
-  billActions: PropTypes.shape({
-    new: PropTypes.func.isRequired,
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
@@ -112,7 +88,6 @@ class ListComponent extends Component {
           key={index}
           account={account}
           accountActions={this.props.accountActions}
-          billActions={this.props.billActions}
         />
       ))
     ) : null);
@@ -141,11 +116,6 @@ ListComponent.propTypes = {
     })
   ),
   accountActions: PropTypes.shape({
-    edit: PropTypes.func.isRequired,
-    delete: PropTypes.func.isRequired,
-  }).isRequired,
-  billActions: PropTypes.shape({
-    new: PropTypes.func.isRequired,
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,

@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import List, {
   ListItem,
   ListItemText,
@@ -6,6 +7,7 @@ import List, {
 import Misc from '../../../misc';
 import PropTypes from 'prop-types';
 import Form from './FormComponent';
+import Actions from "../../../../actions";
 
 const Dialog = Misc.Dialog;
 const DeleteConfirmation = Misc.DeleteConfirmation;
@@ -71,6 +73,20 @@ Item.propTypes = {
 // List Component for AWS Accounts
 class ListComponent extends Component {
 
+  constructor(props) {
+    super(props);
+    this.getBills = this.getBills.bind(this);
+    this.clearBills = this.clearBills.bind(this);
+  }
+
+  getBills() {
+    this.props.getBills(this.props.account);
+  }
+
+  clearBills() {
+    this.props.clearBills();
+  }
+
   render() {
     let noBills = (!this.props.bills || !this.props.bills.length ? <div className="alert alert-warning" role="alert">No bills available</div> : "");
     let bills = (this.props.bills && this.props.bills.length ? (
@@ -83,11 +99,14 @@ class ListComponent extends Component {
           delete={this.props.delete}/>
       ))
     ) : null);
+    console.log(this.props.bills);
     return (
       <Dialog
         buttonName="Bills locations"
         title="Bills locations"
         secondActionName="Close"
+        onOpen={this.getBills}
+        onClose={this.clearBills}
       >
 
         <Form
@@ -114,9 +133,35 @@ ListComponent.propTypes = {
       path: PropTypes.string.isRequired
     })
   ),
-  new: PropTypes.func.isRequired,
-  edit: PropTypes.func.isRequired,
-  delete: PropTypes.func.isRequired
+  getBills: PropTypes.func.isRequired,
+  newBill: PropTypes.func.isRequired,
+  editBill: PropTypes.func.isRequired,
+  deleteBill: PropTypes.func.isRequired,
+  clearBills: PropTypes.func.isRequired
 };
 
-export default ListComponent;
+/* istanbul ignore next */
+const mapStateToProps = (state) => ({
+  bills: state.aws.accounts.bills
+});
+
+/* istanbul ignore next */
+const mapDispatchToProps = (dispatch) => ({
+  getBills: (accountID) => {
+    dispatch(Actions.AWS.Accounts.getAccountBills(accountID));
+  },
+  newBill: (accountID, bill) => {
+    dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
+  },
+  editBill: (accountID, bill) => {
+    dispatch(Actions.AWS.Accounts.editAccountBill(accountID, bill))
+  },
+  deleteBill: (accountID, bill) => {
+    dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, bill));
+  },
+  clearBills: () => {
+    dispatch(Actions.AWS.Accounts.clearAccountBills());
+  }
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(ListComponent);

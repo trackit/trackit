@@ -41,7 +41,6 @@ export class AccountsContainer extends Component {
         <List
           accounts={this.props.accounts}
           accountActions={this.props.accountActions}
-          billActions={this.props.billActions}
         />
 
       </Panel>
@@ -55,23 +54,12 @@ AccountsContainer.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
-      pretty: PropTypes.string,
-      bills: PropTypes.arrayOf(
-        PropTypes.shape({
-          bucket: PropTypes.string.isRequired,
-          path: PropTypes.string.isRequired
-        })
-      )
+      pretty: PropTypes.string
     })
   ),
   external: PropTypes.string,
   getAccounts: PropTypes.func.isRequired,
   accountActions: PropTypes.shape({
-    new: PropTypes.func.isRequired,
-    edit: PropTypes.func.isRequired,
-    delete: PropTypes.func.isRequired,
-  }).isRequired,
-  billActions: PropTypes.shape({
     new: PropTypes.func.isRequired,
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
@@ -99,17 +87,6 @@ const mapDispatchToProps = (dispatch) => ({
     },
     delete: (accountID) => {
       dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
-    },
-  },
-  billActions: {
-    new: (accountID, bill) => {
-      dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
-    },
-    edit: (accountID, bill) => {
-      dispatch(Actions.AWS.Accounts.editAccountBill(accountID, bill))
-    },
-    delete: (accountID, bill) => {
-      dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, bill));
     },
   },
   newExternal: () => {

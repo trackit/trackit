@@ -4,30 +4,43 @@ export const getAccounts = (token) => {
   return call('/aws', 'GET', null, token);
 };
 
+export const getAccountBills = (accountID, token) => {
+//  return call('/aws/billrepository?aa=' + accountID, 'GET', null, token);
+  return {
+    success: true, data: [{
+        "bucket": "s3://te.st",
+        "path": "/path/to/bills"
+      }, {
+        "bucket": "s3://another.test",
+        "path": "/another/path"
+      }]
+  };
+};
+
 export const newAccount = (account, token) => {
   return call('/aws', 'POST', account, token);
 };
 
 export const editAccount = (account, token) => {
 //  return call('/aws/' + accountID, 'DELETE', null, token);
-  return { status: true, data: {} };
+  return { success: true, data: {} };
 };
 
 export const deleteAccount = (accountID, token) => {
 //  return call('/aws/' + accountID, 'DELETE', null, token);
-  return { status: true, data: {} };
+  return { success: true, data: {} };
 };
 
 export const newAccountBill = (accountID, bill, token) => {
-  return { status: true, data: {} };
+  return call('/aws/billrepository?aa=' + accountID, 'POST', bill, token);
 };
 
 export const editAccountBill = (accountID, bill, token) => {
-  return { status: true, data: {} };
+  return { success: true, data: {} };
 };
 
 export const deleteAccountBill = (accountID, bill, token) => {
-  return { status: true, data: {} };
+  return { success: true, data: {} };
 };
 
 export const newExternal = (token) => {
