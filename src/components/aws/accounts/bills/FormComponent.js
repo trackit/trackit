@@ -8,6 +8,7 @@ import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
 import Validations from '../../../../common/forms';
+import Popover from '../../../misc/Popover';
 import PropTypes from "prop-types";
 
 const Validation = Validations.AWSAccount;
@@ -37,6 +38,7 @@ class FormComponent extends Component {
 
   submit = (e) => {
     e.preventDefault();
+    this.closeDialog(e);
     let values = this.form.getValues();
     let bill = {
       bucket: values.bucket,
@@ -65,7 +67,7 @@ class FormComponent extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle><h1>{this.props.bill !== undefined ? "Edit this" : "Add a"} bill location</h1></DialogTitle>
+          <DialogTitle disableTypography><h1>{this.props.bill !== undefined ? "Edit this" : "Add a"} bill location</h1></DialogTitle>
 
           <DialogContent>
 
@@ -75,7 +77,11 @@ class FormComponent extends Component {
             } onSubmit={this.submit}>
 
               <div className="form-group">
-                <label htmlFor="bucket">S3 Bucket</label>
+                <div className="input-title">
+                  <label htmlFor="bucket">S3 Bucket</label>
+                  &nbsp;
+                  <Popover info popOver="Name of S3 bucket"/>
+                </div>
                 <Input
                   name="bucket"
                   type="text"
@@ -86,7 +92,11 @@ class FormComponent extends Component {
               </div>
 
               <div className="form-group">
-                <label htmlFor="path">Path</label>
+                <div className="input-title">
+                  <label htmlFor="path">Path</label>
+                  &nbsp;
+                  <Popover info popOver="Path to bills"/>
+                </div>
                 <Input
                   type="text"
                   name="path"

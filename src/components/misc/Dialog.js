@@ -40,7 +40,7 @@ class DialogComponent extends Component {
 
   render() {
     const title = (this.props.title ? (
-      <DialogTitle>
+      <DialogTitle disableTypography>
         <h1>{this.props.title}</h1>
       </DialogTitle>
     ) : null);

@@ -8,6 +8,7 @@ import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
 import Validations from '../../../common/forms';
+import Popover from '../../misc/Popover';
 import PropTypes from 'prop-types';
 
 const Validation = Validations.AWSAccount;
@@ -52,7 +53,11 @@ class FormComponent extends Component {
 
     const external = (this.props.account !== undefined ? "" : (
       <div className="form-group">
-        <label htmlFor="externalId">External</label>
+        <div className="input-title">
+          <label htmlFor="externalId">External</label>
+          &nbsp;
+          <Popover info popOver="External ID to add in your IAM role trust policy"/>
+        </div>
         <Input
           type="text"
           name="external"
@@ -73,7 +78,7 @@ class FormComponent extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle><h1>{this.props.account !== undefined ? "Edit this" : "Create an"} account</h1></DialogTitle>
+          <DialogTitle disableTypography><h1>{this.props.account !== undefined ? "Edit this" : "Create an"} account</h1></DialogTitle>
 
           <DialogContent>
 
@@ -85,7 +90,11 @@ class FormComponent extends Component {
               {external}
 
               <div className="form-group">
-                <label htmlFor="roleArn">Role ARN</label>
+                <div className="input-title">
+                  <label htmlFor="roleArn">Role ARN</label>
+                  &nbsp;
+                  <Popover info popOver="Amazon Resource Name for your role"/>
+                </div>
                 <Input
                   name="roleArn"
                   type="text"

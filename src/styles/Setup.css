@@ -2,3 +2,7 @@
 ul.MuiList-root-10 div:last-child li {
 	border-bottom: none;
 }
+
+.input-title {
+	display: flex;
+}
