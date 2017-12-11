@@ -35,6 +35,12 @@ const propsWithoutAction = {
   actionFunction: undefined
 };
 
+const propsWithCallback = {
+  ...props,
+  onOpen: jest.fn(),
+  onClose: jest.fn(),
+};
+
 describe('<DialogComponent />', () => {
 
   it('renders a <DialogComponent /> component', () => {
@@ -97,6 +103,19 @@ describe('<DialogComponent />', () => {
     expect(wrapper.state('open')).toBe(true);
     wrapper.instance().closeDialog({ preventDefault(){} });
     expect(wrapper.state('open')).toBe(false);
+  });
+
+  it('can open and close dialog with callback', () => {
+    const wrapper = shallow(<DialogComponent {...propsWithCallback}/>);
+    expect(propsWithCallback.onOpen).not.toHaveBeenCalled();
+    expect(propsWithCallback.onClose).not.toHaveBeenCalled();
+    expect(wrapper.state('open')).toBe(false);
+    wrapper.instance().openDialog({ preventDefault(){} });
+    expect(wrapper.state('open')).toBe(true);
+    expect(propsWithCallback.onOpen).toHaveBeenCalled();
+    wrapper.instance().closeDialog({ preventDefault(){} });
+    expect(wrapper.state('open')).toBe(false);
+    expect(propsWithCallback.onClose).toHaveBeenCalled();
   });
 
   it('can execute action', () => {
