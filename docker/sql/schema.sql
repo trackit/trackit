@@ -73,7 +73,7 @@ CREATE TABLE aws_region (
 CREATE TABLE aws_product_ec2 (
 	id INTEGER NOT NULL AUTO_INCREMENT,
 	sku VARCHAR(255) NOT NULL,
-	region_id INTEGER NOT NULL, /* DO TABLE REGION */
+	region_id INTEGER NOT NULL,
 	instance_type VARCHAR(255) NOT NULL,
 	current_generation INTEGER(1) NOT NULL,
 	vcpu INTEGER NOT NULL,

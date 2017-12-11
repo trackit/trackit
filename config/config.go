@@ -44,6 +44,8 @@ var (
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
 	EsAddress string
+	// UrlEc2Pricing is the URL used by downloadJson to fetch the EC2 pricing.
+	UrlEc2Pricing string
 )
 
 func init() {
@@ -57,5 +59,6 @@ func init() {
 	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
 	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
+	flag.StringVar(&UrlEc2Pricing, "url-ec2-pricing", "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json", "The URL used to download the EC2 pricing")
 	flag.Parse()
 }
