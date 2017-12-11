@@ -1,0 +1,4 @@
+/* Hide separator for last item in list */
+ul.MuiList-root-10 div:last-child li {
+	border-bottom: none;
+}
