@@ -11,7 +11,9 @@ const range = {
 
 const props = {
   ...range,
-  setDatesFunc: jest.fn()
+  setDatesFunc: jest.fn(),
+  interval: "interval",
+  setIntervalFunc: jest.fn()
 };
 
 describe('<TimerangeSelector />', () => {
@@ -29,9 +31,16 @@ describe('<TimerangeSelector />', () => {
 
   it('can select range', () => {
     const wrapper = shallow(<TimerangeSelector {...props}/>);
-    expect(props.setDatesFunc.mock.calls.length).toBe(0);
+    expect(props.setDatesFunc).not.toHaveBeenCalled();
     wrapper.instance().handleApply({ preventDefault(){} }, range);
-    expect(props.setDatesFunc.mock.calls.length).toBe(1);
+    expect(props.setDatesFunc).toHaveBeenCalled();
+  });
+
+  it('can set interval', () => {
+    const wrapper = shallow(<TimerangeSelector {...props}/>);
+    expect(props.setIntervalFunc).not.toHaveBeenCalled();
+    wrapper.instance().handleInterval({ preventDefault(){}, target: { value: 42 } });
+    expect(props.setIntervalFunc).toHaveBeenCalled();
   });
 
 });

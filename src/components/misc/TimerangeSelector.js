@@ -9,10 +9,15 @@ class TimerangeSelector extends Component {
   constructor(props) {
     super(props);
     this.handleApply = this.handleApply.bind(this);
+    this.handleInterval = this.handleInterval.bind(this);
   }
 
   handleApply(event, picker) {
     this.props.setDatesFunc(picker.startDate, picker.endDate);
+  }
+
+  handleInterval(event) {
+    this.props.setIntervalFunc(event.target.value);
   }
 
   render() {
@@ -27,24 +32,33 @@ class TimerangeSelector extends Component {
     };
 
     return(
-      <DateRangePicker
-        parentEl="body"
-        startDate={Moment(this.props.startDate)}
-        endDate={Moment(this.props.endDate)}
-        ranges={ranges}
-        opens="left"
-        onApply={this.handleApply}
-      >
-          <button className="btn btn-default">
-            <i className="fa fa-calendar"/>
-            &nbsp;
-            {this.props.startDate.format('MMM Do Y')}
-            &nbsp;
-            <i className="fa fa-long-arrow-right"/>
-            &nbsp;
-            {this.props.endDate.format('MMM Do Y')}
-          </button>
-      </DateRangePicker>
+      <div>
+        <DateRangePicker
+          parentEl="body"
+          startDate={Moment(this.props.startDate)}
+          endDate={Moment(this.props.endDate)}
+          ranges={ranges}
+          opens="left"
+          onApply={this.handleApply}
+        >
+            <button className="btn btn-default">
+              <i className="fa fa-calendar"/>
+              &nbsp;
+              {this.props.startDate.format('MMM Do Y')}
+              &nbsp;
+              <i className="fa fa-long-arrow-right"/>
+              &nbsp;
+              {this.props.endDate.format('MMM Do Y')}
+            </button>
+        </DateRangePicker>
+        {(this.props.interval && this.props.setIntervalFunc) &&
+          <select value={this.props.interval} onChange={this.handleInterval}>
+            <option value="daily">Daily</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+        }
+      </div>
     );
   }
 
@@ -54,6 +68,8 @@ TimerangeSelector.propTypes = {
   startDate: PropTypes.object.isRequired,
   endDate: PropTypes.object.isRequired,
   setDatesFunc: PropTypes.func.isRequired,
+  interval: PropTypes.string, //only if interval is needed
+  setIntervalFunc: PropTypes.func, //only if interval is needed
 };
 
 export default TimerangeSelector;

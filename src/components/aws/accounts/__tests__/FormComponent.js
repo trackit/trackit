@@ -72,9 +72,9 @@ describe('<FormComponent />', () => {
     const wrapper = shallow(<FormComponent {...propsWithExternal}/>);
     const instance = wrapper.instance();
     instance.form = form;
-    expect(props.submit.mock.calls.length).toBe(0);
+    expect(props.submit).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault(){} });
-    expect(props.submit.mock.calls.length).toBe(1);
+    expect(props.submit).toHaveBeenCalled();
   });
 
   it('renders 2 <Input /> components inside with accounts data', () => {
@@ -87,9 +87,9 @@ describe('<FormComponent />', () => {
     const wrapper = shallow(<FormComponent {...propsWithAccount}/>);
     const instance = wrapper.instance();
     instance.form = form;
-    expect(props.submit.mock.calls.length).toBe(0);
+    expect(props.submit).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault(){} });
-    expect(props.submit.mock.calls.length).toBe(1);
+    expect(props.submit).toHaveBeenCalled();
   });
 
   it('can open and close dialog', () => {

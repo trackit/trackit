@@ -80,16 +80,16 @@ describe('<Item />', () => {
 
   it('can edit item', () => {
     const wrapper = shallow(<Item {...props}/>);
-    expect(props.edit.mock.calls.length).toBe(0);
+    expect(props.edit).not.toHaveBeenCalled();
     wrapper.instance().editBill(bill);
-    expect(props.edit.mock.calls.length).toBe(1);
+    expect(props.edit).toHaveBeenCalled();
   });
 
   it('can delete item', () => {
     const wrapper = shallow(<Item {...props}/>);
-    expect(props.delete.mock.calls.length).toBe(0);
+    expect(props.delete).not.toHaveBeenCalled();
     wrapper.instance().deleteBill();
-    expect(props.delete.mock.calls.length).toBe(1);
+    expect(props.delete).toHaveBeenCalled();
   });
 
 });

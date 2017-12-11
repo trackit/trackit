@@ -38,6 +38,13 @@ body {
   font-weight: 300 !important;
 }
 
+select {
+  margin: 0 10px;
+  height: 34px;
+  background: white;
+  border: 1px solid #4885ed;
+  color: #4885ed;
+}
 
 
 
