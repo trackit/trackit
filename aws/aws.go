@@ -142,11 +142,15 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 // Only the Pretty will be updated.
 func (a *AwsAccount) UpdateAWSAccount(ctx context.Context, tx *sql.Tx) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbAwsAccount, _ := models.AwsAccountByID(tx, a.Id)
-	dbAwsAccount.Pretty = a.Pretty
-	err := dbAwsAccount.Update(tx)
+	dbAwsAccount, err := models.AwsAccountByID(tx, a.Id)
 	if err != nil {
-		logger.Error("Failed to update AWS account in database.", nil)
+		logger.Error("Failed to get AWS account in database.", nil)
+	} else {
+		dbAwsAccount.Pretty = a.Pretty
+		err := dbAwsAccount.Update(tx)
+		if err != nil {
+			logger.Error("Failed to update AWS account in database.", nil)
+		}
 	}
 	return err
 }
