@@ -8,8 +8,8 @@ const email = (value) => {
 };
 
 const passwordConfirmation = (value, props, components) => {
-  if (value !== components.passwordConfirmation[0].value)
-    return <span className="alert alert-warning">Passwords are not equal.</span>
+  if (value !== components.password[0].value)
+    return (<div className="alert alert-warning">Passwords are not equal.</div>);
 };
 
 export default {

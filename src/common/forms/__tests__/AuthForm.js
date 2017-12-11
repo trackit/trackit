@@ -19,13 +19,13 @@ describe('Authentication Form Validation', () => {
   describe('Password Confirmation', () => {
 
     const validConfirmation = {
-      passwordConfirmation: [{
+      password: [{
         value: "password"
       }]
     };
 
     const invalidConfirmation = {
-      passwordConfirmation: [{
+      password: [{
         value: "passw0rd"
       }]
     };

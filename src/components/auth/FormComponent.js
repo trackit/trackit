@@ -36,7 +36,7 @@ export class FormComponent extends Component {
             type="password"
             name="password"
             className="form-control"
-            validations={[Validation.required, Validation.passwordConfirmation]}
+            validations={[Validation.required]}
           />
         </div>
         <div className="form-group">
