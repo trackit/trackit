@@ -11,6 +11,8 @@ const (
 	schemaIndent = "\t"
 )
 
+// GetSchema writes to `dst` a JSON-like schema of type `typ`. It returns nil
+// iff it finished writing the schema. It returns an error instead.
 func GetSchema(dst io.Writer, typ reflect.Type) error {
 	if _, err := dst.Write([]byte("{\n")); err != nil {
 		return err
