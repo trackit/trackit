@@ -20,7 +20,6 @@ export function* getAccountBillsSaga({ accountID }) {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.getAccountBills, accountID, token);
-    console.log(res);
     if (res.success && res.hasOwnProperty("data"))
       yield put({ type: Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS, bills: res.data });
     else
