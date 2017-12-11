@@ -62,47 +62,47 @@ export class FormComponent extends Component {
     ));
 
     const buttons = (this.props.registration ? (
-      <div className="row">
-
-        <Button
-          className="btn btn-primary col-md-5"
-          type="submit"
-        >
-          <i className="fa fa-user-plus" />
-          &nbsp;
-          Register
-        </Button>
+      <div>
 
         <NavLink
           exact to='/login'
-          className="btn btn-primary col-md-5 col-md-offset-2"
+          className="btn btn-default col-md-5 btn-left"
         >
           <i className="fa fa-sign-in" />
           &nbsp;
           Sign in
         </NavLink>
 
-      </div>
-    ) : (
-      <div className="row">
-
         <Button
-          className="btn btn-primary col-md-5"
+          className="btn btn-primary col-md-5 btn-right"
           type="submit"
         >
-          <i className="fa fa-sign-in" />
+          <i className="fa fa-user-plus" />
           &nbsp;
-          Sign in
+          Sign up
         </Button>
+
+      </div>
+    ) : (
+      <div>
 
         <NavLink
           exact to='/register'
-          className="btn btn-primary col-md-5 col-md-offset-2"
+          className="btn btn-default col-md-5 btn-left"
         >
           <i className="fa fa-user-plus" />
           &nbsp;
           Sign up
         </NavLink>
+
+        <Button
+          className="btn btn-primary col-md-5 btn-right"
+          type="submit"
+        >
+          <i className="fa fa-sign-in" />
+          &nbsp;
+          Sign in
+        </Button>
 
       </div>
     ));

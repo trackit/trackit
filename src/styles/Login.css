@@ -5,6 +5,14 @@
   margin: auto;
 }
 
+.btn-left {
+  float: left;
+}
+
+.btn-right {
+  float: right;
+}
+
 
 @media (min-width: 768px) {
   /* Vertical centering */
