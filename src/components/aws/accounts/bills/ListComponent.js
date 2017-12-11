@@ -22,12 +22,12 @@ export class Item extends Component {
 
   editBill = (body) => {
     console.log("Bill repository edition is not available yet");
-//    this.props.edit(body);
+//    this.props.editBill(body);
   };
 
   deleteBill = () => {
     console.log("Bill repository deletion is not available yet");
-//    this.props.delete(this.props.bill.id);
+//    this.props.deleteBill(this.props.bill.id);
   };
 
   render() {
@@ -68,12 +68,12 @@ Item.propTypes = {
     bucket: PropTypes.string.isRequired,
     path: PropTypes.string.isRequired
   }),
-  edit: PropTypes.func.isRequired,
-  delete: PropTypes.func.isRequired
+  editBill: PropTypes.func.isRequired,
+  deleteBill: PropTypes.func.isRequired
 };
 
 // List Component for AWS Accounts
-class ListComponent extends Component {
+export class ListComponent extends Component {
 
   constructor(props) {
     super(props);
@@ -97,8 +97,8 @@ class ListComponent extends Component {
           key={index}
           bill={bill}
           account={this.props.account}
-          edit={this.props.editBill}
-          delete={this.props.deleteBill}/>
+          editBill={this.props.editBill}
+          deleteBill={this.props.deleteBill}/>
       ))
     ) : null);
     return (
