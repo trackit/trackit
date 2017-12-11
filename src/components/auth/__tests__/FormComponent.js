@@ -14,6 +14,11 @@ const form = {
   })
 };
 
+const propsForRegistration = {
+  ...props,
+  registration: true
+};
+
 describe('<FormComponent />', () => {
 
   beforeEach(() => {
@@ -27,6 +32,12 @@ describe('<FormComponent />', () => {
 
   it('renders <Form/> component if token is not available', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
+    const form = wrapper.find(Form);
+    expect(form.length).toBe(1);
+  });
+
+  it('renders <Form/> component if in registration mode', () => {
+    const wrapper = shallow(<FormComponent {...propsForRegistration}/>);
     const form = wrapper.find(Form);
     expect(form.length).toBe(1);
   });

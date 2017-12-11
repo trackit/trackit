@@ -7,7 +7,13 @@ const email = (value) => {
     return (<div className="alert alert-warning">{value} is not a valid email.</div>);
 };
 
+const passwordConfirmation = (value, props, components) => {
+  if (value !== components.password[0].value)
+    return (<div className="alert alert-warning">Passwords are not equal.</div>);
+};
+
 export default {
   required: Misc.required,
-  email
+  email,
+  passwordConfirmation
 };

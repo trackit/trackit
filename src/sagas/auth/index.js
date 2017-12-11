@@ -3,6 +3,7 @@ import LoginSaga from './loginSaga';
 import GetUserTokenSaga from './getUserTokenSaga';
 import LogoutSaga from './logoutSaga';
 import CleanUserTokenSaga from './cleanUserTokenSaga';
+import RegistrationSaga from './registrationSaga';
 
 import Constants from '../../constants';
 
@@ -20,4 +21,8 @@ export function* watchGetLogout() {
 
 export function* watchCleanToken() {
   yield takeLatest(Constants.CLEAN_USER_TOKEN, CleanUserTokenSaga);
+}
+
+export function* watchRegistration() {
+  yield takeLatest(Constants.REGISTRATION_REQUEST, RegistrationSaga);
 }
