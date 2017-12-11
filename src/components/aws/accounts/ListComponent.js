@@ -20,11 +20,13 @@ export class Item extends Component {
 
   editAccount = (body) => {
     this.setState({ editForm: false });
-    this.props.accountActions.edit(body);
+    console.log("Account edition is not available yet");
+//    this.props.accountActions.edit(body);
   };
 
   deleteAccount = () => {
-    this.props.accountActions.delete(this.props.account.id);
+    console.log("Account deletion is not available yet");
+//    this.props.accountActions.delete(this.props.account.id);
   };
 
   render() {

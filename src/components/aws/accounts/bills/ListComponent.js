@@ -21,11 +21,13 @@ export class Item extends Component {
   }
 
   editBill = (body) => {
-    this.props.edit(body);
+    console.log("Bill repository edition is not available yet");
+//    this.props.edit(body);
   };
 
   deleteBill = () => {
-    this.props.delete(this.props.bill.id);
+    console.log("Bill repository deletion is not available yet");
+//    this.props.delete(this.props.bill.id);
   };
 
   render() {
@@ -95,11 +97,10 @@ class ListComponent extends Component {
           key={index}
           bill={bill}
           account={this.props.account}
-          edit={this.props.edit}
-          delete={this.props.delete}/>
+          edit={this.props.editBill}
+          delete={this.props.deleteBill}/>
       ))
     ) : null);
-    console.log(this.props.bills);
     return (
       <Dialog
         buttonName="Bills locations"
@@ -111,7 +112,7 @@ class ListComponent extends Component {
 
         <Form
           account={this.props.account}
-          submit={this.props.new}
+          submit={this.props.newBill}
         />
 
         <List>
