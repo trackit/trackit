@@ -37,6 +37,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
+			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
 			routes.Documentation{
 				Summary:     "register a new user",
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
@@ -58,23 +59,15 @@ func init() {
 }
 
 type createUserRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email"    req:"nonzero"`
+	Password string `json:"password" req:"nonzero"`
 }
 
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
-	err := decodeRequestBody(request, &body)
+	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	if err == nil && body.valid() {
-		return createUserWithValidBody(request, body, tx)
-	} else {
-		return 400, errors.New("Body is invalid.")
-	}
-}
-
-func (body createUserRequestBody) valid() bool {
-	return body.Email != "" && body.Password != ""
+	return createUserWithValidBody(request, body, tx)
 }
 
 func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx) (int, interface{}) {

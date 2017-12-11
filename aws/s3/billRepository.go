@@ -43,6 +43,10 @@ func init() {
 		),
 		http.MethodPost: routes.H(postBillRepository).With(
 			routes.RequestContentType{"application/json"},
+			routes.RequestBody{postBillRepositoryBody{
+				Bucket: "my-bucket",
+				Prefix: "bills/",
+			}},
 			routes.Documentation{
 				Summary:     "add a new bill repository to an aws account",
 				Description: "Adds a bill repository to an AWS account.",
@@ -111,8 +115,13 @@ func billRepoFromDbBillRepo(dbBillRepo models.AwsBillRepository) BillRepository 
 	}
 }
 
+type postBillRepositoryBody struct {
+	Prefix string `json:"prefix" req:""`
+	Bucket string `json:"bucket" req:"nonzero"`
+}
+
 func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
-	var body BillRepository
+	var body postBillRepositoryBody
 	err := decodeRequestBody(r, &body)
 	if err == nil {
 		err = isBillRepositoryValid(body)
@@ -132,8 +141,13 @@ func decodeRequestBody(request *http.Request, structuredBody interface{}) error 
 	return json.NewDecoder(request.Body).Decode(structuredBody)
 }
 
-func postBillRepositoryWithValidBody(r *http.Request, tx *sql.Tx, aa aws.AwsAccount, body BillRepository) (int, interface{}) {
-	br, err := CreateBillRepository(aa, body, tx)
+func postBillRepositoryWithValidBody(
+	r *http.Request,
+	tx *sql.Tx,
+	aa aws.AwsAccount,
+	body postBillRepositoryBody,
+) (int, interface{}) {
+	br, err := CreateBillRepository(aa, BillRepository{Bucket: body.Bucket, Prefix: body.Prefix}, tx)
 	if err == nil {
 		go UpdateReport(context.Background(), aa, br)
 		return http.StatusOK, br
@@ -152,7 +166,7 @@ const noTwoDotsInBucketNameRegex = `^[a-z-](?:[a-z0-9.-]?[a-z0-9-])+$`
 
 var noTwoDotsInBucketName = regexp.MustCompile(noTwoDotsInBucketNameRegex)
 
-func isBillRepositoryValid(br BillRepository) error {
+func isBillRepositoryValid(br postBillRepositoryBody) error {
 	if err := isBucketNameValid(br.Bucket); err != nil {
 		return err
 	} else if err := isPrefixValid(br.Prefix); err != nil {
@@ -199,12 +213,3 @@ func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 
 }
-
-/*
-func AwsBillRepositoriesWithDueUpdate(ctx context.Context, db models.XODB) ([]BillRepository, error) {
-	dbRepos, err := models.AwsBillRepositoriesWithDueUpdate(db)
-	if err != nil {
-
-	}
-}
-*/

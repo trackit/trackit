@@ -29,7 +29,7 @@ const testDocumentedHandlerWithRequestContentTypeExpected = `{
 	"summary": "Get yourself some foo",
 	"description": "The route gives you some foo.",
 	"tags": {
-		"require:contenttype": [
+		"required:contenttype": [
 			"application/json",
 			"application/csv"
 		]

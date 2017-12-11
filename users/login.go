@@ -16,7 +16,6 @@ package users
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"net/http"
 
@@ -27,8 +26,8 @@ import (
 
 // loginRequestBody is the expected request body for the LogIn route handler.
 type loginRequestBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email"    req:"nonzero"`
+	Password string `json:"password" req:"nonzero"`
 }
 
 // loginResponseBody is the response body in case LogIn succeeds.
@@ -41,6 +40,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(logIn).With(
 			routes.RequestContentType{"application/json"},
+			routes.RequestBody{loginRequestBody{"example@example.com", "pA55w0rd"}},
 			db.RequestTransaction{db.Db},
 			routes.Documentation{
 				Summary:     "log in as a user",
@@ -54,24 +54,9 @@ func init() {
 // caller can then use to call other routes.
 func logIn(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body loginRequestBody
-	err := decodeRequestBody(request, &body)
+	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	if err == nil && isLoginRequestBodyValid(body) {
-		return logInWithValidBody(request, body, tx)
-	} else {
-		return 400, errors.New("Body is invalid.")
-	}
-}
-
-// decodeRequestBody decodes a JSON request body and returns nil in case it
-// could do so.
-func decodeRequestBody(request *http.Request, structuredBody interface{}) error {
-	return json.NewDecoder(request.Body).Decode(structuredBody)
-}
-
-// isLoginRequestBodyValid checks the validity of a log in request body.
-func isLoginRequestBodyValid(body loginRequestBody) bool {
-	return body.Email != "" && body.Password != ""
+	return logInWithValidBody(request, body, tx)
 }
 
 // logInWithValidBody tries to authenticate and log a user in using a
