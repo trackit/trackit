@@ -65,7 +65,7 @@ class FormComponent extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle>{this.props.bill !== undefined ? "Edit this" : "Add a"} bill location</DialogTitle>
+          <DialogTitle><h1>{this.props.bill !== undefined ? "Edit this" : "Add a"} bill location</h1></DialogTitle>
 
           <DialogContent>
 

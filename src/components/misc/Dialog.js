@@ -41,7 +41,7 @@ class DialogComponent extends Component {
   render() {
     const title = (this.props.title ? (
       <DialogTitle>
-        {this.props.title}
+        <h1>{this.props.title}</h1>
       </DialogTitle>
     ) : null);
 

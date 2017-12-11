@@ -73,7 +73,7 @@ class FormComponent extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle>{this.props.account !== undefined ? "Edit this" : "Create an"} account</DialogTitle>
+          <DialogTitle><h1>{this.props.account !== undefined ? "Edit this" : "Create an"} account</h1></DialogTitle>
 
           <DialogContent>
 
