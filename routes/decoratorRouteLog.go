@@ -34,6 +34,13 @@ type requestLogData struct {
 	Time      time.Time `json:"time"`
 }
 
+// responseLogData is the set of values to be logged once the response to a
+// request has been produced.
+type responseLogData struct {
+	Status      int           `json:"status"`
+	Nanoseconds time.Duration `json:"nanoseconds"`
+}
+
 // RouteLog is a decorator which logs any calls to the route, with some data
 // about the request.
 type RouteLog struct{}
@@ -45,10 +52,14 @@ func (rl RouteLog) Decorate(h Handler) Handler {
 
 // getFunc builds the route handler function for RouteLog.Decorate.
 func (_ RouteLog) getFunc(hf HandlerFunc) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
+	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, response interface{}) {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
-		l.Info("Received request.", getRequestLogData(r))
-		return hf(w, r, a)
+		rqd := getRequestLogData(r)
+		l.Info("Received request.", rqd)
+		status, response = hf(w, r, a)
+		rsd := getResponseLogData(rqd, status, response)
+		l.Info("Produced response to request.", rsd)
+		return
 	}
 }
 
@@ -76,4 +87,12 @@ func getRequestLogData(r *http.Request) requestLogData {
 		UserAgent: r.Header["User-Agent"],
 		Time:      time.Now(),
 	}
+}
+
+// getResponseLogData fills a responseLogData instance with information about
+// how a request was handled.
+func getResponseLogData(rqd requestLogData, status int, response interface{}) (rsd responseLogData) {
+	rsd.Nanoseconds = time.Now().Sub(rqd.Time)
+	rsd.Status = status
+	return
 }
