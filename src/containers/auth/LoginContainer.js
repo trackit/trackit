@@ -13,18 +13,25 @@ export class LoginContainer extends Component {
   render() {
     if (this.props.token)
       return (<Redirect to="/"/>);
-    return (<Form submit={this.props.login}/>);
+    return (<Form submit={this.props.login} loginStatus={this.props.loginStatus}/>);
   }
 
 }
 
 LoginContainer.propTypes = {
   login: PropTypes.func.isRequired,
-  token: PropTypes.string
+  token: PropTypes.string,
+  loginStatus: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.string
+  })
 };
 
 /* istanbul ignore next */
-const mapStateToProps = (state) => ({token: state.auth.token});
+const mapStateToProps = (state) => ({
+  token: state.auth.token,
+  loginStatus: state.auth.loginStatus
+});
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
