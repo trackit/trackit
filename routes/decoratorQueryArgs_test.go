@@ -22,11 +22,11 @@ import (
 )
 
 var (
-	QueryArgTestInt       = QueryArg{"testInt", "Test signed integer", QueryArgInt{}}
-	QueryArgTestUint      = QueryArg{"testUint", "Test unsigned integer", QueryArgUint{}}
-	QueryArgTestString    = QueryArg{"testString", "Test string", QueryArgString{}}
-	QueryArgTestIntSlice  = QueryArg{"testIntSlice", "Test signed integer slice", QueryArgIntSlice{}}
-	QueryArgTestUintSlice = QueryArg{"testUintSlice", "Test unsigned integer slice", QueryArgUintSlice{}}
+	QueryArgTestInt       = QueryArg{"testInt", "Test signed integer", QueryArgInt{}, false}
+	QueryArgTestUint      = QueryArg{"testUint", "Test unsigned integer", QueryArgUint{}, false}
+	QueryArgTestString    = QueryArg{"testString", "Test string", QueryArgString{}, false}
+	QueryArgTestIntSlice  = QueryArg{"testIntSlice", "Test signed integer slice", QueryArgIntSlice{}, false}
+	QueryArgTestUintSlice = QueryArg{"testUintSlice", "Test unsigned integer slice", QueryArgUintSlice{}, false}
 )
 
 func argHandler(r *http.Request, a Arguments) (int, interface{}) {

@@ -27,13 +27,6 @@ import (
 	"github.com/trackit/trackit2/users"
 )
 
-var (
-	// QueryArgAwsAccounts allows to get the AWS Account IDs in the URL Parameters
-	// with routes.RequiredQueryArgs. This AWS Account IDs will be a slice of Uint
-	// stored in the routes.Arguments map with itself for key.
-	QueryArgAwsAccounts = routes.QueryArg{"aa", "AWS Account IDs", routes.QueryArgUintSlice{}, false}
-)
-
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getAwsAccount).With(
@@ -41,7 +34,7 @@ func init() {
 				Summary:     "get aws accounts' data",
 				Description: "Gets the data for all of the user's AWS accounts.",
 			},
-			routes.RequiredQueryArgs{QueryArgAwsAccounts},
+			routes.RequiredQueryArgs{AwsAccountsOptionalQueryArg},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
 			routes.RequestContentType{"application/json"},
@@ -77,11 +70,28 @@ func init() {
 	}.H().Register("/aws/next")
 }
 
-var AwsAccountQueryArg = routes.QueryArg{
-	Name:        "aa",
-	Type:        routes.QueryArgInt{},
-	Description: "The ID for an AWS account.",
-}
+var (
+	// AwsAccountsOptionalQueryArg allows to get the AWS Account IDs in the URL
+	// Parameters with routes.RequiredQueryArgs. This AWS Account IDs will be a
+	// slice of Uint stored in the routes.Arguments map with itself for key.
+	// AwsAccountsOptionalQueryArg is optional and will not panic if no query
+	// argument is found.
+	AwsAccountsOptionalQueryArg = routes.QueryArg{
+		Name:        "aa",
+		Type:        routes.QueryArgIntSlice{},
+		Description: "The IDs for many AWS account.",
+		Optional:    true,
+	}
+
+	// AwsAccountQueryArg allows to get the AWS Account ID in the URL Parameters
+	// with routes.RequiredQueryArgs. This AWS Account ID will be an Uint stored
+	// in the routes.Arguments map with itself for key.
+	AwsAccountQueryArg = routes.QueryArg{
+		Name:        "aa",
+		Type:        routes.QueryArgInt{},
+		Description: "The ID for an AWS account.",
+	}
+)
 
 // RequireAwsAccount decorates handler to require that an AwsAccount be
 // selected using RequiredQueryArgs{AwsAccountQueryArg}. The decorator will
