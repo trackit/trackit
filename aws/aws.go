@@ -137,19 +137,19 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 	return err
 }
 
-// UpdateAWSAccount updates an AWS account for a user. It does no error
+// UpdatePrettyAWSAccount updates an AWS account for a user. It does no error
 // checking: the caller should check themselves that the AWS account exists.
 // Only the Pretty will be updated.
-func (a *AwsAccount) UpdateAWSAccount(ctx context.Context, tx *sql.Tx) error {
+func (a *AwsAccount) UpdatePrettyAWSAccount(ctx context.Context, tx *sql.Tx) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount, err := models.AwsAccountByID(tx, a.Id)
 	if err != nil {
-		logger.Error("Failed to get AWS account in database.", nil)
+		logger.Error("Failed to get AWS account in database.", err.Error())
 	} else {
 		dbAwsAccount.Pretty = a.Pretty
 		err := dbAwsAccount.Update(tx)
 		if err != nil {
-			logger.Error("Failed to update AWS account in database.", nil)
+			logger.Error("Failed to update AWS account in database.", err.Error())
 		}
 	}
 	return err

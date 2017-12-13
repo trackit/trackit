@@ -44,7 +44,7 @@ func patchAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	if err == nil {
 		tx := a[db.Transaction].(*sql.Tx)
 		u := a[users.AuthenticatedUser].(users.User)
-		id := a[QueryArgAwsAccount].(uint)
+		id := a[AwsAccountQueryArg].(int)
 		return patchAwsAccountWithValidBody(r, tx, u, body, int(id))
 	} else {
 		return 400, errors.New("Body is invalid.")
@@ -59,7 +59,7 @@ func patchAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, 
 	awsAccount, err := GetAwsAccountWithIdFromUser(user, id, tx)
 	if err == nil {
 		awsAccount.Pretty = body.Pretty
-		if err := awsAccount.UpdateAWSAccount(ctx, tx); err != nil {
+		if err := awsAccount.UpdatePrettyAWSAccount(ctx, tx); err != nil {
 			logger.Error("Failed to update AWS Account.", err)
 			return 500, errFailUpdateAccount
 		}
