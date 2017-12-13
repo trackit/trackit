@@ -16,6 +16,7 @@ package es
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -49,24 +50,46 @@ func checkParametersError(endpointMetaData []string, creds *credentials.Credenti
 //		- endpoint: The endpoint URI gettable from AWS.
 //		- creds: Credentials from AWS/Credentials.
 func NewSignedElasticClient(endpoint string, creds *credentials.Credentials) (*elastic.Client, error) {
-	awsSigner := v4.NewSigner(creds)
-	endpointMetaData := strings.Split(endpoint, ".")
-	if err := checkParametersError(endpointMetaData, creds); err != nil {
+	if cofs, err := NewSignedElasticClientOptions(endpoint, creds); err == nil {
+		cof := configEach(cofs...)
+		if ec, err := elastic.NewClient(elastic.SetURL(endpoint), cof); err == nil {
+			return ec, nil
+		} else {
+			return nil, err
+		}
+	} else {
 		return nil, err
 	}
-	awsRegion := endpointMetaData[len(endpointMetaData)-4]
-	awsClient, err := aws_signing_client.New(awsSigner, nil, "es", awsRegion)
-	if err != nil {
+}
+
+// NewSignedElasticClientOptions builds elastic client option funcs which
+// configure an ElasticSearch client to use AWSv4 signature.
+func NewSignedElasticClientOptions(endpoint string, creds *credentials.Credentials) ([]elastic.ClientOptionFunc, error) {
+	if httpClient, err := NewSignedHttpClientForElasticSearch(endpoint, creds); err != nil {
+		return nil, err
+	} else {
+		return []elastic.ClientOptionFunc{
+			elastic.SetScheme("https"),
+			elastic.SetHttpClient(httpClient),
+			elastic.SetSniff(false),
+		}, nil
+	}
+}
+
+// NewSignedHttpClientForElasticSearch returns an http.Client which signs its
+// requests with AWS v4 signatures, for ElasticSearch only.
+func NewSignedHttpClientForElasticSearch(endpoint string, creds *credentials.Credentials) (*http.Client, error) {
+	endpointParts := strings.Split(endpoint, ".")
+	if err := checkParametersError(endpointParts, creds); err != nil {
 		return nil, err
 	}
-	prefix := ""
-	if !strings.HasPrefix(endpoint, "http") {
-		prefix = "https://"
-	}
-	return elastic.NewClient(
-		elastic.SetURL(prefix+endpoint),
-		elastic.SetScheme("https"),
-		elastic.SetHttpClient(awsClient),
-		elastic.SetSniff(false),
-	)
+	region := endpointParts[len(endpointParts)-4]
+	return NewSignedHttpClient(creds, region, "es")
+}
+
+// NewSignedHttpCilent returns an http.Client which signs its requests with AWS
+// v4 signatures for the provided service name and region.
+func NewSignedHttpClient(creds *credentials.Credentials, region, service string) (*http.Client, error) {
+	signer := v4.NewSigner(creds)
+	return aws_signing_client.New(signer, nil, service, region)
 }
