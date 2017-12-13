@@ -333,7 +333,7 @@ describe("Account Bills Saga", () => {
       expect(saga.next().value)
         .toEqual(all([
           put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
 
       expect(saga.next().done).toBe(true);
