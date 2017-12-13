@@ -101,6 +101,12 @@ export class ListComponent extends Component {
           deleteBill={this.props.deleteBill}/>
       ))
     ) : null);
+
+    const form = (<Form
+      account={this.props.account}
+      submit={this.props.newBill}
+    />);
+
     return (
       <Dialog
         buttonName="Bills locations"
@@ -108,12 +114,8 @@ export class ListComponent extends Component {
         secondActionName="Close"
         onOpen={this.getBills}
         onClose={this.clearBills}
+        titleChildren={form}
       >
-
-        <Form
-          account={this.props.account}
-          submit={this.props.newBill}
-        />
 
         <List>
           {noBills}

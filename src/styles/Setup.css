@@ -11,3 +11,11 @@ ul.MuiList-root-10 li:last-child {
 .input-title {
 	display: flex;
 }
+
+.dialog-title {
+	margin: 0;
+}
+
+.dialog-title-children {
+	float: right;
+}

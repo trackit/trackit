@@ -41,7 +41,13 @@ class DialogComponent extends Component {
   render() {
     const title = (this.props.title ? (
       <DialogTitle disableTypography>
-        <h1>{this.props.title}</h1>
+        <h1 className="dialog-title">
+          {this.props.title}
+          <div className="dialog-title-children">
+            {this.props.titleChildren}
+          </div>
+        </h1>
+        <hr/>
       </DialogTitle>
     ) : null);
 
@@ -92,6 +98,7 @@ DialogComponent.propTypes = {
   buttonType: PropTypes.string,
   buttonName: PropTypes.string.isRequired,
   title: PropTypes.string,
+  titleChildren: PropTypes.node,
   actionName: PropTypes.string,
   actionFunction: PropTypes.func,
   secondActionName: PropTypes.string,
@@ -102,7 +109,8 @@ DialogComponent.propTypes = {
 
 DialogComponent.defaultProps = {
   buttonType: "default",
-  secondActionName: "Cancel"
+  secondActionName: "Cancel",
+  titleChildren: null
 };
 
 export default DialogComponent;
