@@ -62,7 +62,7 @@ func NewSignedElasticClient(endpoint string, creds *credentials.Credentials) (*e
 	}
 }
 
-// NewSignedElasticClientOptions buils elastic client option funcs which
+// NewSignedElasticClientOptions builds elastic client option funcs which
 // configure an ElasticSearch client to use AWSv4 signature.
 func NewSignedElasticClientOptions(endpoint string, creds *credentials.Credentials) ([]elastic.ClientOptionFunc, error) {
 	if httpClient, err := NewSignedHttpClientForElasticSearch(endpoint, creds); err != nil {
