@@ -5,6 +5,7 @@ export default (state=[], action) => {
     case Constants.AWS_GET_ACCOUNTS_SUCCESS:
       return action.accounts;
     case Constants.AWS_GET_ACCOUNTS_ERROR:
+    case Constants.AWS_GET_ACCOUNTS_CLEAR:
       return [];
     default:
       return state;

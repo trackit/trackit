@@ -4,10 +4,6 @@ import Adapter from 'enzyme-adapter-react-16';
 
 configure({ adapter: new Adapter() });
 
-global.requestAnimationFrame = (callback) => {
-  setTimeout(callback, 0);
-};
-
 Object.defineProperty(window, 'localStorage', {
   value: (function() {
     let store = {};
@@ -34,4 +30,4 @@ Object.defineProperty(window, 'Plotly', {
   value: ({
     newPlot: (id, data, layout, params) => ({id, data, layout, params})
   })
-})
+});

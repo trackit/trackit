@@ -69,4 +69,13 @@ describe('<FormComponent />', () => {
     expect(props.submit).toHaveBeenCalled();
   });
 
+  it('can open and close dialog', () => {
+    const wrapper = shallow(<FormComponent {...propsWithBill}/>);
+    expect(wrapper.state('open')).toBe(false);
+    wrapper.instance().openDialog({ preventDefault(){} });
+    expect(wrapper.state('open')).toBe(true);
+    wrapper.instance().closeDialog({ preventDefault(){} });
+    expect(wrapper.state('open')).toBe(false);
+  });
+
 });
