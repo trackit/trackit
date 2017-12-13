@@ -105,7 +105,11 @@ class FormComponent extends Component {
               </div>
 
               <div className="form-group">
-                <label htmlFor="pretty">Name</label>
+                <div className="input-title">
+                  <label htmlFor="pretty">Name</label>
+                  &nbsp;
+                  <Popover info popOver="Choose a pretty name"/>
+                </div>
                 <Input
                   type="text"
                   name="pretty"

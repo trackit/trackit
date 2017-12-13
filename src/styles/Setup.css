@@ -1,6 +1,11 @@
 /* Hide separator for last item in list */
-ul.MuiList-root-10 div:last-child li {
+ul.MuiList-root-10 div:last-child li,
+ul.MuiList-root-10 li:last-child {
 	border-bottom: none;
+}
+
+.MuiListItemText-root-24 {
+	font-size: 20px;
 }
 
 .input-title {
