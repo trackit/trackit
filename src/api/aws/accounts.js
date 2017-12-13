@@ -5,16 +5,7 @@ export const getAccounts = (token) => {
 };
 
 export const getAccountBills = (accountID, token) => {
-//  return call(`/aws/billrepository?aa=${accountID}`, 'GET', null, token);
-  return {
-    success: true, data: [{
-        "bucket": "s3://te.st",
-        "path": "/path/to/bills"
-      }, {
-        "bucket": "s3://another.test",
-        "path": "/another/path"
-      }]
-  };
+  return call(`/aws/billrepository?aa=${accountID}`, 'GET', null, token);
 };
 
 export const newAccount = (account, token) => {

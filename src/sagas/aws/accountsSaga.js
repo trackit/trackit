@@ -52,7 +52,7 @@ export function* newAccountBillSaga({ accountID, bill }) {
     yield call(API.AWS.Accounts.newAccountBill, accountID, bill, token);
     yield all([
       put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNTS })
+      put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
     ]);
   } catch (error) {
     yield put({ type: Constants.AWS_NEW_ACCOUNT_BILL_ERROR, error });

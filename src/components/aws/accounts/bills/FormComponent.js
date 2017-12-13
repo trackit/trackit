@@ -42,8 +42,9 @@ class FormComponent extends Component {
     let values = this.form.getValues();
     let bill = {
       bucket: values.bucket,
-      path: values.path
+      prefix: values.prefix
     };
+    console.log(bill);
     this.props.submit(this.props.account, bill);
   };
 
@@ -86,21 +87,21 @@ class FormComponent extends Component {
                   name="bucket"
                   type="text"
                   className="form-control"
-                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "s3://")}
+                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
                   validations={[Validation.required, Validation.s3BucketFormat]}
                 />
               </div>
 
               <div className="form-group">
                 <div className="input-title">
-                  <label htmlFor="path">Path</label>
+                  <label htmlFor="prefix">Path</label>
                   &nbsp;
                   <Popover info popOver="Path to bills"/>
                 </div>
                 <Input
                   type="text"
-                  name="path"
-                  value={(this.props.bill !== undefined ? this.props.bill.path : undefined)}
+                  name="prefix"
+                  value={(this.props.bill !== undefined ? this.props.bill.prefix : undefined)}
                   className="form-control"
                   validations={[Validation.required, Validation.pathFormat]}
                 />
@@ -135,7 +136,7 @@ FormComponent.propTypes = {
   account: PropTypes.number.isRequired,
   bill: PropTypes.shape({
     bucket: PropTypes.string.isRequired,
-    path: PropTypes.string.isRequired
+    prefix: PropTypes.string.isRequired
   }),
   submit: PropTypes.func.isRequired
 };

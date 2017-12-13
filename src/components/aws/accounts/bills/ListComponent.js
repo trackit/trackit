@@ -37,7 +37,7 @@ export class Item extends Component {
 
         <ListItemText
           disableTypography
-          primary={this.props.bill.bucket + this.props.bill.path}
+          primary={this.props.bill.bucket + this.props.bill.prefix}
         />
 
         <div>
@@ -66,7 +66,7 @@ Item.propTypes = {
   account: PropTypes.number.isRequired,
   bill: PropTypes.shape({
     bucket: PropTypes.string.isRequired,
-    path: PropTypes.string.isRequired
+    prefix: PropTypes.string.isRequired
   }),
   editBill: PropTypes.func.isRequired,
   deleteBill: PropTypes.func.isRequired
@@ -131,7 +131,7 @@ ListComponent.propTypes = {
   bills: PropTypes.arrayOf(
     PropTypes.shape({
       bucket: PropTypes.string.isRequired,
-      path: PropTypes.string.isRequired
+      prefix: PropTypes.string.isRequired
     })
   ),
   getBills: PropTypes.func.isRequired,
