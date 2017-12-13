@@ -24,7 +24,7 @@ services:
     links:
       - sql
     command:
-      - -sql-address=${TRACKIT_SQL_USER:-trackit}:${TRACKIT_SQL_PASSWORD:-trackitpassword}@tcp(sql:3306)/${TRACKIT_SQL_DATABASE:-trackit}
+      - -sql-address=${TRACKIT_SQL_USER:-trackit}:${TRACKIT_SQL_PASSWORD:-trackitpassword}@tcp(sql:3306)/${TRACKIT_SQL_DATABASE:-trackit}?parseTime=true
       - -es-address=${TRACKIT_ES_ADDRESS:-http://es:9200}
       - -http-address=[::]:80
     environment:
