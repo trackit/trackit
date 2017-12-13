@@ -13,9 +13,11 @@ export default function* loginSaga({ username, password }) {
         put({type: Constants.GET_USER_TOKEN}),
       ]);
     }
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      throw Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
-    yield put({ type: Constants.LOGIN_REQUEST_ERROR, error });
+    yield put({ type: Constants.LOGIN_REQUEST_ERROR, error: error.message });
   }
 }

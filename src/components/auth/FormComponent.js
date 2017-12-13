@@ -107,6 +107,10 @@ export class FormComponent extends Component {
       </div>
     ));
 
+    const error = (this.props.loginStatus ? (
+      <div className="alert alert-warning">{this.props.loginStatus.error}</div>
+    ): "");
+
     return (
       <div className="login">
         <div className="row">
@@ -118,6 +122,9 @@ export class FormComponent extends Component {
               <img src={logo} id="logo" alt="TrackIt logo" />
 
               <hr />
+
+              {error}
+
               <Form
                 ref={
                   /* istanbul ignore next */
@@ -154,7 +161,11 @@ export class FormComponent extends Component {
 
 FormComponent.propTypes = {
   submit: PropTypes.func.isRequired,
-  registration: PropTypes.bool
+  registration: PropTypes.bool,
+  loginStatus: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.string
+  })
 };
 
 FormComponent.defaultProps = {
