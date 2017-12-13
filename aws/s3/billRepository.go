@@ -17,7 +17,6 @@ package s3
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -122,10 +121,8 @@ type postBillRepositoryBody struct {
 
 func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var body postBillRepositoryBody
-	err := decodeRequestBody(r, &body)
-	if err == nil {
-		err = isBillRepositoryValid(body)
-	}
+	routes.MustRequestBody(a, &body)
+	err := isBillRepositoryValid(body)
 	if err == nil {
 		tx := a[db.Transaction].(*sql.Tx)
 		aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
@@ -133,12 +130,6 @@ func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) 
 	} else {
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
 	}
-}
-
-// decodeRequestBody decodes a JSON request body and returns nil in case it
-// could do so.
-func decodeRequestBody(request *http.Request, structuredBody interface{}) error {
-	return json.NewDecoder(request.Body).Decode(structuredBody)
 }
 
 func postBillRepositoryWithValidBody(
