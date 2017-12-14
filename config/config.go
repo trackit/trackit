@@ -44,6 +44,8 @@ var (
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
 	EsAddress string
+	// ChargifySecret is the secret used to encrypt the chargify API key
+	ChargifySecret string
 )
 
 func init() {
@@ -56,6 +58,7 @@ func init() {
 	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
 	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
 	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
+	flag.StringVar(&ChargifySecret, "chargify-secret", "chargifyDefaultSecret", "The secret used to encrypt the chargify API key.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.Parse()
 }

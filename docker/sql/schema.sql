@@ -52,3 +52,21 @@ CREATE TABLE aws_bill_repository (
 CREATE VIEW aws_bill_repository_due_update AS
 	SELECT * FROM aws_bill_repository WHERE next_update <= NOW()
 ;
+
+CREATE TABLE chargify_configuration (
+	id                     INTEGER       NOT NULL AUTO_INCREMENT,
+	created                TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	modified               TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	aws_account_id         INTEGER       UNIQUE NOT NULL,
+	billing_bucket         VARCHAR(255)  NOT NULL,
+	subdomain              VARCHAR(255)  NOT NULL,
+	api_key                BLOB          NOT NULL,
+	chargify_tag_key       varchar(255)  NOT NULL,
+	standard_storage_id    INTEGER       NOT NULL,
+	infrequent_storage_id  INTEGER       NOT NULL,
+	glacier_storage_id     INTEGER       NOT NULL,
+	bandwidth_id           INTEGER       NOT NULL,
+	request_id             INTEGER       NOT NULL,
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+);
