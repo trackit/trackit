@@ -3,6 +3,8 @@
 ES_ADDRESS='127.0.0.1:9200'
 ES_AUTH='-uelastic:changeme'
 
+echo "lineitems"
+
 curl \
 	$ES_ADDRESS/_template/lineitems \
 	$ES_AUTH \
@@ -54,6 +56,64 @@ curl \
 				},
 				"usageEndDate": {
 					"type": "date"
+				}
+			},
+			"_all": {
+				"enabled": false
+			},
+			"numeric_detection": false,
+			"date_detection": false
+		}
+	}
+}
+EOF
+
+echo -e "\n\nawshourlyinstanceusage"
+
+curl \
+	$ES_ADDRESS/_template/awshourlyinstanceusage \
+	$ES_AUTH \
+	-H'Content-Type: application/json' \
+	-d@- \
+<<EOF
+{
+	"template": "awshourlyinstanceusage",
+	"version": 1,
+	"mappings": {
+		"ec2instance": {
+			"properties": {
+				"account": {
+					"type": "keyword"
+				},
+				"service": {
+					"type": "keyword"
+				},
+				"id": {
+					"type": "keyword"
+				},
+				"region": {
+					"type": "keyword"
+				},
+				"startDate": {
+					"type": "date"
+				},
+				"endDate": {
+					"type": "date"
+				},
+				"cpuAverage": {
+					"type": "double"
+				},
+				"cpuPeak": {
+					"type": "double"
+				},
+				"keyPair": {
+					"type": "keyword"
+				},
+				"type": {
+					"type": "keyword"
+				},
+				"tags": {
+					"type": "nested"
 				}
 			},
 			"_all": {
