@@ -26,8 +26,8 @@ const (
 	maxUint = ^uint(0)
 	maxInt  = int(maxUint >> 1)
 	minInt  = -maxInt - 1
-	// TagRequiredQueryArg is the tag used to document required query args.
-	TagRequiredQueryArg = "required:allof:queryarg"
+	// TagQueryArg is the tag used to document query args.
+	TagQueryArg = "allof:queryarg"
 )
 
 type (
@@ -70,10 +70,10 @@ type (
 		Optional    bool
 	}
 
-	// RequiredQueryArgs contains all the arguments to parse in the URL.
-	// RequiredQueryArgs has a method Decorate called to apply the
+	// QueryArgs contains all the arguments to parse in the URL.
+	// QueryArgs has a method Decorate called to apply the
 	// decorators on an endpoint.
-	RequiredQueryArgs []QueryArg
+	QueryArgs []QueryArg
 )
 
 // QueryParse parses an int. A nil error indicates a success. With this func,
@@ -158,14 +158,14 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 // calls the next IntermediateHandler.
 // The goal of this function is to get the URL parameters to store them in
 // the Arguments.
-func (qa RequiredQueryArgs) Decorate(h Handler) Handler {
+func (qa QueryArgs) Decorate(h Handler) Handler {
 	h.Func = qa.getFunc(h.Func)
 	h.Documentation = qa.getDocumentation(h.Documentation)
 	return h
 }
 
-// getFunc builds a handler function for RequiredQueryArgs.Decorate
-func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
+// getFunc builds a handler function for QueryArgs.Decorate
+func (qa QueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		for _, arg := range qa {
 			if code, err := parseArg(arg, r, a); code != http.StatusOK {
@@ -176,16 +176,16 @@ func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 }
 
-// getDocumentation builds the documentation for RequiredQueryArgs.Decorate
-func (qa RequiredQueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
+// getDocumentation builds the documentation for QueryArgs.Decorate
+func (qa QueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
 	if hd.Tags == nil {
 		hd.Tags = make(Tags)
 	}
-	tk := hd.Tags[TagRequiredQueryArg]
+	tk := hd.Tags[TagQueryArg]
 	ts := make([]string, len(qa))
 	for i := range qa {
 		ts[i] = fmt.Sprintf("%s:%s:%s", qa[i].Name, qa[i].Type.FormatName(), qa[i].Description)
 	}
-	hd.Tags[TagRequiredQueryArg] = append(tk, ts...)
+	hd.Tags[TagQueryArg] = append(tk, ts...)
 	return hd
 }

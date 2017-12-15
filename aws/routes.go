@@ -34,7 +34,7 @@ func init() {
 				Summary:     "get aws accounts' data",
 				Description: "Gets the data for all of the user's AWS accounts.",
 			},
-			routes.RequiredQueryArgs{AwsAccountsOptionalQueryArg},
+			routes.QueryArgs{AwsAccountsOptionalQueryArg},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
 			routes.RequestContentType{"application/json"},
