@@ -132,7 +132,7 @@ func getInstanceStats(ctx context.Context, instanceId string,
 		MetricName: aws.String("CPUUtilization"),
 		StartTime:  aws.Time(start),
 		EndTime:    aws.Time(end),
-		Period:     aws.Int64(int64(86400 * 30)),
+		Period:     aws.Int64(int64(60 * 60)), // Period of one hour expressed in seconds
 		Statistics: []*string{aws.String("Average"), aws.String("Maximum")},
 		Dimensions: dimensions,
 	})
@@ -146,11 +146,10 @@ func getInstanceStats(ctx context.Context, instanceId string,
 	}
 }
 
-// fetchInstancesList, firstly, calls DescribeInstances from AWS to list all the instances in a region.
-// Secondly, it generates an InstanceInfo filled by DescribeInstances, getAccountID and getInstanceStats.
-// Finally, it sends the InstanceInfo generated in a chan.
+// fetchInstancesList sent in instanceInfoChan the instances fetched from DescribeInstances
+// and filled by DescribeInstances, getAccountID and getInstanceStats.
 func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
-	region string, account string, instanceInfoChan chan InstanceInfo) {
+	region string, account string, instanceInfoChan chan InstanceInfo) error {
 	defer close(instanceInfoChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -161,7 +160,7 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 	instances, err := svc.DescribeInstances(nil)
 	if err != nil {
 		logger.Error("Error when describing instances", err.Error())
-		return
+		return err
 	}
 	start, end := getCurrentCheckedHour()
 	for _, reservation := range instances.Reservations {
@@ -182,6 +181,7 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 			}
 		}
 	}
+	return nil
 }
 
 // fetchRegionsList fetchs the regions list from AWS and returns an array of their name.
@@ -202,30 +202,34 @@ func fetchRegionsList(ctx context.Context, sess *session.Session) ([]string, err
 
 // createIndexEs creates the ElasticSearch index with the properties
 // from getPropertiesMapping.
-func createIndexEs(ctx context.Context, client *elastic.Client) {
+func createIndexEs(ctx context.Context, client *elastic.Client) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	mapping := "{\"mappings\":{\"" + DocumentEc2 + "\":" + mappingEc2Instance + "}}"
 	if _, err := client.CreateIndex(IndexHourlyInstanceUsage).BodyString(mapping).Do(context.Background()); err != nil {
 		logger.Error("Error when creating ElasticSearch index", err.Error())
+		return err
 	}
+	return nil
 }
 
 // importInstancesToEs imports an array of InstanceInfo in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, instances []InstanceInfo) {
+func importInstancesToEs(ctx context.Context, instances []InstanceInfo) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	client := es.Client
 	if exists, err := client.IndexExists(IndexHourlyInstanceUsage).Do(context.Background()); err != nil {
 		logger.Error("Error when checking if the ElasticSearch index exists", err.Error())
-		return
+		return err
 	} else if !exists {
-		createIndexEs(ctx, client)
+		if err := createIndexEs(ctx, client); err != nil {
+			return err
+		}
 	}
 	for _, instance := range instances {
 		ji, err := json.Marshal(instance)
 		if err != nil {
 			logger.Error("Error when marshaling instance var", err.Error())
-			continue
+			return err
 		}
 		hash := md5.Sum(ji)
 		hash64 := base64.URLEncoding.EncodeToString(hash[:])
@@ -241,6 +245,7 @@ func importInstancesToEs(ctx context.Context, instances []InstanceInfo) {
 			logger.Info("Instance put in ES", *res)
 		}
 	}
+	return nil
 }
 
 // FetchInstancesStats fetchs the stats of the EC2 instances of an AwsAccount
@@ -279,6 +284,5 @@ func FetchInstancesStats(awsAccount taws.AwsAccount) error {
 	for instance := range merge(instanceInfoChans...) {
 		instances = append(instances, instance)
 	}
-	importInstancesToEs(ctx, instances)
-	return nil
+	return importInstancesToEs(ctx, instances)
 }
