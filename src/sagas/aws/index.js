@@ -1,5 +1,6 @@
 import { takeLatest } from 'redux-saga/effects';
 import * as AccountsSaga from './accountsSaga';
+import { getCostsSaga } from "./costsSaga";
 import { getS3DataSaga } from './s3Saga';
 import Constants from '../../constants';
 
@@ -38,4 +39,8 @@ export function* watchNewExternal() {
 export function* watchGetAwsS3Data() {
   yield takeLatest(Constants.AWS_GET_S3_DATA, getS3DataSaga);
   yield takeLatest(Constants.AWS_SET_S3_VIEW_DATES, getS3DataSaga);
+}
+
+export function* watchGetCosts() {
+  yield takeLatest(Constants.AWS_GET_COSTS, getCostsSaga);
 }
