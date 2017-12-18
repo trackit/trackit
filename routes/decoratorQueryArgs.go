@@ -28,6 +28,8 @@ const (
 	minInt  = -maxInt - 1
 	// TagRequiredQueryArg is the tag used to document required query args.
 	TagRequiredQueryArg = "required:allof:queryarg"
+	// TagOptionalQueryArg is the tag used to document optional query args.
+	TagOptionalQueryArg = "optional:allof:queryarg"
 )
 
 type (
@@ -61,17 +63,19 @@ type (
 	}
 
 	// QueryArg defines an argument by its name and its type. A description
-	// can be used for documentation purposes.
+	// can be used for documentation purposes. The argument can be optional
+	// by changing the Optional value to true.
 	QueryArg struct {
 		Name        string
 		Description string
 		Type        QueryParser
+		Optional    bool
 	}
 
-	// RequiredQueryArgs contains all the arguments to parse in the URL.
-	// RequiredQueryArgs has a method Decorate called to apply the
+	// QueryArgs contains all the arguments to parse in the URL.
+	// QueryArgs has a method Decorate called to apply the
 	// decorators on an endpoint.
-	RequiredQueryArgs []QueryArg
+	QueryArgs []QueryArg
 )
 
 // QueryParse parses an int. A nil error indicates a success. With this func,
@@ -145,7 +149,7 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 		} else {
 			return http.StatusBadRequest, fmt.Errorf("query arg '%s': %s", arg.Name, err.Error())
 		}
-	} else {
+	} else if !arg.Optional {
 		return http.StatusBadRequest, fmt.Errorf("query arg '%s': not found", arg.Name)
 	}
 	return http.StatusOK, nil
@@ -156,14 +160,14 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 // calls the next IntermediateHandler.
 // The goal of this function is to get the URL parameters to store them in
 // the Arguments.
-func (qa RequiredQueryArgs) Decorate(h Handler) Handler {
+func (qa QueryArgs) Decorate(h Handler) Handler {
 	h.Func = qa.getFunc(h.Func)
 	h.Documentation = qa.getDocumentation(h.Documentation)
 	return h
 }
 
-// getFunc builds a handler function for RequiredQueryArgs.Decorate
-func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
+// getFunc builds a handler function for QueryArgs.Decorate
+func (qa QueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
 		for _, arg := range qa {
 			if code, err := parseArg(arg, r, a); code != http.StatusOK {
@@ -174,16 +178,23 @@ func (qa RequiredQueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 }
 
-// getDocumentation builds the documentation for RequiredQueryArgs.Decorate
-func (qa RequiredQueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
+// createDocumentationSlice creates the slice of string and fills it with documentation
+func createDocumentationSlice(index string, optional bool, qa QueryArgs) []string {
+	ts := make([]string, 0)
+	for i := range qa {
+		if qa[i].Optional == optional {
+			ts = append(ts, fmt.Sprintf("%s:%s:%s", qa[i].Name, qa[i].Type.FormatName(), qa[i].Description))
+		}
+	}
+	return ts
+}
+
+// getDocumentation builds the documentation for QueryArgs.Decorate
+func (qa QueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
 	if hd.Tags == nil {
 		hd.Tags = make(Tags)
 	}
-	tk := hd.Tags[TagRequiredQueryArg]
-	ts := make([]string, len(qa))
-	for i := range qa {
-		ts[i] = fmt.Sprintf("%s:%s:%s", qa[i].Name, qa[i].Type.FormatName(), qa[i].Description)
-	}
-	hd.Tags[TagRequiredQueryArg] = append(tk, ts...)
+	hd.Tags[TagRequiredContentType] = append(hd.Tags[TagRequiredQueryArg], createDocumentationSlice(TagRequiredQueryArg, false, qa)...)
+	hd.Tags[TagOptionalQueryArg] = append(hd.Tags[TagOptionalQueryArg], createDocumentationSlice(TagOptionalQueryArg, true, qa)...)
 	return hd
 }

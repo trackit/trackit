@@ -22,11 +22,12 @@ import (
 )
 
 var (
-	QueryArgTestInt       = QueryArg{"testInt", "Test signed integer", QueryArgInt{}}
-	QueryArgTestUint      = QueryArg{"testUint", "Test unsigned integer", QueryArgUint{}}
-	QueryArgTestString    = QueryArg{"testString", "Test string", QueryArgString{}}
-	QueryArgTestIntSlice  = QueryArg{"testIntSlice", "Test signed integer slice", QueryArgIntSlice{}}
-	QueryArgTestUintSlice = QueryArg{"testUintSlice", "Test unsigned integer slice", QueryArgUintSlice{}}
+	QueryArgTestInt            = QueryArg{"testInt", "Test signed integer", QueryArgInt{}, false}
+	QueryArgTestUint           = QueryArg{"testUint", "Test unsigned integer", QueryArgUint{}, false}
+	QueryArgTestString         = QueryArg{"testString", "Test string", QueryArgString{}, false}
+	QueryArgTestOptionalString = QueryArg{"testString", "Test string", QueryArgString{}, true}
+	QueryArgTestIntSlice       = QueryArg{"testIntSlice", "Test signed integer slice", QueryArgIntSlice{}, false}
+	QueryArgTestUintSlice      = QueryArg{"testUintSlice", "Test unsigned integer slice", QueryArgUintSlice{}, false}
 )
 
 func argHandler(r *http.Request, a Arguments) (int, interface{}) {
@@ -72,7 +73,7 @@ const testOverflowIntArgExpectedError = `query arg 'testInt': must be an int`
 
 func TestOverflowIntArg(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{QueryArgTestInt},
+		QueryArgs{QueryArgTestInt},
 	)
 	overflowInt64Str := "9223372036854775808"
 	request := httptest.NewRequest("GET", "/test?testInt="+overflowInt64Str, nil)
@@ -90,7 +91,7 @@ func TestOverflowIntArg(t *testing.T) {
 
 func TestRightUintArg(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{QueryArgTestUint},
+		QueryArgs{QueryArgTestUint},
 	)
 	request := httptest.NewRequest("GET", "/test?testUint=84", nil)
 	response := httptest.NewRecorder()
@@ -106,11 +107,40 @@ func TestRightUintArg(t *testing.T) {
 	}
 }
 
+func TestOptionalStringArg(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{QueryArgTestOptionalString},
+	)
+	request := httptest.NewRequest("GET", "/test?testString=Hi!", nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != 200 {
+		t.Errorf("Expected 200. Got %d (%s)", status, body)
+	} else if args, ok := body.(Arguments); !ok {
+		t.Errorf("Expected type Arguments.")
+	} else if testString, ok := args[QueryArgTestOptionalString]; !ok {
+		t.Errorf("testString not in the arguments.")
+	} else if testString.(string) != "Hi!" {
+		t.Errorf("testString: Expected Hi!. Got %v", testString)
+	}
+
+	request = httptest.NewRequest("GET", "/test", nil)
+	response = httptest.NewRecorder()
+	status, body = h.Func(response, request, Arguments{})
+	if status != 200 {
+		t.Errorf("Expected 200. Got %d (%s)", status, body)
+	} else if args, ok := body.(Arguments); !ok {
+		t.Errorf("Expected type Arguments.")
+	} else if _, ok := args[QueryArgTestOptionalString]; ok {
+		t.Errorf("testString in the arguments.")
+	}
+}
+
 const testNegativeUintArgExpectedError = `query arg 'testUint': must be a uint`
 
 func TestNegativeUintArg(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{QueryArgTestUint},
+		QueryArgs{QueryArgTestUint},
 	)
 	request := httptest.NewRequest("GET", "/test?testUint=-21", nil)
 	response := httptest.NewRecorder()
@@ -127,7 +157,7 @@ func TestNegativeUintArg(t *testing.T) {
 
 func TestMultipleArg(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{
+		QueryArgs{
 			QueryArgTestInt,
 			QueryArgTestUint,
 			QueryArgTestString,
@@ -179,7 +209,7 @@ func TestMultipleArg(t *testing.T) {
 
 func TestMissingIntSlice(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{
+		QueryArgs{
 			QueryArgTestIntSlice,
 		},
 	)
@@ -198,7 +228,7 @@ func TestMissingIntSlice(t *testing.T) {
 
 func TestBadIntSlice(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{
+		QueryArgs{
 			QueryArgTestIntSlice,
 		},
 	)
@@ -217,7 +247,7 @@ func TestBadIntSlice(t *testing.T) {
 
 func TestBadUintSlice(t *testing.T) {
 	h := H(argHandler).With(
-		RequiredQueryArgs{
+		QueryArgs{
 			QueryArgTestUintSlice,
 		},
 	)

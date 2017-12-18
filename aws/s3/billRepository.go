@@ -54,7 +54,7 @@ func init() {
 	}.H().With(
 		db.RequestTransaction{db.Db},
 		users.RequireAuthenticatedUser{},
-		routes.RequiredQueryArgs{aws.AwsAccountQueryArg},
+		routes.QueryArgs{aws.AwsAccountQueryArg},
 		aws.RequireAwsAccount{},
 		routes.Documentation{
 			Summary:     "interact with aws account's bill repositories",
