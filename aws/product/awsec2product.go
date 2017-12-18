@@ -2,10 +2,13 @@ package product
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -14,10 +17,22 @@ import (
 	"github.com/trackit/trackit2/models"
 )
 
-type (
-	PricingSku string
+// BulkLimit is the limit after which the
+// bulk is inserted to the database.
+const BulkLimit = 100
 
-	PricingAttribute struct {
+const NsToMsVal = 1000000
+const Ec2ProductName = "ec2"
+
+var offsetParam = map[json.Token]int{
+	json.Delim('{'): 1,
+	json.Delim('}'): -1,
+}
+
+type (
+	Sku string
+
+	Attribute struct {
 		InstanceType       string
 		CurrentGeneration  string
 		Vcpu               string
@@ -31,149 +46,181 @@ type (
 		LocationType       string
 	}
 
-	PricingProduct struct {
-		Sku           PricingSku
+	Product struct {
+		Sku           Sku
 		ProductFamily string
-		Attributes    PricingAttribute
-	}
-
-	EC2Pricing struct {
-		Products map[PricingSku]PricingProduct
+		Attributes    Attribute
 	}
 )
 
-func storeRegionID(region string, dbAwsProduct *models.AwsProductEc2, logger jsonlog.Logger, sqlTx models.XODB) error {
-	dbAwsRegion, err := models.AwsRegionByPretty(sqlTx, region)
-	if err != nil && err.Error() == "sql: no rows in result set" {
-		var newDbAwsRegion models.AwsRegion
-		newDbAwsRegion.Pretty = region
-		newDbAwsRegion.Region = region
-		if err := newDbAwsRegion.Insert(sqlTx); err != nil {
-			logger.Error("Error during dbAwsRegion inserting", err.Error())
+// storeAttributes stores all the attributes from Attribute
+// to models.AwsProductEc2
+func storeAttributes(ctx context.Context, attributes *Attribute,
+	dbAwsProductPricing *models.AwsProductPricingEc2) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbAwsProductPricing.InstanceType = attributes.InstanceType
+	if attributes.CurrentGeneration != "Yes" && attributes.CurrentGeneration != "No" {
+		logger.Info("Unexpected value in CurrentGeneration when storing product data", attributes.CurrentGeneration)
+	}
+	dbAwsProductPricing.CurrentGeneration = (attributes.CurrentGeneration == "Yes")
+	if val, err := strconv.Atoi(attributes.Vcpu); err == nil {
+		dbAwsProductPricing.Vcpu = val
+	} else {
+		logger.Info("Unexpected value in Vcpu when storing product data", attributes.Vcpu)
+	}
+	dbAwsProductPricing.Memory = attributes.Memory
+	dbAwsProductPricing.Storage = attributes.Storage
+	dbAwsProductPricing.NetworkPerformance = attributes.NetworkPerformance
+	dbAwsProductPricing.Tenancy = attributes.Tenancy
+	dbAwsProductPricing.OperatingSystem = attributes.OperatingSystem
+	dbAwsProductPricing.Ecu = attributes.Ecu
+	if attributes.LocationType == "AWS Region" {
+		dbAwsProductPricing.Region = attributes.Location
+	} else {
+		logger.Info("Unexpected value in LocationType when storing product data", attributes.LocationType)
+	}
+}
+
+// consumeJsonUntilProduct consumes and ignores values
+// until products field
+func consumeJsonUntilProduct(decoder *json.Decoder) error {
+	var offset int
+
+	for t, err := decoder.Token(); t != "products" || offset != 1; t, err = decoder.Token() {
+		if err != nil {
 			return err
 		}
-		dbAwsProduct.RegionID = newDbAwsRegion.ID
-	} else if err == nil {
-		dbAwsProduct.RegionID = dbAwsRegion.ID
-	} else {
-		logger.Error("Error during dbAwsRegion fetching", err.Error())
-		return err
+		if param, ok := offsetParam[t]; ok {
+			offset += param
+		}
 	}
+	decoder.Token()
 	return nil
 }
 
-// storeAttributes stores all the attributes from PricingAttribute
-// to models.AwsProductEc2
-func storeAttributes(attributes *PricingAttribute, dbAwsProduct *models.AwsProductEc2, logger jsonlog.Logger, sqlTx models.XODB) (err error) {
-	dbAwsProduct.InstanceType = attributes.InstanceType
-	if attributes.CurrentGeneration == "Yes" {
-		dbAwsProduct.CurrentGeneration = 1
+// consumeJsonProducts consumes and imports products until
+// the end of the JSON products field's content
+func consumeJsonProducts(ctx context.Context, etag string, decoder *json.Decoder, tx models.XODB) error {
+	var nbInstance int
+
+	dbAwsProductPricingBulk := models.AwsProductPricingEc2Bulk{BulkLimit: BulkLimit}
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	start := time.Now()
+	for t, err := decoder.Token(); t != json.Delim('}'); t, err = decoder.Token() {
+		if err != nil {
+			logger.Error("Error when detecting token in pricing JSON", err.Error())
+			return err
+		}
+		var product Product
+
+		if err := decoder.Decode(&product); err != nil {
+			logger.Error("Error when decoding and storing json in the struct", err.Error())
+			return err
+		}
+		if product.ProductFamily == "Compute Instance" {
+			dbAwsProductPricing := models.AwsProductPricingEc2{
+				Sku:  string(product.Sku),
+				Etag: etag,
+			}
+			storeAttributes(ctx, &product.Attributes, &dbAwsProductPricing)
+			if err := dbAwsProductPricingBulk.AppendAndInsertIfLimitExceeded(dbAwsProductPricing, tx); err != nil {
+				logger.Error("Error when inserting product in database", err.Error())
+				return err
+			}
+			nbInstance++
+		}
 	}
-	if val, err := strconv.Atoi(attributes.Vcpu); err == nil {
-		dbAwsProduct.Vcpu = val
+	if err := dbAwsProductPricingBulk.BulkInsertOrUpdate(tx); err != nil {
+		logger.Error("Error when inserting product in database", err.Error())
+		return err
 	}
-	dbAwsProduct.Memory = attributes.Memory
-	dbAwsProduct.Storage = attributes.Storage
-	dbAwsProduct.NetworkPerformance = attributes.NetworkPerformance
-	dbAwsProduct.Tenancy = attributes.Tenancy
-	dbAwsProduct.OperatingSystem = attributes.OperatingSystem
-	if val, err := strconv.Atoi(attributes.Ecu); err == nil {
-		dbAwsProduct.Ecu = val
-	}
-	if attributes.LocationType == "AWS Region" {
-		err = storeRegionID(attributes.Location, dbAwsProduct, logger, sqlTx)
-	}
-	return err
+	logger.Info(fmt.Sprintf("%d instance(s) successfully stored in %dms.", nbInstance, time.Now().Sub(start)/NsToMsVal), nil)
+	return nil
 }
 
 // importResult parses the body returned by downloadJSON and
-// inserts the pricing in the database.
-func importResult(reader io.ReadCloser, logger jsonlog.Logger, sqlTx models.XODB) error {
+// inserts the pricing to the database.
+func importResult(ctx context.Context, etag string, reader io.ReadCloser, tx models.XODB) error {
 	defer reader.Close()
 
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	decoder := json.NewDecoder(reader)
-	var bodyMap EC2Pricing
-	if err := decoder.Decode(&bodyMap); err != nil {
+	if err := consumeJsonUntilProduct(decoder); err != nil {
+		logger.Error("Error when detecting token in pricing JSON", err.Error())
 		return err
 	}
-	for _, product := range bodyMap.Products {
-		if product.ProductFamily == "Compute Instance" {
-			var dbAwsProduct models.AwsProductEc2
 
-			dbAwsProduct.Sku = string(product.Sku)
-			if err := storeAttributes(&product.Attributes, &dbAwsProduct, logger, sqlTx); err != nil {
-				return err
-			}
-			if err := dbAwsProduct.Insert(sqlTx); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
+	return consumeJsonProducts(ctx, etag, decoder, tx)
 }
 
-func saveLastFetch(lastFetch *models.AwsFetchPricing, newEtag string, sqlTx models.XODB) error {
+// saveLastFetch saves in the database the last fetched Etag.
+// Thus, downloadJson will not download twice a same JSON.
+func saveLastFetch(lastFetch *models.AwsProductPricingUpdate, newEtag string, tx models.XODB) error {
 	if lastFetch != nil {
-		lastFetch.Delete(sqlTx)
+		lastFetch.Delete(tx)
 	}
-	dbAfp := models.AwsFetchPricing{
+	dbAfp := models.AwsProductPricingUpdate{
 		Product: "ec2",
 		Etag:    newEtag,
 	}
-	return dbAfp.Save(sqlTx)
+	return dbAfp.Insert(tx)
 }
 
-// downloadJSON requests AWS' API and returns the body after
-// checking if there's already the same version in the database.
-func downloadJSON(logger jsonlog.Logger, sqlTx models.XODB) (io.ReadCloser, error) {
+// downloadJson requests AWS' API and returns the etag from the json downloaded
+// and its body after checking if there's already the same version in the database.
+func downloadJson(ctx context.Context, tx models.XODB) (string, io.ReadCloser, error) {
+	var etag string
+
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	hc := http.Client{}
-	req, err := http.NewRequest("GET", config.UrlEc2Pricing, nil)
+	req, err := http.NewRequest(http.MethodGet, config.UrlEc2Pricing, nil)
 	if err != nil {
-		return nil, err
+		return etag, nil, err
 	}
-	lastFetch, err := models.AwsFetchPricingByProduct(db.Db, "ec2")
+	lastFetch, err := models.AwsProductPricingUpdateByProduct(db.Db, Ec2ProductName)
 	if err == nil {
+		etag = lastFetch.Etag
 		req.Header.Add("If-None-Match", lastFetch.Etag)
 	}
+	req = req.WithContext(ctx)
+	start := time.Now()
 	res, err := hc.Do(req)
 	if err != nil {
-		return nil, err
+		return etag, nil, err
 	}
-	if res.StatusCode == 304 {
-		logger.Info("JSON Downloading halted: Already exists with ETag.\n", lastFetch.Etag)
-		return nil, nil
+	if res.StatusCode == http.StatusNotModified {
+		logger.Info("JSON Stream halted: Already exists with ETag.\n", lastFetch.Etag)
+		return etag, nil, nil
 	}
-	if err = saveLastFetch(lastFetch, res.Header["Etag"][0], sqlTx); err != nil {
+	if err = saveLastFetch(lastFetch, res.Header["Etag"][0], tx); err != nil {
 		logger.Error("Error when saving the dbAfp", err.Error())
-		return nil, err
+		return etag, nil, err
 	}
-	return res.Body, nil
+	logger.Info(fmt.Sprintf("JSON streamed in %dms", time.Now().Sub(start)/NsToMsVal), nil)
+	etag = res.Header["Etag"][0]
+	return etag, res.Body, nil
 }
 
-// ImportEC2Pricing downloads the EC2 Pricing from AWS and
-// store it in the database.
-func ImportEC2Pricing() error {
-	logger := jsonlog.DefaultLogger
-	sqlTx, err := db.Db.BeginTx(context.Background(), nil)
+// ImportEc2Pricing downloads the EC2 Pricing from AWS and
+// store it to the database.
+func ImportEc2Pricing(ctx context.Context, tx *sql.Tx) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	start := time.Now()
+	logger.Info("Attempting to stream JSON of pricing", nil)
+	etag, res, err := downloadJson(ctx, tx)
 	if err != nil {
-		logger.Error("Error when beginning sqlTx", err.Error())
-		return err
-	}
-	res, err := downloadJSON(logger, sqlTx)
-	if err != nil {
-		logger.Error("Error when downloading the JSON file", err.Error())
+		logger.Error("Error when streaming the JSON file", err.Error())
 		return err
 	} else if res == nil {
 		return nil
 	}
-
-	if err := models.AwsProductEc2Purge(sqlTx); err != nil {
-		logger.Error("Error when purging the old data", err.Error())
+	if err := importResult(ctx, etag, res, tx); err != nil {
+		logger.Error("Error when importing the result of the downloaded JSON", err.Error())
 		return err
-	} else if err := importResult(res, logger, sqlTx); err != nil {
-		logger.Error("Error when importing the result", err.Error())
+	} else if err := models.AwsProductPricingEc2PurgeWhenNotEtag(etag, tx); err != nil {
+		logger.Error("Error when purging the old data of EC2 Pricing", err.Error())
 		return err
 	}
-	sqlTx.Commit()
+	logger.Info(fmt.Sprintf("EC2 Pricing successfully imported in %dms.", time.Now().Sub(start)/NsToMsVal), nil)
 	return nil
 }
