@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import Panels from '.';
+import '../../styles/Setup.css';
 
 // Setup Container for Management Panels
 class SetupContainer extends Component {

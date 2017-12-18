@@ -85,6 +85,12 @@ button {
     border-color: #4885ed;
 }
 
+.btn-danger, .btn-danger:focus, .btn-danger:hover {
+    color: #d9534f;
+    background-color: #fff;
+    border-color: #d9534f
+}
+
 
 /* COLORS */
 

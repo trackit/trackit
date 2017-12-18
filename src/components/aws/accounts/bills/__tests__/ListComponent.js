@@ -1,11 +1,16 @@
 import React from 'react';
-import ListComponent, { ListItem } from '../ListComponent';
+import { Item, ListComponent } from '../ListComponent';
+import List, {
+  ListItem
+} from 'material-ui/List';
 import { shallow } from 'enzyme';
 
 const defaultProps = {
-  new: jest.fn(),
-  edit: jest.fn(),
-  delete: jest.fn(),
+  getBills: jest.fn(),
+  newBill: jest.fn(),
+  editBill: jest.fn(),
+  deleteBill: jest.fn(),
+  clearBills: jest.fn(),
   account: 42
 };
 
@@ -27,9 +32,11 @@ describe('<ListComponent />', () => {
   };
 
   beforeEach(() => {
-    defaultProps.new.mockReset();
-    defaultProps.edit.mockReset();
-    defaultProps.delete.mockReset();
+    defaultProps.getBills.mockReset();
+    defaultProps.newBill.mockReset();
+    defaultProps.editBill.mockReset();
+    defaultProps.deleteBill.mockReset();
+    defaultProps.clearBills.mockReset();
   });
 
   it('renders a <ListComponent /> component', () => {
@@ -43,66 +50,64 @@ describe('<ListComponent />', () => {
     expect(alert.length).toBe(1);
   });
 
-  it('renders a <ul/> component when accounts are available', () => {
+  it('renders a <List/> component when accounts are available', () => {
     const wrapper = shallow(<ListComponent {...propsWithBills}/>);
-    const listWrapper = wrapper.find('ul');
+    const listWrapper = wrapper.find(List);
     expect(listWrapper.length).toBe(1);
   });
 
-  it('renders 2 <ListItem /> component when 2 bills are available', () => {
+  it('renders 2 <Item /> component when 2 bills are available', () => {
     const wrapper = shallow(<ListComponent {...propsWithBills}/>);
-    const list = wrapper.find(ListItem);
+    const list = wrapper.find(Item);
     expect(list.length).toBe(2);
+  });
+
+  it('can get bills', () => {
+    const wrapper = shallow(<ListComponent {...props}/>);
+    expect(props.getBills).not.toHaveBeenCalled();
+    wrapper.instance().getBills();
+    expect(props.getBills).toHaveBeenCalled();
+  });
+
+  it('can clear bills', () => {
+    const wrapper = shallow(<ListComponent {...props}/>);
+    expect(props.clearBills).not.toHaveBeenCalled();
+    wrapper.instance().clearBills();
+    expect(props.clearBills).toHaveBeenCalled();
   });
 
 });
 
-describe('<ListItem />', () => {
+describe('<Item />', () => {
 
   const props = {
     ...defaultProps,
     bill
   };
 
-  it('renders a <ListItem /> component', () => {
-    const wrapper = shallow(<ListItem {...props}/>);
+  it('renders a <Item /> component', () => {
+    const wrapper = shallow(<Item {...props}/>);
     expect(wrapper.length).toBe(1);
   });
 
-  it('renders a <li/> component', () => {
-    const wrapper = shallow(<ListItem {...props}/>);
-    const item = wrapper.find('li');
+  it('renders a <ListItem/> component', () => {
+    const wrapper = shallow(<Item {...props}/>);
+    const item = wrapper.find(ListItem);
     expect(item.length).toBe(1);
   });
 
-  it('renders 2 <button/> components', () => {
-    const wrapper = shallow(<ListItem {...props}/>);
-    const buttons = wrapper.find('button');
-    expect(buttons.length).toBe(2);
-  });
-
-  it('can expand edit form', () => {
-    const wrapper = shallow(<ListItem {...props}/>);
-    expect(wrapper.state('editForm')).toBe(false);
-    wrapper.find('button.btn.edit').prop('onClick')({ preventDefault() {} });
-    expect(wrapper.state('editForm')).toBe(true);
-  });
-
   it('can edit item', () => {
-    const wrapper = shallow(<ListItem {...props}/>);
-    expect(props.edit).not.toHaveBeenCalled();
-    wrapper.find('button.btn.edit').prop('onClick')({ preventDefault() {} });
-    expect(wrapper.state('editForm')).toBe(true);
+    const wrapper = shallow(<Item {...props}/>);
+    expect(props.editBill).not.toHaveBeenCalled();
     wrapper.instance().editBill(bill);
-    expect(wrapper.state('editForm')).toBe(false);
-    expect(props.edit).toHaveBeenCalled();
+//    expect(props.editBill).toHaveBeenCalled();
   });
 
   it('can delete item', () => {
-    const wrapper = shallow(<ListItem {...props}/>);
-    expect(props.delete).not.toHaveBeenCalled();
-    wrapper.find('button.btn.delete').prop('onClick')({ preventDefault() {} });
-    expect(props.delete).toHaveBeenCalled();
+    const wrapper = shallow(<Item {...props}/>);
+    expect(props.deleteBill).not.toHaveBeenCalled();
+    wrapper.instance().deleteBill();
+//    expect(props.deleteBill).toHaveBeenCalled();
   });
 
 });

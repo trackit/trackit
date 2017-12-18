@@ -1,9 +1,19 @@
 import Constants from '../../constants';
 
 export default {
-	getAccounts: () => ({
-		type: Constants.AWS_GET_ACCOUNTS
-	}),
+  getAccounts: () => ({
+    type: Constants.AWS_GET_ACCOUNTS
+  }),
+  clearAccounts: () => ({
+    type: Constants.AWS_GET_ACCOUNTS_CLEAR
+  }),
+  getAccountBills: (accountID) => ({
+    type: Constants.AWS_GET_ACCOUNT_BILLS,
+    accountID
+  }),
+  clearAccountBills: () => ({
+    type: Constants.AWS_GET_ACCOUNT_BILLS_CLEAR
+  }),
   newAccount: (account) => ({
     type: Constants.AWS_NEW_ACCOUNT,
     account

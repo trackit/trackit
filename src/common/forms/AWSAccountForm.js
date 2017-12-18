@@ -8,7 +8,8 @@ if (!regex.exec(value))
 };
 
 const s3BucketFormat = (value) => {
-  const regex = /^s3:\/\/((?![^/]{1,61}\.\.[^/]{1,61})[a-z.-]{3,63})$/;
+  //s3:\/\/
+  const regex = /^((?![^/]{1,61}\.\.[^/]{1,61})[a-z.-]{3,63})$/;
   if (!regex.exec(value))
     return (<div className="alert alert-warning">{value} is not a valid S3 bucket.</div>);
 };

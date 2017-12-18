@@ -2,7 +2,7 @@ import { put, call, all } from 'redux-saga/effects';
 import {
   getAccountsSaga, newAccountSaga, editAccountSaga, deleteAccountSaga,
   newExternalSaga,
-  newAccountBillSaga, editAccountBillSaga, deleteAccountBillSaga
+  getAccountBillsSaga, newAccountBillSaga, editAccountBillSaga, deleteAccountBillSaga
 } from '../accountsSaga';
 import { getToken } from '../../misc';
 import API from '../../../api';
@@ -30,9 +30,7 @@ describe("Accounts Saga", () => {
         .toEqual(call(API.AWS.Accounts.getAccounts, token));
 
       expect(saga.next(validResponse).value)
-        .toEqual(all([
-          put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts })
-        ]));
+        .toEqual(put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts }));
 
       expect(saga.next().done).toBe(true);
 
@@ -67,6 +65,67 @@ describe("Accounts Saga", () => {
 
       expect(saga.next(noResponse).value)
         .toEqual(put({ type: Constants.AWS_GET_ACCOUNTS_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Get Account Bills", () => {
+
+    const accountID = 42;
+    const bills = ["bill1", "bill2"];
+    const validResponse = { success: true, data: bills };
+    const invalidResponse = { success: true, bills };
+    const noResponse = { success: false };
+
+    it("handles saga with valid data", () => {
+
+      let saga = getAccountBillsSaga({ accountID });
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.getAccountBills, accountID, token));
+
+      expect(saga.next(validResponse).value)
+        .toEqual(put({ type: Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS, bills }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with invalid data", () => {
+
+      let saga = getAccountBillsSaga({ accountID });
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.getAccountBills, accountID, token));
+
+      expect(saga.next(invalidResponse).value)
+        .toEqual(put({ type: Constants.AWS_GET_ACCOUNT_BILLS_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with no response", () => {
+
+      let saga = getAccountBillsSaga({ accountID });
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.getAccountBills, accountID, token));
+
+      expect(saga.next(noResponse).value)
+        .toEqual(put({ type: Constants.AWS_GET_ACCOUNT_BILLS_ERROR, error: Error("Error with request") }));
 
       expect(saga.next().done).toBe(true);
 
@@ -274,7 +333,7 @@ describe("Account Bills Saga", () => {
       expect(saga.next().value)
         .toEqual(all([
           put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
 
       expect(saga.next().done).toBe(true);
@@ -301,7 +360,7 @@ describe("Account Bills Saga", () => {
       expect(saga.next().value)
         .toEqual(all([
           put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
 
       expect(saga.next().done).toBe(true);

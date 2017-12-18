@@ -19,7 +19,7 @@ describe('Authentication Form Validation', () => {
   describe('S3 Bucket Validation', () => {
 
     it('should render no error', () => {
-      expect(Validation.s3BucketFormat("s3://test.test")).toBe(undefined);
+      expect(Validation.s3BucketFormat("test.test")).toBe(undefined);
     });
 
     it('should render an error', () => {

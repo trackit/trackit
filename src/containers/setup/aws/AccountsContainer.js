@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import Components from '../../../components';
 import Actions from "../../../actions";
 import PropTypes from "prop-types";
+import s3square from '../../../assets/s3-square.png';
 
 const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
@@ -19,16 +20,29 @@ export class AccountsContainer extends Component {
 
   render() {
     return (
-      <Panel title="AWS Accounts" collapsible>
+      <Panel>
+
+        <div>
+
+          <h3 className="white-box-title no-padding inline-block">
+            <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+            AWS Accounts
+          </h3>
+
+          <div className="inline-block pull-right">
+            <Form
+              submit={this.props.accountActions.new}
+              external={this.props.external}
+            />
+          </div>
+
+        </div>
+
         <List
           accounts={this.props.accounts}
           accountActions={this.props.accountActions}
-          billActions={this.props.billActions}
         />
-        <Form
-          submit={this.props.accountActions.new}
-          external={this.props.external}
-        />
+
       </Panel>
     );
   }
@@ -40,23 +54,12 @@ AccountsContainer.propTypes = {
     PropTypes.shape({
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
-      pretty: PropTypes.string,
-      bills: PropTypes.arrayOf(
-        PropTypes.shape({
-          bucket: PropTypes.string.isRequired,
-          path: PropTypes.string.isRequired
-        })
-      )
+      pretty: PropTypes.string
     })
   ),
   external: PropTypes.string,
   getAccounts: PropTypes.func.isRequired,
   accountActions: PropTypes.shape({
-    new: PropTypes.func.isRequired,
-    edit: PropTypes.func.isRequired,
-    delete: PropTypes.func.isRequired,
-  }).isRequired,
-  billActions: PropTypes.shape({
     new: PropTypes.func.isRequired,
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
@@ -84,17 +87,6 @@ const mapDispatchToProps = (dispatch) => ({
     },
     delete: (accountID) => {
       dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
-    },
-  },
-  billActions: {
-    new: (accountID, bill) => {
-      dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
-    },
-    edit: (accountID, bill) => {
-      dispatch(Actions.AWS.Accounts.editAccountBill(accountID, bill))
-    },
-    delete: (accountID, bill) => {
-      dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, bill));
     },
   },
   newExternal: () => {

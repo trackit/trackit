@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
-
-// Form imports
+import Dialog, {
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+} from 'material-ui/Dialog';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
 import Validations from '../../../../common/forms';
+import Popover from '../../../misc/Popover';
 import PropTypes from "prop-types";
-
-import Misc from '../../../misc';
-
-const Panel = Misc.Panel;
 
 const Validation = Validations.AWSAccount;
 
@@ -18,22 +18,37 @@ class FormComponent extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      open: false
+    };
+    this.openDialog = this.openDialog.bind(this);
+    this.closeDialog = this.closeDialog.bind(this);
     this.submit = this.submit.bind(this);
   }
 
+  openDialog = (e) => {
+    e.preventDefault();
+    this.setState({open: true});
+  };
+
+  closeDialog = (e) => {
+    e.preventDefault();
+    this.setState({open: false});
+  };
+
   submit = (e) => {
     e.preventDefault();
+    this.closeDialog(e);
     let values = this.form.getValues();
     let bill = {
       bucket: values.bucket,
-      path: values.path
+      prefix: values.prefix
     };
+    console.log(bill);
     this.props.submit(this.props.account, bill);
   };
 
   render() {
-    const actionVerb = (this.props.bill !== undefined ? "Edit" : "Add");
-
     const button = (this.props.bill !== undefined ? (
       <div>
         <span className="glyphicon glyphicon-pencil" aria-hidden="true"/>&nbsp;Save
@@ -45,48 +60,73 @@ class FormComponent extends Component {
     ));
 
     return (
-      <Panel title={actionVerb + " a bill location"} collapsible defaultCollapse={!this.props.bill}>
-        <Form
-          ref={
-            /* istanbul ignore next */
-            form => { this.form = form; }
-          }
-          onSubmit={this.submit}>
+      <div>
 
-          <div className="form-group">
-            <label htmlFor="bucket">S3 Bucket</label>
-            <Input
-              name="bucket"
-              type="text"
-              className="form-control"
-              value={(this.props.bill !== undefined ? this.props.bill.bucket : "s3://")}
-              validations={[Validation.required, Validation.s3BucketFormat]}
-            />
-          </div>
+        <button className="btn btn-default" onClick={this.openDialog}>
+          {this.props.bill !== undefined ? "Edit" : "Add"}
+        </button>
 
-          <div className="form-group">
-            <label htmlFor="path">Path</label>
-            <Input
-              type="text"
-              name="path"
-              value={(this.props.bill !== undefined ? this.props.bill.path : undefined)}
-              className="form-control"
-              validations={[Validation.required, Validation.pathFormat]}
-            />
-          </div>
+        <Dialog open={this.state.open} fullWidth>
 
-          <div>
-            <Button
-              className="btn btn-primary btn-block"
-              type="submit"
-            >
-              {button}
-            </Button>
-          </div>
+          <DialogTitle disableTypography><h1>{this.props.bill !== undefined ? "Edit this" : "Add a"} bill location</h1></DialogTitle>
 
-        </Form>
+          <DialogContent>
 
-      </Panel>
+            <Form ref={
+              /* istanbul ignore next */
+              form => { this.form = form; }
+            } onSubmit={this.submit}>
+
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">S3 Bucket</label>
+                  &nbsp;
+                  <Popover info popOver="Name of S3 bucket"/>
+                </div>
+                <Input
+                  name="bucket"
+                  type="text"
+                  className="form-control"
+                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
+                  validations={[Validation.required, Validation.s3BucketFormat]}
+                />
+              </div>
+
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="prefix">Path</label>
+                  &nbsp;
+                  <Popover info popOver="Path to bills"/>
+                </div>
+                <Input
+                  type="text"
+                  name="prefix"
+                  value={(this.props.bill !== undefined ? this.props.bill.prefix : undefined)}
+                  className="form-control"
+                  validations={[Validation.required, Validation.pathFormat]}
+                />
+              </div>
+
+              <DialogActions>
+
+                <button className="btn btn-default pull-left" onClick={this.closeDialog}>
+                  Cancel
+                </button>
+
+                <Button
+                  className="btn btn-primary btn-block"
+                  type="submit"
+                >
+                  {this.props.bill !== undefined ? "Save" : "Add"}
+                </Button>
+
+              </DialogActions>
+
+            </Form>
+
+          </DialogContent>
+        </Dialog>
+      </div>
     );
   }
 
@@ -96,7 +136,7 @@ FormComponent.propTypes = {
   account: PropTypes.number.isRequired,
   bill: PropTypes.shape({
     bucket: PropTypes.string.isRequired,
-    path: PropTypes.string.isRequired
+    prefix: PropTypes.string.isRequired
   }),
   submit: PropTypes.func.isRequired
 };

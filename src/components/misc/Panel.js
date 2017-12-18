@@ -1,46 +1,36 @@
 import React, {Component} from 'react';
 import PropTypes from "prop-types";
 
-class Panel extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      collapsed: props.defaultCollapse
-    };
-    this.toggleCollapse = this.toggleCollapse.bind(this);
-  }
-
-  toggleCollapse = (e) => {
-    e.preventDefault();
-    if (this.props.collapsible) {
-      const collapsed = !this.state.collapsed;
-      this.setState({collapsed});
-    }
-  };
+export class PanelItem extends Component {
 
   render() {
-    const body = ((!this.props.collapsible || !this.state.collapsed) ? (
-      <div className="panel-body">
-        {this.props.children}
-      </div>
-    ) : null);
-    const collapseIcon = (this.props.collapsible ? (
-      <div className="pull-right">
-        <span className={"glyphicon glyphicon-chevron-" + (this.state.collapsed ? "down" : "up")} aria-hidden="true"/>
-      </div>
-    ) : null);
-    return(
-      <div className="panel panel-default">
-
-        <div className="panel-heading" onClick={this.toggleCollapse}>
-          <h3 className="panel-title pull-left">{this.props.title}</h3>
-          {collapseIcon}
-          <div className="clearfix"/>
+    return (
+      <div className="row">
+        <div className="col-md-12">
+          <div className="white-box">
+            {this.props.children}
+          </div>
         </div>
+      </div>
+    );
+  }
 
+}
+
+PanelItem.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
+class Panel extends Component {
+
+  render() {
+    let body = ((Array.isArray(this.props.children)) ?
+      this.props.children.map((item, index) => (<PanelItem key={index} children={item}/>)) :
+      <PanelItem children={this.props.children}/>
+    );
+    return(
+      <div className="container-fluid">
         {body}
-
       </div>
     );
   }
@@ -48,15 +38,7 @@ class Panel extends Component {
 }
 
 Panel.propTypes = {
-  title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired,
-  collapsible: PropTypes.bool,
-  defaultCollapse: PropTypes.bool
-};
-
-Panel.defaultProps = {
-  collapsible: false,
-  defaultCollapse: false
+  children: PropTypes.node.isRequired
 };
 
 
