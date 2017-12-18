@@ -26,8 +26,10 @@ const (
 	maxUint = ^uint(0)
 	maxInt  = int(maxUint >> 1)
 	minInt  = -maxInt - 1
-	// TagQueryArg is the tag used to document query args.
-	TagQueryArg = "allof:queryarg"
+	// TagRequiredQueryArg is the tag used to document required query args.
+	TagRequiredQueryArg = "required:allof:queryarg"
+	// TagOptionalQueryArg is the tag used to document optional query args.
+	TagOptionalQueryArg = "optional:allof:queryarg"
 )
 
 type (
@@ -176,16 +178,23 @@ func (qa QueryArgs) getFunc(hf HandlerFunc) HandlerFunc {
 	}
 }
 
+// createDocumentationSlice creates the slice of string and fills it with documentation
+func createDocumentationSlice(index string, optional bool, qa QueryArgs) []string {
+	ts := make([]string, 0)
+	for i := range qa {
+		if qa[i].Optional == optional {
+			ts = append(ts, fmt.Sprintf("%s:%s:%s", qa[i].Name, qa[i].Type.FormatName(), qa[i].Description))
+		}
+	}
+	return ts
+}
+
 // getDocumentation builds the documentation for QueryArgs.Decorate
 func (qa QueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentation {
 	if hd.Tags == nil {
 		hd.Tags = make(Tags)
 	}
-	tk := hd.Tags[TagQueryArg]
-	ts := make([]string, len(qa))
-	for i := range qa {
-		ts[i] = fmt.Sprintf("%s:%s:%s", qa[i].Name, qa[i].Type.FormatName(), qa[i].Description)
-	}
-	hd.Tags[TagQueryArg] = append(tk, ts...)
+	hd.Tags[TagRequiredContentType] = append(hd.Tags[TagRequiredQueryArg], createDocumentationSlice(TagRequiredQueryArg, false, qa)...)
+	hd.Tags[TagOptionalQueryArg] = append(hd.Tags[TagOptionalQueryArg], createDocumentationSlice(TagOptionalQueryArg, true, qa)...)
 	return hd
 }
