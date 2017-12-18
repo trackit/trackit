@@ -9,6 +9,10 @@ class App extends Component {
         <Containers.Main>
           <div className="app-container" style={{paddingLeft: '60px'}}>
             <Route
+              path={this.props.match.url} exact
+              component={Containers.AWS.CostBreakdown}
+            />
+            <Route
               path={this.props.match.url + '/s3'}
               component={Containers.AWS.S3Analytics}
             />
