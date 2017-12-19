@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment from "moment";
 
 export default {
   aws: {
@@ -12,7 +12,14 @@ export default {
         endDate: moment()
       }
     },
-    costs: null
+    costs: {
+      values: null,
+      dates: {
+        startDate: moment().subtract(1, 'month').startOf('month'),
+        endDate: moment().subtract(1, 'month').endOf('month')
+      },
+      interval: "day"
+    }
   },
   gcp: {},
   auth: {
