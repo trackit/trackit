@@ -4,20 +4,17 @@ import PropTypes from 'prop-types';
 import Moment from 'moment';
 import DateRangePicker from 'react-bootstrap-daterangepicker';
 
+import Selector from './Selector';
+
 class TimerangeSelector extends Component {
 
   constructor(props) {
     super(props);
     this.handleApply = this.handleApply.bind(this);
-    this.handleInterval = this.handleInterval.bind(this);
   }
 
   handleApply(event, picker) {
     this.props.setDatesFunc(picker.startDate, picker.endDate);
-  }
-
-  handleInterval(event) {
-    this.props.setIntervalFunc(event.target.value);
   }
 
   render() {
@@ -29,6 +26,13 @@ class TimerangeSelector extends Component {
      'Last Month': [Moment().subtract(1, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
      'This Year': [Moment().startOf('year'), Moment()],
      'Last Year': [Moment().subtract(1, 'year').startOf('year'), Moment().subtract(1, 'year').endOf('year')]
+    };
+
+    const intervals = {
+      day: "Daily",
+      week: "Weekly",
+      month: "Monthly",
+      year: "Yearly"
     };
 
     return(
@@ -52,11 +56,7 @@ class TimerangeSelector extends Component {
             </button>
         </DateRangePicker>
         {(this.props.interval && this.props.setIntervalFunc) &&
-          <select value={this.props.interval} onChange={this.handleInterval}>
-            <option value="daily">Daily</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
+          <Selector values={intervals} selected={this.props.interval} selectValue={this.props.setIntervalFunc}/>
         }
       </div>
     );
