@@ -7,7 +7,7 @@ class App extends Component {
     return (
       <div>
         <Containers.Main>
-          <div className="app-container" style={{paddingLeft: '60px'}}>
+          <div className="app-container">
             <Route
               path={this.props.match.url + '/s3'}
               component={Containers.AWS.S3Analytics}
