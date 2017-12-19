@@ -7,5 +7,16 @@ export default {
     end,
     filters,
     accounts
-	})
+	}),
+  setCostsDates: (startDate, endDate) => ({
+    type: Constants.AWS_SET_COSTS_DATES,
+    dates: {
+      startDate,
+      endDate
+    }
+  }),
+  setCostsInterval: (interval) => ({
+    type: Constants.AWS_SET_COSTS_INTERVAL,
+    interval
+  })
 };
