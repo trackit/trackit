@@ -9,6 +9,7 @@ describe("Login Saga", () => {
 
   const credentials = { username: "username", password: "password" };
   const validResponse = { success: true, data: { token } };
+  const validErrorResponse = { success: true, data: { error: "error" }};
   const invalidResponse = { success: true, token };
   const noResponse = { success: false };
 
@@ -31,6 +32,22 @@ describe("Login Saga", () => {
 
   });
 
+  it("handles saga with valid data when login error", () => {
+
+    let saga = loginSaga(credentials);
+
+    expect(saga.next().value)
+      .toEqual(call(API.Auth.login, credentials.username, credentials.password));
+
+    expect(saga.next(validErrorResponse).value)
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_ERROR, error: validErrorResponse.data.error }));
+
+    expect(saga.next().done).toBe(true);
+
+    expect(window.localStorage.getItem("userToken")).toBe(token);
+
+  });
+
   it("handles saga with invalid data", () => {
 
     let saga = loginSaga(credentials);
@@ -39,7 +56,7 @@ describe("Login Saga", () => {
       .toEqual(call(API.Auth.login, credentials.username, credentials.password));
 
     expect(saga.next(invalidResponse).value)
-      .toEqual(put({ type: Constants.LOGIN_REQUEST_ERROR, error: Error("Error with request") }));
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_ERROR, error: "Error with request" }));
 
     expect(saga.next().done).toBe(true);
 
@@ -53,7 +70,7 @@ describe("Login Saga", () => {
       .toEqual(call(API.Auth.login, credentials.username, credentials.password));
 
     expect(saga.next(noResponse).value)
-      .toEqual(put({ type: Constants.LOGIN_REQUEST_ERROR, error: Error("Error with request") }));
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_ERROR, error: "Error with request" }));
 
     expect(saga.next().done).toBe(true);
 

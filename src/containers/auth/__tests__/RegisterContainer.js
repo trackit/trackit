@@ -19,8 +19,7 @@ const propsWithRegistration = {
 describe('<RegisterContainer />', () => {
 
   beforeEach(() => {
-    props.register.mockReset();
-    props.clear.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <RegisterContainer /> component', () => {

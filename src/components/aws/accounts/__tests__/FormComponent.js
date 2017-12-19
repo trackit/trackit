@@ -35,7 +35,7 @@ const form = {
 describe('<FormComponent />', () => {
 
   beforeEach(() => {
-    props.submit.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <FormComponent /> component', () => {

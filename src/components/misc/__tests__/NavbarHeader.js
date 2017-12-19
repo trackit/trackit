@@ -9,7 +9,7 @@ const props = {
 describe('<NavbarHeader />', () => {
 
   beforeEach(() => {
-    props.signOut.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <NavbarHeader /> component', () => {

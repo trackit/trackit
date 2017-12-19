@@ -9,7 +9,7 @@ const props = {
 describe('<Navigation />', () => {
 
   beforeEach(() => {
-    props.signOut.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <Navigation /> component', () => {

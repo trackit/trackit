@@ -18,7 +18,7 @@ const propsWithToken = {
 describe('<LoginContainer />', () => {
 
   beforeEach(() => {
-    props.login.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <LoginContainer /> component', () => {

@@ -14,21 +14,21 @@ const propsWithBill = {
   ...props,
   bill: {
     bucket: "s3://test.test",
-    path: "/path/to/bill"
+    prefix: "/path/to/bill"
   }
 };
 
 const form = {
   getValues: () => ({
     bucket: "bucket",
-    path: "path"
+    prefix: "path"
   })
 };
 
 describe('<FormComponent />', () => {
 
   beforeEach(() => {
-    props.submit.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <FormComponent /> component', () => {
