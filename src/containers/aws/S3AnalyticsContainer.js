@@ -10,6 +10,7 @@ import s3square from '../../assets/s3-square.png';
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const S3Analytics = Components.AWS.S3Analytics;
+const Panel = Components.Misc.Panel;
 
 // S3AnalyticsContainer Component
 export class S3AnalyticsContainer extends Component {
@@ -20,9 +21,9 @@ export class S3AnalyticsContainer extends Component {
 
   render() {
     return (
-      <div className="container-fluid">
+      <Panel>
 
-        <div className="white-box">
+        <div>
           <h3 className="white-box-title no-padding inline-block">
             <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
             AWS S3 Analytics
@@ -36,24 +37,15 @@ export class S3AnalyticsContainer extends Component {
           </div>
         </div>
 
-        <div className="row">
-          <div className="col-md-12">
-            <div className="white-box">
-              {this.props.s3Data && <S3Analytics.Infos data={this.props.s3Data}/>}
-            </div>
-          </div>
-          <div className="col-md-12">
-            <div className="white-box">
-              {this.props.s3Data && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.s3Data}/>}
-            </div>
-          </div>
+        {this.props.s3Data && <S3Analytics.Infos data={this.props.s3Data}/>}
 
-        </div>
+        {this.props.s3Data && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.s3Data}/>}
 
-        <div className="white-box no-padding">
+        <div className="no-padding">
           {this.props.s3Data && <S3Analytics.Table data={this.props.s3Data}/>}
         </div>
-      </div>
+
+      </Panel>
     );
   }
 
