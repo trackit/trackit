@@ -49,11 +49,14 @@ export function* newAccountSaga({ account }) {
 export function* newAccountBillSaga({ accountID, bill }) {
   try {
     const token = yield getToken();
-    yield call(API.AWS.Accounts.newAccountBill, accountID, bill, token);
-    yield all([
-      put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
-    ]);
+    const res = yield call(API.AWS.Accounts.newAccountBill, accountID, bill, token);
+    if (res.success && res.hasOwnProperty("data"))
+      yield all([
+        put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
+        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+      ]);
+    else
+      throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_NEW_ACCOUNT_BILL_ERROR, error });
   }

@@ -8,9 +8,7 @@ export function* getCostsSaga({ begin, end, filters, accounts=undefined }) {
     const token = yield getToken();
     const res = yield call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts);
     if (res.success && res.hasOwnProperty("data"))
-      yield all([
-        put({ type: Constants.AWS_GET_COSTS_SUCCESS, costs: res.data }),
-      ]);
+      yield put({ type: Constants.AWS_GET_COSTS_SUCCESS, costs: res.data });
     else
       throw Error("Error with request");
   } catch (error) {
