@@ -46,7 +46,7 @@ export class NavbarHeader extends Component {
                      </span>
                      <i className="fa fa-caret-down" />
                    </button>
-                   <ul className="dropdown-menu animated flipInY">
+                   <ul className="dropdown-menu">
                      <li>
                        <h5 className="dropdown-title"><strong>Username</strong></h5>
                      </li>
