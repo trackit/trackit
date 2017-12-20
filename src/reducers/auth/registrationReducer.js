@@ -5,6 +5,8 @@ export default (state=null, action) => {
     case Constants.REGISTRATION_SUCCESS:
     case Constants.REGISTRATION_ERROR:
       return action.payload;
+    case Constants.REGISTRATION_REQUEST_LOADING:
+      return {};
     case Constants.REGISTRATION_CLEAR:
     case Constants.REGISTRATION_REQUEST:
       return null;

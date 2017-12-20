@@ -6,6 +6,8 @@ export default (state=null, action) => {
       return { status: true };
     case Constants.LOGIN_REQUEST_ERROR:
       return { status: false, error: action.error };
+    case Constants.LOGIN_REQUEST_LOADING:
+      return {};
     case Constants.LOGIN_REQUEST:
       return null;
     default:
