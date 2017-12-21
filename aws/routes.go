@@ -50,7 +50,7 @@ func init() {
 		),
 		http.MethodPatch: routes.H(patchAwsAccount).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequiredQueryArgs{AwsAccountQueryArg},
+			routes.QueryArgs{AwsAccountQueryArg},
 			routes.Documentation{
 				Summary:     "edit an aws account",
 				Description: "Edits an AWS account from the user's list of accounts.",

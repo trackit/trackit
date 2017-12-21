@@ -59,7 +59,7 @@ func patchAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, 
 	awsAccount, err := GetAwsAccountWithIdFromUser(user, id, tx)
 	if err == nil {
 		awsAccount.Pretty = body.Pretty
-		if err := awsAccount.UpdatePrettyAWSAccount(ctx, tx); err != nil {
+		if err := awsAccount.UpdatePrettyAwsAccount(ctx, tx); err != nil {
 			logger.Error("Failed to update AWS Account.", err)
 			return 500, errFailUpdateAccount
 		}
