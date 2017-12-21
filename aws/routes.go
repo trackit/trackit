@@ -48,6 +48,14 @@ func init() {
 				Description: "Adds an AWS account to the user's list of accounts, validating it before succeeding.",
 			},
 		),
+		http.MethodPatch: routes.H(patchAwsAccount).With(
+			routes.RequestContentType{"application/json"},
+			routes.RequiredQueryArgs{AwsAccountQueryArg},
+			routes.Documentation{
+				Summary:     "edit an aws account",
+				Description: "Edits an AWS account from the user's list of accounts.",
+			},
+		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
 		users.RequireAuthenticatedUser{},
