@@ -137,10 +137,10 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 	return err
 }
 
-// UpdatePrettyAWSAccount updates an AWS account for a user. It does no error
+// UpdatePrettyAwsAccount updates an AWS account for a user. It does no error
 // checking: the caller should check themselves that the AWS account exists.
 // Only the Pretty will be updated.
-func (a *AwsAccount) UpdatePrettyAWSAccount(ctx context.Context, tx *sql.Tx) error {
+func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount, err := models.AwsAccountByID(tx, a.Id)
 	if err != nil {
