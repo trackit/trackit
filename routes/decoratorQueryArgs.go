@@ -194,7 +194,7 @@ func (qa QueryArgs) getDocumentation(hd HandlerDocumentation) HandlerDocumentati
 	if hd.Tags == nil {
 		hd.Tags = make(Tags)
 	}
-	hd.Tags[TagRequiredContentType] = append(hd.Tags[TagRequiredQueryArg], createDocumentationSlice(TagRequiredQueryArg, false, qa)...)
+	hd.Tags[TagRequiredQueryArg] = append(hd.Tags[TagRequiredQueryArg], createDocumentationSlice(TagRequiredQueryArg, false, qa)...)
 	hd.Tags[TagOptionalQueryArg] = append(hd.Tags[TagOptionalQueryArg], createDocumentationSlice(TagOptionalQueryArg, true, qa)...)
 	return hd
 }
