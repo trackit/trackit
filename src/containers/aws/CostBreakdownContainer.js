@@ -101,7 +101,7 @@ export class CostBreakdownContainer extends Component {
           /* istanbul ignore next */
           (d) => (d[1])
         }
-        height={400}
+        height={600}
       />
     ) : null);
 
@@ -113,22 +113,28 @@ export class CostBreakdownContainer extends Component {
             <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
             Cost Breakdown
           </h3>
+
           <div className="inline-block pull-right">
-            <TimerangeSelector
-              startDate={this.props.costsDates.startDate}
-              endDate={this.props.costsDates.endDate}
-              setDatesFunc={this.props.setCostsDates}
-              interval={this.props.costsInterval}
-              setIntervalFunc={this.props.setCostsInterval}
-            />
+            <div className="inline-block">
+              <Selector
+                values={filters}
+                selected={this.props.costsFilter}
+                selectValue={this.props.setCostsFilter}
+              />
+            </div>
+            <div className="inline-block">
+              <TimerangeSelector
+                startDate={this.props.costsDates.startDate}
+                endDate={this.props.costsDates.endDate}
+                setDatesFunc={this.props.setCostsDates}
+                interval={this.props.costsInterval}
+                setIntervalFunc={this.props.setCostsInterval}
+              />
+            </div>
           </div>
-          <div className="inline-block pull-right">
-            <Selector
-              values={filters}
-              selected={this.props.costsFilter}
-              selectValue={this.props.setCostsFilter}
-            />
-          </div>
+
+          <div className="clearfix"/>
+
         </div>
 
         <div>

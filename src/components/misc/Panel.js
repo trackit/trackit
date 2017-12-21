@@ -28,7 +28,7 @@ class Panel extends Component {
 
   render() {
     let body = ((Array.isArray(this.props.children)) ?
-      this.props.children.map((item, index) => ((item !== null ? <PanelItem key={index} children={item}/> : null))) :
+      this.props.children.map((item, index) => ((item ? <PanelItem key={index} children={item}/> : null))) :
       <PanelItem children={this.props.children}/>
     );
     return(
