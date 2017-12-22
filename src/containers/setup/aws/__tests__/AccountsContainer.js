@@ -31,12 +31,7 @@ const props = {
 describe('<AccountsContainer />', () => {
 
   beforeEach(() => {
-    defaultActions.accountActions.new.mockReset();
-    defaultActions.accountActions.edit.mockReset();
-    defaultActions.accountActions.delete.mockReset();
-    defaultActions.billActions.new.mockReset();
-    defaultActions.billActions.edit.mockReset();
-    defaultActions.billActions.delete.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <AccountsContainer /> component', () => {

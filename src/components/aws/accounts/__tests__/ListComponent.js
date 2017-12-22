@@ -41,9 +41,7 @@ describe('<ListComponent />', () => {
   };
 
   beforeEach(() => {
-    actionsProps.accountActions.new.mockReset();
-    actionsProps.accountActions.edit.mockReset();
-    actionsProps.accountActions.delete.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <ListComponent /> component', () => {
@@ -79,9 +77,7 @@ describe('<Item />', () => {
   };
 
   beforeEach(() => {
-    actionsProps.accountActions.new.mockReset();
-    actionsProps.accountActions.edit.mockReset();
-    actionsProps.accountActions.delete.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <Item /> component', () => {

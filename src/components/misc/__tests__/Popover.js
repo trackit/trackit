@@ -1,6 +1,6 @@
 import React from 'react';
 import Popover from '../Popover';
-import { Tooltip, OverlayTrigger } from 'react-bootstrap';
+import { OverlayTrigger } from 'react-bootstrap';
 import { shallow } from "enzyme";
 
 const child = <div id="child"/>;

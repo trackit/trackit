@@ -19,10 +19,18 @@ const propsForRegistration = {
   registration: true
 };
 
+const propsWithError = {
+  ...props,
+  loginStatus: {
+    status: false,
+    error: "error"
+  }
+};
+
 describe('<FormComponent />', () => {
 
   beforeEach(() => {
-    props.submit.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <FormComponent /> component', () => {
@@ -49,6 +57,12 @@ describe('<FormComponent />', () => {
     expect(props.submit).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault(){} });
     expect(props.submit).toHaveBeenCalled();
+  });
+
+  it('renders <div/> component if ther is a login error', () => {
+    const wrapper = shallow(<FormComponent {...propsWithError}/>);
+    const form = wrapper.find("div.alert");
+    expect(form.length).toBe(1);
   });
 
 });

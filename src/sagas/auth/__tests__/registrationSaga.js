@@ -1,9 +1,7 @@
-import { put, call, all } from 'redux-saga/effects';
+import { put, call } from 'redux-saga/effects';
 import registrationSaga from '../registrationSaga';
 import API from '../../../api';
 import Constants from '../../../constants';
-
-const token = "42";
 
 describe("Registration Saga", () => {
 

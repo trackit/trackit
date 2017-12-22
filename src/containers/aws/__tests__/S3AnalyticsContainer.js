@@ -28,7 +28,7 @@ const props = {
 describe('<S3AnalyticsContainer />', () => {
 
   beforeEach(() => {
-    props.getS3Data.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <S3AnalyticsContainer /> component', () => {

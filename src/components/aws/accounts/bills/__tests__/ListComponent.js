@@ -16,7 +16,7 @@ const defaultProps = {
 
 const bill = {
   bucket: "s3://test.test",
-  path: "/path/to/bill"
+  prefix: "/path/to/bill"
 };
 
 describe('<ListComponent />', () => {
@@ -32,11 +32,7 @@ describe('<ListComponent />', () => {
   };
 
   beforeEach(() => {
-    defaultProps.getBills.mockReset();
-    defaultProps.newBill.mockReset();
-    defaultProps.editBill.mockReset();
-    defaultProps.deleteBill.mockReset();
-    defaultProps.clearBills.mockReset();
+    jest.resetAllMocks();
   });
 
   it('renders a <ListComponent /> component', () => {
