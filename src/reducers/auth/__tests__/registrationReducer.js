@@ -17,6 +17,10 @@ describe("RegistrationReducer", () => {
     expect(RegistrationReducer(null, { type: Constants.REGISTRATION_ERROR, payload })).toEqual(payload);
   });
 
+  it("handles get registration loading state", () => {
+    expect(RegistrationReducer(null, { type: Constants.REGISTRATION_REQUEST_LOADING })).toEqual({});
+  });
+
   it("handles clean registration state", () => {
     const payload = { status: true };
     expect(RegistrationReducer(payload, { type: Constants.REGISTRATION_CLEAR })).toEqual(null);

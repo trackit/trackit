@@ -2,6 +2,7 @@ import React from 'react';
 import { FormComponent } from '../FormComponent';
 import { shallow } from "enzyme";
 import Form from 'react-validation/build/form';
+import Spinner from 'react-spinkit';
 
 const props = {
   submit: jest.fn()
@@ -25,6 +26,17 @@ const propsWithError = {
     status: false,
     error: "error"
   }
+};
+
+const propsForRegistrationSpinner = {
+  ...props,
+  registration: true,
+  registrationStatus: {}
+};
+
+const propsForLoginSpinner = {
+  ...props,
+  loginStatus: {}
 };
 
 describe('<FormComponent />', () => {
@@ -59,10 +71,19 @@ describe('<FormComponent />', () => {
     expect(props.submit).toHaveBeenCalled();
   });
 
-  it('renders <div/> component if ther is a login error', () => {
+  it('renders <div/> component if there is a login error', () => {
     const wrapper = shallow(<FormComponent {...propsWithError}/>);
     const form = wrapper.find("div.alert");
     expect(form.length).toBe(1);
+  });
+
+  it('renders <Spinner/> component if waiting for data', () => {
+    const registration = shallow(<FormComponent {...propsForRegistrationSpinner}/>);
+    let spinners = registration.find(Spinner);
+    expect(spinners.length).toBe(1);
+    const login = shallow(<FormComponent {...propsForLoginSpinner}/>);
+    spinners = login.find(Spinner);
+    expect(spinners.length).toBe(1);
   });
 
 });
