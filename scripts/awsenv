@@ -17,6 +17,10 @@ def main(profile, cmd):
     env = os.environ.copy()
     env['AWS_ACCESS_KEY_ID'] = profile_config['aws_access_key_id']
     env['AWS_SECRET_ACCESS_KEY'] = profile_config['aws_secret_access_key']
+    if 'aws_session_token' in profile_config:
+        env['AWS_SESSION_TOKEN'] = profile_config['aws_session_token']
+    if 'region' in profile_config:
+        env['AWS_DEFAULT_REGION'] = profile_config['region']
     child = subprocess.Popen(cmd, env=env)
     child.wait()
 
