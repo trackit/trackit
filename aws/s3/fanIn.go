@@ -10,12 +10,12 @@ func mergecLineItem(out chan<- LineItem, cs <-chan <-chan LineItem) {
 	var wg sync.WaitGroup
 	for c := range cs {
 		wg.Add(1)
-		go func() {
+		go func(c <-chan LineItem) {
 			defer wg.Done()
 			for u := range c {
 				out <- u
 			}
-		}()
+		}(c)
 	}
 	go func() {
 		wg.Wait()
@@ -38,12 +38,12 @@ func mergecManifest(out chan<- manifest, cs <-chan <-chan manifest) {
 	var wg sync.WaitGroup
 	for c := range cs {
 		wg.Add(1)
-		go func() {
+		go func(c <-chan manifest) {
 			defer wg.Done()
 			for u := range c {
 				out <- u
 			}
-		}()
+		}(c)
 	}
 	go func() {
 		wg.Wait()
