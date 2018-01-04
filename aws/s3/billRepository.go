@@ -127,6 +127,20 @@ func GetBillRepositoryForAwsAccountById(aa aws.AwsAccount, brId int, tx *sql.Tx)
 	return out, err
 }
 
+// GetAwsBillRepositoriesWithDueUpdate gets all bill repositories in need of an
+// update.
+func GetAwsBillRepositoriesWithDueUpdate(tx *sql.Tx) ([]BillRepository, error) {
+	dbbrs, err := models.AwsBillRepositoriesWithDueUpdate(tx)
+	if err != nil {
+		return nil, err
+	}
+	brs := make([]BillRepository, len(dbbrs))
+	for i := range dbbrs {
+		brs[i] = billRepoFromDbBillRepo(*dbbrs[i])
+	}
+	return brs, nil
+}
+
 func billRepoFromDbBillRepo(dbBillRepo models.AwsBillRepository) BillRepository {
 	return BillRepository{
 		Id:                   dbBillRepo.ID,

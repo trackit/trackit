@@ -2,7 +2,9 @@ package s3
 
 import (
 	"context"
+	"database/sql"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/satori/go.uuid"
@@ -27,23 +29,59 @@ const (
 	tagPrefix = `resourceTags/user:`
 )
 
-/*
-func UpdateDueReports(ctx context.Context, tx *sql.Tx) error {
+type ReportUpdateConclusion struct {
+	BillRepository       BillRepository
+	LastImportedManifest time.Time
+	Error                error
+}
+
+func reportUpdateConclusionChanToSlice(rucc <-chan ReportUpdateConclusion, count int) (rucs []ReportUpdateConclusion) {
+	rucs = make([]ReportUpdateConclusion, count)
+	for i := range rucs {
+		if r, ok := <-rucc; ok {
+			rucs[i] = r
+		} else {
+			rucs = rucs[:i]
+			return
+		}
+	}
+	return
+}
+
+func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion, error) {
+	var wg sync.WaitGroup
 	aas := make(map[int]aws.AwsAccount)
-	brs := aws.AwsBillRepositoriesWithDueUpdate(tx)
-	for _, br := range repositoriesWithDueUpdate {
-		var aa AwsAccount
-		if aa, ok := aas[br.AwsAccountId]; !ok {
-			aa, err := aws.GetAwsAccountWithId(br.AwsAccountId, tx)
+	brs, err := GetAwsBillRepositoriesWithDueUpdate(tx)
+	if err != nil {
+		return nil, err
+	}
+	wg.Add(len(brs))
+	conclusionChan := make(chan ReportUpdateConclusion, len(brs))
+	defer close(conclusionChan)
+	for _, br := range brs {
+		var aa aws.AwsAccount
+		var ok bool
+		var err error
+		if aa, ok = aas[br.AwsAccountId]; !ok {
+			aa, err = aws.GetAwsAccountWithId(br.AwsAccountId, tx)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			aas[br.AwsAccountId] = aa
 		}
-		go UpdateReport(ctx, aa, br)
+		go func(ctx context.Context, aa aws.AwsAccount, br BillRepository) {
+			lim, err := UpdateReport(ctx, aa, br)
+			conclusionChan <- ReportUpdateConclusion{
+				BillRepository:       br,
+				LastImportedManifest: lim,
+				Error:                err,
+			}
+			wg.Done()
+		}(ctx, aa, br)
 	}
+	wg.Wait()
+	return reportUpdateConclusionChanToSlice(conclusionChan, len(brs)), nil
 }
-*/
 
 // contextKey is a key in a context, to prevent collision with other modules.
 type contextKey uint

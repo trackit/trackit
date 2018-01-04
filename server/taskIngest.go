@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/aws/s3"
 	"github.com/trackit/trackit2/db"
@@ -27,6 +29,43 @@ func taskIngest(ctx context.Context) error {
 	}
 }
 
+func taskIngestDue(ctx context.Context) (err error) {
+	var tx *sql.Tx
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	defer func() {
+		if tx != nil {
+			if err != nil {
+				tx.Rollback()
+				logger.Debug("Rolled back transaction.", nil)
+			} else {
+				tx.Commit()
+				logger.Debug("Commited transaction.", nil)
+			}
+		}
+	}()
+	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
+	} else {
+		logger.Debug("Started transaction.", nil)
+		conclusion, err := s3.UpdateDueReports(ctx, tx)
+		if err == nil {
+			err = updateBillRepositoriesFromConclusion(ctx, tx, conclusion)
+		}
+	}
+	return
+}
+
+func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
+	for _, r := range ruccs {
+		if r.Error != nil {
+			return r.Error
+		}
+		if err := updateBillRepositoryForNextUpdate(ctx, tx, r.BillRepository, r.LastImportedManifest); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
@@ -35,10 +74,8 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 		if tx != nil {
 			if err != nil {
 				tx.Rollback()
-				println("ROLLBACK!")
 			} else {
 				tx.Commit()
-				println("COMMIT!")
 			}
 		}
 	}()

@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
@@ -26,6 +27,7 @@ import (
 	_ "github.com/trackit/trackit2/aws/s3"
 	"github.com/trackit/trackit2/config"
 	_ "github.com/trackit/trackit2/costs"
+	"github.com/trackit/trackit2/periodic"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/users"
 )
@@ -33,9 +35,14 @@ import (
 var buildNumber string
 var backendId = getBackendId()
 
+func init() {
+	jsonlog.DefaultLogger = jsonlog.DefaultLogger.WithLogLevel(jsonlog.LogLevelDebug)
+}
+
 var tasks = map[string]func(context.Context) error{
-	"server": taskServer,
-	"ingest": taskIngest,
+	"server":     taskServer,
+	"ingest":     taskIngest,
+	"ingest-due": taskIngestDue,
 }
 
 func main() {
@@ -58,9 +65,17 @@ func main() {
 	}
 }
 
+var sched periodic.Scheduler
+
+func schedulePeriodicTasks() {
+	sched.Register(taskIngestDue, 10*time.Minute, "ingest-due-updates")
+	sched.Start()
+}
+
 func taskServer(ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	initializeHandlers()
+	schedulePeriodicTasks()
 	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
 	err := http.ListenAndServe(config.HttpAddress, nil)
 	logger.Error("Server stopped.", err.Error())
