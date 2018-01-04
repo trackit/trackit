@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
@@ -44,9 +45,27 @@ func UpdateDueReports(ctx context.Context, tx *sql.Tx) error {
 }
 */
 
+// contextKey is a key in a context, to prevent collision with other modules.
+type contextKey uint
+
+// ingestionContextKey is used to store an 'ingestionId' in a context.
+const ingestionContextKey = contextKey(iota)
+
+// contextWithIngestionId returns a context configured so that its logger logs
+// an 'ingestionId'.
+func contextWithIngestionId(ctx context.Context) context.Context {
+	ingestionId := uuid.NewV1().String()
+	ctx = context.WithValue(ctx, ingestionContextKey, ingestionId)
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger = logger.WithContextKey(ingestionContextKey, "ingestionId")
+	logger = logger.WithContext(ctx)
+	return jsonlog.ContextWithLogger(ctx, logger)
+}
+
 // UpdateReport updates the elasticsearch database with new data from usage and
 // cost reports.
 func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (latestManifest time.Time, err error) {
+	ctx = contextWithIngestionId(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating reports for AWS account.", map[string]interface{}{
 		"awsAccount":     aa,
@@ -62,7 +81,7 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 			aa,
 			br,
 			ingestLineItems(ctx, bp, index),
-			manifestsStartingAfter(br.LastImportedPeriod),
+			manifestsModifiedAfter(br.LastImportedManifest),
 		)
 	}
 	return
@@ -101,9 +120,9 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 
 // manifestsStartingAfter returns a manifest predicate which is true for all
 // manifests starting after a given date.
-func manifestsStartingAfter(t time.Time) ManifestPredicate {
+func manifestsModifiedAfter(t time.Time) ManifestPredicate {
 	return func(m manifest) bool {
-		if time.Time(m.BillingPeriod.Start).After(t) {
+		if time.Time(m.LastModified).After(t) {
 			return true
 		} else {
 			return false

@@ -62,6 +62,7 @@ type manifest struct {
 		Start billTime `json:"start"`
 		End   billTime `json:"end"`
 	} `json:"billingPeriod"`
+	LastModified time.Time
 }
 
 // BillKey is a key where a bill object may be found.
@@ -114,29 +115,34 @@ func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli O
 	mck := getKeys(ctx, s3svc, brr)
 	mck = getManifestKeys(ctx, mck)
 	mc := getManifests(ctx, s3svc, mck)
-	mc = selectManifests(mp, mc, &lastManifest)
-	lastManifest = importBills(ctx, s3svc, mc, oli)
-	return lastManifest, nil
+	mc, lastManifestPromise := selectManifests(mp, mc)
+	importBills(ctx, s3svc, mc, oli)
+	return <-lastManifestPromise, nil
 }
 
-func selectManifests(mp ManifestPredicate, mc <-chan manifest, lm *time.Time) <-chan manifest {
+func selectManifests(mp ManifestPredicate, mc <-chan manifest) (<-chan manifest, <-chan time.Time) {
 	out := make(chan manifest)
+	lmOut := make(chan time.Time, 1)
 	go func() {
 		defer close(out)
+		defer close(lmOut)
+		var lm time.Time
 		for m := range mc {
 			if mp(m) {
 				out <- m
+				if m.LastModified.After(lm) {
+					lm = m.LastModified
+				}
 			}
 		}
+		lmOut <- lm
 	}()
-	return out
+	return out, lmOut
 }
 
-func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) time.Time {
+func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	outs, out := mergecdLineItem()
-	var lastPeriodStart time.Time
-	var timeParseHasErrored bool
 	for m := range manifests {
 		l.Debug("Will attempt ingesting bills.", m)
 		for _, s := range m.ReportKeys {
@@ -146,21 +152,9 @@ func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, o
 	}
 	close(outs)
 	for lineItem := range out {
-		t, err := time.Parse(time.RFC3339, lineItem.BillingPeriodStart)
-		if err != nil && !timeParseHasErrored {
-			timeParseHasErrored = true
-			l.Error("Failed to parse lineitem billing period start.", map[string]interface{}{
-				"format": time.RFC3339,
-				"error":  err.Error(),
-				"string": lineItem.BillingPeriodStart,
-			})
-		} else if err == nil && t.After(lastPeriodStart) {
-			lastPeriodStart = t
-		}
 		oli(lineItem, true)
 	}
 	oli(LineItem{}, false)
-	return lastPeriodStart
 }
 
 // importBill imports
@@ -299,6 +293,7 @@ func readManifest(ctx context.Context, s3mgr *s3manager.Downloader, bk BillKey) 
 				logger.Error("Failed to parse usage and cost manifest.", map[string]interface{}{"billKey": bk, "error": err.Error()})
 				return
 			} else {
+				m.LastModified = bk.LastModified
 				m.SourceBucket = bk.Bucket
 				out <- m
 			}

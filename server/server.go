@@ -15,6 +15,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -32,15 +33,38 @@ import (
 var buildNumber string
 var backendId = getBackendId()
 
+var tasks = map[string]func(context.Context) error{
+	"server": taskServer,
+	"ingest": taskIngest,
+}
+
 func main() {
+	ctx := context.Background()
 	logger := jsonlog.DefaultLogger
 	logger.Info("Started.", struct {
 		BackendId string `json:"backendId"`
 	}{backendId})
+	if task, ok := tasks[config.Task]; ok {
+		task(ctx)
+	} else {
+		knownTasks := make([]string, 0, len(tasks))
+		for k := range tasks {
+			knownTasks = append(knownTasks, k)
+		}
+		logger.Error("Unknown task.", map[string]interface{}{
+			"knownTasks": knownTasks,
+			"chosen":     config.Task,
+		})
+	}
+}
+
+func taskServer(ctx context.Context) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	initializeHandlers()
 	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
 	err := http.ListenAndServe(config.HttpAddress, nil)
 	logger.Error("Server stopped.", err.Error())
+	return err
 }
 
 // initializeHandlers sets the HTTP server up with handler functions.
