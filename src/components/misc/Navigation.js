@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import NavbarHeader from './NavbarHeader';
+import AccountSelector from '../aws/accounts/SelectorComponent';
 import Actions from '../../actions';
 
 // Styling
@@ -17,26 +18,26 @@ export class Navigation extends Component {
     this.state = {
       userMenuExpanded: false,
     };
+    this.closeUserMenu = this.closeUserMenu.bind(this);
   }
 
   toggleUserMenu() {
     this.setState({ userMenuExpanded: !this.state.userMenuExpanded });
   }
 
+  closeUserMenu = (e) => {
+    e.preventDefault();
+    this.setState({ userMenuExpanded: false });
+  };
+
   render() {
 
     let userMenu;
     if (this.state.userMenuExpanded) {
       userMenu = (
-        <ul className="nav nav-second-level animated slideInLeft">
-          <li>
-            <a href="" onClick={this.props.signOut}>
-              <i className="menu-icon fa fa-sign-out"/>
-              <span className="hide-menu">Sign out</span>
-            </a>
-          </li>
-          <hr className="m-b-0"/>
-        </ul>
+        <div className="nav nav-second-level">
+          <AccountSelector/>
+        </div>
       );
     }
 
@@ -45,7 +46,7 @@ export class Navigation extends Component {
 
         <NavbarHeader />
 
-        <div className="navbar-default sidebar animated fadeInLeft" role="navigation">
+        <div className="navbar-default sidebar animated fadeInLeft" role="navigation" onMouseLeave={this.closeUserMenu}>
           <div className="sidebar-head">
             <h3>
               <span className="open-close">
