@@ -1,6 +1,6 @@
 /* Hide separator for last item in list */
 ul.MuiList-root-10 div:last-child li,
-ul.MuiList-root-10 li:last-child {
+ul.MuiList-root-10 > li:last-child {
 	border-bottom: none;
 }
 
