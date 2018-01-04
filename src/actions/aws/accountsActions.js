@@ -43,5 +43,12 @@ export default {
   }),
 	newExternal: () => ({
 		type: Constants.AWS_NEW_EXTERNAL
-	})
+	}),
+  selectAccount: (account) => ({
+    type: Constants.AWS_SELECT_ACCOUNT,
+    account
+  }),
+  clearAccountSelection: () => ({
+    type: Constants.AWS_CLEAR_ACCOUNT_SELECTION
+  })
 };

@@ -1,12 +1,11 @@
 import Constants from '../../constants';
 
 export default {
-	getCosts: (begin, end, filters, accounts=undefined) => ({
+	getCosts: (begin, end, filters) => ({
 		type: Constants.AWS_GET_COSTS,
     begin,
     end,
-    filters,
-    accounts
+    filters
 	}),
   setCostsDates: (startDate, endDate) => ({
     type: Constants.AWS_SET_COSTS_DATES,
