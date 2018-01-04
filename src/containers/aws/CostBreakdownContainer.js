@@ -170,8 +170,8 @@ const mapStateToProps = ({aws}) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getCosts: (begin, end, filters, accounts=undefined) => {
-    dispatch(Actions.AWS.Costs.getCosts(begin, end, filters, accounts));
+  getCosts: (begin, end, filters) => {
+    dispatch(Actions.AWS.Costs.getCosts(begin, end, filters));
   },
   setCostsDates: (startDate, endDate) => {
     dispatch(Actions.AWS.Costs.setCostsDates(startDate, endDate))
