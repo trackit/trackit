@@ -28,7 +28,7 @@ export class Navigation extends Component {
     let userMenu;
     if (this.state.userMenuExpanded) {
       userMenu = (
-        <ul className="nav nav-second-level animated slideInLeft">
+        <ul className="nav nav-second-level">
           <li>
             <a href="" onClick={this.props.signOut}>
               <i className="menu-icon fa fa-sign-out"/>

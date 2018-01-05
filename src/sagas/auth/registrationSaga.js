@@ -4,6 +4,7 @@ import Constants from '../../constants';
 
 export default function* registrationSaga({ username, password }) {
   try {
+    yield put({ type: Constants.REGISTRATION_REQUEST_LOADING });
     const res = yield call(API.Auth.register, username, password);
     if (res.success) {
       yield put({type: Constants.REGISTRATION_SUCCESS, payload: { status: true }});
