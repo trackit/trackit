@@ -95,7 +95,6 @@ func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (Bil
 
 func UpdateBillRepository(br BillRepository, tx *sql.Tx) error {
 	dbAwsBillRepository := dbBillRepoFromBillRepo(br)
-	fmt.Printf("%#v\n", dbAwsBillRepository)
 	return dbAwsBillRepository.UpdateUnsafe(tx)
 }
 
