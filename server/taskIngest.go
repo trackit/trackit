@@ -98,7 +98,9 @@ const (
 )
 
 func updateBillRepositoryForNextUpdate(ctx context.Context, tx *sql.Tx, br s3.BillRepository, latestManifest time.Time) error {
-	br.LastImportedManifest = latestManifest
+	if latestManifest.After(br.LastImportedManifest) {
+		br.LastImportedManifest = latestManifest
+	}
 	updateDeltaMinutes := time.Duration(UpdateIntervalMinutes-UpdateIntervalWindow/2+rand.Int63n(UpdateIntervalWindow)) * time.Minute
 	br.NextUpdate = time.Now().Add(updateDeltaMinutes)
 	return s3.UpdateBillRepository(br, tx)
