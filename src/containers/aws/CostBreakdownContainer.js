@@ -91,6 +91,7 @@ export class CostBreakdownContainer extends Component {
         rightAlignYAxis={true}
         clipEdge={true}
         showControls={true}
+        stacked={true}
         x={
           /* istanbul ignore next */
           (d) => {
