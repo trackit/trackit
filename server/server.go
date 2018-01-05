@@ -77,6 +77,7 @@ func taskServer(ctx context.Context) error {
 	initializeHandlers()
 	if config.Periodics {
 		schedulePeriodicTasks()
+		logger.Info("Scheduled periodic tasks.", nil)
 	}
 	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
 	err := http.ListenAndServe(config.HttpAddress, nil)
