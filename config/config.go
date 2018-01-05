@@ -48,6 +48,8 @@ var (
 	UrlEc2Pricing string
 	// Task is the task to be run. "server", by default.
 	Task string
+	// Periodics, if true, indicates periodic tasks should be run in goroutines within the process.
+	Periodics bool
 )
 
 func init() {
@@ -63,5 +65,6 @@ func init() {
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.StringVar(&UrlEc2Pricing, "url-ec2-pricing", "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json", "The URL used to download the EC2 pricing.")
 	flag.StringVar(&Task, "task", "server", "The task to be run.")
+	flag.BoolVar(&Periodics, "periodics", true, "Periodic jobs should be run by the process.")
 	flag.Parse()
 }

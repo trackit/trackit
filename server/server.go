@@ -75,7 +75,9 @@ func schedulePeriodicTasks() {
 func taskServer(ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	initializeHandlers()
-	schedulePeriodicTasks()
+	if config.Periodics {
+		schedulePeriodicTasks()
+	}
 	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
 	err := http.ListenAndServe(config.HttpAddress, nil)
 	logger.Error("Server stopped.", err.Error())
