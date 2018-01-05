@@ -94,7 +94,7 @@ class ListComponent extends Component {
       ))
     ) : null);
     return (
-      <List disablePadding>
+      <List disablePadding className="accounts-list">
         {noAccounts}
         {accounts}
       </List>
