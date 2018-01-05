@@ -28,7 +28,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 2,
+	"version": 3,
 	"mappings": {
 		"lineitem": {
 			"properties": {
@@ -87,7 +87,7 @@ const TemplateLineItem = `
 				{
 					"tags": {
 						"match_mapping_type": "string",
-						"path_match": "tag.*",
+						"path_match": "tags.*",
 						"mapping": {
 							"type": "keyword"
 						}
