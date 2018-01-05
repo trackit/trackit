@@ -84,6 +84,7 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var br s3.BillRepository
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
 			if err != nil {
@@ -101,7 +102,11 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 		err = updateBillRepositoryForNextUpdate(ctx, tx, br, latestManifest)
 	}
 	if err != nil {
-		println(err.Error())
+		logger.Error("Failed to ingest billing data.", map[string]interface{}{
+			"error":            err.Error(),
+			"awsAccountId":     aaId,
+			"billRepositoryId": brId,
+		})
 	}
 	return
 }
