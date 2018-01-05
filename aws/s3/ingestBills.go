@@ -136,6 +136,7 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 			manifestsModifiedAfter(br.LastImportedManifest),
 		)
 	}
+	logger.Info("Done ingesting data.", nil)
 	return
 }
 
