@@ -178,7 +178,7 @@ func parseFormAndQueryParams(request *http.Request) (esQueryParams, error) {
 	return parsedParams, nil
 }
 
-func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQueryParams, user users.User) (es.SimplifiedCostsDocument, error) {
+func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQueryParams, user users.User) (es.SimplifiedCostsDocument, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUser(user, "lineitems")
 	searchService := GetElasticSearchParams(
@@ -191,15 +191,20 @@ func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQuer
 	)
 	res, err := searchService.Do(ctx)
 	if err != nil {
+		if err.Error() == "elastic: Error 404 (Not Found): no such index [type=index_not_found_exception]" {
+			l.Warning("Query execution failed, ES index does not exists : "+index, nil)
+			return es.SimplifiedCostsDocument{}, http.StatusOK, err
+		}
 		l.Error("Query execution failed : "+err.Error(), nil)
-		return es.SimplifiedCostsDocument{}, fmt.Errorf("could not execute the ElasticSearch query")
+		return es.SimplifiedCostsDocument{}, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
 	}
 	simplifiedCostDocument, err := es.SimplifyCostsDocument(ctx, res)
+	fmt.Printf("%v", simplifiedCostDocument)
 	if err != nil {
 		l.Error("Error parsing cost response : "+err.Error(), nil)
-		return simplifiedCostDocument, fmt.Errorf("could not parse ElasticSearch response")
+		return simplifiedCostDocument, http.StatusInternalServerError, fmt.Errorf("could not parse ElasticSearch response")
 	}
-	return simplifiedCostDocument, nil
+	return simplifiedCostDocument, http.StatusOK, nil
 }
 
 // getCostsData returns the cost data based on the query params, in JSON format.
@@ -209,9 +214,13 @@ func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	simplifiedCostDocument, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
+	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		if returnCode == http.StatusOK {
+			return returnCode, es.SimplifiedCostsDocument{}.ToJsonable()
+		} else {
+			return returnCode, err
+		}
 	}
 	return http.StatusOK, simplifiedCostDocument.ToJsonable()
 }
