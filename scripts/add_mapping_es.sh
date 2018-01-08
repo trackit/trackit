@@ -42,12 +42,21 @@ curl \
 				"resourceId": {
 					"type": "keyword"
 				},
+				"usageAmount": {
+					"type": "float"
+				},
 				"currencyCode": {
 					"type": "keyword"
 				},
 				"unblendedCost": {
 					"type": "float",
 					"index": false
+				},
+				"itemDescription": {
+					"type": "keyword"
+				},
+				"productName": {
+					"type": "keyword"
 				},
 				"usageStartDate": {
 					"type": "date"
