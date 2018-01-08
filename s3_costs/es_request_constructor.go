@@ -63,7 +63,7 @@ func GetS3SpaceElasticSearchParams(accountList []string, durationBegin time.Time
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
-	query = query.Filter(elastic.NewTermQuery("productName", "Amazon Simple Storage Service"))
+	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
 	query = query.Filter(elastic.NewWildcardQuery("usageType", "*TimedStorage*"))
 	search := client.Search().Index(index).Size(0).Query(query)
 
@@ -95,7 +95,7 @@ func GetS3RequestsElasticSearchParams(accountList []string, durationBegin time.T
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
-	query = query.Filter(elastic.NewTermQuery("productName", "Amazon Simple Storage Service"))
+	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
 	query = query.Filter(elastic.NewWildcardQuery("usageType", "*Requests*"))
 	search := client.Search().Index(index).Size(0).Query(query)
 
@@ -128,9 +128,9 @@ func GetS3BandwidthElasticSearchParams(accountList []string, durationBegin time.
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
-	query = query.Filter(elastic.NewTermQuery("productName", "Amazon Simple Storage Service"))
+	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
 	query = query.Filter(elastic.NewWildcardQuery("usageType", fmt.Sprintf("*%s*", bwType)))
-	query = query.Filter(elastic.NewWildcardQuery("itemDescription", "*data transfer*"))
+	query = query.Filter(elastic.NewWildcardQuery("serviceCode", "AWSDataTransfer"))
 	search := client.Search().Index(index).Size(0).Query(query)
 
 	search.Aggregation("buckets", elastic.NewTermsAggregation().Field("resourceId").Size(aggregationMaxSize).
