@@ -39,10 +39,11 @@ class FormComponent extends Component {
   submit = (e) => {
     e.preventDefault();
     this.closeDialog(e);
-    let values = this.form.getValues();
+    const formValues = this.form.getValues();
+    const bucketValues = Validation.getS3BucketValues(formValues.bucket);
     let bill = {
-      bucket: values.bucket,
-      prefix: values.prefix
+      bucket: bucketValues[0],
+      prefix: bucketValues[1]
     };
     this.props.submit(this.props.account, bill);
   };
@@ -80,7 +81,7 @@ class FormComponent extends Component {
                 <div className="input-title">
                   <label htmlFor="bucket">S3 Bucket</label>
                   &nbsp;
-                  <Popover info popOver="Name of S3 bucket"/>
+                  <Popover info popOver="Name of S3 bucket and path to bills"/>
                 </div>
                 <Input
                   name="bucket"
@@ -88,21 +89,6 @@ class FormComponent extends Component {
                   className="form-control"
                   value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
                   validations={[Validation.required, Validation.s3BucketFormat]}
-                />
-              </div>
-
-              <div className="form-group">
-                <div className="input-title">
-                  <label htmlFor="prefix">Path</label>
-                  &nbsp;
-                  <Popover info popOver="Path to bills"/>
-                </div>
-                <Input
-                  type="text"
-                  name="prefix"
-                  value={(this.props.bill !== undefined ? this.props.bill.prefix : undefined)}
-                  className="form-control"
-                  validations={[Validation.required, Validation.pathFormat]}
                 />
               </div>
 
