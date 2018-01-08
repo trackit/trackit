@@ -32,6 +32,10 @@ import (
 
 func taskIngest(ctx context.Context) error {
 	args := flag.Args()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Debug("Running task 'ingest'.", map[string]interface{}{
+		"args": args,
+	})
 	if len(args) != 2 {
 		return errors.New("taskIngest requires two integer arguments")
 	} else if aa, err := strconv.Atoi(args[0]); err != nil {
