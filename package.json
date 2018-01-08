@@ -2,7 +2,7 @@
   "name": "trackit2",
   "version": "0.1.0",
   "private": true,
-  "homepage": ".",
+  "homepage": "/",
   "dependencies": {
     "animate.css": "~3.5.2",
     "autoprefixer": "7.1.2",
@@ -39,7 +39,7 @@
     "jest": "20.0.4",
     "jest-enzyme": "~4.0.1",
     "jquery": "~3.2.1",
-    "material-ui": "~1.0.0-beta.13",
+    "material-ui": "~1.0.0-beta.27",
     "moment": "2.19.2",
     "normalize.css": "~7.0.0",
     "nvd3": "~1.8.6",
@@ -128,6 +128,5 @@
   },
   "eslintConfig": {
     "extends": "react-app"
-  },
-  "homepage": "/"
+  }
 }

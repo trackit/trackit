@@ -1,6 +1,6 @@
 /* Hide separator for last item in list */
 ul.MuiList-root-10 div:last-child li,
-ul.MuiList-root-10 li:last-child {
+ul.MuiList-root-10 > li:last-child {
 	border-bottom: none;
 }
 
@@ -18,4 +18,17 @@ ul.MuiList-root-10 li:last-child {
 
 .dialog-title-children {
 	float: right;
+}
+
+.account-wizard-stepper .MuiStepIcon-completed-81,
+.account-wizard-stepper .MuiStepPosition-active-83 circle {
+	fill: #4885ed;
+}
+
+.account-wizard-stepper .MuiStepPosition-text-84 {
+	font-size: 0.8em;
+}
+
+.account-wizard-stepper .MuiTypography-body1-101 {
+	font-size: 1em;
 }
