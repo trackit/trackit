@@ -35,8 +35,9 @@ const store = configureStore();
 // Creating theme
 const theme = createMuiTheme(Theme.theme);
 
-// Retrieving Token from localStorage if any
+// Retrieving user Token and Mail from localStorage if any
 store.dispatch({ type: Constants.GET_USER_TOKEN });
+store.dispatch({ type: Constants.GET_USER_MAIL });
 
 ReactDOM.render((
     <MuiThemeProvider theme={theme}>
