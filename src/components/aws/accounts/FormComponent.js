@@ -51,7 +51,27 @@ class FormComponent extends Component {
 
   render() {
 
-    const external = (this.props.account !== undefined ? "" : (
+    console.log(this.props.external);
+
+    const accountID = (this.props.account !== undefined || !this.props.external ? "" : (
+      <div className="form-group">
+        <div className="input-title">
+          <label htmlFor="externalId">Account ID</label>
+          &nbsp;
+          <Popover info popOver="Account ID to add in your IAM role trust policy"/>
+        </div>
+        <Input
+          type="text"
+          name="accountID"
+          className="form-control"
+          disabled
+          value={this.props.external.accountId}
+          validations={[Validation.required]}
+        />
+      </div>
+    ));
+
+    const external = (this.props.account !== undefined || !this.props.external ? "" : (
       <div className="form-group">
         <div className="input-title">
           <label htmlFor="externalId">External</label>
@@ -63,7 +83,7 @@ class FormComponent extends Component {
           name="external"
           className="form-control"
           disabled
-          value={this.props.external}
+          value={this.props.external.external}
           validations={[Validation.required]}
         />
       </div>
@@ -86,6 +106,8 @@ class FormComponent extends Component {
               /* istanbul ignore next */
               form => { this.form = form; }
             } onSubmit={this.submit} >
+
+              {accountID}
 
               {external}
 
@@ -151,7 +173,10 @@ FormComponent.propTypes = {
     pretty: PropTypes.string,
   }),
   submit: PropTypes.func.isRequired,
-  external: PropTypes.string
+  external: PropTypes.shape({
+    external: PropTypes.string.isRequired,
+    accountId: PropTypes.string.isRequired,
+  }).isRequired,
 };
 
 

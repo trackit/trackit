@@ -10,6 +10,8 @@ const List = Components.AWS.Accounts.List;
 const Form = Components.AWS.Accounts.Form;
 const Panel = Components.Misc.Panel;
 
+const Dialog = Components.Misc.Dialog;
+
 // Accounts Container for AWS Accounts
 export class AccountsContainer extends Component {
 
@@ -57,7 +59,10 @@ AccountsContainer.propTypes = {
       pretty: PropTypes.string
     })
   ),
-  external: PropTypes.string,
+  external: PropTypes.shape({
+    external: PropTypes.string.isRequired,
+    accountId: PropTypes.string.isRequired,
+  }).isRequired,
   getAccounts: PropTypes.func.isRequired,
   accountActions: PropTypes.shape({
     new: PropTypes.func.isRequired,

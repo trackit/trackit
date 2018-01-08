@@ -118,10 +118,8 @@ export function* newExternalSaga() {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.newExternal, token);
-    if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("external"))
-      yield all([
-        put({ type: Constants.AWS_NEW_EXTERNAL_SUCCESS, external: res.data.external })
-      ]);
+    if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("external") && res.data.hasOwnProperty("accountId"))
+      yield put({ type: Constants.AWS_NEW_EXTERNAL_SUCCESS, external: res.data });
     else
       throw Error("Error with request");
   } catch (error) {
