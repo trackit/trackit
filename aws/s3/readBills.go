@@ -92,10 +92,9 @@ type LineItem struct {
 	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"    json:"availabilityZone"`
 	ResourceId         string            `csv:"lineItem/ResourceId"          json:"resourceId"`
 	UsageAmount        string            `csv:"lineItem/UsageAmount"         json:"usageAmount"`
+	ServiceCode        string            `csv:"product/servicecode"          json:"serviceCode"`
 	CurrencyCode       string            `csv:"lineItem/CurrencyCode"        json:"currencyCode"`
 	UnblendedCost      string            `csv:"lineItem/UnblendedCost"       json:"unblendedCost"`
-	ProductName        string            `csv:"product/ProductName"          json:"productName"`
-	ItemDescription    string            `csv:"lineItem/LineItemDescription" json:"itemDescription"`
 	Any                map[string]string `csv:",any"                         json:"-"`
 	Tags               map[string]string `csv:"-"                            json:"tags,omitempty"`
 }

@@ -71,6 +71,10 @@ const TemplateLineItem = `
 				"usageAmount": {
 					"type": "float"
 				},
+				"serviceCode": {
+					"type": "keyword",
+					"norms": false
+				},
 				"currencyCode": {
 					"type": "keyword",
 					"norms": false
@@ -78,12 +82,6 @@ const TemplateLineItem = `
 				"unblendedCost": {
 					"type": "float",
 					"index": false
-				},
-				"itemDescription": {
-					"type": "keyword"
-				},
-				"productName": {
-					"type": "keyword"
 				},
 				"usageStartDate": {
 					"type": "date"
