@@ -32,3 +32,12 @@ ul.MuiList-root-10 > li:last-child {
 .account-wizard-stepper .MuiTypography-body1-101 {
 	font-size: 1em;
 }
+
+.picture img {
+	width: 100%;
+}
+
+.tutorial,
+.tutorial li {
+	margin-bottom: 5px;
+}
