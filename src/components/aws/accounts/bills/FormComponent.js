@@ -87,7 +87,7 @@ class FormComponent extends Component {
                   name="bucket"
                   type="text"
                   className="form-control"
-                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
+                  value={(this.props.bill !== undefined ? `s3://${this.props.bill.bucket}/${this.props.bill.prefix}` : "")}
                   validations={[Validation.required, Validation.s3BucketFormat]}
                 />
               </div>

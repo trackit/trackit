@@ -17,9 +17,7 @@ describe("Get User Token Saga", () => {
       .toEqual(call(getToken));
 
     expect(saga.next(token).value)
-      .toEqual(all([
-        put({ type: Constants.GET_USER_TOKEN_SUCCESS , token})
-      ]));
+      .toEqual(put({ type: Constants.GET_USER_TOKEN_SUCCESS , token}));
 
     expect(saga.next().done).toBe(true);
 

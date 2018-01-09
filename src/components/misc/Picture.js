@@ -32,7 +32,7 @@ class Picture extends Component {
     ));
 
     return(
-      <div className="picture">
+      <div className="picture-preview">
 
         <div onClick={this.openDialog}>
           {button}

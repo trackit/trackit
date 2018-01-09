@@ -37,7 +37,7 @@ export class Item extends Component {
 
         <ListItemText
           disableTypography
-          primary={this.props.bill.bucket + this.props.bill.prefix}
+          primary={`s3://${this.props.bill.bucket}/${this.props.bill.prefix}`}
         />
 
         <div>

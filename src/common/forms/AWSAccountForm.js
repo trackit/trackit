@@ -19,9 +19,11 @@ const getS3BucketValues = (value) => {
   // 2. Path
   const regex = /^s3:\/\/((?![^/]{1,61}\.\.[^/]{1,61})[a-z.-]{3,63})(?:\/(.{0,1024}))?$/;
   let result = regex.exec(value);
-  if (result && result.length)
+  if (result && result.length && result.length === 3) {
     result.shift();
-  return result;
+    return result;
+  }
+  return null;
 };
 
 export default {

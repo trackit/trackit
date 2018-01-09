@@ -164,8 +164,11 @@ describe("Accounts Saga", () => {
 
   describe("New External", () => {
 
-    const external = "external";
-    const validResponse = { success: true, data: { external } };
+    const external = {
+      external: "external",
+      accountId: "accountId"
+    };
+    const validResponse = { success: true, data: external };
     const invalidResponse = { success: true, external };
     const noResponse = { success: false };
 
@@ -180,9 +183,7 @@ describe("Accounts Saga", () => {
         .toEqual(call(API.AWS.Accounts.newExternal, token));
 
       expect(saga.next(validResponse).value)
-        .toEqual(all([
-          put({ type: Constants.AWS_NEW_EXTERNAL_SUCCESS, external })
-        ]));
+        .toEqual(put({ type: Constants.AWS_NEW_EXTERNAL_SUCCESS, external }));
 
       expect(saga.next().done).toBe(true);
 
