@@ -39,11 +39,11 @@ class StepOne extends Component {
               <div>
                 Follow this screenshot to configure your new role correctly,
                 <br/>
-                based on information available bellow ( Click to enlarge )
+                based on information available bellow
                 <Picture
                   src={RoleCreation}
                   alt="Role creation tutorial"
-                  preview
+                  button={<strong>( Click here to see screenshot )</strong>}
                 />
               </div>
             </li>
@@ -62,7 +62,7 @@ class StepOne extends Component {
             <div className="input-title">
               <label htmlFor="externalId">Account ID</label>
               &nbsp;
-              <Popover info popOver="Account ID to add in your IAM role trust policy"/>
+              <Popover info popOver="Account ID to add in your IAM role trust policy ( See step 5 )"/>
             </div>
             <Input
               type="text"
@@ -78,7 +78,7 @@ class StepOne extends Component {
             <div className="input-title">
               <label htmlFor="externalId">External</label>
               &nbsp;
-              <Popover info popOver="External ID to add in your IAM role trust policy"/>
+              <Popover info popOver="External ID to add in your IAM role trust policy ( See step 5 )"/>
             </div>
             <Input
               type="text"
@@ -127,13 +127,13 @@ class StepTwo extends Component {
             <li>In <strong>Role</strong> list, select the role you created in previous step</li>
             <li>
               <div>
-                Fill the form bellow with information available in your <strong>role summary</strong>.
+                Fill the form bellow with information available in <strong>role summary</strong>.
                 <br/>
-                Details are available in this screenshot ( Click to enlarge )
+                Details are available in this screenshot
                 <Picture
                   src={RoleARN}
                   alt="Role ARN tutorial"
-                  preview
+                  button={<strong>( Click here to see screenshot )</strong>}
                 />
               </div>
             </li>
@@ -151,7 +151,7 @@ class StepTwo extends Component {
             <div className="input-title">
               <label htmlFor="roleArn">Role ARN</label>
               &nbsp;
-              <Popover info popOver="Amazon Resource Name for your role"/>
+              <Popover info popOver="Amazon Resource Name for your role ( See step 2 )"/>
             </div>
             <Input
               name="roleArn"

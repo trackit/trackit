@@ -27,9 +27,7 @@ class Picture extends Component {
 
     let image = <img className="white-box-title-icon" src={this.props.src} alt={this.props.alt}/>;
 
-    let button = (this.props.preview ? image : (
-      <button className="btn btn-default">{this.props.text}</button>
-    ));
+    let button = (this.props.preview ? image : (this.props.button || <button className="btn btn-default">{this.props.text}</button>));
 
     return(
       <div className="picture-preview">
@@ -56,13 +54,15 @@ Picture.propTypes = {
   src: PropTypes.string.isRequired,
   alt: PropTypes.string,
   text: PropTypes.string,
-  preview: PropTypes.bool
+  preview: PropTypes.bool,
+  button: PropTypes.node
 };
 
 Picture.defaultProps = {
   text: "See picture",
   alt: "",
-  preview: false
+  preview: false,
+  button: ""
 };
 
 export default Picture;
