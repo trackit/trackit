@@ -25,7 +25,7 @@ import (
 
 // S3BucketCost represents the detail of the costs for a given bucket
 type S3BucketCost struct {
-	GbDay         float64
+	GbMonth       float64
 	StorageCost   float64
 	BandwidthCost float64
 	DataIn        float64
@@ -56,7 +56,7 @@ func parseBucketsStorage(buckets bucketsInfo, parsedDocument bucket) {
 	for _, bucketData := range bucketsField {
 		bucketData := bucketData.(bucket)
 		bucketInfo := getBucketInfoByName(buckets, bucketData["key"].(string))
-		bucketInfo.GbDay = bucketData["gb"].(bucket)["value"].(float64)
+		bucketInfo.GbMonth = bucketData["gb"].(bucket)["value"].(float64)
 		bucketInfo.StorageCost = bucketData["cost"].(bucket)["value"].(float64)
 	}
 }
