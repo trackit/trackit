@@ -18,8 +18,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -30,25 +28,11 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
-const (
-	iso8601TimeFormat = "2006-01-02"
-)
-
 // esQueryParams will store the parsed query params
 type esQueryParams struct {
 	dateBegin   time.Time
 	dateEnd     time.Time
-	accountList []string
-}
-
-type queryParamsParser func([]string, esQueryParams) (esQueryParams, error)
-
-// formFieldsToHandleFunc maps a query param to a queryParamsParser function
-// to parse it.
-var formFieldsToHandlerFunc = map[string]queryParamsParser{
-	"begin":    parseBeginQueryParam,
-	"end":      parseEndQueryParam,
-	"accounts": parseAccountsQueryParam,
+	accountList []uint
 }
 
 func init() {
@@ -60,84 +44,41 @@ func init() {
 				Summary:     "get the s3 costs data",
 				Description: "Responds with cost data based on the queryparams passed to it",
 			},
+			routes.QueryArgs{AwsAccountsQueryArg},
+			routes.QueryArgs{DateBeginQueryArg},
+			routes.QueryArgs{DateEndQueryArg},
 		),
 	}.H().Register("/s3_costs")
 }
 
-func parseDateQueryParam(queryParam []string) (time.Time, error) {
-	if len(queryParam) != 1 {
-		return time.Now(), fmt.Errorf("expected queryParam len of 1 but got %d", len(queryParam))
+var (
+	// AwsAccountsQueryArg allows to get the AWS Account IDs in the URL
+	// Parameters with routes.QueryArgs. These AWS Account IDs will be a
+	// slice of Uint stored in the routes.Arguments map with itself for key.
+	AwsAccountsQueryArg = routes.QueryArg{
+		Name:        "accounts",
+		Type:        routes.QueryArgUintSlice{},
+		Description: "The IDs for many AWS account.",
 	}
-	timeToRet, err := time.Parse(iso8601TimeFormat, queryParam[0])
-	if err != nil {
-		return timeToRet, fmt.Errorf("could not parse time : %s", err.Error())
-	}
-	return timeToRet, nil
-}
 
-// parseBeginQueryParam parses and validates the begining of the time range.
-func parseBeginQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	var err error
-	parsedParams.dateBegin, err = parseDateQueryParam(queryParam)
-	return parsedParams, err
-}
+	// DateBeginQueryArg allows to get the iso8601 begin date in the URL
+	// Parameters with routes.QueryArgs. This date will be a
+	// time.Time stored in the routes.Arguments map with itself for key.
+	DateBeginQueryArg = routes.QueryArg{
+		Name:        "begin",
+		Type:        routes.QueryArgDate{},
+		Description: "The begin date.",
+	}
 
-// parseEndQueryParam parses and validates the end of the time range.
-func parseEndQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	var err error
-	parsedParams.dateEnd, err = parseDateQueryParam(queryParam)
-	return parsedParams, err
-}
-
-// parseAccountsQueryPAram parses the accounts passed in the queryParams.
-func parseAccountsQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	if len(queryParam) != 1 {
-		return parsedParams, fmt.Errorf("expected queryParam len of 1 but got %d", len(queryParam))
+	// DateEndQueryArg allows to get the iso8601 begin date in the URL
+	// Parameters with routes.QueryArgs. This date will be a
+	// time.Time stored in the routes.Arguments map with itself for key.
+	DateEndQueryArg = routes.QueryArg{
+		Name:        "end",
+		Type:        routes.QueryArgDate{},
+		Description: "The end date.",
 	}
-	parsedParams.accountList = strings.Split(queryParam[0], ",")
-	return parsedParams, nil
-}
-
-// parseQueryParams parses the queryParams arguments.
-// It parses those arguments into a esQueryParams struct to be used by the
-// elasticsearch request constructor functions that will create the ElasticSearch requests.
-func parseQueryParams(queryParams url.Values) (esQueryParams, error) {
-	var parsedParams esQueryParams
-	var err error
-	for key, val := range queryParams {
-		if parserFunc := formFieldsToHandlerFunc[key]; parserFunc != nil {
-			parsedParams, err = parserFunc(val, parsedParams)
-			if err != nil {
-				return parsedParams, err
-			}
-		} else {
-			return parsedParams, fmt.Errorf("could not parse param : %s=%s", key, val)
-		}
-	}
-	if parsedParams.dateBegin.IsZero() {
-		return parsedParams, fmt.Errorf("'begin' is not set")
-	} else if parsedParams.dateEnd.IsZero() {
-		return parsedParams, fmt.Errorf("'end' is not set")
-	} else if len(parsedParams.accountList) == 0 {
-		return parsedParams, fmt.Errorf("'accounts' is not set")
-	}
-	return parsedParams, nil
-}
-
-func parseFormAndQueryParams(request *http.Request) (esQueryParams, error) {
-	l := jsonlog.LoggerFromContextOrDefault(request.Context())
-	err := request.ParseForm()
-	if err != nil {
-		l.Info("Error parsing form data : "+err.Error(), nil)
-		return esQueryParams{}, err
-	}
-	parsedParams, err := parseQueryParams(request.Form)
-	if err != nil {
-		l.Info("Error parsing user submitted forms : "+err.Error(), nil)
-		return esQueryParams{}, err
-	}
-	return parsedParams, nil
-}
+)
 
 // makeElasticSearchStorageRequest prepares and run the request to retrieve storage usage/cost
 func makeElasticSearchStorageRequest(ctx context.Context, parsedParams esQueryParams,
@@ -203,10 +144,10 @@ func makeElasticSearchBandwidthRequest(ctx context.Context, parsedParams esQuery
 // getS3CostData returns the s3 cost data based on the query params, in JSON format.
 func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams, err := parseFormAndQueryParams(request)
-	if err != nil {
-		return http.StatusBadRequest, err
-	}
+	parsedParams := esQueryParams{}
+	parsedParams.accountList = a[AwsAccountsQueryArg].([]uint)
+	parsedParams.dateBegin = a[DateBeginQueryArg].(time.Time)
+	parsedParams.dateEnd = a[DateEndQueryArg].(time.Time)
 	resStorage, err := makeElasticSearchStorageRequest(request.Context(), parsedParams, user)
 	if err != nil {
 		return http.StatusInternalServerError, err

@@ -26,7 +26,7 @@ import (
 const aggregationMaxSize = 0x7FFFFFFF
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
+func createQueryAccountFilter(accountList []uint) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
 		accountListFormatted[i] = v
@@ -44,7 +44,7 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // GetS3SpaceElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
 // used to perform an S3 space usage/cost request on ES
 // It takes as paramters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
+// 	- accountList []uint : A slice of uint representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
 //	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
@@ -56,7 +56,7 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetS3SpaceElasticSearchParams(accountList []string, durationBegin time.Time,
+func GetS3SpaceElasticSearchParams(accountList []uint, durationBegin time.Time,
 	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
@@ -76,7 +76,7 @@ func GetS3SpaceElasticSearchParams(accountList []string, durationBegin time.Time
 // GetS3RequestsElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
 // used to perform an S3 requests usage/cost request on ES
 // It takes as paramters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
+// 	- accountList []uint : A slice of uint representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
 //	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
@@ -88,7 +88,7 @@ func GetS3SpaceElasticSearchParams(accountList []string, durationBegin time.Time
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetS3RequestsElasticSearchParams(accountList []string, durationBegin time.Time,
+func GetS3RequestsElasticSearchParams(accountList []uint, durationBegin time.Time,
 	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
@@ -108,7 +108,7 @@ func GetS3RequestsElasticSearchParams(accountList []string, durationBegin time.T
 // GetS3BandwidthElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
 // used to perform an S3 bandwidth usage/cost request on ES
 // It takes as paramters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
+// 	- accountList []uint : A slice of uint representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
 //	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
@@ -121,7 +121,7 @@ func GetS3RequestsElasticSearchParams(accountList []string, durationBegin time.T
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetS3BandwidthElasticSearchParams(accountList []string, durationBegin time.Time,
+func GetS3BandwidthElasticSearchParams(accountList []uint, durationBegin time.Time,
 	durationEnd time.Time, client *elastic.Client, index, bwType string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
