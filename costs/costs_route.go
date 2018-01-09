@@ -27,6 +27,8 @@ import (
 	"github.com/trackit/trackit2/es"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
+
+	"gopkg.in/olivere/elastic.v5"
 )
 
 const (
@@ -178,7 +180,13 @@ func parseFormAndQueryParams(request *http.Request) (esQueryParams, error) {
 	return parsedParams, nil
 }
 
-func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQueryParams, user users.User) (es.SimplifiedCostsDocument, error) {
+// makeElasticSearchRequestAndParseIt will make the actual request to the ElasticSearch parse the results and return them
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empy data
+func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQueryParams, user users.User) (es.SimplifiedCostsDocument, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUser(user, "lineitems")
 	searchService := GetElasticSearchParams(
@@ -191,15 +199,19 @@ func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQuer
 	)
 	res, err := searchService.Do(ctx)
 	if err != nil {
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists : "+index, err)
+			return es.SimplifiedCostsDocument{}, http.StatusOK, err
+		}
 		l.Error("Query execution failed : "+err.Error(), nil)
-		return es.SimplifiedCostsDocument{}, fmt.Errorf("could not execute the ElasticSearch query")
+		return es.SimplifiedCostsDocument{}, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
 	}
 	simplifiedCostDocument, err := es.SimplifyCostsDocument(ctx, res)
 	if err != nil {
 		l.Error("Error parsing cost response : "+err.Error(), nil)
-		return simplifiedCostDocument, fmt.Errorf("could not parse ElasticSearch response")
+		return simplifiedCostDocument, http.StatusInternalServerError, fmt.Errorf("could not parse ElasticSearch response")
 	}
-	return simplifiedCostDocument, nil
+	return simplifiedCostDocument, http.StatusOK, nil
 }
 
 // getCostsData returns the cost data based on the query params, in JSON format.
@@ -209,9 +221,13 @@ func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	if err != nil {
 		return http.StatusBadRequest, err
 	}
-	simplifiedCostDocument, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
+	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		if returnCode == http.StatusOK {
+			return returnCode, es.SimplifiedCostsDocument{}.ToJsonable()
+		} else {
+			return returnCode, err
+		}
 	}
 	return http.StatusOK, simplifiedCostDocument.ToJsonable()
 }
