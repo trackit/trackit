@@ -12,20 +12,20 @@ const defaultActions = {
     new: jest.fn(),
     edit: jest.fn(),
     delete: jest.fn(),
-  },
-  billActions: {
-    new: jest.fn(),
-    edit: jest.fn(),
-    delete: jest.fn(),
+    clearNew: jest.fn()
   }
 };
 
 const props = {
   ...defaultActions,
   accounts: [],
-  external: "external",
+  external: {
+    external: "external",
+    accountId: "accountId"
+  },
   getAccounts: jest.fn(),
-  newExternal: jest.fn()
+  newExternal: jest.fn(),
+  newBill: jest.fn()
 };
 
 describe('<AccountsContainer />', () => {

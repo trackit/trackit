@@ -78,7 +78,7 @@ export class NavbarHeader extends Component {
 }
 
 NavbarHeader.propTypes = {
-  mail: PropTypes.string.isRequired,
+  mail: PropTypes.string,
   signOut: PropTypes.func.isRequired
 };
 

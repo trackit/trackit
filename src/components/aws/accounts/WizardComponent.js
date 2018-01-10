@@ -5,7 +5,10 @@ import Dialog, {
   DialogContent,
   DialogTitle,
 } from 'material-ui/Dialog';
-import Stepper, { Step, StepButton } from 'material-ui/Stepper';
+import Stepper, {
+  Step,
+  StepButton
+} from 'material-ui/Stepper';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
@@ -17,7 +20,7 @@ const Popover = Misc.Popover;
 const Picture = Misc.Picture;
 const Validation = Validations.AWSAccount;
 
-class StepOne extends Component {
+export class StepOne extends Component {
 
   submit = (e) => {
     e.preventDefault();
@@ -103,7 +106,16 @@ class StepOne extends Component {
 
 }
 
-class StepTwo extends Component {
+StepOne.propTypes = {
+  external: PropTypes.shape({
+    external: PropTypes.string.isRequired,
+    accountId: PropTypes.string.isRequired,
+  }),
+  next: PropTypes.func.isRequired,
+  close: PropTypes.func.isRequired
+};
+
+export class StepTwo extends Component {
 
   submit = (e) => {
     e.preventDefault();
@@ -187,7 +199,17 @@ class StepTwo extends Component {
 
 }
 
-class StepThree extends Component {
+StepTwo.propTypes = {
+  external: PropTypes.shape({
+    external: PropTypes.string.isRequired,
+    accountId: PropTypes.string.isRequired,
+  }),
+  submit: PropTypes.func.isRequired,
+  next: PropTypes.func.isRequired,
+  close: PropTypes.func.isRequired
+};
+
+export class StepThree extends Component {
 
   submit = (e) => {
     e.preventDefault();
@@ -249,6 +271,20 @@ class StepThree extends Component {
   }
 
 }
+
+StepThree.propTypes = {
+  external: PropTypes.shape({
+    external: PropTypes.string.isRequired,
+    accountId: PropTypes.string.isRequired,
+  }),
+  account: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    roleArn: PropTypes.string.isRequired,
+    pretty: PropTypes.string,
+  }),
+  submit: PropTypes.func.isRequired,
+  close: PropTypes.func.isRequired
+};
 
 class Wizard extends Component {
 

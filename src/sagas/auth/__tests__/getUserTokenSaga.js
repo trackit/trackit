@@ -1,4 +1,4 @@
-import { put, call, all } from 'redux-saga/effects';
+import { put, call } from 'redux-saga/effects';
 import getUserTokenSaga from '../getUserTokenSaga';
 import { getToken } from "../../../common/localStorage";
 import Constants from '../../../constants';

@@ -114,7 +114,7 @@ export class Navigation extends Component {
 }
 
 Navigation.propTypes = {
-  mail: PropTypes.string.isRequired,
+  mail: PropTypes.string,
   signOut: PropTypes.func.isRequired
 };
 
