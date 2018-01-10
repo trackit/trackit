@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,10 +29,6 @@ import (
 	"github.com/trackit/trackit2/users"
 
 	"gopkg.in/olivere/elastic.v5"
-)
-
-const (
-	iso8601TimeFormat = "2006-01-02"
 )
 
 // simpleCriterionMap will map simple criterion to the boolean true.
@@ -56,15 +52,32 @@ type esQueryParams struct {
 	aggregationParams []string
 }
 
-type queryParamsParser func([]string, esQueryParams) (esQueryParams, error)
-
-// formFieldsToHandleFunc maps a query param to a queryParamsParser function
-// to parse it.
-var formFieldsToHandlerFunc = map[string]queryParamsParser{
-	"begin":    parseBeginQueryParam,
-	"end":      parseEndQueryParam,
-	"accounts": parseAccountsQueryParam,
-	"by":       parseCriteriaQueryParam,
+// costQueryArgs allows to get required queryArgs params
+var costsQueryArgs = []routes.QueryArg{
+	routes.QueryArg{
+		Name:        "accounts",
+		Description: "List of comma separated AWS accounts ids",
+		Type:        routes.QueryArgStringSlice{},
+		Optional:    true,
+	},
+	routes.QueryArg{
+		Name:        "begin",
+		Description: "Begining of date interval. Format is ISO8601",
+		Type:        routes.QueryArgDate{},
+		Optional:    false,
+	},
+	routes.QueryArg{
+		Name:        "end",
+		Description: "End of date interval. Format is ISO8601",
+		Type:        routes.QueryArgDate{},
+		Optional:    false,
+	},
+	routes.QueryArg{
+		Name:        "by",
+		Description: "Criteria for the ES aggregation, comma separated. Possible values are year, month, week, day, account, product, region, tag(soon)",
+		Type:        routes.QueryArgStringSlice{},
+		Optional:    false,
+	},
 }
 
 func init() {
@@ -72,112 +85,42 @@ func init() {
 		http.MethodGet: routes.H(getCostData).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{},
+			routes.QueryArgs(costsQueryArgs),
 			routes.Documentation{
 				Summary:     "get the costs data",
-				Description: "Responds with cost data based on the queryparams passed to it",
+				Description: "Responds with cost data based on the query args passed to it",
 			},
 		),
 	}.H().Register("/costs")
 }
 
-func parseDateQueryParam(queryParam []string) (time.Time, error) {
-	if len(queryParam) != 1 {
-		return time.Now(), fmt.Errorf("expected queryParam len of 1 but got %d", len(queryParam))
-	}
-	timeToRet, err := time.Parse(iso8601TimeFormat, queryParam[0])
-	if err != nil {
-		return timeToRet, fmt.Errorf("could not parse time : %s", err.Error())
-	}
-	return timeToRet, nil
-}
-
-// parseBeginQueryParam parses and validates the begining of the time range.
-func parseBeginQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	var err error
-	parsedParams.dateBegin, err = parseDateQueryParam(queryParam)
-	return parsedParams, err
-}
-
-// parseEndQueryParam parses and validates the end of the time range.
-func parseEndQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	var err error
-	parsedParams.dateEnd, err = parseDateQueryParam(queryParam)
-	return parsedParams, err
-}
-
-// parseAccountsQueryPAram parses the accounts passed in the queryParams.
-func parseAccountsQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	if len(queryParam) != 1 {
-		return parsedParams, fmt.Errorf("expected queryParam len of 1 but got %d", len(queryParam))
-	}
-	parsedParams.accountList = strings.Split(queryParam[0], ",")
-	return parsedParams, nil
-}
-
-// parseCriterionQueryParam parses and validate the different cirterions.
+// validateCriteraParam will validate the different criterions.
 // It validate the criterion by checking its presence in the simpleCriterionMap
 // or, in the case of the special criterion tag, will check if it is in the
 // correct format : 'tag:*' (with no more than one ':')
 // Right now the tags are not enabled and will generate an error if they are
 // used because they are not yet implemented in the new ElasticSearch mapping
-func parseCriteriaQueryParam(queryParam []string, parsedParams esQueryParams) (esQueryParams, error) {
-	if len(queryParam) != 1 {
-		return parsedParams, fmt.Errorf("expected queryParam len of 1 but got %d", len(queryParam))
-	}
-	criteriaList := strings.Split(queryParam[0], ",")
-	var resCriterions []string
-	for _, criterion := range criteriaList {
-		if simpleCriterionMap[criterion] {
-			resCriterions = append(resCriterions, criterion)
-		} else if len(criterion) >= 5 && criterion[:4] == "tag:" && strings.Count(criterion, ":") == 1 {
-			return parsedParams, fmt.Errorf("tags not yet implemented")
-		} else {
-			return parsedParams, fmt.Errorf("error parsing criterion : %s", criterion)
-		}
-	}
-	parsedParams.aggregationParams = resCriterions
-	return parsedParams, nil
-}
-
-// parseQueryParams parses the queryParams arguments.
-// It parses those arguments into a esQueryParams struct to be used by the
-// GetElasticSearchParams function that will create the ElasticSearch request.
-func parseQueryParams(queryParams url.Values) (esQueryParams, error) {
-	var parsedParams esQueryParams
-	var err error
-	for key, val := range queryParams {
-		if parserFunc := formFieldsToHandlerFunc[key]; parserFunc != nil {
-			parsedParams, err = parserFunc(val, parsedParams)
-			if err != nil {
-				return parsedParams, err
+func validateCriteriaParam(parsedParams esQueryParams) error {
+	for _, criterion := range parsedParams.aggregationParams {
+		if !simpleCriterionMap[criterion] {
+			if len(criterion) >= 5 && criterion[:4] == "tag:" && strings.Count(criterion, ":") == 1 {
+				return fmt.Errorf("tags not yet implemented")
 			}
-		} else {
-			return parsedParams, fmt.Errorf("could not parse param : %s=%s", key, val)
+			return fmt.Errorf("Error parsing criterion : %s", criterion)
 		}
 	}
-	if parsedParams.dateBegin.IsZero() {
-		return parsedParams, fmt.Errorf("'end' is not set")
-	} else if parsedParams.dateEnd.IsZero() {
-		return parsedParams, fmt.Errorf("'until' is not set")
-	} else if len(parsedParams.aggregationParams) < 1 {
-		return parsedParams, fmt.Errorf("'by' should at least have one criterion")
-	}
-	return parsedParams, nil
+	return nil
 }
 
-func parseFormAndQueryParams(request *http.Request) (esQueryParams, error) {
-	l := jsonlog.LoggerFromContextOrDefault(request.Context())
-	err := request.ParseForm()
-	if err != nil {
-		l.Info("Error parsing form data : "+err.Error(), nil)
-		return esQueryParams{}, err
+// validateAwsAccounts will validate awsAccounts passed to it.
+// It checks that they are numbers that are 12 character long
+func validateAwsAccounts(parsedParams esQueryParams) error {
+	for _, account := range parsedParams.accountList {
+		if _, err := strconv.ParseInt(account, 10, 0); err != nil || len(account) != 12 {
+			return fmt.Errorf("invalid account format : %s", account)
+		}
 	}
-	parsedParams, err := parseQueryParams(request.Form)
-	if err != nil {
-		l.Info("Error parsing user submitted forms : "+err.Error(), nil)
-		return esQueryParams{}, err
-	}
-	return parsedParams, nil
+	return nil
 }
 
 // makeElasticSearchRequestAndParseIt will make the actual request to the ElasticSearch parse the results and return them
@@ -217,8 +160,19 @@ func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQuer
 // getCostsData returns the cost data based on the query params, in JSON format.
 func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams, err := parseFormAndQueryParams(request)
-	if err != nil {
+	parsedParams := esQueryParams{
+		accountList:       []string{},
+		dateBegin:         a[costsQueryArgs[1]].(time.Time),
+		dateEnd:           a[costsQueryArgs[2]].(time.Time),
+		aggregationParams: a[costsQueryArgs[3]].([]string),
+	}
+	if a[costsQueryArgs[0]] != nil {
+		parsedParams.accountList = a[costsQueryArgs[0]].([]string)
+	}
+	if err := validateCriteriaParam(parsedParams); err != nil {
+		return http.StatusBadRequest, err
+	}
+	if err := validateAwsAccounts(parsedParams); err != nil {
 		return http.StatusBadRequest, err
 	}
 	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
