@@ -19,6 +19,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 var (
@@ -28,6 +29,8 @@ var (
 	QueryArgTestOptionalString = QueryArg{"testString", "Test string", QueryArgString{}, true}
 	QueryArgTestIntSlice       = QueryArg{"testIntSlice", "Test signed integer slice", QueryArgIntSlice{}, false}
 	QueryArgTestUintSlice      = QueryArg{"testUintSlice", "Test unsigned integer slice", QueryArgUintSlice{}, false}
+	QueryArgTestStringSlice    = QueryArg{"testStringSlice", "Test string slice", QueryArgStringSlice{}, false}
+	QueryArgTestDate           = QueryArg{"testDate", "Test date", QueryArgDate{}, false}
 )
 
 func argHandler(r *http.Request, a Arguments) (int, interface{}) {
@@ -58,12 +61,26 @@ func uintSliceIsEqual(first, second []uint) bool {
 	return true
 }
 
+func stringSliceIsEqual(first, second []string) bool {
+	if len(first) != len(second) {
+		return false
+	}
+	for id := range first {
+		if first[id] != second[id] {
+			return false
+		}
+	}
+	return true
+}
+
 func sliceIsEqual(first, second interface{}) bool {
 	switch first.(type) {
 	case []int:
 		return intSliceIsEqual(first.([]int), second.([]int))
 	case []uint:
 		return uintSliceIsEqual(first.([]uint), second.([]uint))
+	case []string:
+		return stringSliceIsEqual(first.([]string), second.([]string))
 	default:
 		return false
 	}
@@ -259,6 +276,93 @@ func TestBadUintSlice(t *testing.T) {
 	status, body := h.Func(response, request, Arguments{})
 	if status != http.StatusBadRequest {
 		t.Errorf("Expected %d. Got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}
+
+func TestGoodStringSlice(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{
+			QueryArgTestStringSlice,
+		},
+	)
+	paramsURL := []string{
+		"testStringSlice=foo,bar",
+	}
+	expectedResult := []string{
+		"foo",
+		"bar",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusOK {
+		t.Errorf("Expected %d but got %d (%v)", http.StatusOK, status, body)
+	} else if args, ok := body.(Arguments); !ok {
+		t.Errorf("Exptected type Arguments")
+	} else if !sliceIsEqual(expectedResult, args[QueryArgTestStringSlice]) {
+		t.Errorf("Exptected %v but got %v", expectedResult, args[QueryArgTestStringSlice])
+	}
+}
+
+func TestEmptyStringSlice(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{
+			QueryArgTestStringSlice,
+		},
+	)
+	paramsURL := []string{
+		"testStringSlice=",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d but got %d (%v)", http.StatusBadRequest, status, body)
+	} else if _, ok := body.(error); !ok {
+		t.Errorf("Expected error.")
+	}
+}
+
+func TestGoodDate(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{
+			QueryArgTestDate,
+		},
+	)
+	paramsURL := []string{
+		"testDate=2017-12-21",
+	}
+	expectedDate, _ := time.Parse(iso8601DateFormat, "2017-12-21")
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusOK {
+		t.Errorf("Expected %d but got %d (%v)", http.StatusOK, status, body)
+	} else if args, ok := body.(Arguments); !ok {
+		t.Errorf("Exptected type Arguments")
+	} else if responseTime, ok := args[QueryArgTestDate].(time.Time); !ok {
+		t.Errorf("Exptected type time")
+	} else if !expectedDate.Equal(responseTime) {
+		t.Errorf("Exptected time %v but got time %v", expectedDate, responseTime)
+	}
+}
+
+func TestBadDate(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{
+			QueryArgTestDate,
+		},
+	)
+	paramsURL := []string{
+		"testDate=2017-31-42:foo",
+	}
+	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected %d but got %d (%v)", http.StatusBadRequest, status, body)
 	} else if _, ok := body.(error); !ok {
 		t.Errorf("Expected error.")
 	}

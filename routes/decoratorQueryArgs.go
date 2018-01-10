@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -30,6 +31,8 @@ const (
 	TagRequiredQueryArg = "required:allof:queryarg"
 	// TagOptionalQueryArg is the tag used to document optional query args.
 	TagOptionalQueryArg = "optional:allof:queryarg"
+	// iso8601DateFormat is the time format for the ISO8601 format
+	iso8601DateFormat = "2006-01-02"
 )
 
 type (
@@ -52,6 +55,14 @@ type (
 	// QueryArgUintSlice denotes a []uint query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgUintSlice struct{}
+
+	// QueryArgStringSlice denotes a []string query argument. It fulfills the
+	// QueryParser interface.
+	QueryArgStringSlice struct{}
+
+	// QueryArgDate denotes a time.Time query argument. The time format is
+	// the ISO8601. It fulfills the QueryParser interface.
+	QueryArgDate struct{}
 
 	// QueryParser parses a string and returns a typed value. An error can
 	// be returned if the value could not be parsed.
@@ -80,7 +91,7 @@ type (
 
 // QueryParse parses an int. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
-func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
+func (QueryArgInt) QueryParse(val string) (interface{}, error) {
 	if i, err := strconv.ParseInt(val, 10, 64); err == nil &&
 		i <= int64(maxInt) && i >= int64(minInt) {
 		return int(i), nil
@@ -88,15 +99,17 @@ func (d QueryArgInt) QueryParse(val string) (interface{}, error) {
 	return nil, errors.New("must be an int")
 }
 
-func (d QueryArgInt) FormatName() string       { return "int" }
-func (d QueryArgUint) FormatName() string      { return "uint" }
-func (d QueryArgString) FormatName() string    { return "string" }
-func (d QueryArgIntSlice) FormatName() string  { return "[]int" }
-func (d QueryArgUintSlice) FormatName() string { return "[]uint" }
+func (d QueryArgInt) FormatName() string         { return "int" }
+func (d QueryArgUint) FormatName() string        { return "uint" }
+func (d QueryArgString) FormatName() string      { return "string" }
+func (d QueryArgIntSlice) FormatName() string    { return "[]int" }
+func (d QueryArgUintSlice) FormatName() string   { return "[]uint" }
+func (d QueryArgStringSlice) FormatName() string { return "[]string" }
+func (d QueryArgDate) FormatName() string        { return "time.Time" }
 
 // QueryParse parses a uint. A nil error indicates a success. With this func,
 // QueryArgUint fulfills QueryArgType.
-func (d QueryArgUint) QueryParse(val string) (interface{}, error) {
+func (QueryArgUint) QueryParse(val string) (interface{}, error) {
 	if i, err := strconv.ParseUint(val, 10, 64); err == nil &&
 		i <= uint64(maxUint) {
 		return uint(i), nil
@@ -106,13 +119,13 @@ func (d QueryArgUint) QueryParse(val string) (interface{}, error) {
 
 // QueryParse parses a string. A nil error indicates a success. With this func,
 // QueryArgString fulfills QueryArgType.
-func (d QueryArgString) QueryParse(val string) (interface{}, error) {
+func (QueryArgString) QueryParse(val string) (interface{}, error) {
 	return val, nil
 }
 
 // QueryParse parses an []int. A nil error indicates a success. With this func,
 // QueryArgIntSlice fulfills QueryArgType.
-func (d QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
+func (QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]int, 0, len(vals))
 	for _, v := range vals {
@@ -128,7 +141,7 @@ func (d QueryArgIntSlice) QueryParse(val string) (interface{}, error) {
 
 // QueryParse parses an []uint. A nil error indicates a success. With this func,
 // QueryArgUintSlice fulfills QueryArgType.
-func (d QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
+func (QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 	vals := strings.Split(val, ",")
 	res := make([]uint, 0, len(vals))
 	for _, v := range vals {
@@ -140,6 +153,27 @@ func (d QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 		}
 	}
 	return res, nil
+}
+
+// QueryParse parses a []string. Since it does not do any type conversion,
+// it cannot fail. With this func, QueryArgStringSlice fulfills QueryArgType.
+func (QueryArgStringSlice) QueryParse(val string) (interface{}, error) {
+	vals := strings.Split(val, ",")
+	res := make([]string, 0, len(vals))
+	for _, v := range vals {
+		res = append(res, v)
+	}
+	return res, nil
+}
+
+// QueryParse parses a time.Time in the ISO8601 format. With this func,
+// QueryArgDate fulfills QueryArgType.
+func (QueryArgDate) QueryParse(val string) (interface{}, error) {
+	parsedDate, err := time.Parse(iso8601DateFormat, val)
+	if err != nil {
+		return nil, errors.New("could not parse the date" + err.Error())
+	}
+	return parsedDate, nil
 }
 
 func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
