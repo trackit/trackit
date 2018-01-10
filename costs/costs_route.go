@@ -117,7 +117,7 @@ func validateCriteriaParam(parsedParams esQueryParams) error {
 func validateAwsAccounts(parsedParams esQueryParams) error {
 	for _, account := range parsedParams.accountList {
 		if _, err := strconv.ParseInt(account, 10, 0); err != nil || len(account) != 12 {
-			return fmt.Errorf("Error invalid account format : %s", account)
+			return fmt.Errorf("invalid account format : %s", account)
 		}
 	}
 	return nil
