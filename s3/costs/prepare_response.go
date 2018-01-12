@@ -51,7 +51,9 @@ func getBucketInfoByName(buckets bucketsInfo, bucketName string) *S3BucketCost {
 	return buckets[bucketName]
 }
 
-func parseBucketsStorage(buckets bucketsInfo, parsedDocument bucket) {
+// parseBucketsStorage parses the cost and usage informations from parsedDocument
+// and insert these informations in the buckets map
+func parseBucketsStorage(buckets bucketsInfo, parsedDocument bucket) bucketsInfo {
 	bucketsField := parsedDocument["buckets"].([]interface{})
 	for _, bucketData := range bucketsField {
 		bucketData := bucketData.(bucket)
@@ -59,22 +61,25 @@ func parseBucketsStorage(buckets bucketsInfo, parsedDocument bucket) {
 		bucketInfo.GbMonth = bucketData["gb"].(bucket)["value"].(float64)
 		bucketInfo.StorageCost = bucketData["cost"].(bucket)["value"].(float64)
 	}
+	return buckets
 }
 
 // parseStorage parses the result from GetS3SpaceElasticSearchParams
-func parseStorage(ctx context.Context, buckets bucketsInfo, resStorage *elastic.SearchResult) error {
+func parseStorage(ctx context.Context, buckets bucketsInfo, resStorage *elastic.SearchResult) (bucketsInfo, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedDocument bucket
 	err := json.Unmarshal(*resStorage.Aggregations["buckets"], &parsedDocument)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return err
+		return buckets, err
 	}
 	parseBucketsStorage(buckets, parsedDocument)
-	return nil
+	return buckets, nil
 }
 
-func parseBucketsRequests(buckets bucketsInfo, parsedDocument bucket) {
+// parseBucketsRequests parses the cost and usage informations from parsedDocument
+// and insert these informations in the buckets map
+func parseBucketsRequests(buckets bucketsInfo, parsedDocument bucket) bucketsInfo {
 	bucketsField := parsedDocument["buckets"].([]interface{})
 	for _, bucketData := range bucketsField {
 		bucketData := bucketData.(bucket)
@@ -86,22 +91,25 @@ func parseBucketsRequests(buckets bucketsInfo, parsedDocument bucket) {
 			bucketInfo.RequestsCost = bucketData["cost"].(bucket)["value"].(float64)
 		}
 	}
+	return buckets
 }
 
 // parseRequests parses the result from GetS3RequestsElasticSearchParams
-func parseRequests(ctx context.Context, buckets bucketsInfo, resRequests *elastic.SearchResult) error {
+func parseRequests(ctx context.Context, buckets bucketsInfo, resRequests *elastic.SearchResult) (bucketsInfo, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedDocument bucket
 	err := json.Unmarshal(*resRequests.Aggregations["buckets"], &parsedDocument)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return err
+		return buckets, err
 	}
-	parseBucketsRequests(buckets, parsedDocument)
-	return nil
+	buckets = parseBucketsRequests(buckets, parsedDocument)
+	return buckets, nil
 }
 
-func parseBucketsBandwidth(buckets bucketsInfo, parsedDocument bucket, bwType string) {
+// parseBucketsBandwidth parses the cost and usage informations from parsedDocument
+// and insert these informations in the buckets map
+func parseBucketsBandwidth(buckets bucketsInfo, parsedDocument bucket, bwType string) bucketsInfo {
 	bucketsField := parsedDocument["buckets"].([]interface{})
 	for _, bucketData := range bucketsField {
 		bucketData := bucketData.(bucket)
@@ -117,37 +125,38 @@ func parseBucketsBandwidth(buckets bucketsInfo, parsedDocument bucket, bwType st
 			bucketInfo.BandwidthCost += bucketData["cost"].(bucket)["value"].(float64)
 		}
 	}
+	return buckets
 }
 
 // parseBandwidth parses the result from GetS3BandwidthElasticSearchParams
-func parseBandwidth(ctx context.Context, buckets bucketsInfo, resBandwidth *elastic.SearchResult, bwType string) error {
+func parseBandwidth(ctx context.Context, buckets bucketsInfo, resBandwidth *elastic.SearchResult, bwType string) (bucketsInfo, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedDocument bucket
 	err := json.Unmarshal(*resBandwidth.Aggregations["buckets"], &parsedDocument)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return err
+		return buckets, err
 	}
-	parseBucketsBandwidth(buckets, parsedDocument, bwType)
-	return nil
+	buckets = parseBucketsBandwidth(buckets, parsedDocument, bwType)
+	return buckets, nil
 }
 
 // prepareResponse parses the results from elasticsearch and returns a map of buckets with their usage informations
 func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (interface{}, error) {
 	buckets := make(bucketsInfo)
-	err := parseStorage(ctx, buckets, resStorage)
+	buckets, err := parseStorage(ctx, buckets, resStorage)
 	if err != nil {
 		return nil, err
 	}
-	err = parseRequests(ctx, buckets, resRequests)
+	buckets, err = parseRequests(ctx, buckets, resRequests)
 	if err != nil {
 		return nil, err
 	}
-	err = parseBandwidth(ctx, buckets, resBandwidthIn, "In")
+	buckets, err = parseBandwidth(ctx, buckets, resBandwidthIn, "In")
 	if err != nil {
 		return nil, err
 	}
-	err = parseBandwidth(ctx, buckets, resBandwidthOut, "Out")
+	buckets, err = parseBandwidth(ctx, buckets, resBandwidthOut, "Out")
 	if err != nil {
 		return nil, err
 	}
