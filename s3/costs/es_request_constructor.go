@@ -16,7 +16,6 @@
 package costs
 
 import (
-	"fmt"
 	"time"
 
 	"gopkg.in/olivere/elastic.v5"
@@ -41,14 +40,15 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 		From(durationBegin).To(durationEnd)
 }
 
-// GetS3SpaceElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
-// used to perform an S3 space usage/cost request on ES
+// GetS3UsageAndCostElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
+// used to perform an S3 usage and cost request on ES
 // It takes as paramters :
 // 	- accountList []uint : A slice of uint representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
 //	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//  - filters []esFilter : A slice of esFilter containing the filters (key/value) to apply to the request
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on wich to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
@@ -56,85 +56,21 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetS3SpaceElasticSearchParams(accountList []uint, durationBegin time.Time,
-	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
+func GetS3UsageAndCostElasticSearchParams(accountList []uint, durationBegin time.Time,
+	durationEnd time.Time, filters []esFilter, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
 	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
-	query = query.Filter(elastic.NewWildcardQuery("usageType", "*TimedStorage*"))
-	search := client.Search().Index(index).Size(0).Query(query)
-
-	search.Aggregation("buckets", elastic.NewTermsAggregation().Field("resourceId").Size(aggregationMaxSize).
-		SubAggregation("gb", elastic.NewSumAggregation().Field("usageAmount")).
-		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
-	return search
-}
-
-// GetS3RequestsElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
-// used to perform an S3 requests usage/cost request on ES
-// It takes as paramters :
-// 	- accountList []uint : A slice of uint representing aws account number, in the format of the field
-//	'awsdetailedlineitem.linked_account_id'
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
-//	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
-//	should be "awsdetailedlineitems"
-// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
-// it crash :
-//	- If the client is nil or malconfigured, it will crash
-//	- If the index is not an index present in the ES, it will crash
-func GetS3RequestsElasticSearchParams(accountList []uint, durationBegin time.Time,
-	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
-	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilter(accountList))
+	for _, filter := range filters {
+		query = query.Filter(elastic.NewWildcardQuery(filter.Key, filter.Value))
 	}
-	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
-	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
-	query = query.Filter(elastic.NewWildcardQuery("usageType", "*Requests*"))
 	search := client.Search().Index(index).Size(0).Query(query)
 
 	search.Aggregation("buckets", elastic.NewTermsAggregation().Field("resourceId").Size(aggregationMaxSize).
-		SubAggregation("requests", elastic.NewSumAggregation().Field("usageAmount")).
-		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
-	return search
-}
-
-// GetS3BandwidthElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
-// used to perform an S3 bandwidth usage/cost request on ES
-// It takes as paramters :
-// 	- accountList []uint : A slice of uint representing aws account number, in the format of the field
-//	'awsdetailedlineitem.linked_account_id'
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
-//	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
-//	should be "awsdetailedlineitems"
-//  - bwType string : The type of the bandwidth to retrieve. This can either be "In" or "Out"
-// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
-// it crash :
-//	- If the client is nil or malconfigured, it will crash
-//	- If the index is not an index present in the ES, it will crash
-func GetS3BandwidthElasticSearchParams(accountList []uint, durationBegin time.Time,
-	durationEnd time.Time, client *elastic.Client, index, bwType string) *elastic.SearchService {
-	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilter(accountList))
-	}
-	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
-	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
-	query = query.Filter(elastic.NewWildcardQuery("usageType", fmt.Sprintf("*%s*", bwType)))
-	query = query.Filter(elastic.NewWildcardQuery("serviceCode", "AWSDataTransfer"))
-	search := client.Search().Index(index).Size(0).Query(query)
-
-	search.Aggregation("buckets", elastic.NewTermsAggregation().Field("resourceId").Size(aggregationMaxSize).
-		SubAggregation("gb", elastic.NewSumAggregation().Field("usageAmount")).
+		SubAggregation("usage", elastic.NewSumAggregation().Field("usageAmount")).
 		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
 	return search
 }

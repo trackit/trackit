@@ -35,6 +35,33 @@ type esQueryParams struct {
 	accountList []uint
 }
 
+// esFilter represents an elasticsearch filter
+type esFilter struct {
+	Key   string
+	Value string
+}
+
+type esFilters = []esFilter
+
+// queryDataTypeToEsFilters represents the different types of data
+// that can be requested from ES and their associated slice of filters
+var queryDataTypeToEsFilters = map[string]esFilters{
+	"storage": esFilters{
+		esFilter{"usageType", "*TimedStorage*"},
+	},
+	"requests": esFilters{
+		esFilter{"usageType", "*Requests*"},
+	},
+	"bandwidthIn": esFilters{
+		esFilter{"usageType", "*In*"},
+		esFilter{"serviceCode", "AWSDataTransfer"},
+	},
+	"bandwidthOut": esFilters{
+		esFilter{"usageType", "*Out*"},
+		esFilter{"serviceCode", "AWSDataTransfer"},
+	},
+}
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getS3CostData).With(
@@ -80,81 +107,32 @@ var (
 	}
 )
 
-// makeElasticSearchStorageRequest prepares and run the request to retrieve storage usage/cost
+// makeElasticSearchRequest prepares and run the request to retrieve usage and cost
+// informations related to the queryDataType
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empy data
-func makeElasticSearchStorageRequest(ctx context.Context, parsedParams esQueryParams,
-	user users.User) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
+	user users.User, queryDataType string) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUser(user, "lineitems")
-	searchService := GetS3SpaceElasticSearchParams(
-		parsedParams.accountList,
-		parsedParams.dateBegin,
-		parsedParams.dateEnd,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
-		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
-	}
-	return res, http.StatusOK, nil
-}
 
-// makeElasticSearchRequestsRequest prepares and run the request to retrieve requests usage/cost
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
-func makeElasticSearchRequestsRequest(ctx context.Context, parsedParams esQueryParams,
-	user users.User) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, "lineitems")
-	searchService := GetS3RequestsElasticSearchParams(
-		parsedParams.accountList,
-		parsedParams.dateBegin,
-		parsedParams.dateEnd,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
-		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+	esFilters, ok := queryDataTypeToEsFilters[queryDataType]
+	if ok == false {
+		err := fmt.Errorf("QueryDataType '%s' not found", queryDataType)
+		l.Error("Failed to retrieve s3 costs", err)
+		return nil, http.StatusInternalServerError, err
 	}
-	return res, http.StatusOK, nil
-}
 
-// makeElasticSearchBandwidthRequest prepares and run the request to retrieve bandwidth usage/cost
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
-func makeElasticSearchBandwidthRequest(ctx context.Context, parsedParams esQueryParams,
-	user users.User, bwType string) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, "lineitems")
-	searchService := GetS3BandwidthElasticSearchParams(
+	searchService := GetS3UsageAndCostElasticSearchParams(
 		parsedParams.accountList,
 		parsedParams.dateBegin,
 		parsedParams.dateEnd,
+		esFilters,
 		es.Client,
 		index,
-		bwType,
 	)
 	res, err := searchService.Do(ctx)
 	if err != nil {
@@ -175,19 +153,19 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 	parsedParams.accountList = a[AwsAccountsQueryArg].([]uint)
 	parsedParams.dateBegin = a[DateBeginQueryArg].(time.Time)
 	parsedParams.dateEnd = a[DateEndQueryArg].(time.Time)
-	resStorage, returnCode, err := makeElasticSearchStorageRequest(request.Context(), parsedParams, user)
+	resStorage, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "storage")
 	if err != nil {
 		return returnCode, err
 	}
-	resRequests, returnCode, err := makeElasticSearchRequestsRequest(request.Context(), parsedParams, user)
+	resRequests, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "requests")
 	if err != nil {
 		return returnCode, err
 	}
-	resBandwidthIn, returnCode, err := makeElasticSearchBandwidthRequest(request.Context(), parsedParams, user, "In")
+	resBandwidthIn, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "bandwidthIn")
 	if err != nil {
 		return returnCode, err
 	}
-	resBandwidthOut, returnCode, err := makeElasticSearchBandwidthRequest(request.Context(), parsedParams, user, "Out")
+	resBandwidthOut, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "bandwidthOut")
 	if err != nil {
 		return returnCode, err
 	}
