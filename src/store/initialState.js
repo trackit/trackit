@@ -25,5 +25,6 @@ export default {
   gcp: {},
   auth: {
     token: null,
+    mail: null
   },
 };

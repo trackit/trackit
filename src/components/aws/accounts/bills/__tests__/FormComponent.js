@@ -20,8 +20,7 @@ const propsWithBill = {
 
 const form = {
   getValues: () => ({
-    bucket: "bucket",
-    prefix: "path"
+    bucket: "s3://test.test/path/to/bill"
   })
 };
 
@@ -42,10 +41,10 @@ describe('<FormComponent />', () => {
     expect(form.length).toBe(1);
   });
 
-  it('renders 2 <Input /> components', () => {
+  it('renders 1 <Input /> component', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
     const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(2);
+    expect(inputs.length).toBe(1);
   });
 
   it('renders 1 <Button /> component', () => {
@@ -54,10 +53,10 @@ describe('<FormComponent />', () => {
     expect(button.length).toBe(1);
   });
 
-  it('renders 2 <Input /> components inside with bill data', () => {
+  it('renders 1 <Input /> component inside with bill data', () => {
     const wrapper = shallow(<FormComponent {...propsWithBill}/>);
     const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(2);
+    expect(inputs.length).toBe(1);
   });
 
   it('can submit info to update bill', () => {

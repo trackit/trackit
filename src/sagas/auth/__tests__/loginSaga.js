@@ -4,11 +4,12 @@ import API from '../../../api';
 import Constants from '../../../constants';
 
 const token = "42";
+const email = "mail";
 
 describe("Login Saga", () => {
 
   const credentials = { username: "username", password: "password" };
-  const validResponse = { success: true, data: { token } };
+  const validResponse = { success: true, data: { token, user: { email } } };
   const validErrorResponse = { success: true, data: { error: "error" }};
   const invalidResponse = { success: true, token };
   const noResponse = { success: false };
@@ -26,12 +27,14 @@ describe("Login Saga", () => {
     expect(saga.next(validResponse).value)
       .toEqual(all([
         put({ type: Constants.LOGIN_REQUEST_SUCCESS }),
-        put({ type: Constants.GET_USER_TOKEN })
+        put({ type: Constants.GET_USER_TOKEN }),
+        put({ type: Constants.GET_USER_MAIL })
       ]));
 
     expect(saga.next().done).toBe(true);
 
     expect(window.localStorage.getItem("userToken")).toBe(token);
+    expect(window.localStorage.getItem("userMail")).toBe(email);
 
   });
 

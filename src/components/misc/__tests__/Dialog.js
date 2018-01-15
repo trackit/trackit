@@ -120,9 +120,9 @@ describe('<DialogComponent />', () => {
 
   it('can execute action', () => {
     const wrapper = shallow(<DialogComponent {...props}/>);
-    expect(props.actionFunction.mock.calls.length).toBe(0);
+    expect(props.actionFunction).not.toHaveBeenCalled();
     wrapper.instance().executeAction({ preventDefault(){} });
-    expect(props.actionFunction.mock.calls.length).toBe(1);
+    expect(props.actionFunction).toHaveBeenCalled();
   });
 
 });

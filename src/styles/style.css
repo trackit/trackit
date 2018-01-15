@@ -91,6 +91,13 @@ button {
     border-color: #d9534f
 }
 
+.btn-left {
+    float: left;
+}
+
+.btn-right {
+    float: right;
+}
 
 /* COLORS */
 
@@ -212,3 +219,4 @@ label {
 .spinner {
     margin: auto;
 }
+
