@@ -89,11 +89,13 @@ describe('<WizardComponent />', () => {
     expect(children.length).toBe(3);
   });
 
-  it('can go to next step', () => {
+  it('can go to next and previous step', () => {
     const wrapper = shallow(<WizardComponent {...props}/>);
     expect(wrapper.state('activeStep')).toBe(0);
     wrapper.instance().nextStep();
     expect(wrapper.state('activeStep')).toBe(1);
+    wrapper.instance().previousStep();
+    expect(wrapper.state('activeStep')).toBe(0);
   });
 
 });

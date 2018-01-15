@@ -349,7 +349,7 @@ class Wizard extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle disableTypography><h1>Create an account</h1></DialogTitle>
+          <DialogTitle disableTypography><h1>Add an AWS account</h1></DialogTitle>
 
           <DialogContent>
 
