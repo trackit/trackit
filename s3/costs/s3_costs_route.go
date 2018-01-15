@@ -75,7 +75,7 @@ func init() {
 			routes.QueryArgs{DateBeginQueryArg},
 			routes.QueryArgs{DateEndQueryArg},
 		),
-	}.H().Register("/s3_costs")
+	}.H().Register("/s3/costs")
 }
 
 var (
