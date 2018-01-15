@@ -115,8 +115,7 @@ export class Navigation extends Component {
 }
 
 Navigation.propTypes = {
-  mail: PropTypes.string,
-  signOut: PropTypes.func.isRequired
+  mail: PropTypes.string
 };
 
 /* istanbul ignore next */
@@ -124,11 +123,4 @@ const mapStateToProps = (state) => ({
   mail: state.auth.mail
 });
 
-/* istanbul ignore next */
-const mapDispatchToProps = (dispatch) => ({
-  signOut: () => {
-    dispatch(Actions.Auth.logout())
-  },
-});
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Navigation));
+export default withRouter(connect(mapStateToProps)(Navigation));

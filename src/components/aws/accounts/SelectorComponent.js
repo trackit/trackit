@@ -57,7 +57,7 @@ Item.propTypes = {
 };
 
 // Selector Component for AWS Accounts
-class SelectorComponent extends Component {
+export class SelectorComponent extends Component {
 
   componentWillMount() {
     this.props.getAccounts();
@@ -107,6 +107,7 @@ SelectorComponent.propTypes = {
   ),
   select: PropTypes.func.isRequired,
   clear: PropTypes.func.isRequired,
+  getAccounts: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */

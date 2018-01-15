@@ -2,9 +2,7 @@ import React from 'react';
 import { Navigation } from '../Navigation';
 import { shallow } from "enzyme";
 
-const props = {
-  signOut: jest.fn()
-};
+const props = {};
 
 describe('<Navigation />', () => {
 
@@ -17,25 +15,18 @@ describe('<Navigation />', () => {
     expect(wrapper.length).toEqual(1);
   });
 
-  it('dispatches a logout action', () => {
-    const wrapper = shallow(<Navigation {...props}/>);
-    wrapper.setState({userMenuExpanded: true});
-    const logout = wrapper.find('a');
-    expect(props.signOut).not.toHaveBeenCalled();
-    logout.prop('onClick')();
-    expect(props.signOut).toHaveBeenCalled();
-  });
-
   it('renders without user menu', () => {
     const wrapper = shallow(<Navigation {...props}/>);
     expect(wrapper.state('userMenuExpanded')).toBe(false);
   });
 
-  it('can expand user menu', () => {
+  it('can expand and close user menu', () => {
     const wrapper = shallow(<Navigation {...props}/>);
     expect(wrapper.state('userMenuExpanded')).toBe(false);
     wrapper.find('button').prop('onClick')();
     expect(wrapper.state('userMenuExpanded')).toBe(true);
+    wrapper.instance().closeUserMenu({ preventDefault() {} });
+    expect(wrapper.state('userMenuExpanded')).toBe(false);
   });
 
 });
