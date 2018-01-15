@@ -71,37 +71,37 @@ func init() {
 				Summary:     "get the s3 costs data",
 				Description: "Responds with cost data based on the queryparams passed to it",
 			},
-			routes.QueryArgs{AwsAccountsQueryArg},
-			routes.QueryArgs{DateBeginQueryArg},
-			routes.QueryArgs{DateEndQueryArg},
+			routes.QueryArgs{awsAccountsQueryArg},
+			routes.QueryArgs{dateBeginQueryArg},
+			routes.QueryArgs{dateEndQueryArg},
 		),
 	}.H().Register("/s3/costs")
 }
 
 var (
-	// AwsAccountsQueryArg allows to get the AWS Account IDs in the URL
+	// awsAccountsQueryArg allows to get the AWS Account IDs in the URL
 	// Parameters with routes.QueryArgs. These AWS Account IDs will be a
 	// slice of Uint stored in the routes.Arguments map with itself for key.
-	AwsAccountsQueryArg = routes.QueryArg{
+	awsAccountsQueryArg = routes.QueryArg{
 		Name:        "accounts",
 		Type:        routes.QueryArgUintSlice{},
 		Description: "The IDs for many AWS account.",
 		Optional:    true,
 	}
 
-	// DateBeginQueryArg allows to get the iso8601 begin date in the URL
+	// dateBeginQueryArg allows to get the iso8601 begin date in the URL
 	// Parameters with routes.QueryArgs. This date will be a
 	// time.Time stored in the routes.Arguments map with itself for key.
-	DateBeginQueryArg = routes.QueryArg{
+	dateBeginQueryArg = routes.QueryArg{
 		Name:        "begin",
 		Type:        routes.QueryArgDate{},
 		Description: "The begin date.",
 	}
 
-	// DateEndQueryArg allows to get the iso8601 begin date in the URL
+	// dateEndQueryArg allows to get the iso8601 begin date in the URL
 	// Parameters with routes.QueryArgs. This date will be a
 	// time.Time stored in the routes.Arguments map with itself for key.
-	DateEndQueryArg = routes.QueryArg{
+	dateEndQueryArg = routes.QueryArg{
 		Name:        "end",
 		Type:        routes.QueryArgDate{},
 		Description: "The end date.",
@@ -151,12 +151,12 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		dateBegin:   a[DateBeginQueryArg].(time.Time),
-		dateEnd:     a[DateEndQueryArg].(time.Time),
+		dateBegin:   a[dateBeginQueryArg].(time.Time),
+		dateEnd:     a[dateEndQueryArg].(time.Time),
 		accountList: []uint{},
 	}
-	if a[AwsAccountsQueryArg] != nil {
-		parsedParams.accountList = a[AwsAccountsQueryArg].([]uint)
+	if a[awsAccountsQueryArg] != nil {
+		parsedParams.accountList = a[awsAccountsQueryArg].([]uint)
 	}
 	resStorage, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "storage")
 	if err != nil {
