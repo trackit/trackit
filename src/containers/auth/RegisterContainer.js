@@ -15,9 +15,13 @@ export class RegisterContainer extends Component {
   }
 
   render() {
-    if (this.props.registration && this.props.registration.status)
+    if (this.props.registrationStatus && this.props.registrationStatus.status)
       return (<Redirect to="/login"/>);
-    return (<Form submit={this.props.register} registration registrationStatus={this.props.registrationStatus}/>);
+    return (<Form
+      submit={this.props.register}
+      registration
+      registrationStatus={this.props.registrationStatus}
+    />);
   }
 
 }

@@ -13,7 +13,7 @@ const props = {
 
 const propsWithRegistration = {
   ...props,
-  registration: { status: true }
+  registrationStatus: { status: true }
 };
 
 describe('<RegisterContainer />', () => {
