@@ -237,7 +237,10 @@ export class StepThree extends Component {
           <div className="tutorial">
 
             <ol>
-              <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills</li>
+              <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills
+                <br/>
+                Example : <code>s3://my.bucket/bills</code>
+              </li>
               <li>You will be able to add more buckets later.</li>
             </ol>
 
@@ -260,6 +263,7 @@ export class StepThree extends Component {
               name="bucket"
               type="text"
               className="form-control"
+              placeholder="s3://<bucket-name>/<path>"
               validations={[Validation.required, Validation.s3BucketFormat]}
             />
           </div>

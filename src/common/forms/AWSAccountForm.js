@@ -9,7 +9,7 @@ if (!regex.exec(value))
 
 const s3BucketFormat = (value) => {
   const result = getS3BucketValues(value);
-  if (!result || result.length !== 2)
+  if (!result || result.length !== 2 || !result[0] || !result[0].length || !result[1] || !result[1].length)
     return (<div className="alert alert-warning">{value} is not a valid S3 bucket.</div>);
 };
 
