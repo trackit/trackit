@@ -15,6 +15,7 @@ import Button from 'react-validation/build/button';
 import Misc from '../../misc';
 import RoleCreation from '../../../assets/wizard-creation.png';
 import RoleARN from '../../../assets/wizard-rolearn.png';
+import '../../../styles/Wizard.css';
 
 const Popover = Misc.Popover;
 const Picture = Misc.Picture;
@@ -42,7 +43,7 @@ export class StepOne extends Component {
               <div>
                 Follow this screenshot to configure your new role correctly,
                 <br/>
-                based on information available bellow
+                using the informations provided
                 <Picture
                   src={RoleCreation}
                   alt="Role creation tutorial"
@@ -139,7 +140,7 @@ export class StepTwo extends Component {
             <li>In <strong>Role</strong> list, select the role you created in previous step</li>
             <li>
               <div>
-                Fill the form bellow with information available in <strong>role summary</strong>.
+                Fill the form below with information available in <strong>role summary</strong>.
                 <br/>
                 Details are available in this screenshot
                 <Picture
@@ -232,7 +233,7 @@ export class StepThree extends Component {
           <div className="tutorial">
 
             <ol>
-              <li>Fill the form with the location of a <strong>S3 buckets</strong> that contains bills</li>
+              <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills</li>
               <li>You will be able to add more buckets later.</li>
             </ol>
 
@@ -350,6 +351,7 @@ class Wizard extends Component {
               {steps.map((step, index) => (
                   <Step key={index}>
                     <StepButton
+                      className={"account-wizard-stepper-item " + (this.state.activeStep > index ? "completed" : (this.state.activeStep === index ? "current" : "")) }
                       completed={this.state.activeStep > index}
                     >
                       {step.label}

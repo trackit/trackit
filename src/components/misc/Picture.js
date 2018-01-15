@@ -39,6 +39,7 @@ class Picture extends Component {
         <Dialog open={this.state.open} fullWidth maxWidth={false}>
 
           <DialogContent className="picture" onClick={this.closeDialog}>
+            <i class="fa fa-times close" aria-hidden="true"></i>
             {image}
           </DialogContent>
 
