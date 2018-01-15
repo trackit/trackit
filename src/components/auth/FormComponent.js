@@ -120,9 +120,16 @@ export class FormComponent extends Component {
       </div>
     ));
 
-    const error = (this.props.loginStatus && this.props.loginStatus.hasOwnProperty("error") ? (
-      <div className="alert alert-warning">{this.props.loginStatus.error}</div>
-    ): "");
+    let error;
+    if (!this.props.registration) {
+      error = (this.props.loginStatus && this.props.loginStatus.hasOwnProperty("error") ? (
+        <div className="alert alert-warning">{this.props.loginStatus.error}</div>
+      ): "");
+    } else {
+      error = (this.props.registrationStatus && this.props.registrationStatus.hasOwnProperty("error") ? (
+        <div className="alert alert-warning">{this.props.registrationStatus.error}</div>
+      ): "");
+    }
 
     return (
       <div className="login">
