@@ -56,6 +56,13 @@ func init() {
 				Description: "Edits an AWS account from the user's list of accounts.",
 			},
 		),
+		http.MethodDelete: routes.H(deleteAwsAccount).With(
+			routes.Documentation{
+				Summary:     "delete an aws account",
+				Description: "Delete the aws account passed in the query args.",
+			},
+			routes.QueryArgs{AwsAccountQueryArg},
+		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
 		users.RequireAuthenticatedUser{},
