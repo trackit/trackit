@@ -7,7 +7,7 @@ import PropTypes from "prop-types";
 import s3square from '../../../assets/s3-square.png';
 
 const List = Components.AWS.Accounts.List;
-const Form = Components.AWS.Accounts.Form;
+const Wizard = Components.AWS.Accounts.Wizard;
 const Panel = Components.Misc.Panel;
 
 // Accounts Container for AWS Accounts
@@ -30,9 +30,12 @@ export class AccountsContainer extends Component {
           </h3>
 
           <div className="inline-block pull-right">
-            <Form
-              submit={this.props.accountActions.new}
+            <Wizard
               external={this.props.external}
+              submitAccount={this.props.accountActions.new}
+              clearAccount={this.props.accountActions.clearNew}
+              submitBucket={this.props.newBill}
+              account={this.props.newAccount}
             />
           </div>
 
@@ -57,19 +60,29 @@ AccountsContainer.propTypes = {
       pretty: PropTypes.string
     })
   ),
-  external: PropTypes.string,
+  newAccount: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    roleArn: PropTypes.string.isRequired,
+    pretty: PropTypes.string,
+  }),
+  external: PropTypes.shape({
+    external: PropTypes.string.isRequired,
+    accountId: PropTypes.string.isRequired,
+  }),
   getAccounts: PropTypes.func.isRequired,
   accountActions: PropTypes.shape({
     new: PropTypes.func.isRequired,
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
+  newBill: PropTypes.func.isRequired,
   newExternal: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
 const mapStateToProps = (state) => ({
   accounts: state.aws.accounts.all,
+  newAccount: state.aws.accounts.creation,
   external: state.aws.accounts.external
 });
 
@@ -82,12 +95,18 @@ const mapDispatchToProps = (dispatch) => ({
     new: (account) => {
       dispatch(Actions.AWS.Accounts.newAccount(account))
     },
+    clearNew: () => {
+      dispatch(Actions.AWS.Accounts.clearNewAccount());
+    },
     edit: (account) => {
       dispatch(Actions.AWS.Accounts.editAccount(account))
     },
     delete: (accountID) => {
       dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
     },
+  },
+  newBill: (accountID, bill) => {
+    dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
   },
   newExternal: () => {
     dispatch(Actions.AWS.Accounts.newExternal())

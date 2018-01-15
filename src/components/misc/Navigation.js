@@ -67,7 +67,7 @@ export class Navigation extends Component {
                   <i className="fa fa-user fa-stack-1x fa-inverse"></i>
                 </span>
                 <span className="hide-menu">
-                  Username
+                  {this.props.mail}
                   <i className="fa fa-caret-right"/>
                 </span>
               </button>
@@ -115,11 +115,13 @@ export class Navigation extends Component {
 }
 
 Navigation.propTypes = {
+  mail: PropTypes.string,
   signOut: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
-const mapStateToProps = () => ({
+const mapStateToProps = (state) => ({
+  mail: state.auth.mail
 });
 
 /* istanbul ignore next */

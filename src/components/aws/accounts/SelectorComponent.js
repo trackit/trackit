@@ -6,6 +6,7 @@ import List, {
 } from 'material-ui/List';
 import PropTypes from 'prop-types';
 import Actions from "../../../actions";
+import Checkbox from 'material-ui/Checkbox';
 
 export class Item extends Component {
 
@@ -21,7 +22,7 @@ export class Item extends Component {
 
   render() {
     return (
-      <div>
+      <div className="account-selection-item">
 
         <ListItem divider>
 
@@ -30,9 +31,12 @@ export class Item extends Component {
             primary={this.props.account.pretty || this.props.account.roleArn}
           />
 
-          <button className={"btn btn-" + (this.props.isSelected ? "danger" : "default")} onClick={this.selectAccount}>
-            {this.props.isSelected ? "Unselect" : "Select"}
-          </button>
+          <Checkbox
+            className={"checkbox " + (this.props.isSelected ? "selected" : "")}
+            checked={this.props.isSelected}
+            onChange={this.selectAccount}
+            disableRipple
+          />
 
         </ListItem>
 

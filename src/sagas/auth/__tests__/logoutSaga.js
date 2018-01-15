@@ -3,6 +3,7 @@ import logoutSaga from '../logoutSaga';
 import Constants from '../../../constants';
 
 const token = "42";
+const mail = "mail";
 
 describe("Logout Saga", () => {
 
@@ -11,16 +12,16 @@ describe("Logout Saga", () => {
     let saga = logoutSaga();
 
     window.localStorage.setItem("userToken", token);
+    window.localStorage.setItem("userMail", mail);
 
     expect(saga.next().value)
       .toEqual(all([
         put({ type: Constants.LOGOUT_REQUEST_SUCCESS }),
-        put({ type: Constants.CLEAN_USER_TOKEN })
+        put({ type: Constants.CLEAN_USER_TOKEN }),
+        put({ type: Constants.CLEAN_USER_MAIL })
       ]));
 
     expect(saga.next().done).toBe(true);
-
-    expect(window.localStorage.getItem("userToken")).toBe(null);
 
   });
 
@@ -28,6 +29,7 @@ describe("Logout Saga", () => {
 
     let saga = logoutSaga();
 
+    window.localStorage.setItem("userMail", mail);
     window.localStorage.removeItem("userToken");
 
     expect(saga.next().value)
@@ -35,7 +37,19 @@ describe("Logout Saga", () => {
 
     expect(saga.next().done).toBe(true);
 
-    expect(window.localStorage.getItem("userToken")).toBe(null);
+  });
+
+  it("handles saga with unavailable mail", () => {
+
+    let saga = logoutSaga();
+
+    window.localStorage.setItem("userToken", token);
+    window.localStorage.removeItem("userMail");
+
+    expect(saga.next().value)
+      .toEqual(put({ type: Constants.LOGOUT_REQUEST_ERROR, error: Error("No user mail available") }));
+
+    expect(saga.next().done).toBe(true);
 
   });
 

@@ -4,7 +4,7 @@ import Components from '../../../../components';
 import { shallow } from 'enzyme';
 
 const List = Components.AWS.Accounts.List;
-const Form = Components.AWS.Accounts.Form;
+const Wizard = Components.AWS.Accounts.Wizard;
 const Panel = Components.Misc.Panel;
 
 const defaultActions = {
@@ -12,20 +12,20 @@ const defaultActions = {
     new: jest.fn(),
     edit: jest.fn(),
     delete: jest.fn(),
-  },
-  billActions: {
-    new: jest.fn(),
-    edit: jest.fn(),
-    delete: jest.fn(),
+    clearNew: jest.fn()
   }
 };
 
 const props = {
   ...defaultActions,
   accounts: [],
-  external: "external",
+  external: {
+    external: "external",
+    accountId: "accountId"
+  },
   getAccounts: jest.fn(),
-  newExternal: jest.fn()
+  newExternal: jest.fn(),
+  newBill: jest.fn()
 };
 
 describe('<AccountsContainer />', () => {
@@ -51,9 +51,9 @@ describe('<AccountsContainer />', () => {
     expect(list.length).toBe(1);
   });
 
-  it('renders a <Form /> component', () => {
+  it('renders a <Wizard /> component', () => {
     const wrapper = shallow(<AccountsContainer {...props} />);
-    const form = wrapper.find(Form);
+    const form = wrapper.find(Wizard);
     expect(form.length).toBe(1);
   });
 

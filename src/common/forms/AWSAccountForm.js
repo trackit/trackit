@@ -13,16 +13,22 @@ const getAccountIDFromRole = (value) => {
 };
 
 const s3BucketFormat = (value) => {
-  //s3:\/\/
-  const regex = /^((?![^/]{1,61}\.\.[^/]{1,61})[a-z.-]{3,63})$/;
-  if (!regex.exec(value))
+  const result = getS3BucketValues(value);
+  if (!result || result.length !== 2 || !result[0] || !result[0].length || !result[1] || !result[1].length)
     return (<div className="alert alert-warning">{value} is not a valid S3 bucket.</div>);
 };
 
-const pathFormat = (value) => {
-  const regex = /^(?:\/(.{0,1024}))?$/;
-  if (!regex.exec(value))
-    return (<div className="alert alert-warning">{value} is not a valid path.</div>);
+const getS3BucketValues = (value) => {
+  // Capturing groups :
+  // 1. S3 Bucket name
+  // 2. Path
+  const regex = /^s3:\/\/((?![^/]{1,61}\.\.[^/]{1,61})[a-z.-]{3,63})(?:\/(.{0,1024}))?$/;
+  let result = regex.exec(value);
+  if (result && result.length && result.length === 3) {
+    result.shift();
+    return result;
+  }
+  return null;
 };
 
 export default {
@@ -30,5 +36,5 @@ export default {
   roleArnFormat,
   getAccountIDFromRole,
   s3BucketFormat,
-  pathFormat
+  getS3BucketValues
 };

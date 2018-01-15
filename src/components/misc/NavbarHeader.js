@@ -48,7 +48,7 @@ export class NavbarHeader extends Component {
                    </button>
                    <ul className="dropdown-menu">
                      <li>
-                       <h5 className="dropdown-title"><strong>Username</strong></h5>
+                       <h5 className="dropdown-title"><strong>{this.props.mail}</strong></h5>
                      </li>
                      <hr className="m-b-0"/>
                      <li>
@@ -78,11 +78,13 @@ export class NavbarHeader extends Component {
 }
 
 NavbarHeader.propTypes = {
+  mail: PropTypes.string,
   signOut: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
-const mapStateToProps = () => ({
+const mapStateToProps = (state) => ({
+  mail: state.auth.mail
 });
 
 /* istanbul ignore next */

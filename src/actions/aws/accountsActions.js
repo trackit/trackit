@@ -18,6 +18,9 @@ export default {
     type: Constants.AWS_NEW_ACCOUNT,
     account
   }),
+  clearNewAccount: () => ({
+    type: Constants.AWS_NEW_ACCOUNT_CLEAR
+  }),
   newAccountBill: (accountID, bill) => ({
     type: Constants.AWS_NEW_ACCOUNT_BILL,
     accountID,
