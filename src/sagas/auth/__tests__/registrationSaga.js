@@ -6,7 +6,7 @@ import Constants from '../../../constants';
 describe("Registration Saga", () => {
 
   const credentials = { username: "username", password: "password" };
-  const validResponse = { success: true };
+  const validResponse = { success: true, data: {} };
   const noResponse = { success: false };
 
   it("handles saga with valid data", () => {
@@ -37,7 +37,7 @@ describe("Registration Saga", () => {
       .toEqual(call(API.Auth.register, credentials.username, credentials.password));
 
     expect(saga.next(noResponse).value)
-      .toEqual(put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: Error("Error with request") } }));
+      .toEqual(put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: "Error: An error has occured" } }));
 
     expect(saga.next().done).toBe(true);
 

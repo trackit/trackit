@@ -9,9 +9,17 @@ export default function* registrationSaga({ username, password }) {
     if (res.success && !res.data.error) {
       yield put({type: Constants.REGISTRATION_SUCCESS, payload: { status: true }});
     }
-    else
-      throw Error(res.data.error);
+    else {
+      if (res.data && res.data.error) {
+        throw Error(res.data.error);
+      } else {
+        throw Error('An error has occured');
+      }
+    }
   } catch (error) {
-    yield put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: error.toString() }});
+    yield put({
+      type: Constants.REGISTRATION_ERROR,
+      payload: { status: false, error: error.toString() }
+    });
   }
 }
