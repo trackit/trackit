@@ -86,6 +86,7 @@ var (
 		Name:        "accounts",
 		Type:        routes.QueryArgUintSlice{},
 		Description: "The IDs for many AWS account.",
+		Optional:    true,
 	}
 
 	// DateBeginQueryArg allows to get the iso8601 begin date in the URL
@@ -149,10 +150,14 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 // getS3CostData returns the s3 cost data based on the query params, in JSON format.
 func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := esQueryParams{}
-	parsedParams.accountList = a[AwsAccountsQueryArg].([]uint)
-	parsedParams.dateBegin = a[DateBeginQueryArg].(time.Time)
-	parsedParams.dateEnd = a[DateEndQueryArg].(time.Time)
+	parsedParams := esQueryParams{
+		dateBegin:   a[DateBeginQueryArg].(time.Time),
+		dateEnd:     a[DateEndQueryArg].(time.Time),
+		accountList: []uint{},
+	}
+	if a[AwsAccountsQueryArg] != nil {
+		parsedParams.accountList = a[AwsAccountsQueryArg].([]uint)
+	}
 	resStorage, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "storage")
 	if err != nil {
 		return returnCode, err
