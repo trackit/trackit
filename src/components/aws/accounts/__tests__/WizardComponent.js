@@ -213,11 +213,11 @@ describe('<StepTwo />', () => {
     expect(button.length).toBe(1);
   });
 
-  it('renders 1 <button /> component in <Form />', () => {
+  it('renders 2 <button /> components in <Form />', () => {
     const wrapper = shallow(<StepTwo {...props}/>);
     const form = wrapper.find(Form);
     const button = form.find("button");
-    expect(button.length).toBe(1);
+    expect(button.length).toBe(2);
   });
 
   it('can submit', () => {
