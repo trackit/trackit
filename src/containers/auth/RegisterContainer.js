@@ -17,17 +17,21 @@ export class RegisterContainer extends Component {
   render() {
     if (this.props.registration && this.props.registration.status)
       return (<Redirect to="/login"/>);
-    return (<Form submit={this.props.register} registration/>);
+    return (<Form submit={this.props.register} registration registrationStatus={this.props.registrationStatus}/>);
   }
 
 }
 
 RegisterContainer.propTypes = {
-  register: PropTypes.func.isRequired
+  register: PropTypes.func.isRequired,
+  registrationStatus: PropTypes.shape({
+    status: PropTypes.bool,
+    error: PropTypes.string
+  })
 };
 
 /* istanbul ignore next */
-const mapStateToProps = (state) => ({registration: state.auth.registration});
+const mapStateToProps = (state) => ({registrationStatus: state.auth.registration});
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({

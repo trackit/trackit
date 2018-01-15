@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/trackit2-client
     docker:
-      - image: circleci/node:7.10
+      - image: msolution/trackit2-builder-ui
     steps:
       - checkout
       - restore_cache:
@@ -11,15 +11,23 @@ jobs:
           - v1-dependencies-{{ checksum "package.json" }}
           - v1-dependencies-
       - run:
-          name: install-npm
+          name: Installing NPM dependencies
           command: npm install
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
       - run:
-          name: lint
+          name: Linting
           command: npm run lint
       - run:
-          name: test
+          name: Testing
           command: npm run test
+      - run:
+          environment:
+            CI: 'false'
+          name: Building
+          command: npm run build
+      - deploy:
+          name: Deploying
+          command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION

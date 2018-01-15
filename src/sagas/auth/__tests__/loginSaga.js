@@ -18,6 +18,9 @@ describe("Login Saga", () => {
     let saga = loginSaga(credentials);
 
     expect(saga.next().value)
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_LOADING }));
+
+    expect(saga.next().value)
       .toEqual(call(API.Auth.login, credentials.username, credentials.password));
 
     expect(saga.next(validResponse).value)
@@ -37,6 +40,9 @@ describe("Login Saga", () => {
     let saga = loginSaga(credentials);
 
     expect(saga.next().value)
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_LOADING }));
+
+    expect(saga.next().value)
       .toEqual(call(API.Auth.login, credentials.username, credentials.password));
 
     expect(saga.next(validErrorResponse).value)
@@ -53,6 +59,9 @@ describe("Login Saga", () => {
     let saga = loginSaga(credentials);
 
     expect(saga.next().value)
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_LOADING }));
+
+    expect(saga.next().value)
       .toEqual(call(API.Auth.login, credentials.username, credentials.password));
 
     expect(saga.next(invalidResponse).value)
@@ -65,6 +74,9 @@ describe("Login Saga", () => {
   it("handles saga with no response", () => {
 
     let saga = loginSaga(credentials);
+
+    expect(saga.next().value)
+      .toEqual(put({ type: Constants.LOGIN_REQUEST_LOADING }));
 
     expect(saga.next().value)
       .toEqual(call(API.Auth.login, credentials.username, credentials.password));

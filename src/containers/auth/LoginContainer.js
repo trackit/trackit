@@ -22,7 +22,7 @@ LoginContainer.propTypes = {
   login: PropTypes.func.isRequired,
   token: PropTypes.string,
   loginStatus: PropTypes.shape({
-    status: PropTypes.bool.isRequired,
+    status: PropTypes.bool,
     error: PropTypes.string
   })
 };

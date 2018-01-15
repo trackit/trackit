@@ -14,6 +14,9 @@ describe("Registration Saga", () => {
     let saga = registrationSaga(credentials);
 
     expect(saga.next().value)
+      .toEqual(put({ type: Constants.REGISTRATION_REQUEST_LOADING }));
+
+    expect(saga.next().value)
       .toEqual(call(API.Auth.register, credentials.username, credentials.password));
 
     expect(saga.next(validResponse).value)
@@ -26,6 +29,9 @@ describe("Registration Saga", () => {
   it("handles saga with no response", () => {
 
     let saga = registrationSaga(credentials);
+
+    expect(saga.next().value)
+      .toEqual(put({ type: Constants.REGISTRATION_REQUEST_LOADING }));
 
     expect(saga.next().value)
       .toEqual(call(API.Auth.register, credentials.username, credentials.password));

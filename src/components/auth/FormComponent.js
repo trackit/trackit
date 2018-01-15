@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import Spinner from 'react-spinkit';
 
 // Form imports
 import Form from 'react-validation/build/form';
@@ -77,9 +78,15 @@ export class FormComponent extends Component {
           className="btn btn-primary col-md-5 btn-right"
           type="submit"
         >
-          <i className="fa fa-user-plus" />
-          &nbsp;
-          Sign up
+          {(this.props.registrationStatus && !Object.keys(this.props.registrationStatus).length ? (
+            (<Spinner className="spinner" name='circle' color='white'/>)
+          ) : (
+            <div>
+              <i className="fa fa-user-plus" />
+              &nbsp;
+              Sign up
+            </div>
+          ))}
         </Button>
 
       </div>
@@ -99,15 +106,21 @@ export class FormComponent extends Component {
           className="btn btn-primary col-md-5 btn-right"
           type="submit"
         >
-          <i className="fa fa-sign-in" />
-          &nbsp;
-          Sign in
+          {(this.props.loginStatus && !Object.keys(this.props.loginStatus).length ? (
+            (<Spinner className="spinner" name='circle' color='white'/>)
+          ) : (
+            <div>
+              <i className="fa fa-sign-in" />
+              &nbsp;
+              Sign in
+            </div>
+          ))}
         </Button>
 
       </div>
     ));
 
-    const error = (this.props.loginStatus ? (
+    const error = (this.props.loginStatus && this.props.loginStatus.hasOwnProperty("error") ? (
       <div className="alert alert-warning">{this.props.loginStatus.error}</div>
     ): "");
 
@@ -163,7 +176,11 @@ FormComponent.propTypes = {
   submit: PropTypes.func.isRequired,
   registration: PropTypes.bool,
   loginStatus: PropTypes.shape({
-    status: PropTypes.bool.isRequired,
+    status: PropTypes.bool,
+    error: PropTypes.string
+  }),
+  registrationStatus: PropTypes.shape({
+    status: PropTypes.bool,
     error: PropTypes.string
   })
 };

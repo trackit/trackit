@@ -17,6 +17,10 @@ describe("LoginReducer", () => {
     expect(LoginReducer(null, { type: Constants.LOGIN_REQUEST_ERROR, ...payload })).toEqual({ ...payload, status: false });
   });
 
+  it("handles get login loading state", () => {
+    expect(LoginReducer(null, { type: Constants.LOGIN_REQUEST_LOADING })).toEqual({});
+  });
+
   it("handles clean login state", () => {
     expect(LoginReducer({status: true}, { type: Constants.LOGIN_REQUEST })).toEqual(null);
   });
