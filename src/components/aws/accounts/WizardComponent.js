@@ -188,7 +188,10 @@ export class StepTwo extends Component {
           </div>
 
           <div className="form-group clearfix">
-            <button className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</button>
+            <div class="btn-group col-md-5" role="group">
+              <button className="btn btn-default btn-left" onClick={this.props.close}>Cancel</button>
+              <button className="btn btn-default btn-left" onClick={this.props.back}>Previous</button>
+            </div>
             <Button className="btn btn-primary col-md-5 btn-right" type="submit">Next</Button>
           </div>
 
@@ -207,6 +210,7 @@ StepTwo.propTypes = {
   }),
   submit: PropTypes.func.isRequired,
   next: PropTypes.func.isRequired,
+  back: PropTypes.func.isRequired,
   close: PropTypes.func.isRequired
 };
 
@@ -296,12 +300,18 @@ class Wizard extends Component {
       activeStep: 0
     };
     this.nextStep = this.nextStep.bind(this);
+    this.previousStep = this.previousStep.bind(this);
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
   }
 
   nextStep = () => {
     const activeStep = this.state.activeStep + 1;
+    this.setState({activeStep});
+  };
+
+  previousStep = () => {
+    const activeStep = this.state.activeStep - 1;
     this.setState({activeStep});
   };
 
@@ -325,7 +335,7 @@ class Wizard extends Component {
         component: <StepOne external={this.props.external} next={this.nextStep} close={this.closeDialog}/>
       },{
         label: "Name",
-        component: <StepTwo external={this.props.external} submit={this.props.submitAccount} next={this.nextStep} close={this.closeDialog}/>
+        component: <StepTwo external={this.props.external} submit={this.props.submitAccount} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
       },{
         label: "Bill repository",
         component: <StepThree account={this.props.account} submit={this.props.submitBucket} close={this.closeDialog}/>
