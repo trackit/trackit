@@ -40,7 +40,7 @@ export class Item extends Component {
           primary={`s3://${this.props.bill.bucket}/${this.props.bill.prefix}`}
         />
 
-        <div>
+        <div className="actions">
 
           <div className="inline-block">
             <Form
@@ -117,7 +117,7 @@ export class ListComponent extends Component {
         titleChildren={form}
       >
 
-        <List>
+        <List className="bills-list">
           {noBills}
           {bills}
         </List>
