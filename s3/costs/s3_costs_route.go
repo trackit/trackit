@@ -158,24 +158,31 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 	if a[awsAccountsQueryArg] != nil {
 		parsedParams.accountList = a[awsAccountsQueryArg].([]uint)
 	}
-	resStorage, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "storage")
-	if err != nil {
-		return returnCode, err
+	var err error
+	var returnCode int
+	var components = [...]struct {
+		k  string
+		sr *elastic.SearchResult
+	}{
+		{"storage", nil},
+		{"requests", nil},
+		{"bandwidthIn", nil},
+		{"bandwidthOut", nil},
 	}
-	resRequests, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "requests")
-	if err != nil {
-		return returnCode, err
+	for idx, cpn := range components {
+		cpn.sr, returnCode, err = makeElasticSearchRequest(request.Context(), parsedParams, user, cpn.k)
+		if err != nil {
+			return returnCode, err
+		}
+		components[idx] = cpn
 	}
-	resBandwidthIn, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "bandwidthIn")
-	if err != nil {
-		return returnCode, err
-	}
-	resBandwidthOut, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user, "bandwidthOut")
-	if err != nil {
-		return returnCode, err
-	}
-
-	res, err := prepareResponse(request.Context(), resStorage, resRequests, resBandwidthIn, resBandwidthOut)
+	res, err := prepareResponse(
+		request.Context(),
+		components[0].sr,
+		components[1].sr,
+		components[2].sr,
+		components[3].sr,
+	)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

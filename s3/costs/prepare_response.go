@@ -129,21 +129,21 @@ func parseESResult(ctx context.Context, buckets bucketsInfo, res *elastic.Search
 // prepareResponse parses the results from elasticsearch and returns a map of buckets with their usage informations
 func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (interface{}, error) {
 	buckets := make(bucketsInfo)
-	buckets, err := parseESResult(ctx, buckets, resStorage, "storage")
-	if err != nil {
-		return nil, err
+	var err error
+	var components = [...]struct {
+		k  string
+		sr *elastic.SearchResult
+	}{
+		{"storage", resStorage},
+		{"requests", resRequests},
+		{"bandwidthIn", resBandwidthIn},
+		{"bandwidthOut", resBandwidthOut},
 	}
-	buckets, err = parseESResult(ctx, buckets, resRequests, "requests")
-	if err != nil {
-		return nil, err
-	}
-	buckets, err = parseESResult(ctx, buckets, resBandwidthIn, "bandwidthIn")
-	if err != nil {
-		return nil, err
-	}
-	buckets, err = parseESResult(ctx, buckets, resBandwidthOut, "bandwidthOut")
-	if err != nil {
-		return nil, err
+	for _, cpn := range components {
+		buckets, err = parseESResult(ctx, buckets, cpn.sr, cpn.k)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return buckets, nil
 }
