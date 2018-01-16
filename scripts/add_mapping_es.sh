@@ -42,6 +42,13 @@ curl \
 				"resourceId": {
 					"type": "keyword"
 				},
+				"usageAmount": {
+					"type": "float"
+				},
+				"serviceCode": {
+					"type": "keyword",
+					"norms": false
+				},
 				"currencyCode": {
 					"type": "keyword"
 				},

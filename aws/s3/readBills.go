@@ -78,23 +78,25 @@ type billRepositoryWithRegion struct {
 }
 
 type LineItem struct {
-	LineItemId         string            `csv:"identity/LineItemId"         json:"lineItemId"`
-	TimeInterval       string            `csv:"identity/TimeInterval"       json:"-"`
-	InvoiceId          string            `csv:"bill/InvoiceId"              json:"invoiceId"`
-	BillingPeriodStart string            `csv:"bill/BillingPeriodStartDate" json:"-"`
-	BillingPeriodEnd   string            `csv:"bill/BillingPeriodEndDate"   json:"-"`
-	UsageAccountId     string            `csv:"lineItem/UsageAccountId"     json:"usageAccountId"`
-	UsageStartDate     string            `csv:"lineItem/UsageStartDate"     json:"usageStartDate"`
-	UsageEndDate       string            `csv:"lineItem/UsageEndDate"       json:"usageEndDate""`
-	ProductCode        string            `csv:"lineItem/ProductCode"        json:"productCode"`
-	UsageType          string            `csv:"lineItem/UsageType"          json:"usageType"`
-	Operation          string            `csv:"lineItem/Operation"          json:"operation"`
-	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"   json:"availabilityZone"`
-	ResourceId         string            `csv:"lineItem/ResourceId"         json:"resourceId"`
-	CurrencyCode       string            `csv:"lineItem/CurrencyCode"       json:"currencyCode"`
-	UnblendedCost      string            `csv:"lineItem/UnblendedCost"      json:"unblendedCost"`
-	Any                map[string]string `csv:",any"                        json:"-"`
-	Tags               map[string]string `csv:"-"                           json:"tags,omitempty"`
+	LineItemId         string            `csv:"identity/LineItemId"          json:"lineItemId"`
+	TimeInterval       string            `csv:"identity/TimeInterval"        json:"-"`
+	InvoiceId          string            `csv:"bill/InvoiceId"               json:"invoiceId"`
+	BillingPeriodStart string            `csv:"bill/BillingPeriodStartDate"  json:"-"`
+	BillingPeriodEnd   string            `csv:"bill/BillingPeriodEndDate"    json:"-"`
+	UsageAccountId     string            `csv:"lineItem/UsageAccountId"      json:"usageAccountId"`
+	UsageStartDate     string            `csv:"lineItem/UsageStartDate"      json:"usageStartDate"`
+	UsageEndDate       string            `csv:"lineItem/UsageEndDate"        json:"usageEndDate""`
+	ProductCode        string            `csv:"lineItem/ProductCode"         json:"productCode"`
+	UsageType          string            `csv:"lineItem/UsageType"           json:"usageType"`
+	Operation          string            `csv:"lineItem/Operation"           json:"operation"`
+	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"    json:"availabilityZone"`
+	ResourceId         string            `csv:"lineItem/ResourceId"          json:"resourceId"`
+	UsageAmount        string            `csv:"lineItem/UsageAmount"         json:"usageAmount"`
+	ServiceCode        string            `csv:"product/servicecode"          json:"serviceCode"`
+	CurrencyCode       string            `csv:"lineItem/CurrencyCode"        json:"currencyCode"`
+	UnblendedCost      string            `csv:"lineItem/UnblendedCost"       json:"unblendedCost"`
+	Any                map[string]string `csv:",any"                         json:"-"`
+	Tags               map[string]string `csv:"-"                            json:"tags,omitempty"`
 }
 
 func (li LineItem) EsId() string {

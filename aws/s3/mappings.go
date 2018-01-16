@@ -68,6 +68,13 @@ const TemplateLineItem = `
 					"type": "keyword",
 					"norms": false
 				},
+				"usageAmount": {
+					"type": "float"
+				},
+				"serviceCode": {
+					"type": "keyword",
+					"norms": false
+				},
 				"currencyCode": {
 					"type": "keyword",
 					"norms": false
