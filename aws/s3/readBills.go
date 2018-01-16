@@ -414,7 +414,7 @@ func listBillsFromRepositoryPage(
 	}
 }
 
-// serviceForBucketRegion determines the region an S3 bucket resides in and
+// getBucketRegion determines the region an S3 bucket resides in and
 // returns that as a string.
 func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepository) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -422,8 +422,12 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 	input := s3.GetBucketLocationInput{
 		Bucket: &r.Bucket,
 	}
+	logger.Debug("Getting bucket region.", map[string]interface{}{
+		"input":          input,
+		"billRepository": r,
+	})
 	if output, err := s3svc.GetBucketLocationWithContext(ctx, &input); err == nil {
-		region := *output.LocationConstraint
+		region := getBucketRegionFromGetBucketLocationOutput(output)
 		logger.Debug(fmt.Sprintf("Found bucket region."), map[string]string{
 			"bucket": r.Bucket,
 			"region": region,
@@ -431,6 +435,18 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 		return region, nil
 	} else {
 		return "", err
+	}
+}
+
+// getBucketRegionFromGetBucketLocationOutput gets the region name for a bucket
+// from a non-null *s3.GetBucketLocationOutput. It handles the API's special
+// case where a nil LocationConstraint indicates the bucke is situated in the
+// us-east-1 region.
+func getBucketRegionFromGetBucketLocationOutput(output *s3.GetBucketLocationOutput) string {
+	if output.LocationConstraint == nil || *output.LocationConstraint == "" {
+		return "us-east-1"
+	} else {
+		return *output.LocationConstraint
 	}
 }
 
