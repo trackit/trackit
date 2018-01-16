@@ -83,7 +83,7 @@ var (
 	// Parameters with routes.QueryArgs. These AWS Account IDs will be a
 	// slice of Uint stored in the routes.Arguments map with itself for key.
 	awsAccountsQueryArg = routes.QueryArg{
-		Name:        "accounts",
+		Name:        "aas",
 		Type:        routes.QueryArgUintSlice{},
 		Description: "The IDs for many AWS account.",
 		Optional:    true,
