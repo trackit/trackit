@@ -1,7 +1,7 @@
 import { put, call } from 'redux-saga/effects';
 import moment from 'moment';
 import { getCostsSaga } from '../costsSaga';
-import { getToken } from '../../misc';
+import { getToken, getAWSAccounts } from '../../misc';
 import API from '../../../api';
 import Constants from '../../../constants';
 
@@ -9,7 +9,7 @@ const token = "42";
 const begin = moment().startOf('month');
 const end = moment();
 const filters = ["product", "day"];
-const accounts = [];
+const accounts = ["account1", "account2"];
 
 describe("Costs Saga", () => {
 
@@ -28,6 +28,9 @@ describe("Costs Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
+        .toEqual(getAWSAccounts());
+
+      expect(saga.next(accounts).value)
         .toEqual(call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts));
 
       expect(saga.next(validResponse).value)
@@ -45,7 +48,10 @@ describe("Costs Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
-        .toEqual(call(API.AWS.Costs.getCosts, token, begin, end, filters, undefined));
+        .toEqual(getAWSAccounts());
+
+      expect(saga.next([]).value)
+        .toEqual(call(API.AWS.Costs.getCosts, token, begin, end, filters, []));
 
       expect(saga.next(validResponse).value)
         .toEqual(put({ type: Constants.AWS_GET_COSTS_SUCCESS, costs }));
@@ -62,6 +68,9 @@ describe("Costs Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
+        .toEqual(getAWSAccounts());
+
+      expect(saga.next(accounts).value)
         .toEqual(call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts));
 
       expect(saga.next(invalidResponse).value)
@@ -79,6 +88,9 @@ describe("Costs Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
+        .toEqual(getAWSAccounts());
+
+      expect(saga.next(accounts).value)
         .toEqual(call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts));
 
       expect(saga.next(noResponse).value)

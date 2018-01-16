@@ -23,7 +23,8 @@ export class CostBreakdownContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (this.props.costsDates !== nextProps.costsDates ||
       this.props.costsInterval !== nextProps.costsInterval ||
-      this.props.costsFilter !== nextProps.costsFilter)
+      this.props.costsFilter !== nextProps.costsFilter ||
+      this.props.accounts !== nextProps.accounts)
       nextProps.getCosts(nextProps.costsDates.startDate, nextProps.costsDates.endDate, [nextProps.costsFilter, nextProps.costsInterval]);
   }
 
@@ -166,13 +167,14 @@ const mapStateToProps = ({aws}) => ({
   costsValues: aws.costs.values,
   costsDates: aws.costs.dates,
   costsInterval: aws.costs.interval,
-  costsFilter: aws.costs.filter
+  costsFilter: aws.costs.filter,
+  accounts: aws.accounts.selection
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getCosts: (begin, end, filters, accounts=undefined) => {
-    dispatch(Actions.AWS.Costs.getCosts(begin, end, filters, accounts));
+  getCosts: (begin, end, filters) => {
+    dispatch(Actions.AWS.Costs.getCosts(begin, end, filters));
   },
   setCostsDates: (startDate, endDate) => {
     dispatch(Actions.AWS.Costs.setCostsDates(startDate, endDate))

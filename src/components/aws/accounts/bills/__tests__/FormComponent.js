@@ -35,6 +35,12 @@ describe('<FormComponent />', () => {
     expect(wrapper.length).toBe(1);
   });
 
+  it('renders a tutorial component', () => {
+    const wrapper = shallow(<FormComponent {...props}/>);
+    const form = wrapper.find("div.tutorial");
+    expect(form.length).toBe(1);
+  });
+
   it('renders a <Form /> component', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
     const form = wrapper.find(Form);

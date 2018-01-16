@@ -20,6 +20,14 @@ describe('Authentication Form Validation', () => {
 
   });
 
+  describe('Get Account ID From Role', () => {
+
+    it('should return account ID', () => {
+      expect(Validation.getAccountIDFromRole("arn:aws:iam::000000000000:role/path/role")).toBe("000000000000");
+    });
+
+  });
+
   describe('S3 Bucket Validation', () => {
 
     it('should render no error', () => {
