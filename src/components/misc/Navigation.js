@@ -4,7 +4,6 @@ import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import NavbarHeader from './NavbarHeader';
 import AccountSelector from '../aws/accounts/SelectorComponent';
-import Actions from '../../actions';
 
 // Styling
 import '../../styles/Navigation.css';
