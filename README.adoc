@@ -34,7 +34,7 @@ $> mkdir -p $HOME/go/src/github.com/trackit && cd $HOME/go/src/github.com/tracki
 $> git clone https://github.com/trackit/trackit2 && cd trackit2
 ----
 
-=== #2 Check out trackit's dependencies
+=== #2 Check out TrackIt's dependencies
 
 [source,sh]
 ----
