@@ -13,13 +13,10 @@ export default {
       }
     },
     costs: {
-      values: null,
-      dates: {
-        startDate: moment().subtract(1, 'month').startOf('month'),
-        endDate: moment().subtract(1, 'month').endOf('month')
-      },
-      interval: "day",
-      filter: "product"
+      values: {},
+      dates: {},
+      interval: {},
+      filter: {}
     }
   },
   gcp: {},

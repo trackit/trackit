@@ -1,11 +1,13 @@
 import Constants from '../../../constants';
 
-export default (state=null, action) => {
+export default (state={}, action) => {
   switch (action.type) {
     case Constants.AWS_CLEAR_COSTS_DATES:
-      return null;
+      return {};
     case Constants.AWS_SET_COSTS_DATES:
-    return action.dates;
+      let dates = Object.assign({}, state);
+      dates[action.id] = action.dates;
+      return dates;
     default:
       return state;
   }

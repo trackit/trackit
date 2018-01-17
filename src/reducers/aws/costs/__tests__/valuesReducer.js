@@ -3,28 +3,25 @@ import Constants from '../../../../constants';
 
 describe("ValuesReducer", () => {
 
+  const id = "id";
+  const costs = "costs";
+  let state = {};
+  state[id] = costs;
+
   it("handles initial state", () => {
-    expect(ValuesReducer(undefined, {})).toEqual(null);
+    expect(ValuesReducer(undefined, {})).toEqual({});
   });
 
   it("handles set values state", () => {
-    const costs = { cost: 0, anotherCost: 1 };
-    expect(ValuesReducer(null, { type: Constants.AWS_GET_COSTS_SUCCESS, costs })).toEqual(costs);
-  });
-
-  it("handles request values state", () => {
-    const costs = { cost: 0, anotherCost: 1 };
-    expect(ValuesReducer(costs, { type: Constants.AWS_GET_COSTS })).toEqual(null);
+    expect(ValuesReducer({}, { type: Constants.AWS_GET_COSTS_SUCCESS, id, costs })).toEqual(state);
   });
 
   it("handles error with values state", () => {
-    const costs = { cost: 0, anotherCost: 1 };
-    expect(ValuesReducer(costs, { type: Constants.AWS_GET_COSTS_ERROR })).toEqual(null);
+    expect(ValuesReducer(state, { type: Constants.AWS_GET_COSTS_ERROR })).toEqual({});
   });
 
   it("handles wrong type state", () => {
-    const costs = { cost: 0, anotherCost: 1 };
-    expect(ValuesReducer(costs, { type: "" })).toEqual(costs);
+    expect(ValuesReducer(state, { type: "" })).toEqual(state);
   });
 
 });

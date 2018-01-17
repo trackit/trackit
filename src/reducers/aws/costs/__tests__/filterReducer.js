@@ -3,23 +3,25 @@ import Constants from '../../../../constants';
 
 describe("FilterReducer", () => {
 
+  const id = "id";
+  const filter = "filter";
+  let state = {};
+  state[id] = filter;
+
   it("handles initial state", () => {
-    expect(FilterReducer(undefined, {})).toEqual(null);
+    expect(FilterReducer(undefined, {})).toEqual({});
   });
 
   it("handles set filter state", () => {
-    const filter = "filter";
-    expect(FilterReducer(null, { type: Constants.AWS_SET_COSTS_FILTER, filter })).toEqual(filter);
+    expect(FilterReducer({}, { type: Constants.AWS_SET_COSTS_FILTER, id, filter })).toEqual(state);
   });
 
   it("handles clear filter state", () => {
-    const filter = "filter";
-    expect(FilterReducer(filter, { type: Constants.AWS_CLEAR_COSTS_FILTER })).toEqual(null);
+    expect(FilterReducer(state, { type: Constants.AWS_CLEAR_COSTS_FILTER })).toEqual({});
   });
 
   it("handles wrong type state", () => {
-    const filter = "filter";
-    expect(FilterReducer(filter, { type: "" })).toEqual(filter);
+    expect(FilterReducer(state, { type: "" })).toEqual(state);
   });
 
 });
