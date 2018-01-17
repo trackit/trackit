@@ -1,0 +1,8 @@
+.wrapper,
+.popover-trigger {
+	width: fit-content;
+}
+
+.popover-tooltip {
+	z-index: 1500;
+}

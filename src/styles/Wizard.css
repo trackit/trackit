@@ -1,0 +1,43 @@
+.account-wizard-stepper .account-wizard-stepper-item.completed svg,
+.account-wizard-stepper .account-wizard-stepper-item.current svg circle {
+	fill: #4885ed;
+}
+
+.account-wizard-stepper .account-wizard-stepper-item svg text {
+	font-size: 0.8em;
+}
+
+.account-wizard-stepper .account-wizard-stepper-item p {
+	font-size: 1em;
+}
+
+.btn-group {
+	padding: 0;
+}
+
+.btn-group button {
+	width: 50%;
+}
+
+.picture img {
+	width: 100%;
+}
+
+.picture i.close {
+	font-size: 2em;
+	margin-top: -25px;
+	margin-right: -20px;
+}
+
+.tutorial,
+.tutorial li {
+	margin-bottom: 5px;
+}
+
+.picture-preview strong {
+	color: #4885ed;
+}
+
+.picture-preview strong:hover {
+	cursor: pointer;
+}

@@ -1,0 +1,18 @@
+@media (max-width: 768px) {
+  .br-xs {
+      border-right: 1px solid rgba(120, 130, 140, .13);
+  }
+
+  .bl-xs {
+      border-left: 1px solid rgba(120, 130, 140, .13);
+  }
+
+  .bt-xs {
+      border-top: 1px solid rgba(120, 130, 140, .13);
+  }
+
+  .bb-xs {
+      border-bottom: 1px solid rgba(120, 130, 140, .13);
+  }
+
+}

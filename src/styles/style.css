@@ -1,0 +1,222 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Rubik', 'Open sans', sans-serif;
+    background: #edf1f5 !important;
+}
+
+.dollar-sign {
+    color: #bbbbbb;
+}
+
+.card-label {
+  color: #808080;
+  font-weight: 300;
+}
+
+.in-col {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.in-col li {
+    display: inline-block;
+    vertical-align: middle;
+    padding: 0 10px;
+}
+
+.total-cell .dollar-sign {
+    color: #1e88e5;
+}
+
+.font-light-medium {
+  font-weight: 500 !important;
+}
+
+.font-light {
+  font-weight: 300 !important;
+}
+
+select {
+  margin: 0 10px;
+  height: 34px;
+  background: white;
+  border: 1px solid #4885ed;
+  color: #4885ed;
+}
+
+
+
+/* BORDERS */
+
+.br {
+    border-right: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bl {
+    border-left: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bt {
+    border-top: 1px solid rgba(120, 130, 140, .13);
+}
+
+.bb {
+    border-bottom: 1px solid rgba(120, 130, 140, .13);
+}
+
+
+/* BUTTONS */
+
+button {
+    font-family: 'Rubik', 'Open sans', sans-serif;
+}
+
+.btn-default, .btn-default:focus, .btn-default:hover {
+    color: #4885ed;
+    background-color: #fff;
+    border-color: #4885ed;
+}
+
+.btn-primary, .btn-primary:focus, .btn-primary:hover {
+    color: white;
+    background-color: #4885ed;
+    border-color: #4885ed;
+}
+
+.btn-danger, .btn-danger:focus, .btn-danger:hover {
+    color: #d9534f;
+    background-color: #fff;
+    border-color: #d9534f
+}
+
+.btn-left {
+    float: left;
+}
+
+.btn-right {
+    float: right;
+}
+
+/* COLORS */
+
+.red-color {
+    color: #d6413b;
+}
+
+.red-bg {
+    background-color: #d6413b;
+}
+
+.orange-color {
+    color: #ff9800;
+}
+
+.orange-bg {
+    background-color: #ff9800;
+}
+
+.green-color {
+    color: #4caf50;
+}
+
+.green-bg {
+    background-color: #4caf50;
+}
+
+.blue-color {
+    color: #1e88e5;
+}
+
+.blue-bg {
+    background-color: #1e88e5;
+}
+
+
+/* WHITE BOX */
+
+.white-box {
+    background: #fff;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .1);
+}
+
+.white-box .white-box-title {
+    margin: 0px;
+    padding-bottom: 20px;
+}
+
+.white-box.no-padding {
+    padding: 0px;
+}
+
+.white-box.no-padding .white-box-title {
+    margin: 0px;
+    padding: 20px;
+}
+
+.white-box-title .white-box-title-icon {
+    width: 22px;
+    display: inline-block;
+    vertical-align: top;
+    margin: 0px 7px;
+    margin-top: 2px;
+}
+
+.form-control {
+    background-color: #fff;
+    border: 1px solid #e4e7ea;
+    border-radius: 4px;
+    box-shadow: none;
+    color: #565656;
+    height: 38px;
+    max-width: 100%;
+    padding: 7px 12px;
+    transition: all 300ms linear 0s;
+}
+
+label {
+    font-weight: 500;
+}
+
+
+/* Overriding React Table styling */
+
+.ReactTable .rt-thead .rt-th.-sort-asc, .ReactTable .rt-thead .rt-td.-sort-asc {
+    -webkit-box-shadow: inset 0 3px 0 0 rgba(213, 65, 60, 1);
+    box-shadow: inset 0 3px 0 0 rgba(213, 65, 60, 1);
+}
+
+.ReactTable strong {
+    font-weight: 500;
+}
+
+.ReactTable .-pagination .-btn {
+    color: #1e88e5;
+}
+
+
+/* Dropdown menus */
+
+.dropdown-menu>li>a, .dropdown-menu>li>.dropdown-title {
+    padding: 9px 20px;
+}
+
+.dropdown-menu {
+    border: 1px solid rgba(120, 130, 140, .13);
+    border-radius: 0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, .05)!important;
+    -webkit-box-shadow: 0!important;
+    -moz-box-shadow: 0!important;
+    padding-bottom: 8px;
+    margin-top: 0;
+}
+
+/* Spinner */
+
+.spinner {
+    margin: auto;
+}
+
