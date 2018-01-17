@@ -23,7 +23,7 @@ export class S3AnalyticsContainer extends Component {
     return (
       <Panel>
 
-        <div>
+        <div className="clearfix">
           <h3 className="white-box-title no-padding inline-block">
             <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
             AWS S3 Analytics

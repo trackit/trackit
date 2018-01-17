@@ -10,7 +10,7 @@ class App extends Component {
           <div className="app-container">
             <Route
               path={this.props.match.url} exact
-              component={Containers.AWS.CostBreakdown}
+              component={Containers.Home}
             />
             <Route
               path={this.props.match.url + '/s3'}

@@ -196,6 +196,12 @@
     fill: #4885ed;
 }
 
+/* Content */
+
+.content {
+    padding: 25px 0;
+}
+
 /* DESKTOP */
 
 @media (min-width: 768px) {
@@ -233,5 +239,9 @@
     /* Temporary fix for mobile screens. To remove when enabling foldable menu on mobile devices */
     .sidebar .sidebar-head {
         display: block;
+    }
+    .content {
+        margin-left: 60px;
+        padding: 25px;
     }
 }

@@ -1,11 +1,18 @@
 /* Hide separator for last item in list */
-ul.MuiList-root-10 div:last-child li,
-ul.MuiList-root-10 > li:last-child {
+ul.accounts-list div:last-child li,
+ul.accounts-list > li:last-child,
+ul.bills-list div:last-child li,
+ul.bills-list > li:last-child {
 	border-bottom: none;
 }
 
-.accounts-list .MuiListItemText-root-24 {
+.accounts-list .account-name {
 	font-size: 20px;
+}
+
+.accounts-list .actions,
+.bills-list .actions {
+	display: inherit;
 }
 
 .input-title {

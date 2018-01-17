@@ -37,10 +37,11 @@ export class Item extends Component {
 
           <ListItemText
             disableTypography
+            className="account-name"
             primary={this.props.account.pretty || this.props.account.roleArn}
           />
 
-          <div>
+          <div className="actions">
 
             <div className="inline-block">
               <Bills.List account={this.props.account.id} />

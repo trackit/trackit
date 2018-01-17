@@ -2,11 +2,11 @@ import React from 'react';
 import { CostBreakdownContainer } from '../CostBreakdownContainer';
 import Components from '../../../components';
 import Moment from 'moment';
-import NVD3Chart from 'react-nvd3';
 import { shallow } from "enzyme";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const Selector = Components.Misc.Selector;
+const Chart = Components.AWS.CostBreakdown.Chart;
 
 const props = {
   costsValues: {
@@ -46,11 +46,6 @@ const updatedFilterProps = {
   getCosts: jest.fn()
 };
 
-const propsWithoutCosts = {
-  ...props,
-  costsValues: null
-};
-
 describe('<CostBreakdownContainer />', () => {
 
   beforeEach(() => {
@@ -74,16 +69,10 @@ describe('<CostBreakdownContainer />', () => {
     expect(selector.length).toBe(1);
   });
 
-  it('renders <NVD3Chart/>  when costs are available', () => {
+  it('renders <Chart/> component', () => {
     const wrapper = shallow(<CostBreakdownContainer {...props}/>);
-    const chart = wrapper.find(NVD3Chart);
+    const chart = wrapper.find(Chart);
     expect(chart.length).toBe(1);
-  });
-
-  it('renders no <NVD3Chart/>  when costs are unavailable', () => {
-    const wrapper = shallow(<CostBreakdownContainer {...propsWithoutCosts}/>);
-    const chart = wrapper.find(NVD3Chart);
-    expect(chart.length).toBe(0);
   });
 
   it('loads costs when mounting', () => {
@@ -119,103 +108,5 @@ describe('<CostBreakdownContainer />', () => {
     wrapper.instance().componentWillReceiveProps(props);
     expect(props.getCosts).toHaveBeenCalledTimes(1);
   });
-
-  describe('Costs scheme transformation', () => {
-    const wrapper = shallow(<CostBreakdownContainer {...props}/>);
-    const transformProducts = wrapper.instance().transformProducts;
-
-    const days = {
-      day: {
-        day1: 42,
-        day2: 21
-      }
-    };
-
-    const costsByProductPerDay = {
-      product: {
-        product1: {...days},
-        product2: {...days}
-      }
-    };
-
-    const costsAll = {...days};
-
-    const costsMissingDays = {
-      product: {
-        product1: {...days},
-        product2: {
-          day: {
-            ...days.day,
-            day3: 84
-          }
-        },
-      }
-    };
-
-    const costsMissingKeys = {
-      product: {
-        ...costsByProductPerDay.product,
-        "": days
-      }
-    };
-
-    it('returns an empty array when invalid filter', () => {
-      expect(transformProducts(costsByProductPerDay, "region", "day")).toEqual([]);
-    });
-
-    it('returns an empty array when valid filter and invalid interval', () => {
-      expect(transformProducts(costsByProductPerDay, "product", "month")).toEqual([]);
-    });
-
-    it('returns an empty array when filter is "all" and invalid interval', () => {
-      expect(transformProducts(costsAll, "all", "month")).toEqual([]);
-    });
-
-    it('returns formatted array when valid filter and valid interval', () => {
-      const output = [{
-        key: "product1",
-        values: [["day1", days.day.day1], ["day2", days.day.day2]]
-      },{
-        key: "product2",
-        values: [["day1", days.day.day1], ["day2", days.day.day2]]
-      }];
-      expect(transformProducts(costsByProductPerDay, "product", "day")).toEqual(output);
-    });
-
-    it('returns formatted array when filter is "all" and valid interval', () => {
-      const output = [{
-        key: "Total",
-        values: [["day1", days.day.day1], ["day2", days.day.day2]]
-      }];
-      expect(transformProducts(costsAll, "all", "day")).toEqual(output);
-    });
-
-    it('fills missing days', () => {
-      const output = [{
-        key: "product1",
-        values: [["day1", days.day.day1], ["day2", days.day.day2], ["day3", 0]]
-      },{
-        key: "product2",
-        values: [["day1", days.day.day1], ["day2", days.day.day2], ["day3", costsMissingDays.product.product2.day.day3]]
-      }];
-      expect(transformProducts(costsMissingDays, "product", "day")).toEqual(output);
-    });
-
-    it('fills missing keys', () => {
-      const output = [{
-        key: "product1",
-        values: [["day1", days.day.day1], ["day2", days.day.day2]]
-      },{
-        key: "product2",
-        values: [["day1", days.day.day1], ["day2", days.day.day2]]
-      },{
-        key: "No product",
-        values: [["day1", days.day.day1], ["day2", days.day.day2]]
-      }];
-      expect(transformProducts(costsMissingKeys, "product", "day")).toEqual(output);
-    });
-
-  });
-
 
 });
