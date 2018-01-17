@@ -46,11 +46,6 @@ const updatedFilterProps = {
   getCosts: jest.fn()
 };
 
-const propsWithoutCosts = {
-  ...props,
-  costsValues: null
-};
-
 describe('<CostBreakdownContainer />', () => {
 
   beforeEach(() => {
