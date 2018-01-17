@@ -170,6 +170,7 @@ describe('<StepTwo />', () => {
   const props = {
     external,
     next: jest.fn(),
+    back: jest.fn(),
     submit: jest.fn(),
     close: jest.fn()
   };

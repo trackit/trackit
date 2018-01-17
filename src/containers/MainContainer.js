@@ -5,18 +5,10 @@ import Components from '../components';
 class MainContainer extends Component {
 
   render() {
-
-    const styles = {
-      content: {
-        marginLeft: 60,
-        padding: 25
-      }
-    };
-
     return (
       <div>
         <Components.Misc.Navigation/>
-        <div className="content" style={styles.content}>
+        <div className="content">
           {this.props.children}
         </div>
       </div>

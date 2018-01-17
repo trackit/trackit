@@ -63,7 +63,7 @@ export class FormComponent extends Component {
     ));
 
     const buttons = (this.props.registration ? (
-      <div>
+      <div className="clearfix">
 
         <NavLink
           exact to='/login'
@@ -91,7 +91,7 @@ export class FormComponent extends Component {
 
       </div>
     ) : (
-      <div>
+      <div className="clearfix">
 
         <NavLink
           exact to='/register'
