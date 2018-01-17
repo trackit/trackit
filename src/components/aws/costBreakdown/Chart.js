@@ -65,7 +65,7 @@ class ChartComponent extends Component {
         stacked={true}
         x={formatX}
         y={formatY}
-        height={600}
+        height={400}
       />
     )
   }
