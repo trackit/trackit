@@ -1,5 +1,8 @@
 FROM node:6-slim
 
+ARG API_URL
+ENV API_URL=${API_URL}
+
 RUN curl -sS http://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
 RUN apt-get update && apt-get install -y supervisor git
