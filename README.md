@@ -23,7 +23,7 @@ $> docker build -t trackit/ui .
 #### #3 Start TrackIt
 
 ````sh
-$> docker run --name Trackit_UI -e API_URL=http://localhost:8080trackit/ui
+$> docker run --name Trackit_UI -e API_URL=http://localhost:8080 trackit/ui
 ````
 
 N.B. : If you are not running TrackIt on your local machine, you need to replace the URL of the API.
