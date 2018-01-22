@@ -1,35 +1,27 @@
 import DatesReducer from '../datesReducer';
 import Constants from '../../../../constants';
-import moment from 'moment';
 
 describe("DatesReducer", () => {
 
+  const id = "id";
+  const dates = "dates";
+  let state = {};
+  state[id] = dates;
+
   it("handles initial state", () => {
-    expect(DatesReducer(undefined, {})).toEqual(null);
+    expect(DatesReducer(undefined, {})).toEqual({});
   });
 
   it("handles set dates state", () => {
-    const dates = {
-      startDate: moment().startOf('month'),
-      endDate: moment()
-    };
-    expect(DatesReducer(null, { type: Constants.AWS_SET_COSTS_DATES, dates })).toEqual(dates);
+    expect(DatesReducer({}, { type: Constants.AWS_SET_COSTS_DATES, id, dates })).toEqual(state);
   });
 
   it("handles clear dates state", () => {
-    const dates = {
-      startDate: moment().startOf('month'),
-      endDate: moment()
-    };
-    expect(DatesReducer(dates, { type: Constants.AWS_CLEAR_COSTS_DATES })).toEqual(null);
+    expect(DatesReducer(state, { type: Constants.AWS_CLEAR_COSTS_DATES })).toEqual({});
   });
 
   it("handles wrong type state", () => {
-    const dates = {
-      startDate: moment().startOf('month'),
-      endDate: moment()
-    };
-    expect(DatesReducer(dates, { type: "" })).toEqual(dates);
+    expect(DatesReducer(state, { type: "" })).toEqual(state);
   });
 
 });

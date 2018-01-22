@@ -1,4 +1,4 @@
-import { takeLatest } from 'redux-saga/effects';
+import { takeEvery, takeLatest } from 'redux-saga/effects';
 import * as AccountsSaga from './accountsSaga';
 import { getCostsSaga } from "./costsSaga";
 import { getS3DataSaga } from './s3Saga';
@@ -46,5 +46,5 @@ export function* watchGetAwsS3Data() {
 }
 
 export function* watchGetCosts() {
-  yield takeLatest(Constants.AWS_GET_COSTS, getCostsSaga);
+  yield takeEvery(Constants.AWS_GET_COSTS, getCostsSaga);
 }

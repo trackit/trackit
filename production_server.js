@@ -9,6 +9,6 @@ app.all('/*', function(req, res) {
 });
 
 // listen (start app with node server.js) ======================================
-var port = 80;
+var port = process.env.UI_PORT || 80;
 app.listen(port);
 console.log("[App listening on port " + port + ']');

@@ -3,23 +3,25 @@ import Constants from '../../../../constants';
 
 describe("IntervalReducer", () => {
 
+  const id = "id";
+  const interval = "interval";
+  let state = {};
+  state[id] = interval;
+
   it("handles initial state", () => {
-    expect(IntervalReducer(undefined, {})).toEqual(null);
+    expect(IntervalReducer(undefined, {})).toEqual({});
   });
 
   it("handles set interval state", () => {
-    const interval = "interval";
-    expect(IntervalReducer(null, { type: Constants.AWS_SET_COSTS_INTERVAL, interval })).toEqual(interval);
+    expect(IntervalReducer({}, { type: Constants.AWS_SET_COSTS_INTERVAL, id, interval })).toEqual(state);
   });
 
   it("handles clear interval state", () => {
-    const interval = "interval";
-    expect(IntervalReducer(interval, { type: Constants.AWS_CLEAR_COSTS_INTERVAL })).toEqual(null);
+    expect(IntervalReducer(state, { type: Constants.AWS_CLEAR_COSTS_INTERVAL })).toEqual({});
   });
 
   it("handles wrong type state", () => {
-    const interval = "interval";
-    expect(IntervalReducer(interval, { type: "" })).toEqual(interval);
+    expect(IntervalReducer(state, { type: "" })).toEqual(state);
   });
 
 });

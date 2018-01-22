@@ -1,11 +1,13 @@
 import Constants from '../../../constants';
 
-export default (state=null, action) => {
+export default (state={}, action) => {
   switch (action.type) {
     case Constants.AWS_CLEAR_COSTS_FILTER:
-      return null;
+      return {};
     case Constants.AWS_SET_COSTS_FILTER:
-    return action.filter;
+      let filters = Object.assign({}, state);
+      filters[action.id] = action.filter;
+    return filters;
     default:
       return state;
   }
