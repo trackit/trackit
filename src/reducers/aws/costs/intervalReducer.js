@@ -1,11 +1,13 @@
 import Constants from '../../../constants';
 
-export default (state=null, action) => {
+export default (state={}, action) => {
   switch (action.type) {
     case Constants.AWS_CLEAR_COSTS_INTERVAL:
-      return null;
+      return {};
     case Constants.AWS_SET_COSTS_INTERVAL:
-    return action.interval;
+      let intervals = Object.assign({}, state);
+      intervals[action.id] = action.interval;
+      return intervals;
     default:
       return state;
   }

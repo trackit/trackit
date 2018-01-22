@@ -1,12 +1,13 @@
 import Constants from '../../../constants';
 
-export default (state=null, action) => {
+export default (state={}, action) => {
   switch (action.type) {
-    case Constants.AWS_GET_COSTS:
     case Constants.AWS_GET_COSTS_ERROR:
-      return null;
+      return {};
     case Constants.AWS_GET_COSTS_SUCCESS:
-    return action.costs;
+      let costs = Object.assign({}, state);
+      costs[action.id] = action.costs;
+      return costs;
     default:
       return state;
   }
