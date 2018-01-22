@@ -200,28 +200,28 @@ describe('<Chart />', () => {
     expect(props.getCosts).toHaveBeenCalledTimes(1);
   });
 
-  it('cat set dates', () => {
+  it('can set dates', () => {
     const wrapper = shallow(<Chart {...props}/>);
     expect(props.setDates).not.toHaveBeenCalled();
     wrapper.instance().setDates(Moment().startOf('month'), Moment().endOf('month'));
     expect(props.setDates).toHaveBeenCalledTimes(1);
   });
 
-  it('cat set filter', () => {
+  it('can set filter', () => {
     const wrapper = shallow(<Chart {...props}/>);
     expect(props.setFilter).not.toHaveBeenCalled();
     wrapper.instance().setFilter("filter");
     expect(props.setFilter).toHaveBeenCalledTimes(1);
   });
 
-  it('cat set interval', () => {
+  it('can set interval', () => {
     const wrapper = shallow(<Chart {...props}/>);
     expect(props.setInterval).not.toHaveBeenCalled();
     wrapper.instance().setInterval("interval");
     expect(props.setInterval).toHaveBeenCalledTimes(1);
   });
 
-  it('cat close', () => {
+  it('can close', () => {
     const wrapper = shallow(<Chart {...propsWithClose}/>);
     expect(propsWithClose.close).not.toHaveBeenCalled();
     wrapper.instance().close({ preventDefault() {} });
