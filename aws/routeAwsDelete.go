@@ -53,11 +53,11 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	if err != nil {
 		l.Error("error while deleting user's AWS account", err.Error())
 		if res == -1 {
-			l.Error("Failed to retrieve user's AWS accounts.", err.Error())
-			return http.StatusInternalServerError, errors.New("Failed to retrieve user's AWS accounts")
+			l.Error("failed to retrieve user's AWS accounts", err.Error())
+			return http.StatusInternalServerError, errors.New("failed to retrieve user's AWS accounts")
 		} else {
-			l.Error("Specified AWS account is not in user's accounts.", err.Error())
-			return http.StatusInternalServerError, errors.New("Specified AWS account is not in user's accounts")
+			l.Error("specified AWS account is not in user's accounts", err.Error())
+			return http.StatusInternalServerError, errors.New("specified AWS account is not in user's accounts")
 		}
 	}
 	return http.StatusOK, nil

@@ -88,7 +88,7 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	if err == nil {
 		return 200, awsAccounts
 	} else {
-		l.Error("Failed to get user's AWS accounts.", err.Error())
-		return 500, errors.New("Failed to retrieve AWS accounts.")
+		l.Error("failed to get user's AWS accounts", err.Error())
+		return 500, errors.New("failed to retrieve AWS accounts")
 	}
 }
