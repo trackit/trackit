@@ -16,7 +16,7 @@ package aws
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
@@ -30,27 +30,16 @@ import (
 // DeleteAwsAccountFromAccountID delete an AWS account based on the
 // accountID passed to it. It does not perform any check, especially
 // on authorizations, which needs to be done by the caller
-func DeleteAwsAccountFromAccountID(db models.XODB, accountID int) error {
-	var sqlstr = `DELETE FROM trackit.aws_account WHERE id = ?`
+func DeleteAwsAccountFromAccountID(db models.XODB, userID int, accountID int) (int, error) {
+	var sqlstr = `DELETE FROM trackit.aws_account WHERE id = ? and userId = ?`
 
-	models.XOLog(sqlstr, accountID)
-	buff, err := db.Exec(sqlstr, accountID)
-	fmt.Print(buff)
+	models.XOLog(sqlstr, accountID, userID)
+	buff, err := db.Exec(sqlstr, accountID, userID)
 	if err != nil {
-		return err
+		return -1, err
 	}
-	return nil
-}
-
-// checkIfAccountInSlice will check for the presence of the accountID
-// in the slice of AWS accounts passed to it
-func checkIfAccountInSlice(aa int, saa []AwsAccount) bool {
-	for _, account := range saa {
-		if aa == account.Id {
-			return true
-		}
-	}
-	return false
+	res, err := buff.RowsAffected()
+	return int(res), err
 }
 
 // deleteAwsAccount is a route handler which delete the
@@ -60,19 +49,16 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
 	accountToDeleteID := a[AwsAccountQueryArg].(int)
-	userAccounts, err := GetAwsAccountsFromUser(u, tx)
-	if err != nil {
-		l.Error("failed to retrieve user's AWS accounts", err.Error())
-		return http.StatusInternalServerError, fmt.Sprintf("failed to retrieve user's aws accounts")
-	}
-	if !checkIfAccountInSlice(accountToDeleteID, userAccounts) {
-		l.Info("aws account not in user's accounts", nil)
-		return http.StatusForbidden, fmt.Sprintf("Specified AWS account is not in user's accounts")
-	}
-	err = DeleteAwsAccountFromAccountID(tx, accountToDeleteID)
+	res, err := DeleteAwsAccountFromAccountID(tx, u.Id, accountToDeleteID)
 	if err != nil {
 		l.Error("error while deleting user's AWS account", err.Error())
-		return http.StatusInternalServerError, fmt.Sprintf("error while deleting user's account")
+		if res == -1 {
+			l.Error("Failed to retrieve user's AWS accounts.", err.Error())
+			return http.StatusInternalServerError, errors.New("Failed to retrieve user's AWS accounts")
+		} else {
+			l.Error("Specified AWS account is not in user's accounts.", err.Error())
+			return http.StatusInternalServerError, errors.New("Specified AWS account is not in user's accounts")
+		}
 	}
 	return http.StatusOK, nil
 }
