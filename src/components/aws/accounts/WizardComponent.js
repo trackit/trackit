@@ -188,7 +188,7 @@ export class StepTwo extends Component {
           </div>
 
           <div className="form-group clearfix">
-            <div class="btn-group col-md-5" role="group">
+            <div className="btn-group col-md-5" role="group">
               <button className="btn btn-default btn-left" onClick={this.props.close}>Cancel</button>
               <button className="btn btn-default btn-left" onClick={this.props.back}>Previous</button>
             </div>
