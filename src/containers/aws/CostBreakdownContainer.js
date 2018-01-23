@@ -138,6 +138,13 @@ export class CostBreakdownContainer extends Component {
     this.setState({charts});
   };
 
+  resetCharts = (e) => {
+    e.preventDefault();
+    this.props.resetCostsDates();
+    this.props.resetCostsInterval();
+    this.props.resetCostsFilter();
+  };
+
   initChart(id) {
     this.props.setCostsDates(id, moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month'));
     this.props.setCostsInterval(id, "day");
@@ -177,9 +184,9 @@ export class CostBreakdownContainer extends Component {
           Cost Breakdown
         </h3>
         <div className="inline-block pull-right">
-          <div className="inline-block">
-            <button className="btn btn-default" onClick={this.addChart}>Add a chart</button>
-          </div>
+          <button className="btn btn-default inline-block" onClick={this.addChart}>Add a chart</button>
+          &nbsp;
+          <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Clear all filters</button>
         </div>
       </div>
     );
@@ -201,6 +208,9 @@ CostBreakdownContainer.propTypes = {
   setCostsDates: PropTypes.func.isRequired,
   setCostsInterval: PropTypes.func.isRequired,
   setCostsFilter: PropTypes.func.isRequired,
+  resetCostsDates: PropTypes.func.isRequired,
+  resetCostsInterval: PropTypes.func.isRequired,
+  resetCostsFilter: PropTypes.func.isRequired,
 };
 
 /* istanbul ignore next */
@@ -220,11 +230,20 @@ const mapDispatchToProps = (dispatch) => ({
   setCostsDates: (id, startDate, endDate) => {
     dispatch(Actions.AWS.Costs.setCostsDates(id, startDate, endDate))
   },
+  resetCostsDates: () => {
+    dispatch(Actions.AWS.Costs.resetCostsDates())
+  },
   setCostsInterval: (id, interval) => {
     dispatch(Actions.AWS.Costs.setCostsInterval(id, interval));
   },
+  resetCostsInterval: () => {
+    dispatch(Actions.AWS.Costs.resetCostsInterval());
+  },
   setCostsFilter: (id, filter) => {
     dispatch(Actions.AWS.Costs.setCostsFilter(id, filter));
+  },
+  resetCostsFilter: () => {
+    dispatch(Actions.AWS.Costs.resetCostsFilter());
   }
 });
 
