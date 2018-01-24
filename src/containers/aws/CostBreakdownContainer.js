@@ -5,7 +5,6 @@ import UUID from 'uuid/v4';
 import Components from '../../components';
 import Actions from '../../actions';
 import s3square from '../../assets/s3-square.png';
-import moment from "moment/moment";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const Selector = Components.Misc.Selector;
@@ -113,29 +112,14 @@ export class CostBreakdownContainer extends Component {
 
   constructor(props) {
     super(props);
-    const firstChart = UUID();
-    this.state = {
-      charts: [
-        firstChart
-      ]
-    };
-    this.initChart(firstChart);
+    if (!this.props.charts || !this.props.charts.length)
+      this.props.addChart();
     this.addChart = this.addChart.bind(this);
-    this.removeChart = this.removeChart.bind(this);
   }
 
   addChart = (e) => {
     e.preventDefault();
-    const newChart = UUID();
-    const charts = [...this.state.charts, newChart];
-    this.initChart(newChart);
-    this.setState({charts});
-  };
-
-  removeChart = (id) => {
-    let charts = this.state.charts;
-    charts.splice(charts.indexOf(id), 1);
-    this.setState({charts});
+    this.props.addChart();
   };
 
   resetCharts = (e) => {
@@ -144,12 +128,6 @@ export class CostBreakdownContainer extends Component {
     this.props.resetCostsInterval();
     this.props.resetCostsFilter();
   };
-
-  initChart(id) {
-    this.props.setCostsDates(id, moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month'));
-    this.props.setCostsInterval(id, "day");
-    this.props.setCostsFilter(id, filters.product.toLowerCase());
-  }
 
   getChart(id, index) {
     if (this.props.costsValues &&
@@ -170,7 +148,7 @@ export class CostBreakdownContainer extends Component {
           setDates={this.props.setCostsDates}
           setInterval={this.props.setCostsInterval}
           setFilter={this.props.setCostsFilter}
-          close={this.state.charts.length > 1 ? this.removeChart : null}
+          close={this.props.charts.length > 1 ? this.props.removeChart : null}
         />
       );
     return null;
@@ -190,7 +168,7 @@ export class CostBreakdownContainer extends Component {
         </div>
       </div>
     );
-    const charts = this.state.charts.map((id, index) => (this.getChart(id, index)));
+    const charts = this.props.charts.map((id, index) => (this.getChart(id, index)));
     const children = [header, ...charts];
     return(
       <Panel children={children}/>
@@ -201,9 +179,12 @@ export class CostBreakdownContainer extends Component {
 CostBreakdownContainer.propTypes = {
   costsValues: PropTypes.object,
   costsDates: PropTypes.object,
+  charts: PropTypes.arrayOf(PropTypes.string),
   accounts: PropTypes.arrayOf(PropTypes.string),
   costsInterval: PropTypes.object.isRequired,
   costsFilter: PropTypes.object.isRequired,
+  addChart: PropTypes.func.isRequired,
+  removeChart: PropTypes.func.isRequired,
   getCosts: PropTypes.func.isRequired,
   setCostsDates: PropTypes.func.isRequired,
   setCostsInterval: PropTypes.func.isRequired,
@@ -215,6 +196,7 @@ CostBreakdownContainer.propTypes = {
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
+  charts: aws.costs.charts,
   costsValues: aws.costs.values,
   costsDates: aws.costs.dates,
   costsInterval: aws.costs.interval,
@@ -224,6 +206,12 @@ const mapStateToProps = ({aws}) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
+  addChart: () => {
+    dispatch(Actions.AWS.Costs.addChart(UUID()));
+  },
+  removeChart: (id) => {
+    dispatch(Actions.AWS.Costs.removeChart(id));
+  },
   getCosts: (id, begin, end, filters) => {
     dispatch(Actions.AWS.Costs.getCosts(id, begin, end, filters));
   },

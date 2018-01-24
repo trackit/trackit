@@ -1,6 +1,6 @@
 import { takeEvery, takeLatest } from 'redux-saga/effects';
 import * as AccountsSaga from './accountsSaga';
-import { getCostsSaga } from "./costsSaga";
+import { getCostsSaga, saveChartsSaga, loadChartsSaga } from "./costsSaga";
 import { getS3DataSaga } from './s3Saga';
 import Constants from '../../constants';
 
@@ -47,4 +47,19 @@ export function* watchGetAwsS3Data() {
 
 export function* watchGetCosts() {
   yield takeEvery(Constants.AWS_GET_COSTS, getCostsSaga);
+}
+
+export function* watchSaveCharts() {
+  yield takeEvery(Constants.AWS_ADD_CHART, saveChartsSaga);
+  yield takeEvery(Constants.AWS_REMOVE_CHART, saveChartsSaga);
+  yield takeEvery(Constants.AWS_SET_COSTS_DATES, saveChartsSaga);
+  yield takeEvery(Constants.AWS_RESET_COSTS_DATES, saveChartsSaga);
+  yield takeEvery(Constants.AWS_SET_COSTS_INTERVAL, saveChartsSaga);
+  yield takeEvery(Constants.AWS_RESET_COSTS_INTERVAL, saveChartsSaga);
+  yield takeEvery(Constants.AWS_SET_COSTS_FILTER, saveChartsSaga);
+  yield takeEvery(Constants.AWS_RESET_COSTS_FILTER, saveChartsSaga);
+}
+
+export function* watchLoadCharts() {
+  yield takeLatest(Constants.AWS_LOAD_CHARTS, loadChartsSaga)
 }
