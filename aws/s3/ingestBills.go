@@ -142,7 +142,6 @@ func afterBulk(ctx context.Context) func(int64, []elastic.BulkableRequest, *elas
 			logger.Error("Failed bulk ElasticSearch requests.", map[string]interface{}{
 				"executionId": execId,
 				"error":       err.Error(),
-				"took":        resp.Took,
 			})
 		} else {
 			logger.Info("Finished bulk ElasticSearch requests.", map[string]interface{}{
