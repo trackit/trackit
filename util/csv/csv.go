@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	recordTypeCacheMutex sync.Mutex
+	recordTypeCacheMutex sync.RWMutex
 	recordTypeCache      map[reflect.Type]recordType = make(map[reflect.Type]recordType)
 )
 
@@ -88,15 +88,18 @@ func (d *Decoder) storeRecord(rt recordType, vi interface{}, record []string) er
 }
 
 func getRecordType(v interface{}) (recordType, error) {
-	recordTypeCacheMutex.Lock()
-	defer recordTypeCacheMutex.Unlock()
 	t := reflect.TypeOf(v)
-	if rt, ok := recordTypeCache[t]; ok {
+	recordTypeCacheMutex.RLock()
+	rt, ok := recordTypeCache[t]
+	recordTypeCacheMutex.RUnlock()
+	if ok {
 		return rt, nil
 	} else {
 		rt, err := buildRecordType(t)
 		if err == nil {
+			recordTypeCacheMutex.Lock()
 			recordTypeCache[t] = rt
+			recordTypeCacheMutex.Unlock()
 		}
 		return rt, err
 	}
