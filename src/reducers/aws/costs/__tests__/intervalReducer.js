@@ -7,13 +7,30 @@ describe("IntervalReducer", () => {
   const interval = "interval";
   let state = {};
   state[id] = interval;
+  let stateDefault = {};
+  stateDefault[id] = "day";
+  let insert = {
+    "id": "interval"
+  };
 
   it("handles initial state", () => {
     expect(IntervalReducer(undefined, {})).toEqual({});
   });
 
+  it("handles insert interval state", () => {
+    expect(IntervalReducer({}, { type: Constants.AWS_INSERT_COSTS_INTERVAL, interval: insert })).toEqual(insert);
+  });
+
+  it("handles add chart state", () => {
+    expect(IntervalReducer({}, { type: Constants.AWS_ADD_CHART, id })).toEqual(stateDefault);
+  });
+
   it("handles set interval state", () => {
     expect(IntervalReducer({}, { type: Constants.AWS_SET_COSTS_INTERVAL, id, interval })).toEqual(state);
+  });
+
+  it("handles reset interval state", () => {
+    expect(IntervalReducer(state, { type: Constants.AWS_RESET_COSTS_INTERVAL, id, interval })).toEqual(stateDefault);
   });
 
   it("handles clear interval state", () => {
