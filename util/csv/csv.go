@@ -5,6 +5,12 @@ import (
 	"io"
 	"reflect"
 	"strings"
+	"sync"
+)
+
+var (
+	recordTypeCacheMutex sync.RWMutex
+	recordTypeCache      map[reflect.Type]recordType = make(map[reflect.Type]recordType)
 )
 
 type csvError string
@@ -27,8 +33,6 @@ type recordType struct {
 	nameByField  map[int]string
 	defaultField int
 }
-
-var recordTypeCache map[reflect.Type]recordType = make(map[reflect.Type]recordType)
 
 type Decoder struct {
 	reader *csv.Reader
@@ -85,12 +89,17 @@ func (d *Decoder) storeRecord(rt recordType, vi interface{}, record []string) er
 
 func getRecordType(v interface{}) (recordType, error) {
 	t := reflect.TypeOf(v)
-	if rt, ok := recordTypeCache[t]; ok {
+	recordTypeCacheMutex.RLock()
+	rt, ok := recordTypeCache[t]
+	recordTypeCacheMutex.RUnlock()
+	if ok {
 		return rt, nil
 	} else {
 		rt, err := buildRecordType(t)
 		if err == nil {
+			recordTypeCacheMutex.Lock()
 			recordTypeCache[t] = rt
+			recordTypeCacheMutex.Unlock()
 		}
 		return rt, err
 	}
