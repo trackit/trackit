@@ -21,18 +21,17 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"regexp"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/config"
-	"github.com/trackit/trackit2/util"
 	"github.com/trackit/trackit2/util/csv"
 )
 
@@ -49,6 +48,7 @@ const (
 
 var (
 	ErrUnsupportedCompression = errors.New("unsupported compression")
+	httpClient                = http.Client{}
 )
 
 const maxManifestSize = 0x8000
@@ -267,15 +267,22 @@ func getBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) (io.
 // getGzipBillReader returns a ReadCloser for a GZIP-compressed S3 object which
 // is downloaded on the fly.
 func getGzipBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) (io.ReadCloser, error) {
-	input := s3.GetObjectInput{
-		Bucket: &m.Bucket,
-		Key:    &s,
-	}
-	if output, err := s3svc.GetObjectWithContext(ctx, &input); err == nil {
-		return gzip.NewReader(output.Body)
+	if reader, err := getRawBillReader(ctx, s3svc, s, m); err == nil {
+		return gzip.NewReader(reader)
 	} else {
 		return nil, err
 	}
+}
+
+// getRawBillReader gets an io.ReadCloser for the raw data from a billing
+// file.
+func getRawBillReader(ctx context.Context, s3svc *s3.S3, s string, m manifest) (io.ReadCloser, error) {
+	var bucket = m.Bucket
+	var key = s
+	var region = *s3svc.Client.Config.Region
+	var dumbS3mgr dumbS3Manager
+	dumbS3mgr.init(s3svc.Client.Config.Credentials)
+	return dumbS3mgr.rawS3GetObjectToReader(ctx, &httpClient, region, bucket, key)
 }
 
 // getManifests downloads the manifest whose keys are sent to the in channel.
@@ -284,9 +291,10 @@ func getManifests(ctx context.Context, s3svc *s3.S3, in <-chan BillKey) <-chan m
 	outs, out := mergecdManifest()
 	go func() {
 		defer close(outs)
-		s3mgr := s3manager.NewDownloaderWithClient(s3svc)
+		var s3mgr dumbS3Manager
+		s3mgr.init(s3svc.Client.Config.Credentials)
 		for bk := range in {
-			outs <- readManifest(ctx, s3mgr, bk)
+			outs <- readManifest(ctx, &s3mgr, bk)
 		}
 	}()
 	return out
@@ -295,23 +303,19 @@ func getManifests(ctx context.Context, s3svc *s3.S3, in <-chan BillKey) <-chan m
 // readManifest downloads and parses a manifest file asynchronously. Returns a
 // channel where at most one manifest object will be sent, then the channel
 // will be closed.
-func readManifest(ctx context.Context, s3mgr *s3manager.Downloader, bk BillKey) <-chan manifest {
+func readManifest(ctx context.Context, s3mgr *dumbS3Manager, bk BillKey) <-chan manifest {
 	out := make(chan manifest)
 	go func() {
 		defer close(out)
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		buf := util.FixedBuffer(make([]byte, maxManifestSize))
-		input := s3.GetObjectInput{
-			Bucket: &bk.Bucket,
-			Key:    &bk.Key,
-		}
-		n, err := s3mgr.DownloadWithContext(ctx, buf, &input)
+		buf, err := s3mgr.rawS3GetObjectToBuffer(ctx, &httpClient, bk.Region, bk.Bucket, bk.Key)
 		if err != nil {
 			logger.Error("Failed to download usage and cost manifest.", map[string]interface{}{"billKey": bk, "error": err.Error()})
 			return
 		} else {
+			println(string(buf))
 			var m manifest
-			err := json.Unmarshal(buf[:n], &m)
+			err := json.Unmarshal(buf, &m)
 			if err != nil {
 				logger.Error("Failed to parse usage and cost manifest.", map[string]interface{}{"billKey": bk, "error": err.Error()})
 				return
