@@ -56,6 +56,13 @@ func init() {
 				Description: "Edits an AWS account from the user's list of accounts.",
 			},
 		),
+		http.MethodDelete: routes.H(deleteAwsAccount).With(
+			routes.QueryArgs{AwsAccountQueryArg},
+			routes.Documentation{
+				Summary:     "delete an aws account",
+				Description: "Delete the aws account passed in the query args.",
+			},
+		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
 		users.RequireAuthenticatedUser{},
@@ -121,13 +128,13 @@ func (_ RequireAwsAccount) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		user, tx, err := getUserAndTransactionFromArguments(a)
 		if err != nil {
-			l.Error("Missing transaction or user for handler with AWS account.", err.Error())
+			l.Error("missing transaction or user for handler with AWS account", err.Error())
 			return http.StatusInternalServerError, nil
 		}
 		aaid := a[AwsAccountQueryArg].(int)
 		aa, err := GetAwsAccountWithIdFromUser(user, aaid, tx)
 		if err != nil {
-			return http.StatusNotFound, errors.New("AWS account not found.")
+			return http.StatusNotFound, errors.New("AWS account not found")
 		} else {
 			a[AwsAccountSelection] = aa
 			return hf(w, r, a)

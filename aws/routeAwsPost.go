@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
@@ -36,9 +37,9 @@ type postAwsAccountRequestBody struct {
 }
 
 var (
-	errInvalidAccount     = errors.New("Could not validate role and external ID.")
-	errFailCreateAccount  = errors.New("Failed to create AWS account.")
-	errFailUpdateExternal = errors.New("Failed to update external.")
+	errInvalidAccount     = errors.New("could not validate role and external ID")
+	errFailCreateAccount  = errors.New("failed to create AWS account")
+	errFailUpdateExternal = errors.New("failed to update external")
 )
 
 // postAwsAccount is a route handler which lets the user add AwsAccounts to
@@ -63,8 +64,8 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 		Pretty:   body.Pretty,
 	}
 	if account.External != user.NextExternal {
-		logger.Warning("Tried to add AWS account with bad external.", account)
-		return 400, errors.New("Incorrect external. Use /aws/next to get expected external.")
+		logger.Warning("tried to add AWS account with bad external", account)
+		return 400, errors.New("incorrect external. Use /aws/next to get expected external")
 	} else if err := testAndCreateAwsAccount(ctx, tx, &account, &user); err == nil {
 		return 200, account
 	} else {
@@ -82,15 +83,16 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *AwsAccount, user *users.User) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if _, err := GetTemporaryCredentials(*account, "validityTest"); err != nil {
+		fmt.Print(err)
 		return errInvalidAccount
 	}
 	if err := account.CreateAwsAccount(ctx, tx); err != nil {
-		logger.Error("Failed to insert AWS account.", newTestAndCreateAwsAccountError(err, *account, *user))
+		logger.Error("failed to insert AWS account", newTestAndCreateAwsAccountError(err, *account, *user))
 		return errFailCreateAccount
 	}
 	user.NextExternal = ""
 	if err := user.UpdateNextExternal(ctx, tx); err != nil {
-		logger.Error("Failed to update external.", newTestAndCreateAwsAccountError(err, *account, *user))
+		logger.Error("failed to update external", newTestAndCreateAwsAccountError(err, *account, *user))
 		return errFailUpdateExternal
 	}
 	return nil

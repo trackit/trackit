@@ -33,7 +33,7 @@ type patchAwsAccountRequestBody struct {
 }
 
 var (
-	errFailUpdateAccount = errors.New("Failed to update AWS account.")
+	errFailUpdateAccount = errors.New("failed to update AWS account")
 )
 
 // patchAwsAccount is a route handler which lets the user update AwsAccounts from
@@ -47,7 +47,7 @@ func patchAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 		id := a[AwsAccountQueryArg].(int)
 		return patchAwsAccountWithValidBody(r, tx, u, body, int(id))
 	} else {
-		return 400, errors.New("Body is invalid.")
+		return 400, errors.New("body is invalid")
 	}
 }
 
@@ -60,12 +60,12 @@ func patchAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, 
 	if err == nil {
 		awsAccount.Pretty = body.Pretty
 		if err := awsAccount.UpdatePrettyAwsAccount(ctx, tx); err != nil {
-			logger.Error("Failed to update AWS Account.", err)
+			logger.Error("failed to update AWS Account", err)
 			return 500, errFailUpdateAccount
 		}
 	} else {
-		logger.Error("Failed to get user's AWS accounts.", err.Error())
-		return 500, errors.New("Failed to retrieve AWS accounts.")
+		logger.Error("failed to get user's AWS accounts", err.Error())
+		return 500, errors.New("failed to retrieve AWS accounts")
 	}
 	return 200, awsAccount
 }
