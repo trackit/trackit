@@ -1,5 +1,5 @@
 import { put, call, all } from 'redux-saga/effects';
-import {setToken, setUserMail} from '../../common/localStorage';
+import { setToken, setUserMail } from '../../common/localStorage';
 import API from '../../api';
 import Constants from '../../constants';
 

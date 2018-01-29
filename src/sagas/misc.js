@@ -14,3 +14,13 @@ const getAWSAccountsFromState = (state) => (state.aws.accounts.selection.map((ac
 export const getAWSAccounts = () => {
   return select(getAWSAccountsFromState);
 };
+
+const getCostBreakdownChartsFromState = (state) => {
+  let data = Object.assign({}, state.aws.costs);
+  delete data.values;
+  return data;
+};
+
+export const getCostBreakdownCharts = () => {
+  return select(getCostBreakdownChartsFromState)
+};

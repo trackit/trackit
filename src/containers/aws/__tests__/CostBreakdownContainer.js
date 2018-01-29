@@ -11,31 +11,64 @@ const CostBreakdownChart = Components.AWS.CostBreakdown.Chart;
 describe('<CostBreakdownContainer />', () => {
 
   const props = {
+    accounts: [],
+    charts: [],
     costsValues: {},
     costsDates: {},
     costsInterval: {},
     costsFilter: {},
+    addChart: jest.fn(),
+    removeChart: jest.fn(),
     getCosts: jest.fn(),
     setCostsDates: jest.fn(),
     setCostsInterval: jest.fn(),
     setCostsFilter: jest.fn(),
+    resetCostsDates: jest.fn(),
+    resetCostsInterval: jest.fn(),
+    resetCostsFilter: jest.fn(),
   };
 
-  const propsAfterMounting = (id) => {
-    let costsDates = {};
-    costsDates[id] = {
-      startDate: Moment().startOf('month'),
-      endDate: Moment().endOf('month'),
-    };
-    let costsInterval = {};
-    costsInterval[id] = "interval";
-    let costsFilter = {};
-    costsFilter[id] = "filter";
-    return {
-      ...props,
-      costsDates,
-      costsInterval,
-      costsFilter
+  const propsWithUniqueChart = {
+    ...props,
+    charts: ["id"],
+    costsDates: {
+      id: {
+        startDate: Moment().startOf('month'),
+        endDate: Moment().endOf('month'),
+      }
+    },
+    costsInterval: {
+      id: "interval"
+    },
+    costsFilter: {
+      id: "filter"
+    }
+  };
+
+  const propsWithCharts = {
+    ...propsWithUniqueChart,
+    charts: ["id", "id2"]
+  };
+
+  const propsWithValidCharts = {
+    ...propsWithCharts,
+    costsDates: {
+      id: {
+        startDate: Moment().startOf('month'),
+        endDate: Moment().endOf('month'),
+      },
+      id2: {
+        startDate: Moment().startOf('month'),
+        endDate: Moment().endOf('month'),
+      }
+    },
+    costsInterval: {
+      id: "interval",
+      id2: "interval"
+    },
+    costsFilter: {
+      id: "filter",
+      id2: "filter"
     }
   };
 
@@ -48,41 +81,55 @@ describe('<CostBreakdownContainer />', () => {
     expect(wrapper.length).toBe(1);
   });
 
-  it('renders <Chart/> component', () => {
-    const wrapper = shallow(<CostBreakdownContainer {...props}/>);
-    let chart = wrapper.find(Chart);
-    expect(chart.length).toBe(0);
-    const id = wrapper.state("charts")[0];
-    wrapper.setProps(propsAfterMounting(id));
-    chart = wrapper.find(Chart);
-    expect(chart.length).toBe(1);
+  it('renders <Chart/> component if data is available', () => {
+    const wrapperUnique = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    let charts = wrapperUnique.find(Chart);
+    expect(propsWithUniqueChart.charts.length).toBe(1);
+    expect(Object.keys(propsWithUniqueChart.costsDates).length).toBe(1);
+    expect(charts.length).toBe(1);
+    const wrapperOne = shallow(<CostBreakdownContainer {...propsWithCharts}/>);
+    charts = wrapperOne.find(Chart);
+    expect(propsWithCharts.charts.length).toBe(2);
+    expect(Object.keys(propsWithCharts.costsDates).length).toBe(1);
+    expect(charts.length).toBe(1);
+    const wrapperTwo = shallow(<CostBreakdownContainer {...propsWithValidCharts}/>);
+    charts = wrapperTwo.find(Chart);
+    expect(propsWithValidCharts.charts.length).toBe(2);
+    expect(Object.keys(propsWithValidCharts.costsDates).length).toBe(2);
+    expect(charts.length).toBe(2);
   });
 
-  it('can init dates, interval and filter for initial chart when mounting', () => {
-    expect(props.setCostsDates).not.toHaveBeenCalled();
-    expect(props.setCostsInterval).not.toHaveBeenCalled();
-    expect(props.setCostsFilter).not.toHaveBeenCalled();
+  it('generates default <Chart/> component if no chart available', () => {
     shallow(<CostBreakdownContainer {...props}/>);
-    expect(props.setCostsDates).toHaveBeenCalled();
-    expect(props.setCostsInterval).toHaveBeenCalled();
-    expect(props.setCostsFilter).toHaveBeenCalled();
+    expect(props.addChart).toHaveBeenCalled();
   });
 
-  it('can add and remove chart', () => {
-    const wrapper = shallow(<CostBreakdownContainer {...props}/>);
-    const id = wrapper.state("charts")[0];
-    wrapper.setProps(propsAfterMounting(id));
-    expect(props.setCostsDates).toHaveBeenCalledTimes(1);
-    expect(props.setCostsInterval).toHaveBeenCalledTimes(1);
-    expect(props.setCostsFilter).toHaveBeenCalledTimes(1);
-    expect(wrapper.state("charts").length).toBe(1);
+  it('can add chart', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
     wrapper.instance().addChart({ preventDefault() {} });
-    expect(props.setCostsDates).toHaveBeenCalledTimes(2);
-    expect(props.setCostsInterval).toHaveBeenCalledTimes(2);
-    expect(props.setCostsFilter).toHaveBeenCalledTimes(2);
-    expect(wrapper.state("charts").length).toBe(2);
-    wrapper.instance().removeChart(id);
-    expect(wrapper.state("charts").length).toBe(1);
+    expect(props.addChart).toHaveBeenCalled();
+  });
+
+  it('can reset charts', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    expect(props.removeChart).not.toHaveBeenCalled();
+    wrapper.instance().resetCharts({ preventDefault() {} });
+    expect(props.removeChart).toHaveBeenCalled();
+  });
+
+  it('adds a chart when there is no chart', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(props);
+    expect(props.addChart).toHaveBeenCalled();
+  });
+
+  it('does not add a chart when there is available charts', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(propsWithUniqueChart);
+    expect(props.addChart).not.toHaveBeenCalled();
   });
 
 });

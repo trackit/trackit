@@ -5,12 +5,20 @@ import UUID from 'uuid/v4';
 import Components from '../../components';
 import Actions from '../../actions';
 import s3square from '../../assets/s3-square.png';
-import moment from "moment/moment";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const Selector = Components.Misc.Selector;
 const Panel = Components.Misc.Panel;
 const CostBreakdownChart = Components.AWS.CostBreakdown.Chart;
+
+// This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
+// Similar issue : https://github.com/novus/nvd3/issues/1262
+const clearTooltips = () => {
+  const tooltips = document.getElementsByClassName("nvtooltip xy-tooltip");
+  for (let i = 0; i < tooltips.length; i++) {
+    tooltips[i].style.opacity = 0;
+  }
+};
 
 const filters = {
   all: "Total",
@@ -113,36 +121,27 @@ export class CostBreakdownContainer extends Component {
 
   constructor(props) {
     super(props);
-    const firstChart = UUID();
-    this.state = {
-      charts: [
-        firstChart
-      ]
-    };
-    this.initChart(firstChart);
+    if (!this.props.charts || !this.props.charts.length)
+      this.props.addChart();
     this.addChart = this.addChart.bind(this);
-    this.removeChart = this.removeChart.bind(this);
+    this.resetCharts = this.resetCharts.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!nextProps.charts.length)
+      nextProps.addChart();
+    clearTooltips();
   }
 
   addChart = (e) => {
     e.preventDefault();
-    const newChart = UUID();
-    const charts = [...this.state.charts, newChart];
-    this.initChart(newChart);
-    this.setState({charts});
+    this.props.addChart();
   };
 
-  removeChart = (id) => {
-    let charts = this.state.charts;
-    charts.splice(charts.indexOf(id), 1);
-    this.setState({charts});
+  resetCharts = (e) => {
+    e.preventDefault();
+    this.props.charts.forEach((id) => {this.props.removeChart(id)});
   };
-
-  initChart(id) {
-    this.props.setCostsDates(id, moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month'));
-    this.props.setCostsInterval(id, "day");
-    this.props.setCostsFilter(id, filters.product.toLowerCase());
-  }
 
   getChart(id, index) {
     if (this.props.costsValues &&
@@ -163,7 +162,7 @@ export class CostBreakdownContainer extends Component {
           setDates={this.props.setCostsDates}
           setInterval={this.props.setCostsInterval}
           setFilter={this.props.setCostsFilter}
-          close={this.state.charts.length > 1 ? this.removeChart : null}
+          close={this.props.charts.length > 1 ? this.props.removeChart : null}
         />
       );
     return null;
@@ -177,13 +176,13 @@ export class CostBreakdownContainer extends Component {
           Cost Breakdown
         </h3>
         <div className="inline-block pull-right">
-          <div className="inline-block">
-            <button className="btn btn-default" onClick={this.addChart}>Add a chart</button>
-          </div>
+          <button className="btn btn-default inline-block" onClick={this.addChart}>Add a chart</button>
+          &nbsp;
+          <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
       </div>
     );
-    const charts = this.state.charts.map((id, index) => (this.getChart(id, index)));
+    const charts = this.props.charts.map((id, index) => (this.getChart(id, index)));
     const children = [header, ...charts];
     return(
       <Panel children={children}/>
@@ -194,17 +193,24 @@ export class CostBreakdownContainer extends Component {
 CostBreakdownContainer.propTypes = {
   costsValues: PropTypes.object,
   costsDates: PropTypes.object,
+  charts: PropTypes.arrayOf(PropTypes.string),
   accounts: PropTypes.arrayOf(PropTypes.string),
   costsInterval: PropTypes.object.isRequired,
   costsFilter: PropTypes.object.isRequired,
+  addChart: PropTypes.func.isRequired,
+  removeChart: PropTypes.func.isRequired,
   getCosts: PropTypes.func.isRequired,
   setCostsDates: PropTypes.func.isRequired,
   setCostsInterval: PropTypes.func.isRequired,
   setCostsFilter: PropTypes.func.isRequired,
+  resetCostsDates: PropTypes.func.isRequired,
+  resetCostsInterval: PropTypes.func.isRequired,
+  resetCostsFilter: PropTypes.func.isRequired,
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
+  charts: aws.costs.charts,
   costsValues: aws.costs.values,
   costsDates: aws.costs.dates,
   costsInterval: aws.costs.interval,
@@ -214,17 +220,32 @@ const mapStateToProps = ({aws}) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
+  addChart: () => {
+    dispatch(Actions.AWS.Costs.addChart(UUID()));
+  },
+  removeChart: (id) => {
+    dispatch(Actions.AWS.Costs.removeChart(id));
+  },
   getCosts: (id, begin, end, filters) => {
     dispatch(Actions.AWS.Costs.getCosts(id, begin, end, filters));
   },
   setCostsDates: (id, startDate, endDate) => {
     dispatch(Actions.AWS.Costs.setCostsDates(id, startDate, endDate))
   },
+  resetCostsDates: () => {
+    dispatch(Actions.AWS.Costs.resetCostsDates())
+  },
   setCostsInterval: (id, interval) => {
     dispatch(Actions.AWS.Costs.setCostsInterval(id, interval));
   },
+  resetCostsInterval: () => {
+    dispatch(Actions.AWS.Costs.resetCostsInterval());
+  },
   setCostsFilter: (id, filter) => {
     dispatch(Actions.AWS.Costs.setCostsFilter(id, filter));
+  },
+  resetCostsFilter: () => {
+    dispatch(Actions.AWS.Costs.resetCostsFilter());
   }
 });
 

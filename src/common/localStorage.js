@@ -2,6 +2,7 @@ export const setValue = (key, value) => {
   window.localStorage.setItem(key, value);
 };
 
+
 export const unsetValue = (key) => {
   window.localStorage.removeItem(key);
 };
@@ -9,6 +10,8 @@ export const unsetValue = (key) => {
 export const getValue = (key) => {
   return window.localStorage.getItem(key);
 };
+
+/* Token */
 
 export const setToken = (token) => {
   setValue('userToken', token);
@@ -22,6 +25,8 @@ export const getToken = () => {
   return getValue('userToken');
 };
 
+/* User mail */
+
 export const setUserMail = (mail) => {
   setValue('userMail', mail);
 };
@@ -32,4 +37,14 @@ export const unsetUserMail = () => {
 
 export const getUserMail = () => {
   return getValue('userMail');
+};
+
+/* Cost Breakdown charts */
+
+export const setCostBreakdownCharts = (charts) => {
+  setValue('cb_charts', JSON.stringify(charts));
+};
+
+export const getCostBreakdownCharts = () => {
+  return JSON.parse(getValue('cb_charts'));
 };

@@ -20,6 +20,11 @@ describe("ValuesReducer", () => {
     expect(ValuesReducer(state, { type: Constants.AWS_GET_COSTS_ERROR })).toEqual({});
   });
 
+  it("handles chart deletion state", () => {
+    expect(ValuesReducer(state, { type: Constants.AWS_REMOVE_CHART, id })).toEqual({});
+    expect(ValuesReducer(state, { type: Constants.AWS_REMOVE_CHART, id: "fakeID" })).toEqual(state);
+  });
+
   it("handles wrong type state", () => {
     expect(ValuesReducer(state, { type: "" })).toEqual(state);
   });
