@@ -11,6 +11,15 @@ const Selector = Components.Misc.Selector;
 const Panel = Components.Misc.Panel;
 const CostBreakdownChart = Components.AWS.CostBreakdown.Chart;
 
+// This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
+// Similar issue : https://github.com/novus/nvd3/issues/1262
+const clearTooltips = () => {
+  const tooltips = document.getElementsByClassName("nvtooltip xy-tooltip");
+  for (let i = 0; i < tooltips.length; i++) {
+    tooltips[i].style.opacity = 0;
+  }
+};
+
 const filters = {
   all: "Total",
   account: "Account",
@@ -121,6 +130,7 @@ export class CostBreakdownContainer extends Component {
   componentWillReceiveProps(nextProps) {
     if (!nextProps.charts.length)
       nextProps.addChart();
+    clearTooltips();
   }
 
   addChart = (e) => {
@@ -167,6 +177,8 @@ export class CostBreakdownContainer extends Component {
         </h3>
         <div className="inline-block pull-right">
           <button className="btn btn-default inline-block" onClick={this.addChart}>Add a chart</button>
+          &nbsp;
+          <button className="btn btn-default inline-block" onClick={this.test}>TEST</button>
           &nbsp;
           <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
