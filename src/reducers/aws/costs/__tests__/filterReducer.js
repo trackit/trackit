@@ -1,6 +1,5 @@
 import FilterReducer from '../filterReducer';
 import Constants from '../../../../constants';
-import IntervalReducer from "../intervalReducer";
 
 describe("FilterReducer", () => {
 

@@ -1,6 +1,5 @@
 import ValuesReducer from '../valuesReducer';
 import Constants from '../../../../constants';
-import FilterReducer from "../filterReducer";
 
 describe("ValuesReducer", () => {
 

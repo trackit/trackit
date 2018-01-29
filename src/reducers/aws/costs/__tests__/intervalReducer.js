@@ -1,7 +1,5 @@
 import IntervalReducer from '../intervalReducer';
 import Constants from '../../../../constants';
-import ValuesReducer from "../valuesReducer";
-import DatesReducer from "../datesReducer";
 
 describe("IntervalReducer", () => {
 

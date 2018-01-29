@@ -1,7 +1,6 @@
 import DatesReducer from '../datesReducer';
 import Constants from '../../../../constants';
 import moment from "moment/moment";
-import FilterReducer from "../filterReducer";
 
 describe("DatesReducer", () => {
 
