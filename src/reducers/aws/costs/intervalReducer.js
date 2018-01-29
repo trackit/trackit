@@ -18,6 +18,10 @@ export default (state={}, action) => {
         intervals[key] = defaultValue;
       });
       return intervals;
+    case Constants.AWS_REMOVE_CHART:
+      if (intervals.hasOwnProperty(action.id))
+        delete intervals[action.id];
+      return intervals;
     case Constants.AWS_CLEAR_COSTS_INTERVAL:
       return {};
     default:

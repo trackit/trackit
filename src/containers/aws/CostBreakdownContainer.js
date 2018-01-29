@@ -115,6 +115,12 @@ export class CostBreakdownContainer extends Component {
     if (!this.props.charts || !this.props.charts.length)
       this.props.addChart();
     this.addChart = this.addChart.bind(this);
+    this.resetCharts = this.resetCharts.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!nextProps.charts.length)
+      nextProps.addChart();
   }
 
   addChart = (e) => {
@@ -124,9 +130,7 @@ export class CostBreakdownContainer extends Component {
 
   resetCharts = (e) => {
     e.preventDefault();
-    this.props.resetCostsDates();
-    this.props.resetCostsInterval();
-    this.props.resetCostsFilter();
+    this.props.charts.forEach((id) => {this.props.removeChart(id)});
   };
 
   getChart(id, index) {
@@ -164,7 +168,7 @@ export class CostBreakdownContainer extends Component {
         <div className="inline-block pull-right">
           <button className="btn btn-default inline-block" onClick={this.addChart}>Add a chart</button>
           &nbsp;
-          <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Clear all filters</button>
+          <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
       </div>
     );

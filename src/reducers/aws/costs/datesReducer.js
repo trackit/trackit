@@ -27,6 +27,10 @@ export default (state={}, action) => {
         dates[key] = defaultValue;
       });
       return dates;
+    case Constants.AWS_REMOVE_CHART:
+      if (dates.hasOwnProperty(action.id))
+        delete dates[action.id];
+      return dates;
     case Constants.AWS_CLEAR_COSTS_DATES:
       return {};
     default:

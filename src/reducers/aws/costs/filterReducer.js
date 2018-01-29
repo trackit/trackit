@@ -18,6 +18,10 @@ export default (state={}, action) => {
         filters[key] = defaultValue;
       });
       return filters;
+    case Constants.AWS_REMOVE_CHART:
+      if (filters.hasOwnProperty(action.id))
+        delete filters[action.id];
+      return filters;
     case Constants.AWS_CLEAR_COSTS_FILTER:
       return {};
     default:
