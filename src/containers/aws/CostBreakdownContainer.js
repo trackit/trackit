@@ -178,8 +178,6 @@ export class CostBreakdownContainer extends Component {
         <div className="inline-block pull-right">
           <button className="btn btn-default inline-block" onClick={this.addChart}>Add a chart</button>
           &nbsp;
-          <button className="btn btn-default inline-block" onClick={this.test}>TEST</button>
-          &nbsp;
           <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
       </div>

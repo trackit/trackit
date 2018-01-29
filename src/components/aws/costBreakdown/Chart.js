@@ -58,7 +58,6 @@ class ChartComponent extends Component {
         context={context}
         xAxis={xAxis}
         yAxis={yAxis}
-        margin={margin}
         rightAlignYAxis={true}
         clipEdge={true}
         showControls={true}
