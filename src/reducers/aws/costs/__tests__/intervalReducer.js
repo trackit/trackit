@@ -1,5 +1,7 @@
 import IntervalReducer from '../intervalReducer';
 import Constants from '../../../../constants';
+import ValuesReducer from "../valuesReducer";
+import DatesReducer from "../datesReducer";
 
 describe("IntervalReducer", () => {
 
@@ -35,6 +37,11 @@ describe("IntervalReducer", () => {
 
   it("handles clear interval state", () => {
     expect(IntervalReducer(state, { type: Constants.AWS_CLEAR_COSTS_INTERVAL })).toEqual({});
+  });
+
+  it("handles chart deletion state", () => {
+    expect(IntervalReducer(state, { type: Constants.AWS_REMOVE_CHART, id })).toEqual({});
+    expect(IntervalReducer(state, { type: Constants.AWS_REMOVE_CHART, id: "fakeID" })).toEqual(state);
   });
 
   it("handles wrong type state", () => {

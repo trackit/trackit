@@ -1,5 +1,6 @@
 import FilterReducer from '../filterReducer';
 import Constants from '../../../../constants';
+import IntervalReducer from "../intervalReducer";
 
 describe("FilterReducer", () => {
 
@@ -35,6 +36,11 @@ describe("FilterReducer", () => {
 
   it("handles clear filter state", () => {
     expect(FilterReducer(state, { type: Constants.AWS_CLEAR_COSTS_FILTER })).toEqual({});
+  });
+
+  it("handles chart deletion state", () => {
+    expect(FilterReducer(state, { type: Constants.AWS_REMOVE_CHART, id })).toEqual({});
+    expect(FilterReducer(state, { type: Constants.AWS_REMOVE_CHART, id: "fakeID" })).toEqual(state);
   });
 
   it("handles wrong type state", () => {

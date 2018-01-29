@@ -1,6 +1,7 @@
 import DatesReducer from '../datesReducer';
 import Constants from '../../../../constants';
 import moment from "moment/moment";
+import FilterReducer from "../filterReducer";
 
 describe("DatesReducer", () => {
 
@@ -42,6 +43,11 @@ describe("DatesReducer", () => {
 
   it("handles clear dates state", () => {
     expect(DatesReducer(state, { type: Constants.AWS_CLEAR_COSTS_DATES })).toEqual({});
+  });
+
+  it("handles chart deletion state", () => {
+    expect(DatesReducer(state, { type: Constants.AWS_REMOVE_CHART, id })).toEqual({});
+    expect(DatesReducer(state, { type: Constants.AWS_REMOVE_CHART, id: "fakeID" })).toEqual(state);
   });
 
   it("handles wrong type state", () => {

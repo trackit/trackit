@@ -113,13 +113,23 @@ describe('<CostBreakdownContainer />', () => {
 
   it('can reset charts', () => {
     const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
-    expect(props.resetCostsDates).not.toHaveBeenCalled();
-    expect(props.resetCostsInterval).not.toHaveBeenCalled();
-    expect(props.resetCostsFilter).not.toHaveBeenCalled();
+    expect(props.removeChart).not.toHaveBeenCalled();
     wrapper.instance().resetCharts({ preventDefault() {} });
-    expect(props.resetCostsDates).toHaveBeenCalled();
-    expect(props.resetCostsInterval).toHaveBeenCalled();
-    expect(props.resetCostsFilter).toHaveBeenCalled();
+    expect(props.removeChart).toHaveBeenCalled();
+  });
+
+  it('adds a chart when there is no chart', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(props);
+    expect(props.addChart).toHaveBeenCalled();
+  });
+
+  it('does not add a chart when there is available charts', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithUniqueChart}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(propsWithUniqueChart);
+    expect(props.addChart).not.toHaveBeenCalled();
   });
 
 });
