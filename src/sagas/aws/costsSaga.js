@@ -1,6 +1,8 @@
 import { all, put, call } from 'redux-saga/effects';
 import { getToken, getAWSAccounts, getCostBreakdownCharts } from '../misc';
 import { setCostBreakdownCharts, getCostBreakdownCharts as getCostBreakdownChartsLS } from '../../common/localStorage';
+import UUID from 'uuid/v4';
+import moment from 'moment/moment'
 import API from '../../api';
 import Constants from '../../constants';
 
@@ -39,5 +41,32 @@ export function* loadChartsSaga() {
       throw Error("Invalid data for cost breakdown charts");
   } catch (error) {
     yield put({ type: Constants.AWS_LOAD_CHARTS_ERROR, error });
+  }
+}
+
+export function* initChartsSaga() {
+  try {
+    const initialCharts = [UUID(), UUID()];
+    let initialDates = {};
+    initialCharts.forEach((id) => {
+      initialDates[id] = {
+        startDate: moment().subtract(1, 'month').startOf('month'),
+        endDate: moment().subtract(1, 'month').endOf('month')
+      };
+    });
+    let initialIntervals = {};
+    initialIntervals[initialCharts[0]] = "day";
+    initialIntervals[initialCharts[1]] = "week";
+    let initialFilters = {};
+    initialFilters[initialCharts[0]] = "product";
+    initialFilters[initialCharts[1]] = "region";
+    yield all([
+      put({type: Constants.AWS_INSERT_CHARTS, charts: initialCharts}),
+      put({type: Constants.AWS_INSERT_COSTS_DATES, dates: initialDates}),
+      put({type: Constants.AWS_INSERT_COSTS_INTERVAL, interval: initialIntervals}),
+      put({type: Constants.AWS_INSERT_COSTS_FILTER, filter: initialFilters})
+    ]);
+  } catch (error) {
+    yield put({ type: Constants.AWS_INIT_CHARTS_ERROR, error });
   }
 }

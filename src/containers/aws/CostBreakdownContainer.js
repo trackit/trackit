@@ -122,14 +122,14 @@ export class CostBreakdownContainer extends Component {
   constructor(props) {
     super(props);
     if (!this.props.charts || !this.props.charts.length)
-      this.props.addChart();
+      this.props.initCharts();
     this.addChart = this.addChart.bind(this);
     this.resetCharts = this.resetCharts.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
     if (!nextProps.charts.length)
-      nextProps.addChart();
+      nextProps.initCharts();
     clearTooltips();
   }
 
@@ -162,7 +162,7 @@ export class CostBreakdownContainer extends Component {
           setDates={this.props.setCostsDates}
           setInterval={this.props.setCostsInterval}
           setFilter={this.props.setCostsFilter}
-          close={this.props.charts.length > 1 ? this.props.removeChart : null}
+          close={this.props.charts.length > 2 ? this.props.removeChart : null}
         />
       );
     return null;
@@ -197,6 +197,7 @@ CostBreakdownContainer.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.string),
   costsInterval: PropTypes.object.isRequired,
   costsFilter: PropTypes.object.isRequired,
+  initCharts: PropTypes.func.isRequired,
   addChart: PropTypes.func.isRequired,
   removeChart: PropTypes.func.isRequired,
   getCosts: PropTypes.func.isRequired,
@@ -220,6 +221,9 @@ const mapStateToProps = ({aws}) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
+  initCharts: () => {
+    dispatch(Actions.AWS.Costs.initCharts());
+  },
   addChart: () => {
     dispatch(Actions.AWS.Costs.addChart(UUID()));
   },
