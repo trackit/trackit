@@ -13,6 +13,7 @@ const CostBreakdownChart = Components.AWS.CostBreakdown.Chart;
 
 // This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
 // Similar issue : https://github.com/novus/nvd3/issues/1262
+/* istanbul ignore next */
 const clearTooltips = () => {
   const tooltips = document.getElementsByClassName("nvtooltip xy-tooltip");
   for (let i = 0; i < tooltips.length; i++) {
