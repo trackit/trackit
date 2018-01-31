@@ -11,11 +11,11 @@
 	font-size: 1em;
 }
 
-.btn-group {
+.step .btn-group {
 	padding: 0;
 }
 
-.btn-group button {
+.step .btn-group button {
 	width: 50%;
 }
 
@@ -37,25 +37,25 @@
 	margin-bottom: 10px;
 }
 
-.picture-preview strong {
+.tutorial .picture-preview strong {
 	color: #4885ed;
 }
 
-strong.value {
+.tutorial .picture-preview strong,
+.tutorial .badge {
+	cursor: pointer;
+}
+
+.tutorial strong.value {
 	font-weight: 500;
 }
 
-.picture-preview strong:hover {
-	cursor: pointer;
-}
-
-.badge {
-	cursor: pointer;
+.tutorial .badge {
 	background: #4885ed;
 	margin: 0 10px;
 	padding: 5px 10px;
 }
 
-.badge:active {
+.tutorial .badge:active {
 	opacity: 0.8;
 }

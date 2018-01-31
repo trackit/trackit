@@ -31,7 +31,7 @@ export class StepOne extends Component {
 
   render() {
     return (
-      <div>
+      <div className="step step-one">
 
         <Form ref={
           /* istanbul ignore next */
@@ -117,7 +117,7 @@ export class StepTwo extends Component {
 
   render() {
     return (
-      <div>
+      <div className="step step-two">
 
         <div className="tutorial">
 
@@ -215,7 +215,7 @@ export class StepThree extends Component {
 
   render() {
     return (
-      <div>
+      <div className="step step-three">
 
         <div>
 
