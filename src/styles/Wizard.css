@@ -29,15 +29,32 @@
 	margin-right: -20px;
 }
 
-.tutorial,
+.tutorial {
+	margin-bottom: 25px;
+}
+
 .tutorial li {
-	margin-bottom: 5px;
+	margin-bottom: 10px;
 }
 
 .picture-preview strong {
 	color: #4885ed;
 }
 
+strong.value {
+	font-weight: 500;
+}
+
 .picture-preview strong:hover {
 	cursor: pointer;
+}
+
+.badge {
+	background: #4885ed;
+	margin: 0 10px;
+	padding: 5px 10px;
+}
+
+.badge:active {
+	opacity: 0.8;
 }
