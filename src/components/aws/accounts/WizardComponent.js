@@ -65,7 +65,7 @@ export class StepOne extends Component {
                   </CopyToClipboard>
                   <br/>
                   External : <strong className="value">{this.props.external.external}</strong>
-                  <CopyToClipboard text={this.props.external.accountId}>
+                  <CopyToClipboard text={this.props.external.external}>
                     <div className="badge">
                       <i className="fa fa-clipboard" aria-hidden="true"/>
                     </div>

@@ -50,6 +50,7 @@ strong.value {
 }
 
 .badge {
+	cursor: pointer;
 	background: #4885ed;
 	margin: 0 10px;
 	padding: 5px 10px;
