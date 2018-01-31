@@ -37,7 +37,6 @@
     "html-webpack-plugin": "2.29.0",
     "ify-loader": "~1.1.0",
     "jest": "20.0.4",
-    "jest-cli": "^20.0.4",
     "jest-enzyme": "~4.0.1",
     "jquery": "~3.2.1",
     "material-ui": "1.0.0-beta.27",
