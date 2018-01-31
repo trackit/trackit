@@ -1,5 +1,7 @@
 import { select } from 'redux-saga/effects';
 import Validations from '../common/forms/AWSAccountForm';
+import moment from "moment/moment";
+import UUID from "uuid/v4";
 
 const getAccountIDFromRole = Validations.getAccountIDFromRole;
 
@@ -23,4 +25,22 @@ const getCostBreakdownChartsFromState = (state) => {
 
 export const getCostBreakdownCharts = () => {
   return select(getCostBreakdownChartsFromState)
+};
+
+export const initialCostBreakdownCharts = () => {
+  const charts = [UUID(), UUID()];
+  let dates = {};
+  charts.forEach((id) => {
+    dates[id] = {
+      startDate: moment().subtract(1, 'month').startOf('month'),
+      endDate: moment().subtract(1, 'month').endOf('month')
+    };
+  });
+  let interval = {};
+  interval[charts[0]] = "day";
+  interval[charts[1]] = "week";
+  let filter = {};
+  filter[charts[0]] = "product";
+  filter[charts[1]] = "region";
+  return { charts, dates, interval, filter };
 };

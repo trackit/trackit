@@ -135,13 +135,6 @@ describe('<StepOne />', () => {
     expect(form.length).toBe(1);
   });
 
-  it('renders 2 <Input /> components in <Form />', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
-    const form = wrapper.find(Form);
-    const inputs = form.find(Input);
-    expect(inputs.length).toBe(2);
-  });
-
   it('renders 1 <Button /> component in <Form />', () => {
     const wrapper = shallow(<StepOne {...props}/>);
     const form = wrapper.find(Form);
