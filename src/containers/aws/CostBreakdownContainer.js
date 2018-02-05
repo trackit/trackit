@@ -13,6 +13,7 @@ const CostBreakdownChart = Components.AWS.CostBreakdown.Chart;
 
 // This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
 // Similar issue : https://github.com/novus/nvd3/issues/1262
+/* istanbul ignore next */
 const clearTooltips = () => {
   const tooltips = document.getElementsByClassName("nvtooltip xy-tooltip");
   for (let i = 0; i < tooltips.length; i++) {
@@ -107,7 +108,7 @@ Chart.propTypes = {
     startDate: PropTypes.object,
     endDate: PropTypes.object,
   }),
-  accounts: PropTypes.arrayOf(PropTypes.string),
+  accounts: PropTypes.arrayOf(PropTypes.object),
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
   getCosts: PropTypes.func.isRequired,
@@ -122,14 +123,14 @@ export class CostBreakdownContainer extends Component {
   constructor(props) {
     super(props);
     if (!this.props.charts || !this.props.charts.length)
-      this.props.addChart();
+      this.props.initCharts();
     this.addChart = this.addChart.bind(this);
     this.resetCharts = this.resetCharts.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
     if (!nextProps.charts.length)
-      nextProps.addChart();
+      nextProps.initCharts();
     clearTooltips();
   }
 
@@ -162,7 +163,7 @@ export class CostBreakdownContainer extends Component {
           setDates={this.props.setCostsDates}
           setInterval={this.props.setCostsInterval}
           setFilter={this.props.setCostsFilter}
-          close={this.props.charts.length > 1 ? this.props.removeChart : null}
+          close={this.props.charts.length > 2 ? this.props.removeChart : null}
         />
       );
     return null;
@@ -194,9 +195,10 @@ CostBreakdownContainer.propTypes = {
   costsValues: PropTypes.object,
   costsDates: PropTypes.object,
   charts: PropTypes.arrayOf(PropTypes.string),
-  accounts: PropTypes.arrayOf(PropTypes.string),
+  accounts: PropTypes.arrayOf(PropTypes.object),
   costsInterval: PropTypes.object.isRequired,
   costsFilter: PropTypes.object.isRequired,
+  initCharts: PropTypes.func.isRequired,
   addChart: PropTypes.func.isRequired,
   removeChart: PropTypes.func.isRequired,
   getCosts: PropTypes.func.isRequired,
@@ -220,6 +222,9 @@ const mapStateToProps = ({aws}) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
+  initCharts: () => {
+    dispatch(Actions.AWS.Costs.initCharts());
+  },
   addChart: () => {
     dispatch(Actions.AWS.Costs.addChart(UUID()));
   },

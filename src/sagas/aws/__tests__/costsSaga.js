@@ -1,8 +1,10 @@
 import { all, put, call } from 'redux-saga/effects';
 import moment from 'moment';
-import { getCostsSaga, saveChartsSaga, loadChartsSaga } from '../costsSaga';
-import { getCostBreakdownCharts as getCostBreakdownChartsLS } from '../../../common/localStorage';
-import {getToken, getAWSAccounts, getCostBreakdownCharts} from '../../misc';
+import { getCostsSaga, saveChartsSaga, loadChartsSaga, initChartsSaga } from '../costsSaga';
+import {
+  getCostBreakdownCharts as getCostBreakdownChartsLS
+} from '../../../common/localStorage';
+import {getToken, getAWSAccounts, getCostBreakdownCharts, initialCostBreakdownCharts} from '../../misc';
 import API from '../../../api';
 import Constants from '../../../constants';
 
@@ -173,6 +175,46 @@ describe("Costs Saga", () => {
 
       expect(saga.next(invalidData).value)
         .toEqual(put({ type: Constants.AWS_LOAD_CHARTS_ERROR, error: Error("Invalid data for cost breakdown charts") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Init Charts", () => {
+
+    const validResponse = initialCostBreakdownCharts();
+    const invalidResponse = {};
+
+    it("handles saga with valid data", () => {
+
+      let saga = initChartsSaga();
+
+      expect(saga.next().value)
+        .toEqual(call(initialCostBreakdownCharts));
+
+      expect(saga.next(validResponse).value)
+        .toEqual(all([
+          put({type: Constants.AWS_INSERT_CHARTS, charts: validResponse.charts}),
+          put({type: Constants.AWS_INSERT_COSTS_DATES, dates: validResponse.dates}),
+          put({type: Constants.AWS_INSERT_COSTS_INTERVAL, interval: validResponse.interval}),
+          put({type: Constants.AWS_INSERT_COSTS_FILTER, filter: validResponse.filter})
+        ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with invalid data", () => {
+
+      let saga = initChartsSaga();
+
+      expect(saga.next().value)
+        .toEqual(call(initialCostBreakdownCharts));
+
+      expect(saga.next(invalidResponse).value)
+        .toEqual(put({ type: Constants.AWS_INIT_CHARTS_ERROR, error: Error("Invalid data for cost breakdown charts") }));
 
       expect(saga.next().done).toBe(true);
 

@@ -12,6 +12,7 @@ import Stepper, {
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 import Misc from '../../misc';
 import RoleCreation from '../../../assets/wizard-creation.png';
 import RoleARN from '../../../assets/wizard-rolearn.png';
@@ -30,68 +31,52 @@ export class StepOne extends Component {
 
   render() {
     return (
-      <div>
-
-        <div className="tutorial">
-
-          <ol>
-            <li>Go to your <strong>AWS Console</strong></li>
-            <li>In <strong>Services</strong> panel, select <strong>IAM</strong></li>
-            <li>Choose <strong>Role</strong> on the left side menu</li>
-            <li>Click on <strong>Create Role</strong></li>
-            <li>
-              <div>
-                Follow this screenshot to configure your new role correctly,
-                <br/>
-                using the informations provided
-                <Picture
-                  src={RoleCreation}
-                  alt="Role creation tutorial"
-                  button={<strong>( Click here to see screenshot )</strong>}
-                />
-              </div>
-            </li>
-            <li>Select <strong>ReadOnlyAccess</strong> policy</li>
-            <li>Set a name to this new role and validate</li>
-          </ol>
-
-        </div>
+      <div className="step step-one">
 
         <Form ref={
           /* istanbul ignore next */
           form => { this.form = form; }
         } onSubmit={this.submit} >
 
-          <div className="form-group">
-            <div className="input-title">
-              <label htmlFor="externalId">Account ID</label>
-              &nbsp;
-              <Popover info popOver="Account ID to add in your IAM role trust policy ( See step 5 )"/>
-            </div>
-            <Input
-              type="text"
-              name="accountID"
-              className="form-control"
-              disabled
-              value={this.props.external.accountId}
-              validations={[Validation.required]}
-            />
-          </div>
+          <div className="tutorial">
 
-          <div className="form-group">
-            <div className="input-title">
-              <label htmlFor="externalId">External</label>
-              &nbsp;
-              <Popover info popOver="External ID to add in your IAM role trust policy ( See step 5 )"/>
-            </div>
-            <Input
-              type="text"
-              name="external"
-              className="form-control"
-              disabled
-              value={this.props.external.external}
-              validations={[Validation.required]}
-            />
+            <ol>
+              <li>Go to your <strong>AWS Console</strong></li>
+              <li>In <strong>Services</strong> panel, select <strong>IAM</strong></li>
+              <li>Choose <strong>Role</strong> on the left side menu</li>
+              <li>Click on <strong>Create Role</strong></li>
+              <li>
+                <div>
+                  Follow this screenshot to configure your new role correctly,
+                  <br/>
+                  using the informations provided below :
+                  <br/>
+                  <Picture
+                    src={RoleCreation}
+                    alt="Role creation tutorial"
+                    button={<strong>( Click here to see screenshot )</strong>}
+                  />
+                  <hr/>
+                  Account ID : <strong className="value">{this.props.external.accountId}</strong>
+                  <CopyToClipboard text={this.props.external.accountId}>
+                    <div className="badge">
+                      <i className="fa fa-clipboard" aria-hidden="true"/>
+                    </div>
+                  </CopyToClipboard>
+                  <br/>
+                  External : <strong className="value">{this.props.external.external}</strong>
+                  <CopyToClipboard text={this.props.external.external}>
+                    <div className="badge">
+                      <i className="fa fa-clipboard" aria-hidden="true"/>
+                    </div>
+                  </CopyToClipboard>
+                </div>
+                <hr/>
+              </li>
+              <li>Select <strong>ReadOnlyAccess</strong> policy</li>
+              <li>Set a name to this new role and validate</li>
+            </ol>
+
           </div>
 
           <div className="form-group clearfix">
@@ -132,7 +117,7 @@ export class StepTwo extends Component {
 
   render() {
     return (
-      <div>
+      <div className="step step-two">
 
         <div className="tutorial">
 
@@ -230,7 +215,7 @@ export class StepThree extends Component {
 
   render() {
     return (
-      <div>
+      <div className="step step-three">
 
         <div>
 
@@ -335,12 +320,15 @@ class Wizard extends Component {
 
     let steps = [
       {
+        title: "Create a role",
         label: "Role creation",
         component: <StepOne external={this.props.external} next={this.nextStep} close={this.closeDialog}/>
       },{
+        title: "Add your role",
         label: "Name",
         component: <StepTwo external={this.props.external} submit={this.props.submitAccount} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
       },{
+        title: "Add a bill repository",
         label: "Bill repository",
         component: <StepThree account={this.props.account} submit={this.props.submitBucket} close={this.closeDialog}/>
       }
@@ -353,7 +341,7 @@ class Wizard extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle disableTypography><h1>Add an AWS account</h1></DialogTitle>
+          <DialogTitle disableTypography><h1>Add an AWS account : {steps[this.state.activeStep].title}</h1></DialogTitle>
 
           <DialogContent>
 
