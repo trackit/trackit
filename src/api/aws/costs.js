@@ -1,4 +1,4 @@
-import { call } from './../misc.js';
+import { call } from './../misc';
 
 export const getCosts = (token, begin, end, filters, accounts=undefined) => {
   filters = filters.filter((item) => (item !== "all"));

@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 
-import {formatBytes, formatPrice} from '../../../common/formatters';
+import {formatGigaBytes, formatPrice} from '../../../common/formatters';
 
 // S3AnalyticsInfosComponent Component
 class InfosComponent extends Component {
@@ -14,11 +14,12 @@ class InfosComponent extends Component {
       storage_cost: 0
     };
 
-    this.props.data.forEach((item) => {
+    Object.keys(this.props.data).forEach((key) => {
+      const item = this.props.data[key];
       res.buckets++;
-      res.size += item.size;
-      res.bandwidth_cost += item.bw_cost;
-      res.storage_cost += item.storage_cost;
+      res.size += item.GbMonth;
+      res.bandwidth_cost += item.BandwidthCost;
+      res.storage_cost += item.StorageCost;
     });
 
     return res;
@@ -51,7 +52,7 @@ class InfosComponent extends Component {
             </li>
             <li>
               <h3 className="no-margin no-padding font-light">
-                {formatBytes(totals.size)}
+                {formatGigaBytes(totals.size)}
               </h3>
             </li>
           </ul>
@@ -97,17 +98,7 @@ class InfosComponent extends Component {
 }
 
 InfosComponent.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      size: PropTypes.number.isRequired,
-      storage_cost: PropTypes.number.isRequired,
-      bw_cost: PropTypes.number.isRequired,
-      total_cost: PropTypes.number.isRequired,
-      transfer_in: PropTypes.number.isRequired,
-      transfer_out: PropTypes.number.isRequired
-    })
-  ),
+  data: PropTypes.object
 };
 
 export default InfosComponent;

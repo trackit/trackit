@@ -1,14 +1,15 @@
-import { put, call, all } from 'redux-saga/effects';
+import { put, call } from 'redux-saga/effects';
 import API from '../../api';
 import Constants from '../../constants';
+import {getAWSAccounts, getToken} from "../misc";
 
-export function* getS3DataSaga() {
+export function* getS3DataSaga({ begin, end }) {
   try {
-    const res = yield call(API.AWS.S3.getS3Data);
-    if (res.success && res.hasOwnProperty("data"))
-      yield all([
-        put({ type: Constants.AWS_GET_S3_DATA_SUCCESS, s3Data: res.data }),
-      ]);
+    const token = yield getToken();
+    const accounts = yield getAWSAccounts();
+    const res = yield call(API.AWS.S3.getData, token, begin, end, accounts);
+    if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
+      yield put({ type: Constants.AWS_GET_S3_DATA_SUCCESS, s3Data: res.data });
     else
       throw Error("Error with request");
   } catch (error) {

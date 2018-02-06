@@ -7,10 +7,11 @@ export default {
       external: null,
     },
     s3: {
-      view: {
+      dates: {
         startDate: moment().startOf('month'),
         endDate: moment()
-      }
+      },
+      values: {}
     },
     costs: {
       values: {},

@@ -1,12 +1,17 @@
 import Constants from '../../constants';
 
 export default {
-	getS3Data: () => ({
-		type: Constants.AWS_GET_S3_DATA
+	getData: (begin, end) => ({
+		type: Constants.AWS_GET_S3_DATA,
+		begin,
+		end
 	}),
-	setS3ViewDates: (startDate, endDate) => ({
-		type: Constants.AWS_SET_S3_VIEW_DATES,
-		startDate,
-		endDate,
+	setDates: (startDate, endDate) => ({
+		type: Constants.AWS_SET_S3_DATES,
+		dates: {
+			startDate,
+      endDate
+		}
 	}),
+	clearDates: () => ({type: Constants.AWS_CLEAR_S3_DATES})
 };

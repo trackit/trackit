@@ -1,5 +1,5 @@
 import moment from 'moment';
-import S3Reducer from '../s3Reducer';
+import S3Reducer from '../s3/valuesReducer';
 import Constants from '../../../constants';
 
 const s3Data = ["s3Data1", "s3Data2"];

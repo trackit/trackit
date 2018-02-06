@@ -40,11 +40,6 @@ export function* watchNewExternal() {
   yield takeLatest(Constants.AWS_NEW_EXTERNAL, AccountsSaga.newExternalSaga);
 }
 
-export function* watchGetAwsS3Data() {
-  yield takeLatest(Constants.AWS_GET_S3_DATA, getS3DataSaga);
-  yield takeLatest(Constants.AWS_SET_S3_VIEW_DATES, getS3DataSaga);
-}
-
 export function* watchGetCosts() {
   yield takeEvery(Constants.AWS_GET_COSTS, getCostsSaga);
 }
@@ -66,4 +61,8 @@ export function* watchLoadCharts() {
 
 export function* watchInitCharts() {
   yield takeLatest(Constants.AWS_INIT_CHARTS, initChartsSaga);
+}
+
+export function* watchGetAwsS3Data() {
+  yield takeLatest(Constants.AWS_GET_S3_DATA, getS3DataSaga);
 }

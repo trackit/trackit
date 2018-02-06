@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
+import moment from "moment/moment";
 
 import Actions from '../../actions';
 
@@ -12,11 +13,23 @@ const TimerangeSelector = Components.Misc.TimerangeSelector;
 const S3Analytics = Components.AWS.S3Analytics;
 const Panel = Components.Misc.Panel;
 
+const defaultDates = {
+  startDate: moment().startOf('month'),
+  endDate: moment()
+};
+
 // S3AnalyticsContainer Component
 export class S3AnalyticsContainer extends Component {
 
   componentDidMount() {
-    this.props.getS3Data();
+    this.props.setDates(defaultDates.startDate, defaultDates.endDate);
+    if (this.props.dates)
+      this.props.getData(this.props.dates.startDate, this.props.dates.endDate);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.dates !== nextProps.dates)
+      nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
   render() {
@@ -30,19 +43,19 @@ export class S3AnalyticsContainer extends Component {
           </h3>
           <div className="inline-block pull-right">
             <TimerangeSelector
-              startDate={this.props.s3View.startDate}
-              endDate={this.props.s3View.endDate}
-              setDatesFunc={this.props.setS3ViewDates}
+              startDate={this.props.dates.startDate}
+              endDate={this.props.dates.endDate}
+              setDatesFunc={this.props.setDates}
             />
           </div>
         </div>
 
-        {this.props.s3Data && <S3Analytics.Infos data={this.props.s3Data}/>}
+        {this.props.values && <S3Analytics.Infos data={this.props.values}/>}
 
-        {this.props.s3Data && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.s3Data}/>}
+        {this.props.values && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.values}/>}
 
         <div className="no-padding">
-          {this.props.s3Data && <S3Analytics.Table data={this.props.s3Data}/>}
+          {this.props.values && <S3Analytics.Table data={this.props.values}/>}
         </div>
 
       </Panel>
@@ -52,38 +65,28 @@ export class S3AnalyticsContainer extends Component {
 }
 
 S3AnalyticsContainer.propTypes = {
-  s3Data: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      size: PropTypes.number.isRequired,
-      storage_cost: PropTypes.number.isRequired,
-      bw_cost: PropTypes.number.isRequired,
-      total_cost: PropTypes.number.isRequired,
-      transfer_in: PropTypes.number.isRequired,
-      transfer_out: PropTypes.number.isRequired,
-    })
-  ),
-  s3View: PropTypes.shape({
+  values: PropTypes.object,
+  dates: PropTypes.shape({
     startDate: PropTypes.object.isRequired,
     endDate: PropTypes.object.isRequired,
   }),
-  getS3Data: PropTypes.func.isRequired,
-  setS3ViewDates: PropTypes.func.isRequired
+  getData: PropTypes.func.isRequired,
+  setDates: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
-  s3Data: aws.s3.data,
-  s3View: aws.s3.view,
+  values: aws.s3.values,
+  dates: aws.s3.dates,
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getS3Data: () => {
-    dispatch(Actions.AWS.S3.getS3Data())
+  getData: (begin, end) => {
+    dispatch(Actions.AWS.S3.getData(begin, end))
   },
-  setS3ViewDates: (startDate, endDate) => {
-    dispatch(Actions.AWS.S3.setS3ViewDates(startDate, endDate))
+  setDates: (startDate, endDate) => {
+    dispatch(Actions.AWS.S3.setDates(startDate, endDate))
   },
 });
 
