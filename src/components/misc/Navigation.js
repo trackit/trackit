@@ -4,6 +4,7 @@ import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import NavbarHeader from './NavbarHeader';
 import AccountSelector from '../aws/accounts/SelectorComponent';
+import SelectedIndicator from '../aws/accounts/SelectedIndicatorComponent';
 
 // Styling
 import '../../styles/Navigation.css';
@@ -63,10 +64,10 @@ export class Navigation extends Component {
               <button onClick={this.toggleUserMenu.bind(this)}>
                 <span className="fa-stack fa-lg red-color">
                   <i className="fa fa-circle fa-stack-2x"></i>
-                  <i className="fa fa-user fa-stack-1x fa-inverse"></i>
+                  <i className="fa fa-amazon fa-stack-1x fa-inverse"></i>
                 </span>
                 <span className="hide-menu">
-                  {this.props.mail}
+                  <SelectedIndicator />
                   <i className="fa fa-caret-right"/>
                 </span>
               </button>
