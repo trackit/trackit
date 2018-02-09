@@ -74,7 +74,7 @@ export class StepOne extends Component {
                 <hr/>
               </li>
               <li>Select <strong>ReadOnlyAccess</strong> policy</li>
-              <li>Set a name to this new role and validate</li>
+              <li>Set a name for this new role and validate</li>
             </ol>
 
           </div>
@@ -125,7 +125,7 @@ export class StepTwo extends Component {
             <li>In <strong>Role</strong> list, select the role you created in previous step</li>
             <li>
               <div>
-                Fill the form below with information available in <strong>role summary</strong>.
+                Copy the Role ARN in <strong>role summary</strong> to the form below.
                 <br/>
                 Details are available in this screenshot
                 <Picture
