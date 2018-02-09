@@ -6,7 +6,8 @@ import { Route } from 'react-router-dom';
 import Containers from './containers';
 import Actions from "./actions";
 
-class App extends Component {
+// Use named export for unconnected component (for tests)
+export class App extends Component {
 
   componentWillMount() {
     this.props.getAccounts();

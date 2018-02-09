@@ -19,6 +19,7 @@ const defaultActions = {
 const props = {
   ...defaultActions,
   accounts: [],
+  match: { params : [] },
   external: {
     external: "external",
     accountId: "accountId"

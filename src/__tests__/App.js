@@ -1,13 +1,16 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { shallow } from 'enzyme';
-import App from '../App';
+import { App } from '../App';
 import Containers from '../containers';
 
 const props = {
   match: {
-    url: null
-  }
+    url: null,
+  },
+  accounts: [],
+  retrieved: false,
+  getAccounts: jest.fn(),
 };
 
 describe('<App />', () => {
