@@ -19,6 +19,27 @@ export class AccountsContainer extends Component {
   }
 
   render() {
+    const noAccountsInfos = (
+      <div>
+        <hr />
+        <div className="alert alert-info" role="alert" style={{ fontSize: '15px', lineHeight: '2' }}>
+          <strong>
+            <i className="fa fa-info-circle"/>
+            &nbsp;
+            Welcome to TrackIt !
+          </strong>
+          <br />
+          {"It seems you don't have any AWS account setup yet."}
+          <br />
+          {"Please click the above "}
+          <strong>Add</strong>
+          {" button and follow the instructions. It will get you up and running in no time !"}
+          <br />
+          {"Thank you for using TrackIt !"}
+        </div>
+      </div>
+    );
+
     return (
       <Panel>
 
@@ -40,6 +61,10 @@ export class AccountsContainer extends Component {
               bill={this.props.newBill}
             />
           </div>
+          {
+            (!this.props.accounts.length && this.props.match.params.hasAccounts === "false")
+            && noAccountsInfos
+          }
 
         </div>
 

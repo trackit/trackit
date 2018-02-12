@@ -9,6 +9,11 @@ body {
     color: #bbbbbb;
 }
 
+.badge {
+  background-color: #d6413b;
+  color: white;
+}
+
 .card-label {
   color: #808080;
   font-weight: 300;
@@ -219,4 +224,3 @@ label {
 .spinner {
     margin: auto;
 }
-

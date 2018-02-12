@@ -7,9 +7,13 @@ import '../../styles/Setup.css';
 class SetupContainer extends Component {
 
   render() {
+    /*
+    ** Passing down the match prop so the panel
+    ** can access the URL param from react-router
+    */
     return (
       <div>
-        <Panels.AWS.Accounts/>
+        <Panels.AWS.Accounts match={this.props.match}/>
       </div>
     );
   }
