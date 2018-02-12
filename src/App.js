@@ -42,13 +42,23 @@ export class App extends Component {
 }
 
 App.propTypes = {
-  accounts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      roleArn: PropTypes.string.isRequired,
-      pretty: PropTypes.string,
-    })
-  ),
+  accounts: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        roleArn: PropTypes.string.isRequired,
+        pretty: PropTypes.string,
+        bills: PropTypes.arrayOf(
+          PropTypes.shape({
+            bucket: PropTypes.string.isRequired,
+            path: PropTypes.string.isRequired
+          })
+        ),
+      })
+    ),
+  }),
   getAccounts: PropTypes.func.isRequired
 };
 

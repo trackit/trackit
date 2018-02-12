@@ -3,6 +3,7 @@ import { Item, ListComponent } from '../ListComponent';
 import List, {
   ListItem
 } from 'material-ui/List';
+import Spinner from 'react-spinkit';
 import { shallow } from 'enzyme';
 
 const defaultProps = {
@@ -23,12 +24,29 @@ describe('<ListComponent />', () => {
 
   const props = {
     ...defaultProps,
-    bills: []
   };
 
   const propsWithBills = {
     ...props,
-    bills: [bill, bill]
+    bills: {
+      status: true,
+      values: [bill, bill]
+    }
+  };
+
+  const propsWaiting = {
+    ...props,
+    bills: {
+      status: false
+    }
+  };
+
+  const propsError = {
+    ...props,
+    bills: {
+      status: true,
+      error: Error("Error")
+    }
   };
 
   beforeEach(() => {
@@ -36,17 +54,17 @@ describe('<ListComponent />', () => {
   });
 
   it('renders a <ListComponent /> component', () => {
-    const wrapper = shallow(<ListComponent {...props}/>);
+    const wrapper = shallow(<ListComponent {...propsWithBills}/>);
     expect(wrapper.length).toBe(1);
   });
 
-  it('renders a <div/> component when no account is available', () => {
-    const wrapper = shallow(<ListComponent {...props}/>);
+  it('renders a <div/> component when no bills is available', () => {
+    const wrapper = shallow(<ListComponent {...propsError}/>);
     const alert = wrapper.find('div');
     expect(alert.length).toBe(1);
   });
 
-  it('renders a <List/> component when accounts are available', () => {
+  it('renders a <List/> component when bills are available', () => {
     const wrapper = shallow(<ListComponent {...propsWithBills}/>);
     const listWrapper = wrapper.find(List);
     expect(listWrapper.length).toBe(1);
@@ -58,15 +76,21 @@ describe('<ListComponent />', () => {
     expect(list.length).toBe(2);
   });
 
+  it('renders a <Spinner /> component when bills are loading', () => {
+    const wrapper = shallow(<ListComponent {...propsWaiting}/>);
+    const spinner = wrapper.find(Spinner);
+    expect(spinner.length).toBe(1);
+  });
+
   it('can get bills', () => {
-    const wrapper = shallow(<ListComponent {...props}/>);
+    const wrapper = shallow(<ListComponent {...propsWithBills}/>);
     expect(props.getBills).not.toHaveBeenCalled();
     wrapper.instance().getBills();
     expect(props.getBills).toHaveBeenCalled();
   });
 
   it('can clear bills', () => {
-    const wrapper = shallow(<ListComponent {...props}/>);
+    const wrapper = shallow(<ListComponent {...propsWithBills}/>);
     expect(props.clearBills).not.toHaveBeenCalled();
     wrapper.instance().clearBills();
     expect(props.clearBills).toHaveBeenCalled();

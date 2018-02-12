@@ -1,30 +1,37 @@
 import BillsReducer from '../billsReducer';
 import Constants from '../../../../constants';
 
+const bills = ["bill1", "bill2"];
+
+const defaultValue = {status: false};
+const successValue = {status: true, values: bills};
+const errorValue = {status: true, error: Error()};
+const cleared = {status: true, values: []};
+
 describe("BillsReducer", () => {
 
   it("handles initial state", () => {
-    expect(BillsReducer(undefined, {})).toEqual([]);
+    expect(BillsReducer(undefined, {})).toEqual(defaultValue);
+  });
+
+  it("handles get accounts requested state", () => {
+    expect(BillsReducer(null, { type: Constants.AWS_GET_ACCOUNT_BILLS })).toEqual(defaultValue);
   });
 
   it("handles get accounts success state", () => {
-    const bills = ["bill1", "bill2"];
-    expect(BillsReducer(null, { type: Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS, bills })).toEqual(bills);
+    expect(BillsReducer(defaultValue, { type: Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS, bills })).toEqual(successValue);
   });
 
   it("handles get accounts fail state", () => {
-    const bills = ["bill1", "bill2"];
-    expect(BillsReducer(bills, { type: Constants.AWS_GET_ACCOUNT_BILLS_ERROR })).toEqual([]);
+    expect(BillsReducer(successValue, { type: Constants.AWS_GET_ACCOUNT_BILLS_ERROR, error: errorValue.error })).toEqual(errorValue);
   });
 
   it("handles clear accounts state", () => {
-    const bills = ["bill1", "bill2"];
-    expect(BillsReducer(bills, { type: Constants.AWS_GET_ACCOUNT_BILLS_CLEAR })).toEqual([]);
+    expect(BillsReducer(successValue, { type: Constants.AWS_GET_ACCOUNT_BILLS_CLEAR })).toEqual(cleared);
   });
 
   it("handles wrong type state", () => {
-    const bills = ["bill1", "bill2"];
-    expect(BillsReducer(bills, { type: "" })).toEqual(bills);
+    expect(BillsReducer(successValue, { type: "" })).toEqual(successValue);
   });
 
 });

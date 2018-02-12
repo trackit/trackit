@@ -96,7 +96,7 @@ export class ListComponent extends Component {
     const error = (this.props.bills.error ? ` (${this.props.bills.error.message})` : null);
     const noBills = (this.props.bills.status && (!this.props.bills.values || !this.props.bills.values.length || error) ? <div className="alert alert-warning" role="alert">No bills available{error}</div> : "");
 
-    const bills = (this.props.bills.status && this.props.bills.values.length ? (
+    const bills = (this.props.bills.status && this.props.bills.values && this.props.bills.values.length ? (
       this.props.bills.values.map((bill, index) => (
         <Item
           key={index}

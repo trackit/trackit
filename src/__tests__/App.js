@@ -9,7 +9,6 @@ const props = {
     url: null,
   },
   accounts: [],
-  retrieved: false,
   getAccounts: jest.fn(),
 };
 

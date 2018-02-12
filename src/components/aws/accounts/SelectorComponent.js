@@ -73,7 +73,7 @@ export class SelectorComponent extends Component {
     const error = (this.props.accounts.error ? ` (${this.props.accounts.error.message})` : null);
     const noAccounts = (this.props.accounts.status && (!this.props.accounts.values || !this.props.accounts.values.length || error) ? <div className="alert alert-warning" role="alert">No account available{error}</div> : "");
 
-    const accounts = (this.props.accounts.status && this.props.accounts.values.length ? (
+    const accounts = (this.props.accounts.status && this.props.accounts.values && this.props.accounts.values.length ? (
       this.props.accounts.values.map((account, index) => (
         <Item
           key={index}

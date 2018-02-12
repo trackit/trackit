@@ -3,6 +3,7 @@ import ListComponent, { Item } from '../ListComponent';
 import List, {
   ListItem
 } from 'material-ui/List';
+import Spinner from 'react-spinkit';
 import { shallow } from 'enzyme';
 
 const actionsProps = {
@@ -32,12 +33,29 @@ describe('<ListComponent />', () => {
 
   const props = {
     ...actionsProps,
-    accounts: []
   };
 
   const propsWithAccounts = {
     ...props,
-    accounts: [accountWithoutBills, accountWithoutBills]
+    accounts: {
+      status: true,
+      values: [accountWithoutBills, accountWithoutBills]
+    }
+  };
+
+  const propsWaiting = {
+    ...props,
+    accounts: {
+      status: false
+    }
+  };
+
+  const propsError = {
+    ...props,
+    accounts: {
+      status: true,
+      error: Error("Error")
+    }
   };
 
   beforeEach(() => {
@@ -45,12 +63,12 @@ describe('<ListComponent />', () => {
   });
 
   it('renders a <ListComponent /> component', () => {
-    const wrapper = shallow(<ListComponent {...props}/>);
+    const wrapper = shallow(<ListComponent {...propsWithAccounts}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <div/> component when no account is available', () => {
-    const wrapper = shallow(<ListComponent {...props}/>);
+    const wrapper = shallow(<ListComponent {...propsError}/>);
     const alert = wrapper.find('div');
     expect(alert.length).toBe(1);
   });
@@ -65,6 +83,12 @@ describe('<ListComponent />', () => {
     const wrapper = shallow(<ListComponent {...propsWithAccounts}/>);
     const list = wrapper.find(Item);
     expect(list.length).toBe(2);
+  });
+
+  it('renders a <Spinner /> component when accounts are loading', () => {
+    const wrapper = shallow(<ListComponent {...propsWaiting}/>);
+    const spinner = wrapper.find(Spinner);
+    expect(spinner.length).toBe(1);
   });
 
 });

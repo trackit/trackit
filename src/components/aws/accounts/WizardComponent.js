@@ -121,8 +121,14 @@ export class StepTwo extends Component {
   }
 
   render() {
+    const error = (this.props.account && this.props.account.hasOwnProperty("error") ? (
+      <div className="alert alert-warning" role="alert">{this.props.account.error.message}</div>
+    ) : null);
+
     return (
       <div className="step step-two">
+
+        {error}
 
         <div className="tutorial">
 
@@ -232,22 +238,24 @@ export class StepThree extends Component {
   }
 
   render() {
+    const error = (this.props.bill && this.props.bill.hasOwnProperty("error") ? (
+      <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
+    ) : null);
+
     return (
       <div className="step step-three">
 
-        <div>
+        {error}
 
-          <div className="tutorial">
+        <div className="tutorial">
 
-            <ol>
-              <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills
-                <br/>
-                Example : <code>s3://my.bucket/bills</code>
-              </li>
-              <li>You will be able to add more buckets later.</li>
-            </ol>
-
-          </div>
+          <ol>
+            <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills
+              <br/>
+              Example : <code>s3://my.bucket/bills</code>
+            </li>
+            <li>You will be able to add more buckets later.</li>
+          </ol>
 
         </div>
 
@@ -273,7 +281,7 @@ export class StepThree extends Component {
 
           <div className="form-group clearfix">
             <button className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</button>
-            <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
+            <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{!this.props.bill || this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
           </div>
 
         </Form>
@@ -297,6 +305,10 @@ StepThree.propTypes = {
       roleArn: PropTypes.string.isRequired,
       pretty: PropTypes.string
     })
+  }),
+  bill: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error)
   }),
   submit: PropTypes.func.isRequired,
   close: PropTypes.func.isRequired
@@ -420,6 +432,5 @@ Wizard.propTypes = {
   submitBucket: PropTypes.func.isRequired,
   clearBucket: PropTypes.func.isRequired,
 };
-
 
 export default Wizard;
