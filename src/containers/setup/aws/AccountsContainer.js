@@ -20,7 +20,7 @@ export class AccountsContainer extends Component {
 
   render() {
     const noAccountsInfos = (
-      <div>
+      <div id="welcome">
         <hr />
         <div className="alert alert-info" role="alert" style={{ fontSize: '15px', lineHeight: '2' }}>
           <strong>

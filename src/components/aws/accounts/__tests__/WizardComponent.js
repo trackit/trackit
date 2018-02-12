@@ -114,6 +114,10 @@ describe('<WizardComponent />', () => {
     expect(wrapper.state('open')).toBe(false);
     expect(props.clearAccount).toHaveBeenCalledTimes(2);
     expect(props.clearBucket).toHaveBeenCalledTimes(2);
+    wrapper.instance().closeDialog();
+    expect(wrapper.state('open')).toBe(false);
+    expect(props.clearAccount).toHaveBeenCalledTimes(3);
+    expect(props.clearBucket).toHaveBeenCalledTimes(3);
   });
 
   it('renders a <Stepper /> component', () => {

@@ -26,7 +26,7 @@ describe('<SelectorComponent />', () => {
     select: jest.fn(),
     clear: jest.fn(),
     getAccounts: jest.fn(),
-    accounts: [],
+    accounts: {},
     selected: []
   };
 
@@ -63,12 +63,12 @@ describe('<SelectorComponent />', () => {
   });
 
   it('renders a <SelectorComponent /> component', () => {
-    const wrapper = shallow(<SelectorComponent {...props}/>);
+    const wrapper = shallow(<SelectorComponent {...propsWithAccounts}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <List /> component', () => {
-    const wrapper = shallow(<SelectorComponent {...props}/>);
+    const wrapper = shallow(<SelectorComponent {...propsWithAccounts}/>);
     const form = wrapper.find(List);
     expect(form.length).toBe(1);
   });

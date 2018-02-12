@@ -1,6 +1,5 @@
 import AllReducer from '../allReducer';
 import Constants from '../../../../constants';
-import CreationReducer from "../creationReducer";
 
 const accounts = ["account1", "account2"];
 
