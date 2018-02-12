@@ -17,8 +17,9 @@ class SelectedIndicator extends Component {
     };
 
     const getText = () => {
-      if (!this.props.accounts.length)
-        return 'No AWS accounts';
+      const error = (this.props.accounts.error ? ` (${this.props.accounts.error.message})` : null);
+      if (this.props.accounts.status && (!this.props.accounts.values || !this.props.accounts.values.length || error))
+        return `No AWS account available${error}`;
       if (this.props.selection.length === 0)
         return `${this.props.longVersion ? 'Displaying' : ''} All accounts`;
       if (this.props.selection.length === 1)

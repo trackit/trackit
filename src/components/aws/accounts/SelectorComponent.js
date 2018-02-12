@@ -4,6 +4,7 @@ import List, {
   ListItem,
   ListItemText,
 } from 'material-ui/List';
+import Spinner from 'react-spinkit';
 import PropTypes from 'prop-types';
 import Actions from "../../../actions";
 import Checkbox from 'material-ui/Checkbox';
@@ -67,9 +68,13 @@ export class SelectorComponent extends Component {
 
     const isSelected = (item) => (this.props.selected.find((value) => (value.id === item.id)) !== undefined);
 
-    let noAccounts = (!this.props.accounts || !this.props.accounts.length ? <div className="alert alert-warning" role="alert">No account available</div> : "");
-    let accounts = (this.props.accounts && this.props.accounts.length ? (
-      this.props.accounts.map((account, index) => (
+    const loading = (!this.props.accounts.status ? (<Spinner className="spinner" name='circle'/>) : null);
+
+    const error = (this.props.accounts.error ? ` (${this.props.accounts.error.message})` : null);
+    const noAccounts = (this.props.accounts.status && (!this.props.accounts.values || !this.props.accounts.values.length || error) ? <div className="alert alert-warning" role="alert">No account available{error}</div> : "");
+
+    const accounts = (this.props.accounts.status && this.props.accounts.values.length ? (
+      this.props.accounts.values.map((account, index) => (
         <Item
           key={index}
           account={account}
@@ -81,6 +86,7 @@ export class SelectorComponent extends Component {
     return (
       <div id="account-selection">
         <List disablePadding>
+          {loading}
           {noAccounts}
           {accounts}
         </List>
@@ -91,13 +97,23 @@ export class SelectorComponent extends Component {
 }
 
 SelectorComponent.propTypes = {
-  accounts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      roleArn: PropTypes.string.isRequired,
-      pretty: PropTypes.string,
-    })
-  ),
+  accounts: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        roleArn: PropTypes.string.isRequired,
+        pretty: PropTypes.string,
+        bills: PropTypes.arrayOf(
+          PropTypes.shape({
+            bucket: PropTypes.string.isRequired,
+            path: PropTypes.string.isRequired
+          })
+        ),
+      })
+    ),
+  }),
   selected: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
