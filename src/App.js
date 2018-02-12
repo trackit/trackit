@@ -15,10 +15,8 @@ export class App extends Component {
 
   render() {
 
-
     const redirectToSetup = () => <Redirect to={`${this.props.match.url}/setup/false`}/>;
-    const retrieved = this.props.retrieved;
-    const hasAccounts = (retrieved ? this.props.accounts.length > 0 : true);
+    const hasAccounts = (this.props.accounts.status ? this.props.accounts.values.length > 0 : true);
 
     return (
       <div>
@@ -51,14 +49,12 @@ App.propTypes = {
       pretty: PropTypes.string,
     })
   ),
-  retrieved: PropTypes.bool,
   getAccounts: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.all,
-  retrieved: aws.accounts.retrieved,
 });
 
 /* istanbul ignore next */
