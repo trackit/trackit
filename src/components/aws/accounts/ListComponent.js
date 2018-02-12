@@ -3,6 +3,7 @@ import List, {
   ListItem,
   ListItemText,
 } from 'material-ui/List';
+import Spinner from 'react-spinkit';
 import PropTypes from 'prop-types';
 import Misc from '../../misc';
 import Form from './FormComponent';
@@ -84,9 +85,13 @@ Item.propTypes = {
 class ListComponent extends Component {
 
   render() {
-    let noAccounts = (!this.props.accounts || !this.props.accounts.length ? <div className="alert alert-warning" role="alert">No account available</div> : "");
-    let accounts = (this.props.accounts && this.props.accounts.length ? (
-      this.props.accounts.map((account, index) => (
+    const loading = (!this.props.accounts.status ? (<Spinner className="spinner" name='circle'/>) : null);
+
+    const error = (this.props.accounts.error ? ` (${this.props.accounts.error.message})` : null);
+    const noAccounts = (this.props.accounts.status && (!this.props.accounts.values || !this.props.accounts.values.length || error) ? <div className="alert alert-warning" role="alert">No account available{error}</div> : "");
+
+    const accounts = (this.props.accounts.status && this.props.accounts.values.length ? (
+      this.props.accounts.values.map((account, index) => (
         <Item
           key={index}
           account={account}
@@ -94,8 +99,10 @@ class ListComponent extends Component {
         />
       ))
     ) : null);
+
     return (
       <List disablePadding className="accounts-list">
+        {loading}
         {noAccounts}
         {accounts}
       </List>
@@ -105,19 +112,23 @@ class ListComponent extends Component {
 }
 
 ListComponent.propTypes = {
-  accounts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      roleArn: PropTypes.string.isRequired,
-      pretty: PropTypes.string,
-      bills: PropTypes.arrayOf(
-        PropTypes.shape({
-          bucket: PropTypes.string.isRequired,
-          path: PropTypes.string.isRequired
-        })
-      ),
-    })
-  ),
+  accounts: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        roleArn: PropTypes.string.isRequired,
+        pretty: PropTypes.string,
+        bills: PropTypes.arrayOf(
+          PropTypes.shape({
+            bucket: PropTypes.string.isRequired,
+            path: PropTypes.string.isRequired
+          })
+        ),
+      })
+    ),
+  }),
   accountActions: PropTypes.shape({
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,

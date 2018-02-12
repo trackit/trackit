@@ -4,6 +4,7 @@ import List, {
   ListItem,
   ListItemText,
 } from 'material-ui/List';
+import Spinner from 'react-spinkit';
 import Misc from '../../../misc';
 import PropTypes from 'prop-types';
 import Form from './FormComponent';
@@ -90,9 +91,13 @@ export class ListComponent extends Component {
   }
 
   render() {
-    let noBills = (!this.props.bills || !this.props.bills.length ? <div className="alert alert-warning" role="alert">No bills available</div> : "");
-    let bills = (this.props.bills && this.props.bills.length ? (
-      this.props.bills.map((bill, index) => (
+    const loading = (!this.props.bills.status ? (<Spinner className="spinner" name='circle'/>) : null);
+
+    const error = (this.props.bills.error ? ` (${this.props.bills.error.message})` : null);
+    const noBills = (this.props.bills.status && (!this.props.bills.values || !this.props.bills.values.length || error) ? <div className="alert alert-warning" role="alert">No bills available{error}</div> : "");
+
+    const bills = (this.props.bills.status && this.props.bills.values.length ? (
+      this.props.bills.values.map((bill, index) => (
         <Item
           key={index}
           bill={bill}
@@ -118,6 +123,7 @@ export class ListComponent extends Component {
       >
 
         <List className="bills-list">
+          {loading}
           {noBills}
           {bills}
         </List>
@@ -130,12 +136,16 @@ export class ListComponent extends Component {
 
 ListComponent.propTypes = {
   account: PropTypes.number.isRequired,
-  bills: PropTypes.arrayOf(
-    PropTypes.shape({
-      bucket: PropTypes.string.isRequired,
-      prefix: PropTypes.string.isRequired
-    })
-  ),
+  bills: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        bucket: PropTypes.string.isRequired,
+        prefix: PropTypes.string.isRequired
+      })
+    )
+  }),
   getBills: PropTypes.func.isRequired,
   newBill: PropTypes.func.isRequired,
   editBill: PropTypes.func.isRequired,

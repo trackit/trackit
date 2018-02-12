@@ -13,6 +13,7 @@ import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
+import Spinner from 'react-spinkit';
 import Misc from '../../misc';
 import RoleCreation from '../../../assets/wizard-creation.png';
 import RoleARN from '../../../assets/wizard-rolearn.png';
@@ -112,8 +113,12 @@ export class StepTwo extends Component {
       external: this.props.external.external
     };
     this.props.submit(account);
-    this.props.next();
   };
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.account.status && nextProps.account.value)
+      nextProps.next();
+  }
 
   render() {
     return (
@@ -177,7 +182,7 @@ export class StepTwo extends Component {
               <button className="btn btn-default btn-left" onClick={this.props.close}>Cancel</button>
               <button className="btn btn-default btn-left" onClick={this.props.back}>Previous</button>
             </div>
-            <Button className="btn btn-primary col-md-5 btn-right" type="submit">Next</Button>
+            <Button className="btn btn-primary col-md-5 btn-right" type="submit">{this.props.account.status ? "Next" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
           </div>
 
         </Form>
@@ -192,6 +197,15 @@ StepTwo.propTypes = {
   external: PropTypes.shape({
     external: PropTypes.string.isRequired,
     accountId: PropTypes.string.isRequired,
+  }),
+  account: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      roleArn: PropTypes.string.isRequired,
+      pretty: PropTypes.string
+    })
   }),
   submit: PropTypes.func.isRequired,
   next: PropTypes.func.isRequired,
@@ -209,9 +223,13 @@ export class StepThree extends Component {
       bucket: bucketValues[0],
       prefix: bucketValues[1]
     };
-    this.props.submit(this.props.account.id, bill);
-    this.props.close(e);
+    this.props.submit(this.props.account.value.id, bill);
   };
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.bill.status && nextProps.bill.value)
+      nextProps.close();
+  }
 
   render() {
     return (
@@ -255,7 +273,7 @@ export class StepThree extends Component {
 
           <div className="form-group clearfix">
             <button className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</button>
-            <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>Done</Button>
+            <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
           </div>
 
         </Form>
@@ -272,9 +290,13 @@ StepThree.propTypes = {
     accountId: PropTypes.string.isRequired,
   }),
   account: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    roleArn: PropTypes.string.isRequired,
-    pretty: PropTypes.string,
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      roleArn: PropTypes.string.isRequired,
+      pretty: PropTypes.string
+    })
   }),
   submit: PropTypes.func.isRequired,
   close: PropTypes.func.isRequired
@@ -308,12 +330,15 @@ class Wizard extends Component {
     e.preventDefault();
     this.setState({open: true, activeStep: 0});
     this.props.clearAccount();
+    this.props.clearBucket();
   };
 
-  closeDialog = (e) => {
-    e.preventDefault();
+  closeDialog = (e=null) => {
+    if (e)
+      e.preventDefault();
     this.setState({open: false, activeStep: 0});
     this.props.clearAccount();
+    this.props.clearBucket();
   };
 
   render() {
@@ -326,11 +351,11 @@ class Wizard extends Component {
       },{
         title: "Add your role",
         label: "Name",
-        component: <StepTwo external={this.props.external} submit={this.props.submitAccount} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
+        component: <StepTwo external={this.props.external} account={this.props.account} submit={this.props.submitAccount} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
       },{
         title: "Add a bill repository",
         label: "Bill repository",
-        component: <StepThree account={this.props.account} submit={this.props.submitBucket} close={this.closeDialog}/>
+        component: <StepThree account={this.props.account} bill={this.props.bill} submit={this.props.submitBucket} close={this.closeDialog}/>
       }
     ];
 
@@ -378,13 +403,22 @@ Wizard.propTypes = {
     accountId: PropTypes.string.isRequired,
   }),
   account: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    roleArn: PropTypes.string.isRequired,
-    pretty: PropTypes.string,
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      roleArn: PropTypes.string.isRequired,
+      pretty: PropTypes.string
+    })
+  }),
+  bill: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error)
   }),
   submitAccount: PropTypes.func.isRequired,
   clearAccount: PropTypes.func.isRequired,
   submitBucket: PropTypes.func.isRequired,
+  clearBucket: PropTypes.func.isRequired,
 };
 
 
