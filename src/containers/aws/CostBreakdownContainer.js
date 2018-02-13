@@ -73,28 +73,47 @@ export class Chart extends Component {
     const close = (this.props.close ? (
       <button className="btn btn-danger" onClick={this.close}>Remove this chart</button>
     ) : null);
+
+    const error = (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("error") ? (
+      <div className="alert alert-warning" role="alert">Data not available ({this.props.values.error.message})</div>
+    ) : null);
+
+    const chart = (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("values") ? (
+      <CostBreakdownChart values={this.props.values.values} interval={this.props.interval} filter={this.props.filter}/>
+    ) : null);
+
     return (
       <div className="clearfix">
-        <div className="inline-block pull-right">
-          <div className="inline-block">
-            <Selector
-              values={filters}
-              selected={this.props.filter}
-              selectValue={this.setFilter}
-            />
+
+        <div>
+
+          <div className="inline-block pull-left">
+          {error}
           </div>
-          <div className="inline-block">
-            <TimerangeSelector
-              startDate={this.props.dates.startDate}
-              endDate={this.props.dates.endDate}
-              setDatesFunc={this.setDates}
-              interval={this.props.interval}
-              setIntervalFunc={this.setInterval}
-            />
+
+          <div className="inline-block pull-right">
+            <div className="inline-block">
+              <Selector
+                values={filters}
+                selected={this.props.filter}
+                selectValue={this.setFilter}
+              />
+            </div>
+            <div className="inline-block">
+              <TimerangeSelector
+                startDate={this.props.dates.startDate}
+                endDate={this.props.dates.endDate}
+                setDatesFunc={this.setDates}
+                interval={this.props.interval}
+                setIntervalFunc={this.setInterval}
+              />
+            </div>
+            {close}
           </div>
-          {close}
         </div>
-        <CostBreakdownChart values={this.props.values} interval={this.props.interval} filter={this.props.filter}/>
+
+        {chart}
+
       </div>
     );
   }

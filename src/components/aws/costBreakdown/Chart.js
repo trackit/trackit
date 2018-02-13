@@ -65,7 +65,7 @@ class ChartComponent extends Component {
         stacked={true}
         x={formatX}
         y={formatY}
-        height={400}
+        height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
       />
     )
   }
