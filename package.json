@@ -86,6 +86,7 @@
       "!src/**/index.js",
       "!src/**/gcp/***.js",
       "!src/common/Theme.js",
+      "!src/common/localStorage.js",
       "!src/{config|registerServiceWorker}.js",
       "!src/{actions|constants|store}/***.js",
       "!src/sagas/{watcher|misc}.js",

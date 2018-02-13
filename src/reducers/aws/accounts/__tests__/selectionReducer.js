@@ -7,6 +7,11 @@ describe("SelectionReducer", () => {
     expect(SelectionReducer(undefined, {})).toEqual([]);
   });
 
+  it("handles insert accounts state", () => {
+    const accounts = ["account1", "account2"];
+    expect(SelectionReducer([], { type: Constants.AWS_INSERT_SELECTED_ACCOUNTS, accounts })).toEqual(accounts);
+  });
+
   it("handles select account state", () => {
     const account = "account1";
     expect(SelectionReducer([], { type: Constants.AWS_SELECT_ACCOUNT, account })).toEqual([account]);
