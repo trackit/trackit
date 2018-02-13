@@ -1,5 +1,6 @@
 import { put, call, all } from 'redux-saga/effects';
-import { getToken } from '../misc';
+import { getSelectedAccounts, getToken } from '../misc';
+import { setSelectedAccounts, getSelectedAccounts as getSelectedAccountsLS } from '../../common/localStorage';
 import API from '../../api';
 import Constants from '../../constants';
 
@@ -124,5 +125,24 @@ export function* newExternalSaga() {
       throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_NEW_EXTERNAL_ERROR, error });
+  }
+}
+
+export function* saveSelectedAccountSaga() {
+  const data = yield getSelectedAccounts();
+  setSelectedAccounts(data);
+}
+
+export function* loadSelectedAccountSaga() {
+  try {
+    const data = yield call(getSelectedAccountsLS);
+    if (!data)
+      throw Error("No selected accounts available");
+    else if (Array.isArray(data))
+      yield put({type: Constants.AWS_INSERT_SELECTED_ACCOUNTS, accounts: data});
+    else
+      throw Error("Invalid data for selected accounts");
+  } catch (error) {
+    yield put({ type: Constants.AWS_LOAD_SELECTED_ACCOUNTS_ERROR, error });
   }
 }
