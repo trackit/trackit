@@ -153,8 +153,11 @@ describe('<Chart />', () => {
   const props = {
     id: "42",
     values: {
-      value: 1,
-      otherValue: 2
+      status: true,
+      values: {
+        value: 1,
+        otherValue: 2
+      }
     },
     dates: {
       startDate: Moment().startOf('month'),
@@ -166,6 +169,21 @@ describe('<Chart />', () => {
     setDates: jest.fn(),
     setInterval: jest.fn(),
     setFilter: jest.fn(),
+  };
+
+  const propsWithError = {
+    ...props,
+    values: {
+      status: true,
+      error: Error()
+    }
+  };
+
+  const propsWithoutData = {
+    ...props,
+    values: {
+      status: false
+    }
   };
 
   const propsWithClose = {
@@ -215,16 +233,28 @@ describe('<Chart />', () => {
     expect(selector.length).toBe(1);
   });
 
-  it('renders <CostBreakdownChart/> component', () => {
+  it('renders <CostBreakdownChart/> component when data is available', () => {
     const wrapper = shallow(<Chart {...props}/>);
     const chart = wrapper.find(CostBreakdownChart);
     expect(chart.length).toBe(1);
+  });
+
+  it('renders no <CostBreakdownChart/> component when data is unavailable', () => {
+    const wrapper = shallow(<Chart {...propsWithoutData}/>);
+    const chart = wrapper.find(CostBreakdownChart);
+    expect(chart.length).toBe(0);
   });
 
   it('renders a <button/> component when can be closed', () => {
     const wrapper = shallow(<Chart {...propsWithClose}/>);
     const button = wrapper.find("button");
     expect(button.length).toBe(1);
+  });
+
+  it('renders an alert component when there is an error', () => {
+    const wrapper = shallow(<Chart {...propsWithError}/>);
+    const alert = wrapper.find("div.alert");
+    expect(alert.length).toBe(1);
   });
 
   it('loads costs when mounting', () => {

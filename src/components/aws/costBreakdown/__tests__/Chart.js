@@ -17,7 +17,13 @@ const propsWithoutCosts = {
   values: null
 };
 
+const propsEmptyCosts = {
+  ...props,
+  values: {}
+};
+
 describe('<Chart />', () => {
+
   it('renders a <Chart /> component', () => {
     const wrapper = shallow(<Chart {...props}/>);
     expect(wrapper.length).toBe(1);
@@ -25,6 +31,12 @@ describe('<Chart />', () => {
 
   it('renders <NVD3Chart/> component when values are available', () => {
     const wrapper = shallow(<Chart {...props}/>);
+    const chart = wrapper.find(NVD3Chart);
+    expect(chart.length).toBe(1);
+  });
+
+  it('renders <NVD3Chart/> component when values are empty', () => {
+    const wrapper = shallow(<Chart {...propsEmptyCosts}/>);
     const chart = wrapper.find(NVD3Chart);
     expect(chart.length).toBe(1);
   });
