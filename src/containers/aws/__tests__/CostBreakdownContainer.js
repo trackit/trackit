@@ -2,7 +2,8 @@ import React from 'react';
 import { CostBreakdownContainer, Chart } from '../CostBreakdownContainer';
 import Components from '../../../components';
 import Moment from 'moment';
-import { shallow } from "enzyme";
+import Spinner from 'react-spinkit';
+import { shallow } from 'enzyme';
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const Selector = Components.Misc.Selector;
@@ -243,6 +244,12 @@ describe('<Chart />', () => {
     const wrapper = shallow(<Chart {...propsWithoutData}/>);
     const chart = wrapper.find(CostBreakdownChart);
     expect(chart.length).toBe(0);
+  });
+
+  it('renders a <Spinner/> component when data is unavailable', () => {
+    const wrapper = shallow(<Chart {...propsWithoutData}/>);
+    const spinner = wrapper.find(Spinner);
+    expect(spinner.length).toBe(1);
   });
 
   it('renders a <button/> component when can be closed', () => {

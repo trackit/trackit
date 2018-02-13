@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import UUID from 'uuid/v4';
+import Spinner from 'react-spinkit';
 import Components from '../../components';
 import Actions from '../../actions';
 import s3square from '../../assets/s3-square.png';
@@ -70,6 +71,8 @@ export class Chart extends Component {
   };
 
   render() {
+    const loading = (!this.props.values || !this.props.values.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
+
     const close = (this.props.close ? (
       <button className="btn btn-danger" onClick={this.close}>Remove this chart</button>
     ) : null);
@@ -88,7 +91,8 @@ export class Chart extends Component {
         <div>
 
           <div className="inline-block pull-left">
-          {error}
+            {loading}
+            {error}
           </div>
 
           <div className="inline-block pull-right">
