@@ -10,6 +10,7 @@ import (
 	"github.com/trackit/trackit2/db"
 )
 
+// taskIngestDue lists all BillRepositories with due updates and updates them.
 func taskIngestDue(ctx context.Context) (err error) {
 	var tx *sql.Tx
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)

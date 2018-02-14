@@ -119,6 +119,8 @@ func (li LineItem) EsId() string {
 type OnLineItem func(LineItem, bool)
 type ManifestPredicate func(manifest) bool
 
+// ReadBills reads all LineItems from new bills in a BillRepository, and runs
+// `oli` for each one.
 func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli OnLineItem, mp ManifestPredicate) (time.Time, error) {
 	var lastManifest time.Time
 	s3svc, brr, err := getServiceForRepository(ctx, aa, br)
@@ -134,6 +136,8 @@ func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli O
 	return <-lastManifestPromise, nil
 }
 
+// selectManifests returns a channel of all AWS manifest files which match
+// `mp`.
 func selectManifests(mp ManifestPredicate, mc <-chan manifest) (<-chan manifest, <-chan time.Time) {
 	out := make(chan manifest)
 	lmOut := make(chan time.Time, 1)
@@ -154,6 +158,8 @@ func selectManifests(mp ManifestPredicate, mc <-chan manifest) (<-chan manifest,
 	return out, lmOut
 }
 
+// importBills imports LineItems for bill files described in manifests sent to
+// the `manifests` channel.
 func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	outs, out := mergecdLineItem()
@@ -171,7 +177,7 @@ func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, o
 	oli(LineItem{}, false)
 }
 
-// importBill imports
+// importBill imports LineItems for a single bill file.
 func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan LineItem {
 	outs, out := mergecdLineItem()
 	go func() {
@@ -189,6 +195,7 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan 
 	return out
 }
 
+// readBill returns a channel of all LineItems in a single bill file.
 func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {

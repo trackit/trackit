@@ -79,6 +79,8 @@ type BillRepository struct {
 	NextUpdate           time.Time `json:"nextUpdate"`
 }
 
+// CreateBillRepository creates a BillRepository for an AwsAccount. It does
+// not perform checks on the repository.
 func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (BillRepository, error) {
 	dbbr := models.AwsBillRepository{
 		Prefix:       br.Prefix,
@@ -93,11 +95,15 @@ func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (Bil
 	return out, err
 }
 
+// UpdateBillRepository updates a BillRepository in the database. No checks are
+// performed.
 func UpdateBillRepository(br BillRepository, tx *sql.Tx) error {
 	dbAwsBillRepository := dbBillRepoFromBillRepo(br)
 	return dbAwsBillRepository.UpdateUnsafe(tx)
 }
 
+// GetBillRepositoriesForAwsAccount retrieves from the database all the
+// BillRepositories for an AwsAccount.
 func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepository, error) {
 	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
 	if err == nil {

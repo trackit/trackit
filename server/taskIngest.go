@@ -30,6 +30,7 @@ import (
 	"github.com/trackit/trackit2/db"
 )
 
+// taskIngest ingests billing data for a given BillRepository and AwsAccount.
 func taskIngest(ctx context.Context) error {
 	args := flag.Args()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -47,6 +48,8 @@ func taskIngest(ctx context.Context) error {
 	}
 }
 
+// updateBillRepositoriesFromConclusion updates bill repositories in the
+// database using the conclusion of an update task.
 func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
 	for _, r := range ruccs {
 		if r.Error != nil {
@@ -59,6 +62,8 @@ func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs
 	return nil
 }
 
+// ingestBillingDataForBillRepository ingests the billing data for a
+// BillRepository.
 func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
@@ -95,6 +100,8 @@ const (
 	UpdateIntervalWindow  = 2 * 60
 )
 
+// updateBillRepositoryForNextUpdate plans the next update for a
+// BillRepository.
 func updateBillRepositoryForNextUpdate(ctx context.Context, tx *sql.Tx, br s3.BillRepository, latestManifest time.Time) error {
 	if latestManifest.After(br.LastImportedManifest) {
 		br.LastImportedManifest = latestManifest

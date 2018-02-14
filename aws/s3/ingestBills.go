@@ -43,12 +43,16 @@ const (
 	tagPrefix = `resourceTags/user:`
 )
 
+// ReportUpdateConclusion represents the results of a bill ingestion job.
 type ReportUpdateConclusion struct {
 	BillRepository       BillRepository
 	LastImportedManifest time.Time
 	Error                error
 }
 
+// reportUpdateConclusionChanToSlice accepts a <-chan ReportUpdateConclusion
+// and a count, and builds a []ReportUpdateConclusion from the values read on
+// the channel, stopping at 'count' values.
 func reportUpdateConclusionChanToSlice(rucc <-chan ReportUpdateConclusion, count int) (rucs []ReportUpdateConclusion) {
 	rucs = make([]ReportUpdateConclusion, count)
 	for i := range rucs {
@@ -62,6 +66,8 @@ func reportUpdateConclusionChanToSlice(rucc <-chan ReportUpdateConclusion, count
 	return
 }
 
+// UpdateDueReports finds all BillRepositories in need of an update and updates
+// them.
 func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion, error) {
 	var wg sync.WaitGroup
 	aas := make(map[int]aws.AwsAccount)
