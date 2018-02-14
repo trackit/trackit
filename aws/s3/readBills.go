@@ -1,3 +1,17 @@
+//   Copyright 2017 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package s3
 
 import (
@@ -62,6 +76,7 @@ type manifest struct {
 		Start billTime `json:"start"`
 		End   billTime `json:"end"`
 	} `json:"billingPeriod"`
+	LastModified time.Time
 }
 
 // BillKey is a key where a bill object may be found.
@@ -106,6 +121,8 @@ func (li LineItem) EsId() string {
 type OnLineItem func(LineItem, bool)
 type ManifestPredicate func(manifest) bool
 
+// ReadBills reads all LineItems from new bills in a BillRepository, and runs
+// `oli` for each one.
 func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli OnLineItem, mp ManifestPredicate) (time.Time, error) {
 	var lastManifest time.Time
 	s3svc, brr, err := getServiceForRepository(ctx, aa, br)
@@ -116,29 +133,38 @@ func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli O
 	mck := getKeys(ctx, s3svc, brr)
 	mck = getManifestKeys(ctx, mck)
 	mc := getManifests(ctx, s3svc, mck)
-	mc = selectManifests(mp, mc, &lastManifest)
-	lastManifest = importBills(ctx, s3svc, mc, oli)
-	return lastManifest, nil
+	mc, lastManifestPromise := selectManifests(mp, mc)
+	importBills(ctx, s3svc, mc, oli)
+	return <-lastManifestPromise, nil
 }
 
-func selectManifests(mp ManifestPredicate, mc <-chan manifest, lm *time.Time) <-chan manifest {
+// selectManifests returns a channel of all AWS manifest files which match
+// `mp`.
+func selectManifests(mp ManifestPredicate, mc <-chan manifest) (<-chan manifest, <-chan time.Time) {
 	out := make(chan manifest)
+	lmOut := make(chan time.Time, 1)
 	go func() {
 		defer close(out)
+		defer close(lmOut)
+		var lm time.Time
 		for m := range mc {
 			if mp(m) {
 				out <- m
+				if m.LastModified.After(lm) {
+					lm = m.LastModified
+				}
 			}
 		}
+		lmOut <- lm
 	}()
-	return out
+	return out, lmOut
 }
 
-func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) time.Time {
+// importBills imports LineItems for bill files described in manifests sent to
+// the `manifests` channel.
+func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	outs, out := mergecdLineItem()
-	var lastPeriodStart time.Time
-	var timeParseHasErrored bool
 	for m := range manifests {
 		l.Debug("Will attempt ingesting bills.", m)
 		for _, s := range m.ReportKeys {
@@ -148,24 +174,12 @@ func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, o
 	}
 	close(outs)
 	for lineItem := range out {
-		t, err := time.Parse(time.RFC3339, lineItem.BillingPeriodStart)
-		if err != nil && !timeParseHasErrored {
-			timeParseHasErrored = true
-			l.Error("Failed to parse lineitem billing period start.", map[string]interface{}{
-				"format": time.RFC3339,
-				"error":  err.Error(),
-				"string": lineItem.BillingPeriodStart,
-			})
-		} else if err == nil && t.After(lastPeriodStart) {
-			lastPeriodStart = t
-		}
 		oli(lineItem, true)
 	}
 	oli(LineItem{}, false)
-	return lastPeriodStart
 }
 
-// importBill imports
+// importBill imports LineItems for a single bill file.
 func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan LineItem {
 	outs, out := mergecdLineItem()
 	go func() {
@@ -183,6 +197,7 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan 
 	return out
 }
 
+// readBill returns a channel of all LineItems in a single bill file.
 func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {
@@ -301,6 +316,7 @@ func readManifest(ctx context.Context, s3mgr *s3manager.Downloader, bk BillKey) 
 				logger.Error("Failed to parse usage and cost manifest.", map[string]interface{}{"billKey": bk, "error": err.Error()})
 				return
 			} else {
+				m.LastModified = bk.LastModified
 				m.SourceBucket = bk.Bucket
 				out <- m
 			}
@@ -407,7 +423,7 @@ func listBillsFromRepositoryPage(
 	}
 }
 
-// serviceForBucketRegion determines the region an S3 bucket resides in and
+// getBucketRegion determines the region an S3 bucket resides in and
 // returns that as a string.
 func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepository) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -415,8 +431,12 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 	input := s3.GetBucketLocationInput{
 		Bucket: &r.Bucket,
 	}
+	logger.Debug("Getting bucket region.", map[string]interface{}{
+		"input":          input,
+		"billRepository": r,
+	})
 	if output, err := s3svc.GetBucketLocationWithContext(ctx, &input); err == nil {
-		region := *output.LocationConstraint
+		region := getBucketRegionFromGetBucketLocationOutput(output)
 		logger.Debug(fmt.Sprintf("Found bucket region."), map[string]string{
 			"bucket": r.Bucket,
 			"region": region,
@@ -424,6 +444,18 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 		return region, nil
 	} else {
 		return "", err
+	}
+}
+
+// getBucketRegionFromGetBucketLocationOutput gets the region name for a bucket
+// from a non-null *s3.GetBucketLocationOutput. It handles the API's special
+// case where a nil LocationConstraint indicates the bucke is situated in the
+// us-east-1 region.
+func getBucketRegionFromGetBucketLocationOutput(output *s3.GetBucketLocationOutput) string {
+	if output.LocationConstraint == nil || *output.LocationConstraint == "" {
+		return "us-east-1"
+	} else {
+		return *output.LocationConstraint
 	}
 }
 

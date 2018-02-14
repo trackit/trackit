@@ -1,10 +1,27 @@
+//   Copyright 2017 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package s3
 
 import (
 	"context"
+	"database/sql"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
@@ -26,27 +43,87 @@ const (
 	tagPrefix = `resourceTags/user:`
 )
 
-/*
-func UpdateDueReports(ctx context.Context, tx *sql.Tx) error {
+// ReportUpdateConclusion represents the results of a bill ingestion job.
+type ReportUpdateConclusion struct {
+	BillRepository       BillRepository
+	LastImportedManifest time.Time
+	Error                error
+}
+
+// reportUpdateConclusionChanToSlice accepts a <-chan ReportUpdateConclusion
+// and a count, and builds a []ReportUpdateConclusion from the values read on
+// the channel, stopping at 'count' values.
+func reportUpdateConclusionChanToSlice(rucc <-chan ReportUpdateConclusion, count int) (rucs []ReportUpdateConclusion) {
+	rucs = make([]ReportUpdateConclusion, count)
+	for i := range rucs {
+		if r, ok := <-rucc; ok {
+			rucs[i] = r
+		} else {
+			rucs = rucs[:i]
+			return
+		}
+	}
+	return
+}
+
+// UpdateDueReports finds all BillRepositories in need of an update and updates
+// them.
+func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion, error) {
+	var wg sync.WaitGroup
 	aas := make(map[int]aws.AwsAccount)
-	brs := aws.AwsBillRepositoriesWithDueUpdate(tx)
-	for _, br := range repositoriesWithDueUpdate {
-		var aa AwsAccount
-		if aa, ok := aas[br.AwsAccountId]; !ok {
-			aa, err := aws.GetAwsAccountWithId(br.AwsAccountId, tx)
+	brs, err := GetAwsBillRepositoriesWithDueUpdate(tx)
+	if err != nil {
+		return nil, err
+	}
+	wg.Add(len(brs))
+	conclusionChan := make(chan ReportUpdateConclusion, len(brs))
+	defer close(conclusionChan)
+	for _, br := range brs {
+		var aa aws.AwsAccount
+		var ok bool
+		var err error
+		if aa, ok = aas[br.AwsAccountId]; !ok {
+			aa, err = aws.GetAwsAccountWithId(br.AwsAccountId, tx)
 			if err != nil {
-				return err
+				return nil, err
 			}
 			aas[br.AwsAccountId] = aa
 		}
-		go UpdateReport(ctx, aa, br)
+		go func(ctx context.Context, aa aws.AwsAccount, br BillRepository) {
+			lim, err := UpdateReport(ctx, aa, br)
+			conclusionChan <- ReportUpdateConclusion{
+				BillRepository:       br,
+				LastImportedManifest: lim,
+				Error:                err,
+			}
+			wg.Done()
+		}(ctx, aa, br)
 	}
+	wg.Wait()
+	return reportUpdateConclusionChanToSlice(conclusionChan, len(brs)), nil
 }
-*/
+
+// contextKey is a key in a context, to prevent collision with other modules.
+type contextKey uint
+
+// ingestionContextKey is used to store an 'ingestionId' in a context.
+const ingestionContextKey = contextKey(iota)
+
+// contextWithIngestionId returns a context configured so that its logger logs
+// an 'ingestionId'.
+func contextWithIngestionId(ctx context.Context) context.Context {
+	ingestionId := uuid.NewV1().String()
+	ctx = context.WithValue(ctx, ingestionContextKey, ingestionId)
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger = logger.WithContextKey(ingestionContextKey, "ingestionId")
+	logger = logger.WithContext(ctx)
+	return jsonlog.ContextWithLogger(ctx, logger)
+}
 
 // UpdateReport updates the elasticsearch database with new data from usage and
 // cost reports.
 func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (latestManifest time.Time, err error) {
+	ctx = contextWithIngestionId(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating reports for AWS account.", map[string]interface{}{
 		"awsAccount":     aa,
@@ -62,9 +139,10 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 			aa,
 			br,
 			ingestLineItems(ctx, bp, index),
-			manifestsStartingAfter(br.LastImportedPeriod),
+			manifestsModifiedAfter(br.LastImportedManifest),
 		)
 	}
+	logger.Info("Done ingesting data.", nil)
 	return
 }
 
@@ -101,9 +179,9 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 
 // manifestsStartingAfter returns a manifest predicate which is true for all
 // manifests starting after a given date.
-func manifestsStartingAfter(t time.Time) ManifestPredicate {
+func manifestsModifiedAfter(t time.Time) ManifestPredicate {
 	return func(m manifest) bool {
-		if time.Time(m.BillingPeriod.Start).After(t) {
+		if time.Time(m.LastModified).After(t) {
 			return true
 		} else {
 			return false

@@ -71,14 +71,16 @@ const (
 
 // BillRepository is a location where the server may look for bill objects.
 type BillRepository struct {
-	Id                 int       `json:"id"`
-	AwsAccountId       int       `json:"awsAccountId"`
-	Bucket             string    `json:"bucket"`
-	Prefix             string    `json:"prefix"`
-	LastImportedPeriod time.Time `json:"lastImportedPeriod"`
-	NextUpdate         time.Time `json:"nextUpdate"`
+	Id                   int       `json:"id"`
+	AwsAccountId         int       `json:"awsAccountId"`
+	Bucket               string    `json:"bucket"`
+	Prefix               string    `json:"prefix"`
+	LastImportedManifest time.Time `json:"lastImportedManifest"`
+	NextUpdate           time.Time `json:"nextUpdate"`
 }
 
+// CreateBillRepository creates a BillRepository for an AwsAccount. It does
+// not perform checks on the repository.
 func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (BillRepository, error) {
 	dbbr := models.AwsBillRepository{
 		Prefix:       br.Prefix,
@@ -93,6 +95,15 @@ func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (Bil
 	return out, err
 }
 
+// UpdateBillRepository updates a BillRepository in the database. No checks are
+// performed.
+func UpdateBillRepository(br BillRepository, tx *sql.Tx) error {
+	dbAwsBillRepository := dbBillRepoFromBillRepo(br)
+	return dbAwsBillRepository.UpdateUnsafe(tx)
+}
+
+// GetBillRepositoriesForAwsAccount retrieves from the database all the
+// BillRepositories for an AwsAccount.
 func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepository, error) {
 	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
 	if err == nil {
@@ -106,11 +117,54 @@ func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepo
 	}
 }
 
+// GetBillRepositoryForAwsAccountById gets a BillRepository by its ID, ensuring
+// it belongs to the provided AwsAccount.
+func GetBillRepositoryForAwsAccountById(aa aws.AwsAccount, brId int, tx *sql.Tx) (BillRepository, error) {
+	var out BillRepository
+	var err error
+	dbAwsBillRepository, err := models.AwsBillRepositoryByID(tx, brId)
+	if err == nil {
+		out = billRepoFromDbBillRepo(*dbAwsBillRepository)
+		if out.AwsAccountId != aa.Id {
+			err = errors.New("bill repository does not belong to aws account")
+		}
+	}
+	return out, err
+}
+
+// GetAwsBillRepositoriesWithDueUpdate gets all bill repositories in need of an
+// update.
+func GetAwsBillRepositoriesWithDueUpdate(tx *sql.Tx) ([]BillRepository, error) {
+	dbbrs, err := models.AwsBillRepositoriesWithDueUpdate(tx)
+	if err != nil {
+		return nil, err
+	}
+	brs := make([]BillRepository, len(dbbrs))
+	for i := range dbbrs {
+		brs[i] = billRepoFromDbBillRepo(*dbbrs[i])
+	}
+	return brs, nil
+}
+
 func billRepoFromDbBillRepo(dbBillRepo models.AwsBillRepository) BillRepository {
 	return BillRepository{
-		Id:     dbBillRepo.ID,
-		Bucket: dbBillRepo.Bucket,
-		Prefix: dbBillRepo.Prefix,
+		Id:                   dbBillRepo.ID,
+		Bucket:               dbBillRepo.Bucket,
+		Prefix:               dbBillRepo.Prefix,
+		AwsAccountId:         dbBillRepo.AwsAccountID,
+		LastImportedManifest: dbBillRepo.LastImportedManifest,
+		NextUpdate:           dbBillRepo.NextUpdate,
+	}
+}
+
+func dbBillRepoFromBillRepo(br BillRepository) models.AwsBillRepository {
+	return models.AwsBillRepository{
+		ID:                   br.Id,
+		Bucket:               br.Bucket,
+		Prefix:               br.Prefix,
+		AwsAccountID:         br.AwsAccountId,
+		LastImportedManifest: br.LastImportedManifest,
+		NextUpdate:           br.NextUpdate,
 	}
 }
 
