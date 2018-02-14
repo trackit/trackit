@@ -313,7 +313,6 @@ func readManifest(ctx context.Context, s3mgr *dumbS3Manager, bk BillKey) <-chan 
 			logger.Error("Failed to download usage and cost manifest.", map[string]interface{}{"billKey": bk, "error": err.Error()})
 			return
 		} else {
-			println(string(buf))
 			var m manifest
 			err := json.Unmarshal(buf, &m)
 			if err != nil {
