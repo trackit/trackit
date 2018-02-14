@@ -10,12 +10,12 @@ import (
 
 // AwsBillRepository represents a row from 'trackit.aws_bill_repository'.
 type AwsBillRepository struct {
-	ID                 int       `json:"id"`                   // id
-	AwsAccountID       int       `json:"aws_account_id"`       // aws_account_id
-	Bucket             string    `json:"bucket"`               // bucket
-	Prefix             string    `json:"prefix"`               // prefix
-	LastImportedPeriod time.Time `json:"last_imported_period"` // last_imported_period
-	NextUpdate         time.Time `json:"next_update"`          // next_update
+	ID                   int       `json:"id"`                     // id
+	AwsAccountID         int       `json:"aws_account_id"`         // aws_account_id
+	Bucket               string    `json:"bucket"`                 // bucket
+	Prefix               string    `json:"prefix"`                 // prefix
+	NextUpdate           time.Time `json:"next_update"`            // next_update
+	LastImportedManifest time.Time `json:"last_imported_manifest"` // last_imported_manifest
 
 	// xo fields
 	_exists, _deleted bool
@@ -42,14 +42,14 @@ func (abr *AwsBillRepository) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`aws_account_id, bucket, prefix, last_imported_period, next_update` +
+		`aws_account_id, bucket, prefix, next_update, last_imported_manifest` +
 		`) VALUES (` +
 		`?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod, abr.NextUpdate)
-	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod, abr.NextUpdate)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest)
+	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest)
 	if err != nil {
 		return err
 	}
@@ -83,12 +83,12 @@ func (abr *AwsBillRepository) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_bill_repository SET ` +
-		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_period = ?, next_update = ?` +
+		`aws_account_id = ?, bucket = ?, prefix = ?, next_update = ?, last_imported_manifest = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod, abr.NextUpdate, abr.ID)
-	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedPeriod, abr.NextUpdate, abr.ID)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.ID)
+	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.ID)
 	return err
 }
 
@@ -146,7 +146,7 @@ func AwsBillRepositoryByID(db XODB, id int) (*AwsBillRepository, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, last_imported_period, next_update ` +
+		`id, aws_account_id, bucket, prefix, next_update, last_imported_manifest ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE id = ?`
 
@@ -156,7 +156,7 @@ func AwsBillRepositoryByID(db XODB, id int) (*AwsBillRepository, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedPeriod, &abr.NextUpdate)
+	err = db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest)
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRep
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, last_imported_period, next_update ` +
+		`id, aws_account_id, bucket, prefix, next_update, last_imported_manifest ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE aws_account_id = ?`
 
@@ -192,7 +192,7 @@ func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRep
 		}
 
 		// scan
-		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedPeriod, &abr.NextUpdate)
+		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest)
 		if err != nil {
 			return nil, err
 		}

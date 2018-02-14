@@ -15,8 +15,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
@@ -25,6 +27,7 @@ import (
 	_ "github.com/trackit/trackit2/aws/s3"
 	"github.com/trackit/trackit2/config"
 	_ "github.com/trackit/trackit2/costs"
+	"github.com/trackit/trackit2/periodic"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/s3/costs"
 	_ "github.com/trackit/trackit2/users"
@@ -33,15 +36,54 @@ import (
 var buildNumber string
 var backendId = getBackendId()
 
+func init() {
+	jsonlog.DefaultLogger = jsonlog.DefaultLogger.WithLogLevel(jsonlog.LogLevelDebug)
+}
+
+var tasks = map[string]func(context.Context) error{
+	"server":     taskServer,
+	"ingest":     taskIngest,
+	"ingest-due": taskIngestDue,
+}
+
 func main() {
+	ctx := context.Background()
 	logger := jsonlog.DefaultLogger
 	logger.Info("Started.", struct {
 		BackendId string `json:"backendId"`
 	}{backendId})
+	if task, ok := tasks[config.Task]; ok {
+		task(ctx)
+	} else {
+		knownTasks := make([]string, 0, len(tasks))
+		for k := range tasks {
+			knownTasks = append(knownTasks, k)
+		}
+		logger.Error("Unknown task.", map[string]interface{}{
+			"knownTasks": knownTasks,
+			"chosen":     config.Task,
+		})
+	}
+}
+
+var sched periodic.Scheduler
+
+func schedulePeriodicTasks() {
+	sched.Register(taskIngestDue, 10*time.Minute, "ingest-due-updates")
+	sched.Start()
+}
+
+func taskServer(ctx context.Context) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	initializeHandlers()
+	if config.Periodics {
+		schedulePeriodicTasks()
+		logger.Info("Scheduled periodic tasks.", nil)
+	}
 	logger.Info(fmt.Sprintf("Listening on %s.", config.HttpAddress), nil)
 	err := http.ListenAndServe(config.HttpAddress, nil)
 	logger.Error("Server stopped.", err.Error())
+	return err
 }
 
 // initializeHandlers sets the HTTP server up with handler functions.
