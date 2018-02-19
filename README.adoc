@@ -1,18 +1,62 @@
+[#trackit-logo]
+image::https://s3-us-west-2.amazonaws.com/trackit-public-artifacts/github-page/logo.png[]
+
 = Trackit (v2)
 
 This is the new iteration of MSolution’s Trackit, a tool to optimize your AWS
 usage and spending.
 
-== Cheking out
+== Don't want to self-host trackit?
 
-In order to check out this project’s dependencies, run `govendor sync -v`.
+We run our own version, check it out at https://trackit.io/[TrackIt.IO]
 
-== Running
+= Installation
 
-In order to build and run the _Docker Compose_ environment, simply run
-`./start.sh`.
+=== #0 Be sure all requirements below are met
 
-== API documentation
+- Install https://docs.docker.com/engine/installation/[Docker]
+- Install https://docs.docker.com/compose/install/[Docker Compose]
+- Install https://docs.aws.amazon.com/cli/latest/userguide/installing.html[AWS CLI] and https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html[configure your credentials]
+- Install https://golang.org/doc/install[Go]
+- Install https://github.com/kardianos/govendor[govendor]:
+
+[source,sh]
+----
+$> go get -u github.com/kardianos/govendor
+$> export PATH=$PATH:$HOME/go/bin
+----
+
+=== #1 Clone TrackIt
+
+[source,sh]
+----
+$> mkdir -p $HOME/go/src/github.com/trackit && cd $HOME/go/src/github.com/trackit
+$> git clone https://github.com/trackit/trackit2 && cd trackit2
+----
+
+=== #2 Check out TrackIt's dependencies
+
+[source,sh]
+----
+$> govendor sync -v
+----
+
+=== #3 Start TrackIt
+
+[source,sh]
+----
+$> sudo sysctl -w vm.max_map_count=262144 # <1>
+$> ./start.sh
+----
+<1> On most operating systems you will need to https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html[increase the mmap limit] to allow elasticsearch to run properly
+
+The TrackIt API is now listening on 127.0.0.1:8580
+
+= Web UI
+
+A web UI is available on the https://github.com/trackit/trackit2-client[trackit-client repository]
+
+= API documentation
 
 The API exposes its own documentation on the `GET /docs` route, in JSON format.
 Also, the documentation for each route can be retrieved by an `OPTIONS`
