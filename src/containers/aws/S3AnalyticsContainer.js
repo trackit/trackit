@@ -14,8 +14,8 @@ const S3Analytics = Components.AWS.S3Analytics;
 const Panel = Components.Misc.Panel;
 
 const defaultDates = {
-  startDate: moment().startOf('month'),
-  endDate: moment()
+  startDate: moment().subtract(1, 'months').startOf('month'),
+  endDate: moment().subtract(1, 'months').endOf('month')
 };
 
 // S3AnalyticsContainer Component

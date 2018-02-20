@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactTable from "react-table";
 
-import {formatBytes, formatGigaBytes, formatPrice} from '../../../common/formatters';
+import {formatGigaBytes, formatPrice} from '../../../common/formatters';
 
 
 // S3AnalyticsTableComponent Component
@@ -53,11 +53,11 @@ class TableComponent extends Component {
                   {
                     Header: 'In',
                     accessor: 'DataIn',
-                    Cell: row => (formatBytes(row.value))
+                    Cell: row => (formatGigaBytes(row.value))
                   }, {
                     Header: 'Out',
                     accessor: 'DataOut',
-                    Cell: row => (formatBytes(row.value))
+                    Cell: row => (formatGigaBytes(row.value))
                   }
                 ]
               }

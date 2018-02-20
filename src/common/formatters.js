@@ -44,11 +44,4 @@ export const transformBuckets = (data) => {
       ["Storage", data[bucket].StorageCost]
     ]
   }));
-/*  return [{
-    key: "Bandwidth",
-    values: Object.keys(data).map((bucket) => ([bucket, data[bucket].BandwidthCost])).slice(0, 2)
-  },{
-    key: "Storage",
-    values: Object.keys(data).map((bucket) => ([bucket, data[bucket].StorageCost])).slice(0, 2)
-  }];*/
 };

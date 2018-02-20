@@ -1,100 +1,78 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import NVD3Chart from 'react-nvd3';
+import * as d3 from 'd3';
+import { transformBuckets } from '../../../common/formatters';
+import 'nvd3/build/nv.d3.min.css';
 
- // S3AnalyticsBarChart Component
- class BarChart extends Component {
+/* istanbul ignore next */
+const context = {
+  formatXAxis: (d) => (d),
+  formatYAxis: (d) => ('$' + d3.format(',.2f')(d)),
+};
 
-   formatDataForChart() {
-     // Cloning the data
-     let dataClone = this.props.data.slice(0);
-     // Extracting X first buckets by price
-     dataClone = dataClone.sort((a,b) => {
-        if (a.total_cost < b.total_cost)
-          return 1;
-        return -1;
-     });
-     dataClone = dataClone.slice(0,25);
+const xAxis = {
+  tickFormat: {
+    name:'formatXAxis',
+    type:'function',
+  }
+};
 
-     // Formatting for chart
-     const bandwidth = {
-       x: [],
-       y: [],
-       name: 'Bandwidth',
-       type: 'bar',
-       opacity: 0.8,
-       marker: {
-         color: '#1e88e5',
-       }
-     };
-     const storage = {
-       x: [],
-       y: [],
-       name: 'Storage',
-       type: 'bar',
-       opacity: 0.8,
-       marker: {
-         color: '#ff9800',
-       },
-       hoverlabel: {
-         bordercolor: '#ffffff',
-       }
-     };
+const yAxis = {
+  tickFormat: {
+    name:'formatYAxis',
+    type:'function',
+  }
+};
 
-     dataClone.forEach((item) => {
-       bandwidth.x.push(item._id);
-       bandwidth.y.push(item.bw_cost.toFixed(2));
-       storage.x.push(item._id);
-       storage.y.push(item.storage_cost.toFixed(2));
-     });
+/* istanbul ignore next */
+const formatX = (d) => (d[0]);
 
-     return [bandwidth, storage];
-   }
+/* istanbul ignore next */
+const formatY = (d) => (d[1]);
 
-   componentDidMount() {
-     const data = this.formatDataForChart();
-     const layout = {
-       barmode: 'stack',
-       showlegend: true,
-       title: 'Buckets breakdown',
-       height: 180,
-       margin: {
-         l: 55,
-         r: 45,
-         b: 55,
-         t: 25,
-       },
-       autosize: true,
-       yaxis: {
-         title: 'Total Price ($)',
-       }
-     };
+const margin = {
+  right: 100
+};
 
-     window.Plotly.newPlot(this.props.elementId, data, layout, {displayModeBar: false});
-   }
+// S3AnalyticsBarChart Component
+class BarChart extends Component {
 
-   render() {
+  generateDatum = () => {
+    if (this.props.data)
+      return transformBuckets(this.props.data);
+    return null;
+  };
 
-     return(
-       <div>
-         <div id={this.props.elementId}></div>
-       </div>
-     );
-   }
- }
+  render() {
+    const datum = this.generateDatum();
+    if (!datum)
+      return null;
+    return (
+      <NVD3Chart
+        id="barChart"
+        type="multiBarChart"
+        datum={datum}
+        context={context}
+        xAxis={xAxis}
+        yAxis={yAxis}
+        margin={margin}
+        rightAlignYAxis={true}
+        clipEdge={true}
+        showControls={true}
+        stacked={true}
+        x={formatX}
+        y={formatY}
+        height={400}
+      />
+    )
+  }
+
+}
 
 BarChart.propTypes = {
   elementId: PropTypes.string.isRequired,
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      size: PropTypes.number.isRequired,
-      storage_cost: PropTypes.number.isRequired,
-      bw_cost: PropTypes.number.isRequired,
-      total_cost: PropTypes.number.isRequired,
-      transfer_in: PropTypes.number.isRequired,
-      transfer_out: PropTypes.number.isRequired,
-    })
-  ),
+  data: PropTypes.object
 };
 
 export default BarChart;
