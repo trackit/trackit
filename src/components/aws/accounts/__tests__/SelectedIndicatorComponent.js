@@ -48,6 +48,15 @@ describe('<SelectedIndicator />', () => {
     }
   };
 
+  const propsErrorLong = {
+    ...props,
+    accounts: {
+      status: true,
+      error: Error("Error")
+    },
+    longVersion: true
+  };
+
   const propsWithAccounts = {
     ...props,
     accounts: {
@@ -117,7 +126,7 @@ describe('<SelectedIndicator />', () => {
 
   describe('Get Text', () => {
 
-    const noAccount = 'No AWS account available';
+    const noAccount = 'No accounts';
     const allAccounts = 'All accounts';
     const multipleAccounts = (count) => (`${count} accounts`);
     const longVersion = (text) => (`Displaying ${text}`);
@@ -127,14 +136,21 @@ describe('<SelectedIndicator />', () => {
       const instance = wrapper.instance();
       expect(instance.getText()).toBe(null);
     });
+
     it('returns "No account" message when no account available', () => {
       const wrapper = shallow(<SelectedIndicator {...props}/>);
       const instance = wrapper.instance();
       expect(instance.getText()).toBe(noAccount);
     });
 
-    it('returns "No account" message with error message when there is an error', () => {
+    it('returns "No account" message without error message when there is an error and long version is not enabled', () => {
       const wrapper = shallow(<SelectedIndicator {...propsError}/>);
+      const instance = wrapper.instance();
+      expect(instance.getText()).toBe(`${noAccount}`);
+    });
+
+    it('returns "No account" message with error message when there is an error and long version is enabled', () => {
+      const wrapper = shallow(<SelectedIndicator {...propsErrorLong}/>);
       const instance = wrapper.instance();
       expect(instance.getText()).toBe(`${noAccount} (${propsError.accounts.error.message})`);
     });

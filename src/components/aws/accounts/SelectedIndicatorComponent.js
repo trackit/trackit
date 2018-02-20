@@ -11,7 +11,7 @@ export class SelectedIndicator extends Component {
     if (!this.props.accounts.status)
       return null;
     if (this.props.accounts.status && (!this.props.accounts.values || !this.props.accounts.values.length || error))
-      return `No AWS account available${error}`;
+      return `No accounts${this.props.longVersion ? error : ''}`;
     if (this.props.selection.length === 0 || this.props.accounts.values.length === this.props.selection.length)
       return `${this.props.longVersion ? 'Displaying ' : ''}All accounts`;
     if (this.props.selection.length === 1)
