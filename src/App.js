@@ -31,6 +31,10 @@ export class App extends Component {
               component={hasAccounts ? Containers.AWS.S3Analytics : redirectToSetup}
             />
             <Route
+              path={this.props.match.url + '/costbreakdown'}
+              component={hasAccounts ? Containers.AWS.CostBreakdown : redirectToSetup}
+            />
+            <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}
               component={Containers.Setup.Main}
             />

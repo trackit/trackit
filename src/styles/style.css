@@ -104,6 +104,13 @@ button {
     float: right;
 }
 
+.no-click, .no-click:active, .no-click:focus, .no-click:hover, .no-click:active:focus, .no-click:active:hover {
+    color: #4885ed;
+    background-color: #fff;
+    border-color: #4885ed;
+    box-shadow: none;
+}
+
 /* COLORS */
 
 .red-color {

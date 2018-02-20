@@ -10,7 +10,7 @@ export const formatBytes = (a,d = 2) => {if(0===a)return"0 Bytes";var c=1024,e=[
 
 export const formatPrice = (value, decimals = 2) => (<span><span className="dollar-sign">$</span>{parseFloat(value.toFixed(decimals)).toLocaleString()}</span>);
 
-export const transformProducts = (data, filter, interval) => {
+export const transformProductsBarChart = (data, filter, interval) => {
   if (filter === "all" && data.hasOwnProperty(interval))
     return [{
       key: "Total",
@@ -34,3 +34,21 @@ export const transformProducts = (data, filter, interval) => {
     return [];
   }
 };
+
+export const transformProductsPieChart = (data, filter) => {
+  if (!data.hasOwnProperty(filter))
+    return [];
+  return Object.keys(data[filter]).map((id) => ({
+    key: id,
+    value: data[filter][id]
+  }));
+};
+
+export const getTotalPieChart = (data) => {
+  let total = 0;
+  if (Array.isArray(data))
+    data.forEach((item) => {
+      total += item.value;
+    });
+  return total;
+}
