@@ -33,7 +33,11 @@ describe("Logout Saga", () => {
     window.localStorage.removeItem("userToken");
 
     expect(saga.next().value)
-      .toEqual(put({ type: Constants.LOGOUT_REQUEST_ERROR, error: Error("No token available") }));
+      .toEqual(all([
+        put({ type: Constants.LOGOUT_REQUEST_SUCCESS }),
+        put({ type: Constants.CLEAN_USER_TOKEN }),
+        put({ type: Constants.CLEAN_USER_MAIL })
+      ]));
 
     expect(saga.next().done).toBe(true);
 
@@ -47,7 +51,11 @@ describe("Logout Saga", () => {
     window.localStorage.removeItem("userMail");
 
     expect(saga.next().value)
-      .toEqual(put({ type: Constants.LOGOUT_REQUEST_ERROR, error: Error("No user mail available") }));
+      .toEqual(all([
+        put({ type: Constants.LOGOUT_REQUEST_SUCCESS }),
+        put({ type: Constants.CLEAN_USER_TOKEN }),
+        put({ type: Constants.CLEAN_USER_MAIL })
+      ]));
 
     expect(saga.next().done).toBe(true);
 

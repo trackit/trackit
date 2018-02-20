@@ -5,6 +5,7 @@ import List, {
   ListItem,
   ListItemText,
 } from 'material-ui/List';
+import Spinner from 'react-spinkit';
 import Checkbox from 'material-ui/Checkbox';
 
 const account1 = {
@@ -25,13 +26,31 @@ describe('<SelectorComponent />', () => {
     select: jest.fn(),
     clear: jest.fn(),
     getAccounts: jest.fn(),
-    accounts: [],
+    accounts: {},
     selected: []
+  };
+
+  const propsWaiting = {
+    ...props,
+    accounts: {
+      status: false
+    }
+  };
+
+  const propsError = {
+    ...props,
+    accounts: {
+      status: true,
+      error: Error("Error")
+    }
   };
 
   const propsWithAccounts = {
     ...props,
-    accounts: [account1, account2]
+    accounts: {
+      status: true,
+      values: [account1, account2]
+    }
   };
 
   const propsWithSelectedAccounts = {
@@ -44,12 +63,12 @@ describe('<SelectorComponent />', () => {
   });
 
   it('renders a <SelectorComponent /> component', () => {
-    const wrapper = shallow(<SelectorComponent {...props}/>);
+    const wrapper = shallow(<SelectorComponent {...propsWithAccounts}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <List /> component', () => {
-    const wrapper = shallow(<SelectorComponent {...props}/>);
+    const wrapper = shallow(<SelectorComponent {...propsWithAccounts}/>);
     const form = wrapper.find(List);
     expect(form.length).toBe(1);
   });
@@ -57,19 +76,25 @@ describe('<SelectorComponent />', () => {
   it('renders multiple <Item /> components', () => {
     const wrapper = shallow(<SelectorComponent {...propsWithAccounts}/>);
     const form = wrapper.find(Item);
-    expect(form.length).toBe(propsWithAccounts.accounts.length);
+    expect(form.length).toBe(propsWithAccounts.accounts.values.length);
   });
 
   it('renders multiple <Item /> components with some selected', () => {
     const wrapper = shallow(<SelectorComponent {...propsWithSelectedAccounts}/>);
     const form = wrapper.find(Item);
-    expect(form.length).toBe(propsWithAccounts.accounts.length);
+    expect(form.length).toBe(propsWithAccounts.accounts.values.length);
   });
 
   it('renders an alert components when accounts are missing', () => {
-    const wrapper = shallow(<SelectorComponent {...props}/>);
+    const wrapper = shallow(<SelectorComponent {...propsError}/>);
     const alert = wrapper.find("div.alert");
     expect(alert.length).toBe(1);
+  });
+
+  it('renders a <Spinner /> component when accounts are loading', () => {
+    const wrapper = shallow(<SelectorComponent {...propsWaiting}/>);
+    const spinner = wrapper.find(Spinner);
+    expect(spinner.length).toBe(1);
   });
 
 });

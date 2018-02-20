@@ -1,12 +1,17 @@
 import Constants from '../../../constants';
 
-export default (state=[], action) => {
+const defaultValue = {status: false};
+
+export default (state=defaultValue, action) => {
   switch (action.type) {
+    case Constants.AWS_GET_ACCOUNT_BILLS:
+      return defaultValue;
     case Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS:
-      return action.bills;
+      return {status: true, values: action.bills};
     case Constants.AWS_GET_ACCOUNT_BILLS_ERROR:
+      return {status: true, error: action.error};
     case Constants.AWS_GET_ACCOUNT_BILLS_CLEAR:
-      return [];
+      return {status: true, values: []};
     default:
       return state;
   }

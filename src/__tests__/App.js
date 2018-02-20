@@ -8,8 +8,10 @@ const props = {
   match: {
     url: null,
   },
-  accounts: [],
-  retrieved: false,
+  accounts: {
+    status: true,
+    values: []
+  },
   getAccounts: jest.fn(),
 };
 
@@ -26,7 +28,7 @@ describe('<App />', () => {
     expect(main.length).toBe(1);
   });
 
-  it('renders a <Route /> component', () => {
+  it('renders <Route /> components', () => {
     const wrapper = shallow(<App {...props} />);
     const route = wrapper.find(Route);
     expect(route.length).toBe(3);

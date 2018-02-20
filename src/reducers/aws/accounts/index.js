@@ -4,13 +4,13 @@ import selection from './selectionReducer';
 import external from './externalReducer';
 import bills from './billsReducer';
 import creation from './creationReducer';
-import retrieved from './retrievedReducer';
+import billCreation from './billCreationReducer';
 
 export default combineReducers({
   all,
   selection,
   external,
   bills,
-  retrieved,
-  creation
+  creation,
+  billCreation
 });
