@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 3,
+	"version": 4,
 	"mappings": {
 		"lineitem": {
 			"properties": {
@@ -83,7 +83,8 @@ const TemplateLineItem = `
 					"norms": false
 				},
 				"usageAmount": {
-					"type": "float"
+					"type": "float",
+					"index": false
 				},
 				"serviceCode": {
 					"type": "keyword",
