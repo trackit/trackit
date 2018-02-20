@@ -15,7 +15,9 @@
 package routes
 
 import (
+	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/trackit/trackit2/config"
@@ -51,6 +53,11 @@ type Decorator interface {
 	Decorate(Handler) Handler
 }
 
+// csvGenerator is an interface for any type that can generate a CSV file content
+type csvGenerator interface {
+	ToCSVable() [][]string
+}
+
 func resetRegisteredHandlers() {
 	RegisteredHandlers = RegisteredHandlers[:0]
 }
@@ -58,13 +65,26 @@ func resetRegisteredHandlers() {
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	arguments := make(Arguments)
 	status, output := h.Func(w, r, arguments)
-	w.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
-	w.WriteHeader(status)
-	e := json.NewEncoder(w)
-	if config.PrettyJsonResponses {
-		e.SetIndent("", "\t")
+	contentType := r.Header["Content-Type"][0]
+	w.Header()["Content-Type"] = []string{fmt.Sprintf("%s; charset=utf-8", contentType)}
+	switch contentType {
+	case "application/json":
+		w.WriteHeader(status)
+		e := json.NewEncoder(w)
+		if config.PrettyJsonResponses {
+			e.SetIndent("", "\t")
+		}
+		e.Encode(output)
+	case "text/csv":
+		w.Header().Set("Content-Disposition", "attachment; filename=trackit.csv")
+		w.WriteHeader(status)
+		if outputGen, ok := output.(csvGenerator); ok {
+			csvWriter := csv.NewWriter(w)
+			csvWriter.WriteAll(outputGen.ToCSVable())
+		} else {
+			// TODO: if the data do not implement the csvGenerator interface, try to generate it by reflection
+		}
 	}
-	e.Encode(output)
 }
 
 func (h Handler) With(ds ...Decorator) Handler {
