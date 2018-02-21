@@ -18,8 +18,8 @@ CREATE TABLE aws_bill_update_job (
 	modified               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 	aws_bill_repository_id INTEGER      NOT NULL,
 	expired                TIMESTAMP    NOT NULL DEFAULT ADDTIME(CURRENT_TIMESTAMP, '02:00:00'),
-	status                 VARCHAR(255) NOT NULL,
-	worker_id              VARCHAR(32)  NOT NULL,
+	completed              TIMESTAMP    NOT NULL DEFAULT 0,
+	worker_id              VARCHAR(255) NOT NULL,
 	error                  VARCHAR(255) NOT NULL,
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_bill_repository FOREIGN KEY (aws_bill_repository_id) REFERENCES aws_bill_repository(id) ON DELETE CASCADE
