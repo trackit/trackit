@@ -17,6 +17,12 @@ export const getAWSAccounts = () => {
   return select(getAWSAccountsFromState);
 };
 
+const getSelectedAccountsFromState = (state) => (state.aws.accounts.selection);
+
+export const getSelectedAccounts = () => {
+  return select(getSelectedAccountsFromState);
+};
+
 const getCostBreakdownChartsFromState = (state) => {
   let data = Object.assign({}, state.aws.costs);
   delete data.values;
@@ -28,19 +34,23 @@ export const getCostBreakdownCharts = () => {
 };
 
 export const initialCostBreakdownCharts = () => {
-  const charts = [UUID(), UUID()];
+  const id1 = UUID();
+  const id2 = UUID();
+  let charts = {};
+  charts[id1] = "bar";
+  charts[id2] = "bar";
   let dates = {};
-  charts.forEach((id) => {
+  Object.keys(charts).forEach((id) => {
     dates[id] = {
       startDate: moment().subtract(1, 'month').startOf('month'),
       endDate: moment().subtract(1, 'month').endOf('month')
     };
   });
   let interval = {};
-  interval[charts[0]] = "day";
-  interval[charts[1]] = "week";
+  interval[id1] = "day";
+  interval[id2] = "week";
   let filter = {};
-  filter[charts[0]] = "product";
-  filter[charts[1]] = "region";
+  filter[id1] = "product";
+  filter[id2] = "region";
   return { charts, dates, interval, filter };
 };

@@ -38,7 +38,7 @@ describe("Registration Saga", () => {
       .toEqual(call(API.Auth.register, credentials.username, credentials.password));
 
     expect(saga.next(noResponse).value)
-      .toEqual(put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: "Error: An error has occured" } }));
+      .toEqual(put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: "An error has occured" } }));
 
     expect(saga.next().done).toBe(true);
 
@@ -55,7 +55,7 @@ describe("Registration Saga", () => {
       .toEqual(call(API.Auth.register, credentials.username, credentials.password));
 
     expect(saga.next(errorResponse).value)
-      .toEqual(put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: Error(errorResponse.data.error).toString() } }));
+      .toEqual(put({ type: Constants.REGISTRATION_ERROR, payload: { status: false, error: Error(errorResponse.data.error).message } }));
 
     expect(saga.next().done).toBe(true);
 

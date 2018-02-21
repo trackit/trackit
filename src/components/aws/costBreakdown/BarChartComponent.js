@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
 import * as d3 from 'd3';
-import { transformProducts } from '../../../common/formatters';
+import { transformProductsBarChart } from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
 
 /* istanbul ignore next */
@@ -38,11 +38,11 @@ const margin = {
   right: 100
 };
 
-class ChartComponent extends Component {
+class BarChartComponent extends Component {
 
   generateDatum = () => {
     if (this.props.values && this.props.interval && this.props.filter)
-      return transformProducts(this.props.values, this.props.filter, this.props.interval);
+      return transformProductsBarChart(this.props.values, this.props.filter, this.props.interval);
     return null;
   };
 
@@ -65,17 +65,17 @@ class ChartComponent extends Component {
         stacked={true}
         x={formatX}
         y={formatY}
-        height={400}
+        height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
       />
     )
   }
 
 }
 
-ChartComponent.propTypes = {
+BarChartComponent.propTypes = {
   values: PropTypes.object,
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
 };
 
-export default ChartComponent;
+export default BarChartComponent;

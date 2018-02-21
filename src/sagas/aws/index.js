@@ -40,6 +40,15 @@ export function* watchNewExternal() {
   yield takeLatest(Constants.AWS_NEW_EXTERNAL, AccountsSaga.newExternalSaga);
 }
 
+export function* watchSaveSelectedAccounts() {
+  yield takeEvery(Constants.AWS_SELECT_ACCOUNT, AccountsSaga.saveSelectedAccountSaga);
+  yield takeEvery(Constants.AWS_CLEAR_ACCOUNT_SELECTION, AccountsSaga.saveSelectedAccountSaga);
+}
+
+export function* watchLoadSelectedAccounts() {
+  yield takeLatest(Constants.AWS_LOAD_SELECTED_ACCOUNTS, AccountsSaga.loadSelectedAccountSaga);
+}
+
 export function* watchGetCosts() {
   yield takeEvery(Constants.AWS_GET_COSTS, getCostsSaga);
 }

@@ -3,7 +3,16 @@ import moment from "moment";
 export default {
   aws: {
     accounts: {
-      all: [],
+      all: {
+        status: false
+      },
+      creation: {
+        status: true,
+        value: null
+      },
+      billCreation: {
+        status: true
+      },
       external: null,
     },
     s3: {
@@ -14,6 +23,7 @@ export default {
       values: {}
     },
     costs: {
+      charts: {},
       values: {},
       dates: {},
       interval: {},

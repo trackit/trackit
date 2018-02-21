@@ -22,6 +22,8 @@ export function* watchGetUserMail() {
 
 export function* watchGetLogout() {
   yield takeLatest(Constants.LOGOUT_REQUEST, LogoutSaga);
+  yield takeLatest(Constants.GET_USER_TOKEN_ERROR, LogoutSaga);
+  yield takeLatest(Constants.GET_USER_MAIL_ERROR, LogoutSaga);
 }
 
 export function* watchCleanToken() {

@@ -15,10 +15,8 @@ export class App extends Component {
 
   render() {
 
-
     const redirectToSetup = () => <Redirect to={`${this.props.match.url}/setup/false`}/>;
-    const retrieved = this.props.retrieved;
-    const hasAccounts = (retrieved ? this.props.accounts.length > 0 : true);
+    const hasAccounts = (this.props.accounts.status && this.props.accounts.hasOwnProperty("values") ? this.props.accounts.values.length > 0 : true);
 
     return (
       <div>
@@ -33,6 +31,10 @@ export class App extends Component {
               component={hasAccounts ? Containers.AWS.S3Analytics : redirectToSetup}
             />
             <Route
+              path={this.props.match.url + '/costbreakdown'}
+              component={hasAccounts ? Containers.AWS.CostBreakdown : redirectToSetup}
+            />
+            <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}
               component={Containers.Setup.Main}
             />
@@ -44,21 +46,29 @@ export class App extends Component {
 }
 
 App.propTypes = {
-  accounts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      roleArn: PropTypes.string.isRequired,
-      pretty: PropTypes.string,
-    })
-  ),
-  retrieved: PropTypes.bool,
+  accounts: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        roleArn: PropTypes.string.isRequired,
+        pretty: PropTypes.string,
+        bills: PropTypes.arrayOf(
+          PropTypes.shape({
+            bucket: PropTypes.string.isRequired,
+            path: PropTypes.string.isRequired
+          })
+        ),
+      })
+    ),
+  }),
   getAccounts: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.all,
-  retrieved: aws.accounts.retrieved,
 });
 
 /* istanbul ignore next */

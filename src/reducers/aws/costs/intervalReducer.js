@@ -1,6 +1,7 @@
 import Constants from '../../../constants';
 
 const defaultValue = "day";
+const defaultValuePie = "month";
 
 export default (state={}, action) => {
   let intervals = Object.assign({}, state);
@@ -8,7 +9,14 @@ export default (state={}, action) => {
     case Constants.AWS_INSERT_COSTS_INTERVAL:
       return action.interval;
     case Constants.AWS_ADD_CHART:
-      intervals[action.id] = defaultValue;
+      switch (action.chartType) {
+        case "pie":
+          intervals[action.id] = defaultValuePie;
+          break;
+        case "bar":
+        default:
+          intervals[action.id] = defaultValue;
+      }
       return intervals;
     case Constants.AWS_SET_COSTS_INTERVAL:
       intervals[action.id] = action.interval;

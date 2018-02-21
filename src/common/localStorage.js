@@ -39,6 +39,16 @@ export const getUserMail = () => {
   return getValue('userMail');
 };
 
+/* Selected accounts */
+
+export const setSelectedAccounts = (accounts) => {
+  setValue('selectedAccounts', JSON.stringify(accounts));
+};
+
+export const getSelectedAccounts = () => {
+  return JSON.parse(getValue('selectedAccounts'));
+};
+
 /* Cost Breakdown charts */
 
 export const setCostBreakdownCharts = (charts) => {
