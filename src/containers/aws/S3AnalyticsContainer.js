@@ -22,17 +22,26 @@ const defaultDates = {
 export class S3AnalyticsContainer extends Component {
 
   componentDidMount() {
-    this.props.setDates(defaultDates.startDate, defaultDates.endDate);
     if (this.props.dates)
       this.props.getData(this.props.dates.startDate, this.props.dates.endDate);
+    else
+      this.props.setDates(defaultDates.startDate, defaultDates.endDate);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.dates !== nextProps.dates)
+    if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts))
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
   render() {
+    const timerange = (this.props.dates ?  (
+      <TimerangeSelector
+        startDate={this.props.dates.startDate}
+        endDate={this.props.dates.endDate}
+        setDatesFunc={this.props.setDates}
+      />
+    ) : null);
+
     return (
       <Panel>
 
@@ -42,20 +51,25 @@ export class S3AnalyticsContainer extends Component {
             AWS S3 Analytics
           </h3>
           <div className="inline-block pull-right">
-            <TimerangeSelector
-              startDate={this.props.dates.startDate}
-              endDate={this.props.dates.endDate}
-              setDatesFunc={this.props.setDates}
-            />
+            {timerange}
           </div>
         </div>
 
-        {this.props.values && <S3Analytics.Infos data={this.props.values}/>}
+        <S3Analytics.Infos data={this.props.values}/>
 
-        {this.props.values && <S3Analytics.BarChart elementId="s3BarChart" data={this.props.values}/>}
+        <div>
+          <div className="row">
+            <div className="col-md-6">
+              <S3Analytics.BandwidthCostChart data={this.props.values}/>
+            </div>
+            <div className="col-md-6">
+              <S3Analytics.StorageCostChart data={this.props.values}/>
+            </div>
+          </div>
+        </div>
 
         <div className="no-padding">
-          {this.props.values && <S3Analytics.Table data={this.props.values}/>}
+          <S3Analytics.Table data={this.props.values}/>
         </div>
 
       </Panel>
@@ -66,6 +80,7 @@ export class S3AnalyticsContainer extends Component {
 
 S3AnalyticsContainer.propTypes = {
   values: PropTypes.object,
+  accounts: PropTypes.arrayOf(PropTypes.object),
   dates: PropTypes.shape({
     startDate: PropTypes.object.isRequired,
     endDate: PropTypes.object.isRequired,
@@ -78,6 +93,7 @@ S3AnalyticsContainer.propTypes = {
 const mapStateToProps = ({aws}) => ({
   values: aws.s3.values,
   dates: aws.s3.dates,
+  accounts: aws.accounts.selection
 });
 
 /* istanbul ignore next */
