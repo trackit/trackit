@@ -8,21 +8,30 @@ const TimerangeSelector = Components.Misc.TimerangeSelector;
 const S3Analytics = Components.AWS.S3Analytics;
 
 const props = {
-  getS3Data: jest.fn(),
-  setS3ViewDates: jest.fn(),
-  s3Data: [{
-    _id: "id",
-    size: 42,
-    storage_cost: 42,
-    bw_cost: 42,
-    total_cost: 42,
-    transfer_in: 42,
-    transfer_out: 42
+  values: {},
+  accounts: [{
+    name: "account1"
   }],
-  s3View: {
+  dates: {
     startDate: Moment(),
     endDate: Moment(),
-  }
+  },
+  getData: jest.fn(),
+  setDates: jest.fn()
+};
+
+const propsNoDates = {
+  ...props,
+  dates: null
+};
+
+const propsUpdatedAccounts = {
+  ...props,
+  accounts: [{
+    name: "account1"
+  },{
+    name: "account2"
+  }]
 };
 
 describe('<S3AnalyticsContainer />', () => {
@@ -42,15 +51,27 @@ describe('<S3AnalyticsContainer />', () => {
     expect(navigation.length).toBe(1);
   });
 
+  it('renders no <TimerangeSelector/> component if no dates are available', () => {
+    const wrapper = shallow(<S3AnalyticsContainer {...propsNoDates}/>);
+    const navigation = wrapper.find(TimerangeSelector);
+    expect(navigation.length).toBe(0);
+  });
+
   it('renders <S3Analytics.Infos/> component', () => {
     const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
     const navigation = wrapper.find(S3Analytics.Infos);
     expect(navigation.length).toBe(1);
   });
 
-  it('renders <S3Analytics.BarChart/> component', () => {
+  it('renders <S3Analytics.BandwidthCostChart/> component', () => {
     const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
-    const navigation = wrapper.find(S3Analytics.BarChart);
+    const navigation = wrapper.find(S3Analytics.BandwidthCostChart);
+    expect(navigation.length).toBe(1);
+  });
+
+  it('renders <S3Analytics.StorageCostChart/> component', () => {
+    const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
+    const navigation = wrapper.find(S3Analytics.StorageCostChart);
     expect(navigation.length).toBe(1);
   });
 
@@ -58,6 +79,39 @@ describe('<S3AnalyticsContainer />', () => {
     const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
     const navigation = wrapper.find(S3Analytics.Table);
     expect(navigation.length).toBe(1);
+  });
+
+  it('loads data when mounting', () => {
+    expect(props.getData).not.toHaveBeenCalled();
+    shallow(<S3AnalyticsContainer {...props}/>);
+    expect(props.getData).toHaveBeenCalled();
+  });
+
+  it('set dates if not available when mounting', () => {
+    expect(props.setDates).not.toHaveBeenCalled();
+    shallow(<S3AnalyticsContainer {...propsNoDates}/>);
+    expect(props.setDates).toHaveBeenCalled();
+  });
+
+  it('does not reload data when dates are not available', () => {
+    const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
+    expect(props.getData).toHaveBeenCalledTimes(1);
+    wrapper.instance().componentWillReceiveProps(propsNoDates);
+    expect(props.getData).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloads data when dates are updated', () => {
+    const wrapper = shallow(<S3AnalyticsContainer {...propsNoDates}/>);
+    expect(props.getData).not.toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(props);
+    expect(props.getData).toHaveBeenCalled();
+  });
+
+  it('reloads data when selected accounts are updated', () => {
+    const wrapper = shallow(<S3AnalyticsContainer {...props}/>);
+    expect(propsUpdatedAccounts.getData).toHaveBeenCalledTimes(1);
+    wrapper.instance().componentWillReceiveProps(propsUpdatedAccounts);
+    expect(propsUpdatedAccounts.getData).toHaveBeenCalledTimes(2);
   });
 
 });
