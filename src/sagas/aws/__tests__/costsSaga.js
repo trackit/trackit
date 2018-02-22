@@ -145,7 +145,7 @@ describe("Costs Saga", () => {
   describe("Load Charts", () => {
 
     const data = {
-      charts: [],
+      charts: {},
       dates: {},
       interval: {},
       filter: {}

@@ -1,5 +1,11 @@
 import { shallow } from 'enzyme';
-import { noNeg, capitalizeFirstLetter, formatBytes, formatPrice, transformProducts } from '../formatters';
+import {
+  noNeg,
+  capitalizeFirstLetter,
+  formatBytes, formatPrice,
+  transformProductsBarChart, transformProductsPieChart,
+  getTotalPieChart
+} from '../formatters';
 
 describe('Formatters', () => {
 
@@ -67,7 +73,8 @@ describe('Formatters', () => {
 
   });
 
-  describe('tTansformProducts', () => {
+  describe('TansformProductsBarChart', () => {
+
     const days = {
       day: {
         day1: 42,
@@ -104,15 +111,15 @@ describe('Formatters', () => {
     };
 
     it('returns an empty array when invalid filter', () => {
-      expect(transformProducts(costsByProductPerDay, "region", "day")).toEqual([]);
+      expect(transformProductsBarChart(costsByProductPerDay, "region", "day")).toEqual([]);
     });
 
     it('returns an empty array when valid filter and invalid interval', () => {
-      expect(transformProducts(costsByProductPerDay, "product", "month")).toEqual([]);
+      expect(transformProductsBarChart(costsByProductPerDay, "product", "month")).toEqual([]);
     });
 
     it('returns an empty array when filter is "all" and invalid interval', () => {
-      expect(transformProducts(costsAll, "all", "month")).toEqual([]);
+      expect(transformProductsBarChart(costsAll, "all", "month")).toEqual([]);
     });
 
     it('returns formatted array when valid filter and valid interval', () => {
@@ -123,7 +130,7 @@ describe('Formatters', () => {
         key: "product2",
         values: [["day1", days.day.day1], ["day2", days.day.day2]]
       }];
-      expect(transformProducts(costsByProductPerDay, "product", "day")).toEqual(output);
+      expect(transformProductsBarChart(costsByProductPerDay, "product", "day")).toEqual(output);
     });
 
     it('returns formatted array when filter is "all" and valid interval', () => {
@@ -131,7 +138,7 @@ describe('Formatters', () => {
         key: "Total",
         values: [["day1", days.day.day1], ["day2", days.day.day2]]
       }];
-      expect(transformProducts(costsAll, "all", "day")).toEqual(output);
+      expect(transformProductsBarChart(costsAll, "all", "day")).toEqual(output);
     });
 
     it('fills missing days', () => {
@@ -142,7 +149,7 @@ describe('Formatters', () => {
         key: "product2",
         values: [["day1", days.day.day1], ["day2", days.day.day2], ["day3", costsMissingDays.product.product2.day.day3]]
       }];
-      expect(transformProducts(costsMissingDays, "product", "day")).toEqual(output);
+      expect(transformProductsBarChart(costsMissingDays, "product", "day")).toEqual(output);
     });
 
     it('fills missing keys', () => {
@@ -156,7 +163,53 @@ describe('Formatters', () => {
         key: "No product",
         values: [["day1", days.day.day1], ["day2", days.day.day2]]
       }];
-      expect(transformProducts(costsMissingKeys, "product", "day")).toEqual(output);
+      expect(transformProductsBarChart(costsMissingKeys, "product", "day")).toEqual(output);
+    });
+
+  });
+
+  describe('TransformProductsPieChart', () => {
+
+    const costsByProduct = {
+      product: {
+        product1: 42,
+        product2: 84
+      }
+    };
+
+    it('returns an empty array when invalid filter', () => {
+      expect(transformProductsPieChart(costsByProduct, "region")).toEqual([]);
+    });
+
+    it('returns formatted array when valid filter and valid interval', () => {
+      const output = [{
+        key: "product1",
+        value: costsByProduct.product.product1
+      },{
+        key: "product2",
+        value: costsByProduct.product.product2
+      }];
+      expect(transformProductsPieChart(costsByProduct, "product")).toEqual(output);
+    });
+
+  });
+
+  describe('GetTotalPieChart', () => {
+
+    const data = [{
+      key: "product1",
+      value: 42
+    },{
+      key: "product2",
+      value: 84
+    }];
+
+    it('returns an empty array when invalid data', () => {
+      expect(getTotalPieChart(42)).toEqual(0);
+    });
+
+    it('returns total when valid data', () => {
+      expect(getTotalPieChart(data)).toEqual((42 +  84));
     });
 
   });

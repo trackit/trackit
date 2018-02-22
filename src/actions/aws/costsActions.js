@@ -2,7 +2,7 @@ import Constants from '../../constants';
 
 export default {
   initCharts: () => ({type: Constants.AWS_INIT_CHARTS}),
-  addChart: (id) => ({type: Constants.AWS_ADD_CHART, id}),
+  addChart: (id, chartType) => ({type: Constants.AWS_ADD_CHART, id, chartType}),
   removeChart: (id) => ({type: Constants.AWS_REMOVE_CHART, id}),
 	getCosts: (id, begin, end, filters) => ({
 		type: Constants.AWS_GET_COSTS,

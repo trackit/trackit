@@ -9,6 +9,8 @@ describe("IntervalReducer", () => {
   state[id] = interval;
   let stateDefault = {};
   stateDefault[id] = "day";
+  let stateDefaultPie = {};
+  stateDefaultPie[id] = "month";
   let insert = {
     "id": "interval"
   };
@@ -22,7 +24,8 @@ describe("IntervalReducer", () => {
   });
 
   it("handles add chart state", () => {
-    expect(IntervalReducer({}, { type: Constants.AWS_ADD_CHART, id })).toEqual(stateDefault);
+    expect(IntervalReducer({}, { type: Constants.AWS_ADD_CHART, id, chartType: "bar" })).toEqual(stateDefault);
+    expect(IntervalReducer({}, { type: Constants.AWS_ADD_CHART, id, chartType: "pie" })).toEqual(stateDefaultPie);
   });
 
   it("handles set interval state", () => {

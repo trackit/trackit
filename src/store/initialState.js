@@ -22,6 +22,7 @@ export default {
       }
     },
     costs: {
+      charts: {},
       values: {},
       dates: {},
       interval: {},
