@@ -48,7 +48,7 @@ class BandwidthCostChartComponent extends Component {
           showLabels={false}
           showLegend={false}
           donut={true}
-          height={400}
+          height={270}
         />
       </div>
     )
