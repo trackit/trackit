@@ -33,6 +33,12 @@ export const getCostBreakdownCharts = () => {
   return select(getCostBreakdownChartsFromState)
 };
 
+const getS3DatesFromState = (state) => (state.aws.s3.dates);
+
+export const getS3Dates = () => {
+  return select(getS3DatesFromState);
+};
+
 export const initialCostBreakdownCharts = () => {
   const id1 = UUID();
   const id2 = UUID();

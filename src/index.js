@@ -40,6 +40,7 @@ store.dispatch({ type: Constants.GET_USER_TOKEN });
 store.dispatch({ type: Constants.GET_USER_MAIL });
 store.dispatch({ type: Constants.AWS_LOAD_SELECTED_ACCOUNTS });
 store.dispatch({ type: Constants.AWS_LOAD_CHARTS });
+store.dispatch({ type: Constants.AWS_LOAD_S3_DATES });
 
 ReactDOM.render((
     <MuiThemeProvider theme={theme}>
