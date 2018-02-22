@@ -62,7 +62,7 @@ class BarChartComponent extends Component {
         yAxis={yAxis}
         margin={margin}
         rightAlignYAxis={true}
-        clipEdge={true}
+        clipEdge={false}
         showControls={true}
         stacked={true}
         x={formatX}
