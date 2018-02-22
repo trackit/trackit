@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
+import Spinner from 'react-spinkit';
 
 import {formatGigaBytes, formatPrice} from '../../../common/formatters';
 
@@ -14,8 +15,8 @@ class InfosComponent extends Component {
       storage_cost: 0
     };
 
-    Object.keys(this.props.data).forEach((key) => {
-      const item = this.props.data[key];
+    Object.keys(this.props.data.values).forEach((key) => {
+      const item = this.props.data.values[key];
       res.buckets++;
       res.size += item.GbMonth;
       res.bandwidth_cost += item.BandwidthCost;
@@ -26,6 +27,12 @@ class InfosComponent extends Component {
   }
 
   render() {
+    if (!this.props.data || !this.props.data.status)
+      return (<Spinner className="spinner clearfix" name='circle'/>);
+
+    if (this.props.data && this.props.data.status && this.props.data.hasOwnProperty("error"))
+      return (<div className="alert alert-warning" role="alert">Data not available ({this.props.data.error.message})</div>);
+
     const totals = this.extractTotals();
 
     return (
