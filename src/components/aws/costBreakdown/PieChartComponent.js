@@ -1,9 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
-import { transformProductsPieChart, getTotalPieChart } from '../../../common/formatters';
+import {costBreakdown} from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
+
+const transformProductsPieChart = costBreakdown.transformProductsPieChart;
+const getTotalPieChart = costBreakdown.getTotalPieChart;
 
 /* istanbul ignore next */
 const formatX = (d) => (d.key);

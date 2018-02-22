@@ -11,55 +11,77 @@ export const formatGigaBytes = (a,d = 2) => (formatBytes(a * Math.pow(1024,3), d
 
 export const formatPrice = (value, decimals = 2) => (<span><span className="dollar-sign">$</span>{parseFloat(value.toFixed(decimals)).toLocaleString()}</span>);
 
-export const transformProductsBarChart = (data, filter, interval) => {
-  if (filter === "all" && data.hasOwnProperty(interval))
-    return [{
-      key: "Total",
-      values: Object.keys(data[interval]).map((date) => ([date, data[interval][date]]))
-    }];
-  else if (!data.hasOwnProperty(filter))
-    return [];
-  let dates = [];
-  try {
-    Object.keys(data[filter]).forEach((key) => {
-      Object.keys(data[filter][key][interval]).forEach((date) => {
-        if (dates.indexOf(date) === -1)
-          dates.push(date);
-      })
-    });
-    return Object.keys(data[filter]).map((key) => ({
-      key: (key.length ? key : `No ${filter}`),
-      values: dates.map((date) => ([date, data[filter][key][interval][date] || 0]))
+export const costBreakdown = {
+  transformProductsBarChart: (data, filter, interval) => {
+    if (filter === "all" && data.hasOwnProperty(interval))
+      return [{
+        key: "Total",
+        values: Object.keys(data[interval]).map((date) => ([date, data[interval][date]]))
+      }];
+    else if (!data.hasOwnProperty(filter))
+      return [];
+    let dates = [];
+    try {
+      Object.keys(data[filter]).forEach((key) => {
+        Object.keys(data[filter][key][interval]).forEach((date) => {
+          if (dates.indexOf(date) === -1)
+            dates.push(date);
+        })
+      });
+      return Object.keys(data[filter]).map((key) => ({
+        key: (key.length ? key : `No ${filter}`),
+        values: dates.map((date) => ([date, data[filter][key][interval][date] || 0]))
+      }));
+    } catch (e) {
+      return [];
+    }
+  },
+  transformProductsPieChart: (data, filter) => {
+    if (!data.hasOwnProperty(filter))
+      return [];
+    return Object.keys(data[filter]).map((id) => ({
+      key: id,
+      value: data[filter][id]
     }));
-  } catch (e) {
-    return [];
+  },
+  getTotalPieChart: (data) => {
+    let total = 0;
+    if (Array.isArray(data))
+      data.forEach((item) => {
+        total += item.value;
+      });
+    return total;
   }
 };
 
-export const transformProductsPieChart = (data, filter) => {
-  if (!data.hasOwnProperty(filter))
-    return [];
-  return Object.keys(data[filter]).map((id) => ({
-    key: id,
-    value: data[filter][id]
-  }));
-};
-
-export const getTotalPieChart = (data) => {
-  let total = 0;
-  if (Array.isArray(data))
+export const s3Analytics = {
+  transformBuckets: (data) => {
+    return Object.keys(data).map((bucket) => ({
+      key: bucket,
+      values: [
+        ["Bandwidth", data[bucket].BandwidthCost],
+        ["Storage", data[bucket].StorageCost]
+      ]
+    }))
+  },
+  transformBandwidthPieChart: (data) => {
+    return Object.keys(data).map((bucket) => ({
+      key: bucket,
+      value: data[bucket].BandwidthCost
+    }));
+  },
+  transformStoragePieChart: (data) => {
+    return Object.keys(data).map((bucket) => ({
+      key: bucket,
+      value: data[bucket].StorageCost
+    }));
+  },
+  getTotalPieChart: (data) => {
+    let total = 0;
+    if (Array.isArray(data))
     data.forEach((item) => {
       total += item.value;
     });
-  return total;
-}
-
-export const transformBuckets = (data) => {
-  return  Object.keys(data).map((bucket) => ({
-    key: bucket,
-    values: [
-      ["Bandwidth", data[bucket].BandwidthCost],
-      ["Storage", data[bucket].StorageCost]
-    ]
-  }));
+    return total;
+  }
 };
