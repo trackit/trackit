@@ -38,6 +38,7 @@ const theme = createMuiTheme(Theme.theme);
 // Retrieving user Token, user Mail and CostBreakdown charts from localStorage if any
 store.dispatch({ type: Constants.GET_USER_TOKEN });
 store.dispatch({ type: Constants.GET_USER_MAIL });
+store.dispatch({ type: Constants.AWS_LOAD_SELECTED_ACCOUNTS });
 store.dispatch({ type: Constants.AWS_LOAD_CHARTS });
 
 ReactDOM.render((

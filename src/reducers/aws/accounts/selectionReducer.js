@@ -2,6 +2,8 @@ import Constants from '../../../constants';
 
 export default (state=[], action) => {
   switch (action.type) {
+    case Constants.AWS_INSERT_SELECTED_ACCOUNTS:
+      return action.accounts;
     case Constants.AWS_SELECT_ACCOUNT:
       let accounts = Object.assign([], state).filter((item) => (item.id !== action.account.id));
       if (accounts.length === state.length)

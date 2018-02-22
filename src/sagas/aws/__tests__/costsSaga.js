@@ -181,8 +181,8 @@ describe("Costs Saga", () => {
       expect(saga.next().value)
         .toEqual(call(getCostBreakdownChartsLS));
 
-      expect(saga.next(null).value)
-        .toEqual(put({ type: Constants.AWS_LOAD_CHARTS_ERROR, error: Error("No cost breakdown chart available") }));
+      expect(saga.next(invalidData).value)
+        .toEqual(put({ type: Constants.AWS_LOAD_CHARTS_ERROR, error: Error("Invalid data for cost breakdown charts") }));
 
       expect(saga.next().done).toBe(true);
 
@@ -195,8 +195,8 @@ describe("Costs Saga", () => {
       expect(saga.next().value)
         .toEqual(call(getCostBreakdownChartsLS));
 
-      expect(saga.next(invalidData).value)
-        .toEqual(put({ type: Constants.AWS_LOAD_CHARTS_ERROR, error: Error("Invalid data for cost breakdown charts") }));
+      expect(saga.next(null).value)
+        .toEqual(put({ type: Constants.AWS_LOAD_CHARTS_ERROR, error: Error("No cost breakdown chart available") }));
 
       expect(saga.next().done).toBe(true);
 

@@ -17,6 +17,12 @@ export const getAWSAccounts = () => {
   return select(getAWSAccountsFromState);
 };
 
+const getSelectedAccountsFromState = (state) => (state.aws.accounts.selection);
+
+export const getSelectedAccounts = () => {
+  return select(getSelectedAccountsFromState);
+};
+
 const getCostBreakdownChartsFromState = (state) => {
   let data = Object.assign({}, state.aws.costs);
   delete data.values;
