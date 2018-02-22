@@ -1,9 +1,11 @@
-import BarChart from './BarChartComponent';
+import BandwidthCostChart from './BandwidthCostChartComponent';
+import StorageCostChart from './StorageCostChartComponent';
 import Infos from './InfosComponent';
 import Table from './TableComponent';
 
 export default {
-  BarChart,
+  BandwidthCostChart,
+  StorageCostChart,
   Table,
   Infos,
 };
