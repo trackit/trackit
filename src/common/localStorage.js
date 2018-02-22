@@ -58,3 +58,13 @@ export const setCostBreakdownCharts = (charts) => {
 export const getCostBreakdownCharts = () => {
   return JSON.parse(getValue('cb_charts'));
 };
+
+/* S3 Analytics dates */
+
+export const setS3Dates = (dates) => {
+  setValue('s3_dates', JSON.stringify(dates));
+};
+
+export const getS3Dates = () => {
+  return JSON.parse(getValue('s3_dates'));
+};

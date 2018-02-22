@@ -24,6 +24,7 @@ class TimerangeSelector extends Component {
      'Last 30 Days': [Moment().subtract(29, 'days'), Moment()],
      'This Month': [Moment().startOf('month'), Moment()],
      'Last Month': [Moment().subtract(1, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
+     'Last 12 Months': [Moment().subtract(1, 'year').startOf('month'), Moment().subtract(1, 'months').endOf('month')],
      'This Year': [Moment().startOf('year'), Moment()],
      'Last Year': [Moment().subtract(1, 'year').startOf('year'), Moment().subtract(1, 'year').endOf('year')]
     };

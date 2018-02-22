@@ -231,3 +231,9 @@ label {
 .spinner {
     margin: auto;
 }
+
+/* S3 Analytics */
+.s3analytics.piechart h2 {
+    text-align: center;
+	font-size: 22px;
+}
