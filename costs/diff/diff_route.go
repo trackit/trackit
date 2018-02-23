@@ -77,27 +77,16 @@ var diffQueryArgs = []routes.QueryArg{
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getAbsoluteData).With(
+		http.MethodGet: routes.H(getDiffData).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{},
 			routes.QueryArgs(diffQueryArgs),
 			routes.Documentation{
-				Summary:     "get the absolute cost diff",
-				Description: "Responds with the absolute cost diff based on the query args passed to it",
+				Summary:     "get the cost diff",
+				Description: "Responds with the cost diff based on the query args passed to it",
 			},
 		),
-	}.H().Register("/costs/diff/absolute")
-	routes.MethodMuxer{
-		http.MethodGet: routes.H(getVariationsData).With(
-			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{},
-			routes.QueryArgs(diffQueryArgs),
-			routes.Documentation{
-				Summary:     "get the cost diff variations",
-				Description: "Responds with the cost diff variations based on the query args passed to it",
-			},
-		),
-	}.H().Register("/costs/diff/variations")
+	}.H().Register("/costs/diff")
 }
 
 // validateAwsAccounts will validate awsAccounts passed to it.
@@ -140,8 +129,8 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 	return res, http.StatusOK, nil
 }
 
-// getVariationsData returns the absolutes costs based on the query params, in JSON or CSV format.
-func getAbsoluteData(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getDiffData returns the cost diff based on the query params, in JSON or CSV format.
+func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
 		accountList:       []string{},
@@ -166,40 +155,7 @@ func getAbsoluteData(request *http.Request, a routes.Arguments) (int, interface{
 			return returnCode, err
 		}
 	}
-	res, err := prepareAbsoluteData(request.Context(), sr)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	return http.StatusOK, res
-}
-
-// getVariationsData returns the cost variations based on the query params, in JSON or CSV format.
-func getVariationsData(request *http.Request, a routes.Arguments) (int, interface{}) {
-	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := esQueryParams{
-		accountList:       []string{},
-		dateBegin:         a[diffQueryArgs[1]].(time.Time),
-		dateEnd:           a[diffQueryArgs[2]].(time.Time),
-		aggregationPeriod: a[diffQueryArgs[3]].(string),
-	}
-	if a[diffQueryArgs[0]] != nil {
-		parsedParams.accountList = a[diffQueryArgs[0]].([]string)
-	}
-	if _, ok := validAggregationPeriodMap[parsedParams.aggregationPeriod]; ok == false {
-		return http.StatusBadRequest, fmt.Errorf("invalid aggregation period : %s", parsedParams.aggregationPeriod)
-	}
-	if err := validateAwsAccounts(parsedParams); err != nil {
-		return http.StatusBadRequest, err
-	}
-	sr, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)
-	if err != nil {
-		if returnCode == http.StatusOK {
-			return returnCode, nil
-		} else {
-			return returnCode, err
-		}
-	}
-	res, err := prepareVariationsData(request.Context(), sr)
+	res, err := prepareDiffData(request.Context(), sr)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
