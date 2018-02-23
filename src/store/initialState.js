@@ -17,8 +17,8 @@ export default {
     },
     s3: {
       dates: {
-        startDate: moment().startOf('month'),
-        endDate: moment()
+        startDate: moment().subtract(1, 'months').startOf('month'),
+        endDate: moment().subtract(1, 'months').endOf('month')
       },
       values: {}
     },
