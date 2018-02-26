@@ -32,11 +32,11 @@ func createAndConfigureTestClient(t *testing.T) *elastic.Client {
 }
 
 func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
-	linkedAccountID := []string{
-		"123456",
-		"98765432",
+	linkedAccountID := []int{
+		123456,
+		98765432,
 	}
-	expectedResult := `{"terms":{"linked_account_id":[["123456","98765432"]]}}`
+	expectedResult := `{"terms":{"usageAccountId":[123456,98765432]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -52,10 +52,10 @@ func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
 }
 
 func TestQueryAccountFiltersSingleAccount(t *testing.T) {
-	linkedAccountID := []string{
-		"123456",
+	linkedAccountID := []int{
+		123456,
 	}
-	expectedResult := `{"terms":{"linked_account_id":[["123456"]]}}`
+	expectedResult := `{"terms":{"usageAccountId":[123456]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {

@@ -24,7 +24,7 @@ import (
 const aggregationMaxSize = 0x7FFFFFFF
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
+func createQueryAccountFilter(accountList []int) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
 		accountListFormatted[i] = v
@@ -53,7 +53,7 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchParams(accountList []string, durationBegin time.Time,
+func GetElasticSearchParams(accountList []int, durationBegin time.Time,
 	durationEnd time.Time, aggregationPeriod string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {

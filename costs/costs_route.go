@@ -48,7 +48,7 @@ var simpleCriterionMap = map[string]bool{
 type esQueryParams struct {
 	dateBegin         time.Time
 	dateEnd           time.Time
-	accountList       []string
+	accountList       []int
 	aggregationParams []string
 }
 
@@ -57,7 +57,7 @@ var costsQueryArgs = []routes.QueryArg{
 	routes.QueryArg{
 		Name:        "accounts",
 		Description: "List of comma separated AWS accounts ids",
-		Type:        routes.QueryArgStringSlice{},
+		Type:        routes.QueryArgIntSlice{},
 		Optional:    true,
 	},
 	routes.QueryArg{
@@ -150,13 +150,13 @@ func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQuer
 func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		accountList:       []string{},
+		accountList:       []int{},
 		dateBegin:         a[costsQueryArgs[1]].(time.Time),
 		dateEnd:           a[costsQueryArgs[2]].(time.Time),
 		aggregationParams: a[costsQueryArgs[3]].([]string),
 	}
 	if a[costsQueryArgs[0]] != nil {
-		parsedParams.accountList = a[costsQueryArgs[0]].([]string)
+		parsedParams.accountList = a[costsQueryArgs[0]].([]int)
 	}
 	if err := validateCriteriaParam(parsedParams); err != nil {
 		return http.StatusBadRequest, err

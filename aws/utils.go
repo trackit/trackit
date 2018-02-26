@@ -19,12 +19,12 @@ import (
 	"strconv"
 )
 
-// ValidateAwsAccounts will validate a slice of strings passed to it.
-// It checks that they are numbers that are 12 character long
-func ValidateAwsAccounts(awsAccounts []string) error {
+// ValidateAwsAccounts will validate a slice of int passed to it.
+// It checks that they are 12 digit numbers
+func ValidateAwsAccounts(awsAccounts []int) error {
 	for _, account := range awsAccounts {
-		if _, err := strconv.ParseInt(account, 10, 0); err != nil || len(account) != 12 {
-			return fmt.Errorf("invalid account format : %s", account)
+		if len(strconv.Itoa(account)) != 12 {
+			return fmt.Errorf("invalid account format : %d", account)
 		}
 	}
 	return nil
