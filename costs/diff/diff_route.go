@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/es"
 	"github.com/trackit/trackit2/routes"
@@ -49,12 +50,7 @@ type esQueryParams struct {
 
 // diffQueryArgs allows to get required queryArgs params
 var diffQueryArgs = []routes.QueryArg{
-	routes.QueryArg{
-		Name:        "aas",
-		Description: "List of comma separated AWS accounts ids",
-		Type:        routes.QueryArgStringSlice{},
-		Optional:    true,
-	},
+	aws.AwsAccountsOptionalQueryArg,
 	routes.QueryArg{
 		Name:        "begin",
 		Description: "Begining of date interval. Format is ISO8601",
