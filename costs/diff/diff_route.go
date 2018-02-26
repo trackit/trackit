@@ -18,7 +18,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -85,17 +84,6 @@ func init() {
 	}.H().Register("/costs/diff")
 }
 
-// validateAwsAccounts will validate awsAccounts passed to it.
-// It checks that they are numbers that are 12 character long
-func validateAwsAccounts(parsedParams esQueryParams) error {
-	for _, account := range parsedParams.accountList {
-		if _, err := strconv.ParseInt(account, 10, 0); err != nil || len(account) != 12 {
-			return fmt.Errorf("invalid account format : %s", account)
-		}
-	}
-	return nil
-}
-
 // makeElasticSearchRequest prepares and run the request to retrieve the billing costs
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
@@ -140,7 +128,7 @@ func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	if _, ok := validAggregationPeriodMap[parsedParams.aggregationPeriod]; ok == false {
 		return http.StatusBadRequest, fmt.Errorf("invalid aggregation period : %s", parsedParams.aggregationPeriod)
 	}
-	if err := validateAwsAccounts(parsedParams); err != nil {
+	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
 		return http.StatusBadRequest, err
 	}
 	sr, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)

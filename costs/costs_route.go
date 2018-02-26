@@ -18,11 +18,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/es"
 	"github.com/trackit/trackit2/routes"
@@ -112,17 +112,6 @@ func validateCriteriaParam(parsedParams esQueryParams) error {
 	return nil
 }
 
-// validateAwsAccounts will validate awsAccounts passed to it.
-// It checks that they are numbers that are 12 character long
-func validateAwsAccounts(parsedParams esQueryParams) error {
-	for _, account := range parsedParams.accountList {
-		if _, err := strconv.ParseInt(account, 10, 0); err != nil || len(account) != 12 {
-			return fmt.Errorf("invalid account format : %s", account)
-		}
-	}
-	return nil
-}
-
 // makeElasticSearchRequestAndParseIt will make the actual request to the ElasticSearch parse the results and return them
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
@@ -172,7 +161,7 @@ func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	if err := validateCriteriaParam(parsedParams); err != nil {
 		return http.StatusBadRequest, err
 	}
-	if err := validateAwsAccounts(parsedParams); err != nil {
+	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
 		return http.StatusBadRequest, err
 	}
 	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
