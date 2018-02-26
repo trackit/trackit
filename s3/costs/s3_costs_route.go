@@ -72,8 +72,8 @@ func init() {
 				Description: "Responds with cost data based on the queryparams passed to it",
 			},
 			routes.QueryArgs{awsAccountsQueryArg},
-			routes.QueryArgs{dateBeginQueryArg},
-			routes.QueryArgs{dateEndQueryArg},
+			routes.QueryArgs{routes.DateBeginQueryArg},
+			routes.QueryArgs{routes.DateEndQueryArg},
 		),
 	}.H().Register("/s3/costs")
 }
@@ -82,29 +82,12 @@ var (
 	// awsAccountsQueryArg allows to get the AWS Account IDs in the URL
 	// Parameters with routes.QueryArgs. These AWS Account IDs will be a
 	// slice of Uint stored in the routes.Arguments map with itself for key.
+	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
 	awsAccountsQueryArg = routes.QueryArg{
 		Name:        "aas",
 		Type:        routes.QueryArgUintSlice{},
 		Description: "The IDs for many AWS account.",
 		Optional:    true,
-	}
-
-	// dateBeginQueryArg allows to get the iso8601 begin date in the URL
-	// Parameters with routes.QueryArgs. This date will be a
-	// time.Time stored in the routes.Arguments map with itself for key.
-	dateBeginQueryArg = routes.QueryArg{
-		Name:        "begin",
-		Type:        routes.QueryArgDate{},
-		Description: "The begin date.",
-	}
-
-	// dateEndQueryArg allows to get the iso8601 begin date in the URL
-	// Parameters with routes.QueryArgs. This date will be a
-	// time.Time stored in the routes.Arguments map with itself for key.
-	dateEndQueryArg = routes.QueryArg{
-		Name:        "end",
-		Type:        routes.QueryArgDate{},
-		Description: "The end date.",
 	}
 )
 
@@ -151,8 +134,8 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		dateBegin:   a[dateBeginQueryArg].(time.Time),
-		dateEnd:     a[dateEndQueryArg].(time.Time),
+		dateBegin:   a[routes.DateBeginQueryArg].(time.Time),
+		dateEnd:     a[routes.DateEndQueryArg].(time.Time),
 		accountList: []uint{},
 	}
 	if a[awsAccountsQueryArg] != nil {

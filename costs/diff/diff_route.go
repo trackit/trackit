@@ -49,19 +49,9 @@ type esQueryParams struct {
 
 // diffQueryArgs allows to get required queryArgs params
 var diffQueryArgs = []routes.QueryArg{
-	aws.AwsAccountsOptionalQueryArg,
-	routes.QueryArg{
-		Name:        "begin",
-		Description: "Begining of date interval. Format is ISO8601",
-		Type:        routes.QueryArgDate{},
-		Optional:    false,
-	},
-	routes.QueryArg{
-		Name:        "end",
-		Description: "End of date interval. Format is ISO8601",
-		Type:        routes.QueryArgDate{},
-		Optional:    false,
-	},
+	routes.AwsAccountsOptionalQueryArg,
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
 	routes.QueryArg{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation. Possible values are month, week",

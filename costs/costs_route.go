@@ -54,24 +54,15 @@ type esQueryParams struct {
 
 // costQueryArgs allows to get required queryArgs params
 var costsQueryArgs = []routes.QueryArg{
+	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
 	routes.QueryArg{
 		Name:        "accounts",
 		Description: "List of comma separated AWS accounts ids",
 		Type:        routes.QueryArgIntSlice{},
 		Optional:    true,
 	},
-	routes.QueryArg{
-		Name:        "begin",
-		Description: "Begining of date interval. Format is ISO8601",
-		Type:        routes.QueryArgDate{},
-		Optional:    false,
-	},
-	routes.QueryArg{
-		Name:        "end",
-		Description: "End of date interval. Format is ISO8601",
-		Type:        routes.QueryArgDate{},
-		Optional:    false,
-	},
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
 	routes.QueryArg{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation, comma separated. Possible values are year, month, week, day, account, product, region, tag(soon)",
