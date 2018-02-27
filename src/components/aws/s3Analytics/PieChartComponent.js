@@ -7,6 +7,8 @@ import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
 
 const transformStoragePieChart = s3Analytics.transformStoragePieChart;
+const transformBandwidthPieChart = s3Analytics.transformBandwidthPieChart;
+const transformRequestsPieChart = s3Analytics.transformRequestsPieChart;
 const getTotalPieChart = s3Analytics.getTotalPieChart;
 
 /* istanbul ignore next */
@@ -15,12 +17,21 @@ const formatX = (d) => (d.key);
 /* istanbul ignore next */
 const formatY = (d) => (d.value);
 
-// S3AnalyticsBarChart Component
-class StorageCostChartComponent extends Component {
+// PieChart Component
+export class PieChartComponent extends Component {
 
   generateDatum = () => {
     if (Object.keys(this.props.data.values).length)
-      return transformStoragePieChart(this.props.data.values);
+      switch (this.props.mode) {
+        case "storage":
+          return transformStoragePieChart(this.props.data.values);
+        case "bandwidth":
+          return transformBandwidthPieChart(this.props.data.values);
+        case "requests":
+          return transformRequestsPieChart(this.props.data.values);
+        default:
+          return null;
+      }
     return null;
   };
 
@@ -37,7 +48,7 @@ class StorageCostChartComponent extends Component {
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
     return (
       <div className="s3analytics piechart">
-        <h2>Storage Cost</h2>
+        <h2>{this.props.mode} Cost</h2>
         <NVD3Chart
           id="pieChart"
           type="pieChart"
@@ -56,8 +67,37 @@ class StorageCostChartComponent extends Component {
 
 }
 
-StorageCostChartComponent.propTypes = {
-  data: PropTypes.object
+PieChartComponent.propTypes = {
+  data: PropTypes.object,
+  mode: PropTypes.oneOf(["storage", "bandwidth", "requests"])
 };
 
-export default StorageCostChartComponent;
+class StorageCostChartComponent extends Component {
+
+  render() {
+    return (<PieChartComponent mode="storage" data={this.props.data}/>)
+  }
+
+}
+
+class BandwidthCostChartComponent extends Component {
+
+  render() {
+    return (<PieChartComponent mode="bandwidth" data={this.props.data}/>)
+  }
+
+}
+
+class RequestsCostChartComponent extends Component {
+
+  render() {
+    return (<PieChartComponent mode="requests" data={this.props.data}/>)
+  }
+
+}
+
+export default {
+  StorageCostChartComponent,
+  BandwidthCostChartComponent,
+  RequestsCostChartComponent
+};

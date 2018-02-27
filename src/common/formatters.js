@@ -76,6 +76,12 @@ export const s3Analytics = {
       value: data[bucket].StorageCost
     }));
   },
+  transformRequestsPieChart: (data) => {
+    return Object.keys(data).map((bucket) => ({
+      key: bucket,
+      value: data[bucket].RequestsCost
+    }));
+  },
   getTotalPieChart: (data) => {
     let total = 0;
     if (Array.isArray(data))

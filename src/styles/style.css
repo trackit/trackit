@@ -145,6 +145,14 @@ button {
     background-color: #1e88e5;
 }
 
+.purple-color {
+    color: #9C27B0;
+}
+
+.purple-bg {
+    background-color: #9C27B0;
+}
+
 
 /* WHITE BOX */
 
@@ -234,6 +242,7 @@ label {
 
 /* S3 Analytics */
 .s3analytics.piechart h2 {
+    text-transform: capitalize;
     text-align: center;
 	font-size: 22px;
 }

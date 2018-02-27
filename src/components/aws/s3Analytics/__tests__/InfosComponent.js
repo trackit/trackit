@@ -20,7 +20,8 @@ const propsWithData = {
       bucket: {
         GbMonth: 21,
         BandwidthCost: 42,
-        StorageCost: 84
+        StorageCost: 84,
+        RequestsCost: 126
       }
     }
   }
@@ -59,6 +60,7 @@ describe('<InfosComponent />', () => {
     expect(totals.size).toBe(propsWithData.data.values.bucket.GbMonth);
     expect(totals.bandwidth_cost).toBe(propsWithData.data.values.bucket.BandwidthCost);
     expect(totals.storage_cost).toBe(propsWithData.data.values.bucket.StorageCost);
+    expect(totals.requests_cost).toBe(propsWithData.data.values.bucket.RequestsCost);
   });
 
 });
