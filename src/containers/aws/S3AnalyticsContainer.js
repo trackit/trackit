@@ -59,11 +59,14 @@ export class S3AnalyticsContainer extends Component {
 
         <div>
           <div className="row">
-            <div className="col-md-6">
+            <div className="col-md-4">
               <S3Analytics.BandwidthCostChart data={this.props.values}/>
             </div>
-            <div className="col-md-6">
+            <div className="col-md-4">
               <S3Analytics.StorageCostChart data={this.props.values}/>
+            </div>
+            <div className="col-md-4">
+              <S3Analytics.RequestsCostChart data={this.props.values}/>
             </div>
           </div>
         </div>

@@ -19,7 +19,7 @@ class TableComponent extends Component {
     const data = Object.keys(this.props.data.values).map((id) => ({
       id,
       ...this.props.data.values[id],
-      TotalCost: (this.props.data.values[id].StorageCost + this.props.data.values[id].BandwidthCost)
+      TotalCost: (this.props.data.values[id].StorageCost + this.props.data.values[id].BandwidthCost + this.props.data.values[id].RequestsCost)
     }));
 
     /* istanbul ignore next */
@@ -47,6 +47,10 @@ class TableComponent extends Component {
                   }, {
                     Header: 'Bandwidth',
                     accessor: 'BandwidthCost',
+                    Cell: row => (formatPrice(row.value))
+                  }, {
+                    Header: 'Requests',
+                    accessor: 'RequestsCost',
                     Cell: row => (formatPrice(row.value))
                   }, {
                     Header: 'Total',
