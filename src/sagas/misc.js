@@ -39,6 +39,12 @@ export const getS3Dates = () => {
   return select(getS3DatesFromState);
 };
 
+const getDashboardFromState = (state) => (state.dashboard);
+
+export const getDashboard = () => {
+  return select(getDashboardFromState);
+};
+
 export const initialCostBreakdownCharts = () => {
   const id1 = UUID();
   const id2 = UUID();
@@ -59,4 +65,26 @@ export const initialCostBreakdownCharts = () => {
   filter[id1] = "product";
   filter[id2] = "region";
   return { charts, dates, interval, filter };
+};
+
+export const initialDashboard = () => {
+  const id1 = UUID();
+  const id2 = UUID();
+  let items = {};
+  items[id1] = "test";
+  items[id2] = "test";
+  let dates = {};
+  Object.keys(items).forEach((id) => {
+    dates[id] = {
+      startDate: moment().subtract(1, 'month').startOf('month'),
+      endDate: moment().subtract(1, 'month').endOf('month')
+    };
+  });
+  let interval = {};
+  interval[id1] = "day";
+  interval[id2] = "week";
+  let filter = {};
+  filter[id1] = "product";
+  filter[id2] = "region";
+  return { items, dates, interval, filter };
 };
