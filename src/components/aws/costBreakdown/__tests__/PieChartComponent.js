@@ -9,7 +9,9 @@ const props = {
     otherValue: 2
   },
   interval: "day",
-  filter: "product"
+  filter: "product",
+  legend: true,
+  title: false
 };
 
 const propsWithoutCosts = {
@@ -20,6 +22,11 @@ const propsWithoutCosts = {
 const propsEmptyCosts = {
   ...props,
   values: {}
+};
+
+const propsWithTitle = {
+  ...props,
+  title: true
 };
 
 describe('<PieChart />', () => {
@@ -45,6 +52,18 @@ describe('<PieChart />', () => {
     const wrapper = shallow(<PieChart {...propsWithoutCosts}/>);
     const chart = wrapper.find(NVD3Chart);
     expect(chart.length).toBe(0);
+  });
+
+  it('renders no title in <h2 /> component when title is not asked', () => {
+    const wrapper = shallow(<PieChart {...props}/>);
+    const title = wrapper.find("h2");
+    expect(title.length).toBe(0);
+  });
+
+  it('renders a title in <h2 /> component when title is asked', () => {
+    const wrapper = shallow(<PieChart {...propsWithTitle}/>);
+    const title = wrapper.find("h2");
+    expect(title.length).toBe(1);
   });
 
 });

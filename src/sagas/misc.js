@@ -80,11 +80,11 @@ export const initialDashboard = () => {
       endDate: moment().subtract(1, 'month').endOf('month')
     };
   });
-  let interval = {};
-  interval[id1] = "day";
-  interval[id2] = "week";
-  let filter = {};
-  filter[id1] = "product";
-  filter[id2] = "region";
-  return { items, dates, interval, filter };
+  let intervals = {};
+  intervals[id1] = "day";
+  intervals[id2] = "week";
+  let filters = {};
+  filters[id1] = "product";
+  filters[id2] = "region";
+  return { items, dates, intervals, filters };
 };

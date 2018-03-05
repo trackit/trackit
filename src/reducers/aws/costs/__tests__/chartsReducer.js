@@ -12,7 +12,7 @@ describe("ChartsReducer", () => {
     expect(ChartsReducer(undefined, {})).toEqual({});
   });
 
-  it("handles insert dates state", () => {
+  it("handles insert charts state", () => {
     expect(ChartsReducer({}, { type: Constants.AWS_INSERT_CHARTS, charts: insert })).toEqual(insert);
   });
 

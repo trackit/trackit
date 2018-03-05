@@ -44,7 +44,7 @@ const renderItem = (key, item, child, close=null) => {
   );
 };
 
-class Header extends Component {
+export class Header extends Component {
   render() {
     return (
       <div>
@@ -81,7 +81,7 @@ const header = {
 };
 
 // Dashboard Component
-class DashboardComponent extends Component {
+export class DashboardComponent extends Component {
 
   constructor(props) {
     super(props);

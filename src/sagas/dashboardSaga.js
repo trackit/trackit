@@ -19,7 +19,7 @@ export function* getDataSaga({ id, itemType, begin, end, filters }) {
       default:
         res = null;
     }
-    if (res.success && res.hasOwnProperty("data")) {
+    if (res && res.success && res.hasOwnProperty("data")) {
       if (res.data.hasOwnProperty("error"))
         throw Error(res.data.error);
       else

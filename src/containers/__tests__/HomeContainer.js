@@ -1,9 +1,9 @@
 import React from 'react';
 import HomeContainer from '../HomeContainer';
-import Containers from '../../containers';
+import Components from '../../components';
 import { shallow } from "enzyme";
 
-const CostBreakdown = Containers.AWS.CostBreakdown;
+const Dashboard = Components.Dashboard.Dashboard;
 
 describe('<HomeContainer />', () => {
 
@@ -12,9 +12,9 @@ describe('<HomeContainer />', () => {
     expect(wrapper.length).toBe(1);
   });
 
-  it('renders <CostBreakdown/> component', () => {
+  it('renders <Dashboard/> component', () => {
     const wrapper = shallow(<HomeContainer/>);
-    const costBreakdown = wrapper.find(CostBreakdown);
+    const costBreakdown = wrapper.find(Dashboard);
     expect(costBreakdown.length).toBe(1);
   });
 

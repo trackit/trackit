@@ -1,5 +1,6 @@
 import Constants from '../../constants';
 
+/* istanbul ignore next */
 const defaultValue = (mode) => {
   switch (mode) {
     case "cb_pie":
