@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import Spinner from 'react-spinkit';
 import AWS from '../../aws';
 import Misc from '../../misc';
 
@@ -42,8 +43,10 @@ class S3AnalyticsChartsComponent extends Component {
   };
 
   getChart() {
-    if (!this.props.filter || !this.props.values || !this.props.values.length)
+    if (!this.props.filter)
       return null;
+    if (!this.props.values || !this.props.values.status)
+      return (<Spinner className="spinner clearfix" name='circle'/>);
     switch (this.props.filter) {
       case "storage":
         return (<Charts.StorageCostChart data={this.props.values}/>);
@@ -90,6 +93,7 @@ class S3AnalyticsChartsComponent extends Component {
 
 S3AnalyticsChartsComponent.propTypes = {
   id: PropTypes.string.isRequired,
+  accounts: PropTypes.arrayOf(PropTypes.object),
   values: PropTypes.object,
   getValues: PropTypes.func.isRequired,
   dates: PropTypes.shape({

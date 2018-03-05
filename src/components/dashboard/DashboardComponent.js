@@ -55,6 +55,10 @@ class Header extends Component {
         </div>
         <div className="clearfix">
           <div className="inline-block pull-right">
+            <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}>Cost Breakdown Bar Chart</button>
+            &nbsp;
+            <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}>Cost Breakdown Pie Chart</button>
+            &nbsp;
             <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}>S3 Info</button>
             &nbsp;
             <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}>S3 Chart</button>
@@ -141,6 +145,34 @@ class DashboardComponent extends Component {
             setFilter={this.props.setItemFilter}
           />;
           break;
+        case "cb_pie":
+          content = <AWS.CostBreakdownPieChart
+            id={key}
+            accounts={this.props.accounts}
+            values={this.props.values[key]}
+            getValues={this.props.getData}
+            dates={this.props.dates[key]}
+            setDates={this.props.setItemDates}
+            filter={this.props.filters[key]}
+            setFilter={this.props.setItemFilter}
+            interval={this.props.intervals[key]}
+            setInterval={this.props.setItemInterval}
+          />;
+          break;
+        case "cb_bar":
+          content = <AWS.CostBreakdownBarChart
+            id={key}
+            accounts={this.props.accounts}
+            values={this.props.values[key]}
+            getValues={this.props.getData}
+            dates={this.props.dates[key]}
+            setDates={this.props.setItemDates}
+            filter={this.props.filters[key]}
+            setFilter={this.props.setItemFilter}
+            interval={this.props.intervals[key]}
+            setInterval={this.props.setItemInterval}
+          />;
+          break;
         default:
           content = key;
       }
@@ -156,7 +188,7 @@ class DashboardComponent extends Component {
           className="layout"
           containerPadding={[0,0]}
           cols={{lg: 6, md: 6, sm: 6, xs: 3, xxs: 3}}
-          onDragStop={this.updateLayout}
+          onLayoutChange={this.updateLayout}
           rowHeight={100}
         >
           {renderItem("header", header, (<Header addItem={this.addItem} />))}

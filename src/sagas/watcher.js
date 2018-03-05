@@ -6,10 +6,10 @@ import {getDataSaga, saveDashboardSaga, loadDashboardSaga, initDashboardSaga} fr
 import Constants from "../constants";
 
 const Dashboard = {
-  watchGetCosts: function*() {
+  watchGetDashboardValues: function*() {
     yield takeEvery(Constants.DASHBOARD_GET_VALUES, getDataSaga);
   },
-  watchSaveCharts: function*() {
+  watchSaveDashboard: function*() {
     yield takeEvery(Constants.DASHBOARD_UPDATE_ITEMS, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_ADD_ITEM, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_REMOVE_ITEM, saveDashboardSaga);
@@ -20,10 +20,10 @@ const Dashboard = {
     yield takeEvery(Constants.DASHBOARD_SET_ITEM_FILTER, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_RESET_ITEMS_FILTER, saveDashboardSaga);
   },
-  watchLoadCharts: function*() {
+  watchLoadDashboard: function*() {
     yield takeLatest(Constants.DASHBOARD_LOAD_ITEMS, loadDashboardSaga);
   },
-  watchInitCharts: function*() {
+  watchInitDashboard: function*() {
     yield takeLatest(Constants.DASHBOARD_INIT_ITEMS, initDashboardSaga);
   }
 };

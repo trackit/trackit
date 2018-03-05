@@ -52,6 +52,7 @@ class S3AnalyticsInfosComponent extends Component {
 
 S3AnalyticsInfosComponent.propTypes = {
   id: PropTypes.string.isRequired,
+  accounts: PropTypes.arrayOf(PropTypes.object),
   values: PropTypes.object,
   getValues: PropTypes.func.isRequired,
   dates: PropTypes.shape({

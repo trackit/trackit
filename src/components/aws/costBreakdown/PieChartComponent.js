@@ -31,20 +31,24 @@ class PieChartComponent extends Component {
     if (!datum)
       return null;
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
+    const title = (this.props.title ? (<h2>Cost Breakdown</h2>) : null);
     return (
-      <NVD3Chart
-        id="pieChart"
-        type="pieChart"
-        title={total}
-        datum={datum}
-        margin={margin}
-        x={formatX}
-        y={formatY}
-        showLabels={false}
-        showLegend={true}
-        donut={true}
-        height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
-      />
+      <div>
+        {title}
+        <NVD3Chart
+          id="pieChart"
+          type="pieChart"
+          title={total}
+          datum={datum}
+          margin={margin}
+          x={formatX}
+          y={formatY}
+          showLabels={false}
+          showLegend={this.props.legend}
+          donut={true}
+          height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
+        />
+      </div>
     )
   }
 
@@ -54,6 +58,8 @@ PieChartComponent.propTypes = {
   values: PropTypes.object,
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
+  legend: PropTypes.bool.isRequired,
+  title: PropTypes.bool.isRequired
 };
 
 export default PieChartComponent;

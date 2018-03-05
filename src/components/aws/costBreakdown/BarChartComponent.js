@@ -52,23 +52,28 @@ class BarChartComponent extends Component {
     const datum = this.generateDatum();
     if (!datum)
       return null;
+    const title = (this.props.title ? (<h2>Cost Breakdown</h2>) : null);
     return (
-      <NVD3Chart
-        id="barChart"
-        type="multiBarChart"
-        datum={datum}
-        context={context}
-        xAxis={xAxis}
-        yAxis={yAxis}
-        margin={margin}
-        rightAlignYAxis={true}
-        clipEdge={false}
-        showControls={true}
-        stacked={true}
-        x={formatX}
-        y={formatY}
-        height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
-      />
+      <div>
+        {title}
+        <NVD3Chart
+          id="barChart"
+          type="multiBarChart"
+          datum={datum}
+          context={context}
+          xAxis={xAxis}
+          yAxis={yAxis}
+          margin={margin}
+          rightAlignYAxis={true}
+          clipEdge={false}
+          showControls={true}
+          showLegend={this.props.legend}
+          stacked={true}
+          x={formatX}
+          y={formatY}
+          height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
+        />
+      </div>
     )
   }
 
@@ -78,6 +83,8 @@ BarChartComponent.propTypes = {
   values: PropTypes.object,
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
+  legend: PropTypes.bool.isRequired,
+  title: PropTypes.bool.isRequired
 };
 
 export default BarChartComponent;
