@@ -246,3 +246,12 @@ label {
     text-align: center;
 	font-size: 22px;
 }
+
+/* Dashboard */
+.dashboard-item {
+    padding: 5px;
+}
+
+.dashboard-item-content {
+    padding: 25px;
+}
