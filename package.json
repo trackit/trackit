@@ -78,7 +78,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "lint": "eslint src",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "node scripts/test.js --env=jsdom --silent"
   },
   "jest": {
     "collectCoverage": true,

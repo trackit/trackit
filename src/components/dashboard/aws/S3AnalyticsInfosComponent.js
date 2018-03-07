@@ -14,7 +14,8 @@ class S3AnalyticsInfosComponent extends Component {
   }
 
   componentWillMount() {
-    this.props.getValues(this.props.id, "s3", this.props.dates.startDate, this.props.dates.endDate, null);
+    if (this.props.dates)
+      this.props.getValues(this.props.id, "s3", this.props.dates.startDate, this.props.dates.endDate, null);
   }
 
   componentWillReceiveProps(nextProps) {

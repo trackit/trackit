@@ -18,6 +18,7 @@ const defaultValues = {
   maxSize: [6, undefined]
 };
 
+/* istanbul ignore next */
 const renderItem = (key, item, child, close=null) => {
   const layout = {
     x: (item.hasOwnProperty("position") ? item.position[0] : defaultValues.position[0]),
@@ -45,6 +46,7 @@ const renderItem = (key, item, child, close=null) => {
 };
 
 export class Header extends Component {
+  /* istanbul ignore next */
   render() {
     return (
       <div>

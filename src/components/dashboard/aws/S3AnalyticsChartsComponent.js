@@ -24,7 +24,8 @@ class S3AnalyticsChartsComponent extends Component {
   }
 
   componentWillMount() {
-    this.props.getValues(this.props.id, "s3", this.props.dates.startDate, this.props.dates.endDate, null);
+    if (this.props.dates)
+      this.props.getValues(this.props.id, "s3", this.props.dates.startDate, this.props.dates.endDate, null);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -43,8 +44,6 @@ class S3AnalyticsChartsComponent extends Component {
   };
 
   getChart() {
-    if (!this.props.filter)
-      return null;
     if (!this.props.values || !this.props.values.status)
       return (<Spinner className="spinner clearfix" name='circle'/>);
     switch (this.props.filter) {
@@ -68,19 +67,15 @@ class S3AnalyticsChartsComponent extends Component {
       />
     ) : null);
 
-    const selector = (this.props.filter ? (
-      <Selector
-        values={filters}
-        selected={this.props.filter}
-        selectValue={this.setFilter}
-      />
-    ) : null);
-
     return (
       <div>
         <div className="clearfix">
           <div className="inline-block pull-right">
-            {selector}
+            <Selector
+              values={filters}
+              selected={this.props.filter}
+              selectValue={this.setFilter}
+            />
             {timerange}
           </div>
         </div>
