@@ -40,7 +40,7 @@
     "jest-enzyme": "~4.0.1",
     "jquery": "~3.2.1",
     "material-ui": "1.0.0-beta.27",
-    "moment": "2.19.2",
+    "moment": "2.19.3",
     "normalize.css": "~7.0.0",
     "nvd3": "~1.8.6",
     "object-assign": "4.1.1",
