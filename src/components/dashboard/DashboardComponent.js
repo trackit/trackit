@@ -9,26 +9,65 @@ import AWS from './aws';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
+import s3square from '../../assets/s3-square.png';
+
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
 const defaultValues = {
   position: [0,0],
-  size: [1,1],
   static: false,
   maxSize: [6, undefined]
 };
 
-/* istanbul ignore next */
-const renderItem = (key, item, child, close=null) => {
-  const layout = {
+const itemsSize = {
+  header: [6, 1],
+  cb_infos: [6,2],
+  cb_pie: [3,4],
+  cb_bar: [3,4],
+  s3_infos: [6,2],
+  s3_chart: [2,4],
+};
+
+const generateLayout = (item) => {
+  return {
     x: (item.hasOwnProperty("position") ? item.position[0] : defaultValues.position[0]),
     y: (item.hasOwnProperty("position") ? item.position[1] : defaultValues.position[1]),
-    w: (item.hasOwnProperty("size") ? item.size[0] : defaultValues.size[0]),
-    h: (item.hasOwnProperty("size") ? item.size[1] : defaultValues.size[1]),
-    maxW: (item.hasOwnProperty("maxSize") && item.maxSize[0] ? item.maxSize[0] : defaultValues.maxSize[0]),
-    maxH: (item.hasOwnProperty("maxSize") && item.maxSize[1] ? item.maxSize[1] : defaultValues.maxSize[1]),
+    w: (itemsSize.hasOwnProperty(item.type) ? itemsSize[item.type][0] : 1),
+    h: (itemsSize.hasOwnProperty(item.type) ? itemsSize[item.type][1] : 1),
     static: (item.hasOwnProperty("static") ? item.static : defaultValues.static),
+    isResizable: false
   };
+};
+
+/* istanbul ignore next */
+const renderItem = (key, item, child, close=null) => {
+  const layout = generateLayout(item);
+  let title;
+  switch (item.type) {
+    case "cb_infos":
+    case "cb_pie":
+    case "cb_bar":
+      title = (
+        <div className=" dashboard-item-icon">
+          <i className="menu-icon fa fa-area-chart red-color"/>
+          &nbsp;
+          Cost Breakdown
+        </div>
+      );
+      break;
+    case "s3_infos":
+    case "s3_chart":
+      title = (
+        <div className=" dashboard-item-icon">
+          <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+          &nbsp;
+          S3 Analytics
+        </div>
+      );
+      break;
+    default:
+      title = null;
+  }
   const closeButton = (close !== null ? (
     <div className="close" onClick={(e) => { e.preventDefault(); close(key); }}>
       <i className="fa fa-times close" aria-hidden="true"/>
@@ -37,6 +76,7 @@ const renderItem = (key, item, child, close=null) => {
 
   return (
     <div className="white-box dashboard-item" key={key} data-grid={layout}>
+      {title}
       {closeButton}
       <div className="dashboard-item-content">
         {child}
@@ -57,13 +97,34 @@ export class Header extends Component {
         </div>
         <div className="clearfix">
           <div className="inline-block pull-right">
-            <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}>Cost Breakdown Bar Chart</button>
+            <div className="inline-block dashboard-btn-group">
+              <div className="inline-block dashboard-btn-group-title">
+                <i className="menu-icon fa fa-area-chart red-color"/>
+                &nbsp;
+                Cost Breakdown
+              </div>
+              &nbsp;
+              <div className="btn-group">
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}>Info</button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}>Bar Chart</button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}>Pie Chart</button>
+              </div>
+            </div>
             &nbsp;
-            <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}>Cost Breakdown Pie Chart</button>
+            <div className="inline-block dashboard-btn-group">
+              <div className="inline-block dashboard-btn-group-title">
+                <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+                &nbsp;
+                S3 Analytics
+              </div>
+              &nbsp;
+              <div className="btn-group">
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}>Info</button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}>Chart</button>
+              </div>
+            </div>
             &nbsp;
-            <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}>S3 Info</button>
-            &nbsp;
-            <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}>S3 Chart</button>
+            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}>Reset dashboard</button>
           </div>
         </div>
       </div>
@@ -72,7 +133,8 @@ export class Header extends Component {
 }
 
 Header.propsTypes = {
-  addItem: PropTypes.func.isRequired
+  addItem: PropTypes.func.isRequired,
+  reset: PropTypes.func.isRequired,
 };
 
 const header = {
@@ -87,10 +149,18 @@ export class DashboardComponent extends Component {
 
   constructor(props) {
     super(props);
+    if (!this.props.items || !Object.keys(this.props.items).length)
+      this.props.initDashboard();
     this.addItem = this.addItem.bind(this);
     this.removeItem = this.removeItem.bind(this);
     this.updateLayout = this.updateLayout.bind(this);
     this.renderItem = this.renderItem.bind(this);
+    this.resetDashboard = this.resetDashboard.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (!Object.keys(nextProps.items).length)
+      nextProps.initDashboard();
   }
 
   addItem = (mode) => {
@@ -102,6 +172,11 @@ export class DashboardComponent extends Component {
 
   removeItem = (key) => {
     this.props.removeItem(key);
+  };
+
+  resetDashboard = (e) => {
+    e.preventDefault();
+    Object.keys(this.props.items).forEach((id) => {this.props.removeItem(id)});
   };
 
   updateLayout = (layout) => {
@@ -145,6 +220,18 @@ export class DashboardComponent extends Component {
             setDates={this.props.setItemDates}
             filter={this.props.filters[key]}
             setFilter={this.props.setItemFilter}
+          />;
+          break;
+        case "cb_infos":
+          content = <AWS.CostBreakdownInfos
+            id={key}
+            accounts={this.props.accounts}
+            values={this.props.values[key]}
+            getValues={this.props.getData}
+            dates={this.props.dates[key]}
+            setDates={this.props.setItemDates}
+            interval={this.props.intervals[key]}
+            setInterval={this.props.setItemInterval}
           />;
           break;
         case "cb_pie":
@@ -193,7 +280,7 @@ export class DashboardComponent extends Component {
           onLayoutChange={this.updateLayout}
           rowHeight={100}
         >
-          {renderItem("header", header, (<Header addItem={this.addItem} />))}
+          {renderItem("header", header, (<Header addItem={this.addItem} reset={this.resetDashboard}/>))}
           {Object.keys(this.props.items).map(key => this.renderItem(key, this.props.items[key]))}
         </ResponsiveReactGridLayout>
 

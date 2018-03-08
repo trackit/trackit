@@ -20,7 +20,8 @@ class CostBreakdownPieChartComponent extends Component {
       <Chart
         type="pie"
         legend={false}
-        title={true}
+        height={375}
+        margin={false}
         id={this.props.id}
         accounts={this.props.accounts}
         values={this.props.values}

@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import AWS from '../../aws';
 
-const Chart = AWS.CostBreakdown.Chart;
+const Infos = AWS.CostBreakdown.Infos;
 
-class CostBreakdownBarChartComponent extends Component {
+class CostBreakdownInfosComponent extends Component {
 
   constructor(props) {
     super(props);
@@ -17,10 +17,10 @@ class CostBreakdownBarChartComponent extends Component {
 
   render() {
     return (
-      <Chart
+      <Infos
         type="bar"
         legend={false}
-        height={350}
+        height={500}
         id={this.props.id}
         accounts={this.props.accounts}
         values={this.props.values}
@@ -29,15 +29,13 @@ class CostBreakdownBarChartComponent extends Component {
         setDates={this.props.setDates}
         interval={this.props.interval}
         setInterval={this.props.setInterval}
-        filter={this.props.filter}
-        setFilter={this.props.setFilter}
       />
     );
   }
 
 }
 
-CostBreakdownBarChartComponent.propTypes = {
+CostBreakdownInfosComponent.propTypes = {
   id: PropTypes.string.isRequired,
   accounts: PropTypes.arrayOf(PropTypes.object),
   values: PropTypes.object,
@@ -47,10 +45,8 @@ CostBreakdownBarChartComponent.propTypes = {
     endDate: PropTypes.object,
   }),
   setDates: PropTypes.func.isRequired,
-  filter: PropTypes.string.isRequired,
-  setFilter: PropTypes.func.isRequired,
   interval: PropTypes.string.isRequired,
   setInterval: PropTypes.func.isRequired
 };
 
-export default CostBreakdownBarChartComponent;
+export default CostBreakdownInfosComponent;
