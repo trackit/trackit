@@ -52,10 +52,8 @@ class BarChartComponent extends Component {
     const datum = this.generateDatum();
     if (!datum)
       return null;
-    const title = (this.props.title ? (<h2>Cost Breakdown</h2>) : null);
     return (
       <div>
-        {title}
         <NVD3Chart
           id="barChart"
           type="multiBarChart"

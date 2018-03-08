@@ -24,9 +24,9 @@ const propsEmptyCosts = {
   values: {}
 };
 
-const propsWithTitle = {
+const propsWithoutMargin = {
   ...props,
-  title: true
+  margin: false
 };
 
 describe('<BarChart />', () => {
@@ -54,16 +54,10 @@ describe('<BarChart />', () => {
     expect(chart.length).toBe(0);
   });
 
-  it('renders no title in <h2 /> component when title is not asked', () => {
-    const wrapper = shallow(<BarChart {...props}/>);
-    const title = wrapper.find("h2");
-    expect(title.length).toBe(0);
-  });
-
-  it('renders a title in <h2 /> component when title is asked', () => {
-    const wrapper = shallow(<BarChart {...propsWithTitle}/>);
-    const title = wrapper.find("h2");
-    expect(title.length).toBe(1);
+  it('renders <NVD3Chart/> component without margin', () => {
+    const wrapper = shallow(<BarChart {...propsWithoutMargin}/>);
+    const chart = wrapper.find(NVD3Chart);
+    expect(chart.length).toBe(1);
   });
 
 });

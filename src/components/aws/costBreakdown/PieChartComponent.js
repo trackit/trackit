@@ -31,10 +31,8 @@ class PieChartComponent extends Component {
     if (!datum)
       return null;
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
-    const title = (this.props.title ? (<h2>Cost Breakdown</h2>) : null);
     return (
       <div>
-        {title}
         <NVD3Chart
           id="pieChart"
           type="pieChart"

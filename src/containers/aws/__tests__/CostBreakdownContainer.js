@@ -5,6 +5,7 @@ import Moment from 'moment';
 import { shallow } from 'enzyme';
 
 const Chart = Components.AWS.CostBreakdown.Chart;
+const Infos = Components.AWS.CostBreakdown.Infos;
 
 describe('<CostBreakdownContainer />', () => {
 
@@ -57,6 +58,25 @@ describe('<CostBreakdownContainer />', () => {
     }
   };
 
+  const propsWithSummary = {
+    ...props,
+    charts: {
+      id: "summary"
+    },
+    costsDates: {
+      id: {
+        startDate: Moment().startOf('month'),
+        endDate: Moment().endOf('month'),
+      }
+    },
+    costsInterval: {
+      id: "interval"
+    },
+    costsFilter: {
+      id: "filter"
+    }
+  };
+
   const propsWithThreeCharts = {
     ...props,
     charts: {
@@ -90,6 +110,15 @@ describe('<CostBreakdownContainer />', () => {
     }
   };
 
+  const propsWithThreeChartsAndSummary = {
+    ...propsWithThreeCharts,
+    charts: {
+      id: "bar",
+      id2: "pie",
+      id3: "summary"
+    }
+  };
+
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -117,10 +146,26 @@ describe('<CostBreakdownContainer />', () => {
     expect(charts.length).toBe(3);
   });
 
+  it('renders <Infos/> compoeent if data is available', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithSummary}/>);
+    let infos = wrapper.find(Infos);
+    expect(infos.length).toBe(1);
+    const wrapperThreeItems = shallow(<CostBreakdownContainer {...propsWithThreeChartsAndSummary}/>);
+    infos = wrapperThreeItems.find(Infos);
+    expect(infos.length).toBe(1);
+  });
+
   it('generates default <Chart/> component if no chart available', () => {
     expect(props.initCharts).not.toHaveBeenCalled();
     shallow(<CostBreakdownContainer {...props}/>);
     expect(props.initCharts).toHaveBeenCalled();
+  });
+
+  it('can add a summary chart', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithValidCharts}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
+    wrapper.instance().addSummary({ preventDefault() {} });
+    expect(props.addChart).toHaveBeenCalled();
   });
 
   it('can add a bar chart', () => {

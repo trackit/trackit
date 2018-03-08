@@ -95,6 +95,16 @@ const propsWithThreeItems = {
   }
 };
 
+const propsUpdateEmpty = {
+  ...props,
+  initDashboard: jest.fn()
+};
+
+const propsWithThreeItemsUpdate = {
+  ...propsWithThreeItems,
+  initDashboard: jest.fn()
+};
+
 describe('<DashboardComponent />', () => {
 
   beforeEach(() => {
@@ -124,6 +134,18 @@ describe('<DashboardComponent />', () => {
     expect(items.length).toBe(Object.keys(propsWithValidItems.items).length + 1);
   });
 
+  it('can init Dashboard when empty', () => {
+    expect(props.initDashboard).not.toHaveBeenCalled();
+    expect(propsUpdateEmpty.initDashboard).not.toHaveBeenCalled();
+    expect(propsWithThreeItemsUpdate.initDashboard).not.toHaveBeenCalled();
+    const wrapper = shallow(<DashboardComponent {...props}/>);
+    expect(props.initDashboard).toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(propsWithThreeItemsUpdate);
+    expect(propsWithThreeItemsUpdate.initDashboard).not.toHaveBeenCalled();
+    wrapper.instance().componentWillReceiveProps(propsUpdateEmpty);
+    expect(propsUpdateEmpty.initDashboard).toHaveBeenCalled();
+  });
+
   it('can add Item to Dashboard', () => {
     const wrapper = shallow(<DashboardComponent {...props}/>);
     expect(props.addItem).not.toHaveBeenCalled();
@@ -136,6 +158,13 @@ describe('<DashboardComponent />', () => {
     expect(props.removeItem).not.toHaveBeenCalled();
     wrapper.instance().removeItem("key");
     expect(props.removeItem).toHaveBeenCalled();
+  });
+
+  it('can reset Dashboard', () => {
+    const wrapper = shallow(<DashboardComponent {...propsWithValidItems}/>);
+    expect(props.removeItem).not.toHaveBeenCalled();
+    wrapper.instance().resetDashboard({ preventDefault() {} });
+    expect(props.removeItem).toHaveBeenCalledTimes(2);
   });
 
   it('can update Dashboard layout', () => {
@@ -165,6 +194,13 @@ describe('<DashboardComponent />', () => {
       const output = instance.renderItem("id", {type: "s3_chart"});
       const item = shallow(output);
       const res = item.find(AWS.S3AnalyticsCharts);
+      expect(res.length).toBe(1);
+    });
+
+    it('can render a Cost Breakdown Info component', () => {
+      const output = instance.renderItem("id", {type: "cb_infos"});
+      const item = shallow(output);
+      const res = item.find(AWS.CostBreakdownInfos);
       expect(res.length).toBe(1);
     });
 
