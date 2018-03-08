@@ -162,7 +162,8 @@ class Chart extends Component {
             interval={this.props.interval}
             filter={this.props.filter}
             legend={this.props.legend}
-            title={this.props.title}
+            height={this.props.height}
+            margin={this.props.margin}
           />);
         case "bar":
         default:
@@ -171,7 +172,8 @@ class Chart extends Component {
             interval={this.props.interval}
             filter={this.props.filter}
             legend={this.props.legend}
-            title={this.props.title}
+            height={this.props.height}
+            margin={this.props.margin}
           />);
       }
   }
@@ -206,12 +208,14 @@ Chart.propTypes = {
   setFilter: PropTypes.func.isRequired,
   close: PropTypes.func,
   legend: PropTypes.bool,
-  title: PropTypes.bool
+  height: PropTypes.number,
+  margin: PropTypes.bool
 };
 
 Chart.defaultProps = {
   legend: true,
-  title: false
+  height: 400,
+  margin: true
 };
 
 export default Chart;

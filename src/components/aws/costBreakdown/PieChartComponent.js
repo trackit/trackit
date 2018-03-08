@@ -40,13 +40,14 @@ class PieChartComponent extends Component {
           type="pieChart"
           title={total}
           datum={datum}
-          margin={margin}
+          margin={this.props.margin ? margin : null}
           x={formatX}
           y={formatY}
           showLabels={false}
           showLegend={this.props.legend}
+          legendPosition="right"
           donut={true}
-          height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
+          height={(this.props.values && Object.keys(this.props.values).length ? this.props.height : 150)}
         />
       </div>
     )
@@ -59,7 +60,12 @@ PieChartComponent.propTypes = {
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
   legend: PropTypes.bool.isRequired,
-  title: PropTypes.bool.isRequired
+  height: PropTypes.number.isRequired,
+  margin: PropTypes.bool
+};
+
+PieChartComponent.defaultProps = {
+  margin: true
 };
 
 export default PieChartComponent;

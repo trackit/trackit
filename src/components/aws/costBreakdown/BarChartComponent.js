@@ -63,7 +63,7 @@ class BarChartComponent extends Component {
           context={context}
           xAxis={xAxis}
           yAxis={yAxis}
-          margin={margin}
+          margin={this.props.margin ? margin : null}
           rightAlignYAxis={true}
           clipEdge={false}
           showControls={true}
@@ -71,7 +71,7 @@ class BarChartComponent extends Component {
           stacked={true}
           x={formatX}
           y={formatY}
-          height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
+          height={(this.props.values && Object.keys(this.props.values).length ? this.props.height : 150)}
         />
       </div>
     )
@@ -84,7 +84,12 @@ BarChartComponent.propTypes = {
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
   legend: PropTypes.bool.isRequired,
-  title: PropTypes.bool.isRequired
+  height: PropTypes.number.isRequired,
+  margin: PropTypes.bool
+};
+
+BarChartComponent.defaultProps = {
+  margin: true
 };
 
 export default BarChartComponent;
