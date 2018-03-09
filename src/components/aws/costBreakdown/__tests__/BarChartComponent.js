@@ -42,10 +42,10 @@ describe('<BarChart />', () => {
     expect(chart.length).toBe(1);
   });
 
-  it('renders <NVD3Chart/> component when values are empty', () => {
+  it('renders <h4/> component when values are empty', () => {
     const wrapper = shallow(<BarChart {...propsEmptyCosts}/>);
-    const chart = wrapper.find(NVD3Chart);
-    expect(chart.length).toBe(1);
+    const error = wrapper.find("h4.no-data");
+    expect(error.length).toBe(1);
   });
 
   it('renders no <NVD3Chart/> component when values are unavailable', () => {
