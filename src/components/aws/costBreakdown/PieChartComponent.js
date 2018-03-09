@@ -45,7 +45,7 @@ class PieChartComponent extends Component {
           showLegend={this.props.legend}
           legendPosition="right"
           donut={true}
-          height={(this.props.values && Object.keys(this.props.values).length ? this.props.height : 150)}
+          height={this.props.height}
         />
       </div>
     )

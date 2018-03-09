@@ -69,7 +69,7 @@ class BarChartComponent extends Component {
           stacked={true}
           x={formatX}
           y={formatY}
-          height={(this.props.values && Object.keys(this.props.values).length ? this.props.height : 150)}
+          height={this.props.height}
         />
       </div>
     )
