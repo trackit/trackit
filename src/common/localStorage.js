@@ -68,3 +68,13 @@ export const setS3Dates = (dates) => {
 export const getS3Dates = () => {
   return JSON.parse(getValue('s3_dates'));
 };
+
+/* Dashboard */
+
+export const setDashboard = (dates) => {
+  setValue('dashboard', JSON.stringify(dates));
+};
+
+export const getDashboard = () => {
+  return JSON.parse(getValue('dashboard'));
+};

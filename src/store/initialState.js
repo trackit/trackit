@@ -31,6 +31,13 @@ export default {
     }
   },
   gcp: {},
+  dashboard: {
+    items: {},
+    values: {},
+    dates: {},
+    intervals: {},
+    filters: {}
+  },
   auth: {
     token: null,
     mail: null

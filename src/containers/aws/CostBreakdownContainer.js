@@ -8,6 +8,7 @@ import s3square from '../../assets/s3-square.png';
 
 const Panel = Components.Misc.Panel;
 const Chart = Components.AWS.CostBreakdown.Chart;
+const Infos = Components.AWS.CostBreakdown.Infos;
 
 // This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
 // Similar issue : https://github.com/novus/nvd3/issues/1262
@@ -36,6 +37,11 @@ export class CostBreakdownContainer extends Component {
     clearTooltips();
   }
 
+  addSummary = (e) => {
+    e.preventDefault();
+    this.props.addChart("summary");
+  };
+
   addBarChart = (e) => {
     e.preventDefault();
     this.props.addChart("bar");
@@ -51,17 +57,32 @@ export class CostBreakdownContainer extends Component {
     Object.keys(this.props.charts).forEach((id) => {this.props.removeChart(id)});
   };
 
-  getChart(id, type, index) {
+  getChart(id, chartType, index) {
     if (this.props.costsValues &&
       this.props.costsDates && this.props.costsDates.hasOwnProperty(id) &&
       this.props.costsInterval && this.props.costsInterval.hasOwnProperty(id) &&
       this.props.costsFilter && this.props.costsFilter.hasOwnProperty(id)
-    )
+    ) {
+      if (chartType === "summary")
+        return (
+          <Infos
+            key={index}
+            id={id}
+            accounts={this.props.accounts}
+            values={this.props.costsValues[id]}
+            dates={this.props.costsDates[id]}
+            interval={this.props.costsInterval[id]}
+            getCosts={this.props.getCosts}
+            setDates={this.props.setCostsDates}
+            setInterval={this.props.setCostsInterval}
+            close={Object.keys(this.props.charts).length > 2 ? this.props.removeChart : null}
+          />
+        );
       return (
         <Chart
           key={index}
           id={id}
-          type={type}
+          type={chartType}
           accounts={this.props.accounts}
           values={this.props.costsValues[id]}
           dates={this.props.costsDates[id]}
@@ -74,6 +95,7 @@ export class CostBreakdownContainer extends Component {
           close={Object.keys(this.props.charts).length > 2 ? this.props.removeChart : null}
         />
       );
+    }
     return null;
   }
 
@@ -85,6 +107,8 @@ export class CostBreakdownContainer extends Component {
           Cost Breakdown
         </h3>
         <div className="inline-block pull-right">
+          <button className="btn btn-default inline-block" onClick={this.addSummary}>Add a summary</button>
+          &nbsp;
           <button className="btn btn-default inline-block" onClick={this.addBarChart}>Add a bar chart</button>
           &nbsp;
           <button className="btn btn-default inline-block" onClick={this.addPieChart}>Add a pie chart</button>

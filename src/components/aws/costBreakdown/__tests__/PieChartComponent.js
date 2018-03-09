@@ -9,7 +9,9 @@ const props = {
     otherValue: 2
   },
   interval: "day",
-  filter: "product"
+  filter: "product",
+  legend: true,
+  title: false
 };
 
 const propsWithoutCosts = {
@@ -20,6 +22,11 @@ const propsWithoutCosts = {
 const propsEmptyCosts = {
   ...props,
   values: {}
+};
+
+const propsWithoutMargin = {
+  ...props,
+  margin: false
 };
 
 describe('<PieChart />', () => {
@@ -35,16 +42,22 @@ describe('<PieChart />', () => {
     expect(chart.length).toBe(1);
   });
 
-  it('renders <NVD3Chart/> component when values are empty', () => {
+  it('renders <h4/> component when values are empty', () => {
     const wrapper = shallow(<PieChart {...propsEmptyCosts}/>);
-    const chart = wrapper.find(NVD3Chart);
-    expect(chart.length).toBe(1);
+    const error = wrapper.find("h4.no-data");
+    expect(error.length).toBe(1);
   });
 
   it('renders no <NVD3Chart/> component when values are unavailable', () => {
     const wrapper = shallow(<PieChart {...propsWithoutCosts}/>);
     const chart = wrapper.find(NVD3Chart);
     expect(chart.length).toBe(0);
+  });
+
+  it('renders <NVD3Chart/> component without margin', () => {
+    const wrapper = shallow(<PieChart {...propsWithoutMargin}/>);
+    const chart = wrapper.find(NVD3Chart);
+    expect(chart.length).toBe(1);
   });
 
 });

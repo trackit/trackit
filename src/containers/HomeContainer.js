@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
-import AWS from './aws';
+import Components from '../components';
 
-const CostBreakdown = AWS.CostBreakdown;
+const Dashboard = Components.Dashboard.Dashboard;
 
 // HomeContainer Component
 class HomeContainer extends Component {
@@ -9,7 +9,7 @@ class HomeContainer extends Component {
   render() {
     return (
       <div>
-        <CostBreakdown/>
+        <Dashboard/>
       </div>
     );
   }

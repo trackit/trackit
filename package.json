@@ -40,7 +40,7 @@
     "jest-enzyme": "~4.0.1",
     "jquery": "~3.2.1",
     "material-ui": "1.0.0-beta.27",
-    "moment": "2.19.2",
+    "moment": "2.19.3",
     "normalize.css": "~7.0.0",
     "nvd3": "~1.8.6",
     "object-assign": "4.1.1",
@@ -54,6 +54,7 @@
     "react-copy-to-clipboard": "~5.0.1",
     "react-dev-utils": "~4.1.0",
     "react-dom": "~16.0.0",
+    "react-grid-layout": "^0.16.4",
     "react-nvd3": "0.5.7",
     "react-redux": "~5.0.6",
     "react-router-dom": "~4.2.2",
@@ -77,7 +78,7 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "lint": "eslint src",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "node scripts/test.js --env=jsdom --silent"
   },
   "jest": {
     "collectCoverage": true,

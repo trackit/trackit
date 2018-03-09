@@ -86,7 +86,7 @@ export class Header extends Component {
     ) : null);
 
     return (
-      <div>
+      <div className="clearfix">
 
         <div className="inline-block pull-left">
           {loading}
@@ -157,10 +157,24 @@ class Chart extends Component {
     if (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("values"))
       switch (this.props.type) {
         case "pie":
-          return (<PieChart values={this.props.values.values} interval={this.props.interval} filter={this.props.filter}/>);
+          return (<PieChart
+            values={this.props.values.values}
+            interval={this.props.interval}
+            filter={this.props.filter}
+            legend={this.props.legend}
+            height={this.props.height}
+            margin={this.props.margin}
+          />);
         case "bar":
         default:
-          return (<BarChart values={this.props.values.values} interval={this.props.interval} filter={this.props.filter}/>);
+          return (<BarChart
+            values={this.props.values.values}
+            interval={this.props.interval}
+            filter={this.props.filter}
+            legend={this.props.legend}
+            height={this.props.height}
+            margin={this.props.margin}
+          />);
       }
   }
 
@@ -192,7 +206,16 @@ Chart.propTypes = {
   setDates: PropTypes.func.isRequired,
   setInterval: PropTypes.func.isRequired,
   setFilter: PropTypes.func.isRequired,
-  close: PropTypes.func
+  close: PropTypes.func,
+  legend: PropTypes.bool,
+  height: PropTypes.number,
+  margin: PropTypes.bool
+};
+
+Chart.defaultProps = {
+  legend: true,
+  height: 400,
+  margin: true
 };
 
 export default Chart;

@@ -43,7 +43,7 @@ const margin = {
 class BarChartComponent extends Component {
 
   generateDatum = () => {
-    if (this.props.values && this.props.interval && this.props.filter)
+    if (this.props.values && Object.keys(this.props.values).length && this.props.interval && this.props.filter)
       return transformProductsBarChart(this.props.values, this.props.filter, this.props.interval);
     return null;
   };
@@ -51,24 +51,27 @@ class BarChartComponent extends Component {
   render() {
     const datum = this.generateDatum();
     if (!datum)
-      return null;
+      return (<h4 className="no-data">No data available for this timerange</h4>);
     return (
-      <NVD3Chart
-        id="barChart"
-        type="multiBarChart"
-        datum={datum}
-        context={context}
-        xAxis={xAxis}
-        yAxis={yAxis}
-        margin={margin}
-        rightAlignYAxis={true}
-        clipEdge={false}
-        showControls={true}
-        stacked={true}
-        x={formatX}
-        y={formatY}
-        height={(this.props.values && Object.keys(this.props.values).length ? 400 : 150)}
-      />
+      <div>
+        <NVD3Chart
+          id="barChart"
+          type="multiBarChart"
+          datum={datum}
+          context={context}
+          xAxis={xAxis}
+          yAxis={yAxis}
+          margin={this.props.margin ? margin : null}
+          rightAlignYAxis={true}
+          clipEdge={false}
+          showControls={true}
+          showLegend={this.props.legend}
+          stacked={true}
+          x={formatX}
+          y={formatY}
+          height={this.props.height}
+        />
+      </div>
     )
   }
 
@@ -78,6 +81,13 @@ BarChartComponent.propTypes = {
   values: PropTypes.object,
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
+  legend: PropTypes.bool.isRequired,
+  height: PropTypes.number.isRequired,
+  margin: PropTypes.bool
+};
+
+BarChartComponent.defaultProps = {
+  margin: true
 };
 
 export default BarChartComponent;
