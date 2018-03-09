@@ -43,7 +43,7 @@ const margin = {
 class BarChartComponent extends Component {
 
   generateDatum = () => {
-    if (this.props.values && this.props.interval && this.props.filter)
+    if (this.props.values && Object.keys(this.props.values).length && this.props.interval && this.props.filter)
       return transformProductsBarChart(this.props.values, this.props.filter, this.props.interval);
     return null;
   };
@@ -51,7 +51,7 @@ class BarChartComponent extends Component {
   render() {
     const datum = this.generateDatum();
     if (!datum)
-      return null;
+      return (<h4 className="no-data">No data available for this timerange</h4>);
     return (
       <div>
         <NVD3Chart

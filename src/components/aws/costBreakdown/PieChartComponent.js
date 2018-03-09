@@ -21,7 +21,7 @@ const margin = {
 class PieChartComponent extends Component {
 
   generateDatum = () => {
-    if (this.props.values && this.props.filter)
+    if (this.props.values && Object.keys(this.props.values).length && this.props.filter)
       return transformProductsPieChart(this.props.values, this.props.filter);
     return null;
   };
@@ -29,7 +29,7 @@ class PieChartComponent extends Component {
   render() {
     const datum = this.generateDatum();
     if (!datum)
-      return null;
+      return (<h4 className="no-data">No data available for this timerange</h4>);
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
     return (
       <div>

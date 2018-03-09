@@ -86,7 +86,7 @@ export class Header extends Component {
     ) : null);
 
     return (
-      <div>
+      <div className="clearfix">
 
         <div className="inline-block pull-left">
           {loading}

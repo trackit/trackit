@@ -44,7 +44,7 @@ export class PieChartComponent extends Component {
 
     const datum = this.generateDatum();
     if (!datum)
-      return (<h3 className="no-data">No data available</h3>);
+      return (<h4 className="no-data">No data available for this timerange</h4>);
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
     return (
       <div className="s3analytics piechart">

@@ -280,6 +280,7 @@ label {
     color: #bbb;
 }
 
-h3.no-data {
+h4.no-data {
     text-align: center;
+    margin-top: 25px;
 }
