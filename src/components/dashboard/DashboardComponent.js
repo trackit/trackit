@@ -22,10 +22,10 @@ const defaultValues = {
 const itemsSize = {
   header: [6, 1],
   cb_infos: [6,2],
-  cb_pie: [3,4],
-  cb_bar: [3,4],
+  cb_pie: [3,5],
+  cb_bar: [3,5],
   s3_infos: [6,2],
-  s3_chart: [2,4],
+  s3_chart: [2,5],
 };
 
 const generateLayout = (item) => {
@@ -94,8 +94,6 @@ export class Header extends Component {
           <div className="inline-block">
             <h3 className="white-box-title no-padding inline-block">Dashboard</h3>
           </div>
-        </div>
-        <div className="clearfix">
           <div className="inline-block pull-right">
             <div className="inline-block dashboard-btn-group">
               <div className="inline-block dashboard-btn-group-title">
@@ -140,7 +138,6 @@ Header.propsTypes = {
 const header = {
   type: "header",
   position: [0, 0],
-  size: [6, 1],
   static: true
 };
 
@@ -278,7 +275,7 @@ export class DashboardComponent extends Component {
           containerPadding={[0,0]}
           cols={{lg: 6, md: 6, sm: 6, xs: 3, xxs: 3}}
           onLayoutChange={this.updateLayout}
-          rowHeight={100}
+          rowHeight={80}
         >
           {renderItem("header", header, (<Header addItem={this.addItem} reset={this.resetDashboard}/>))}
           {Object.keys(this.props.items).map(key => this.renderItem(key, this.props.items[key]))}
