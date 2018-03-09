@@ -284,3 +284,8 @@ h4.no-data {
     text-align: center;
     margin-top: 25px;
 }
+
+.dashboard-item-content .popover-trigger {
+    margin: 0 10px;
+    font-size: 15px;
+}

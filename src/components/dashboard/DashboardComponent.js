@@ -5,6 +5,7 @@ import { Responsive, WidthProvider } from 'react-grid-layout';
 import UUID from 'uuid/v4';
 import Actions from '../../actions';
 import AWS from './aws';
+import Misc from '../misc';
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -12,6 +13,7 @@ import 'react-resizable/css/styles.css';
 import s3square from '../../assets/s3-square.png';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
+const Popover = Misc.Popover;
 
 const defaultValues = {
   position: [0,0],
@@ -93,6 +95,9 @@ export class Header extends Component {
         <div className="clearfix">
           <div className="inline-block">
             <h3 className="white-box-title no-padding inline-block">Dashboard</h3>
+            <div className="inline-block">
+              <Popover info popOver="You can move/delete any element on this dashboard or add new ones using the buttons on the right"/>
+            </div>
           </div>
           <div className="inline-block pull-right">
             <div className="inline-block dashboard-btn-group">
