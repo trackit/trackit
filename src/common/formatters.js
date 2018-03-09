@@ -28,6 +28,7 @@ export const costBreakdown = {
             dates.push(date);
         })
       });
+      dates.sort();
       return Object.keys(data[filter]).map((key) => ({
         key: (key.length ? key : `No ${filter}`),
         values: dates.map((date) => ([date, data[filter][key][interval][date] || 0]))
