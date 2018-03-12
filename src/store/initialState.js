@@ -3,16 +3,27 @@ import moment from "moment";
 export default {
   aws: {
     accounts: {
-      all: [],
+      all: {
+        status: false
+      },
+      creation: {
+        status: true,
+        value: null
+      },
+      billCreation: {
+        status: true
+      },
       external: null,
     },
     s3: {
-      view: {
-        startDate: moment().startOf('month'),
-        endDate: moment()
-      }
+      dates: {
+        startDate: moment().subtract(1, 'months').startOf('month'),
+        endDate: moment().subtract(1, 'months').endOf('month')
+      },
+      values: {}
     },
     costs: {
+      charts: {},
       values: {},
       dates: {},
       interval: {},
@@ -20,6 +31,13 @@ export default {
     }
   },
   gcp: {},
+  dashboard: {
+    items: {},
+    values: {},
+    dates: {},
+    intervals: {},
+    filters: {}
+  },
   auth: {
     token: null,
     mail: null

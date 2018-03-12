@@ -1,102 +1,83 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ReactTable from "react-table";
+import Spinner from 'react-spinkit';
 
-import { formatBytes, formatPrice } from '../../../common/formatters';
+import {formatGigaBytes, formatPrice} from '../../../common/formatters';
 
 
 // S3AnalyticsTableComponent Component
 class TableComponent extends Component {
 
-  /* istanbul ignore next */
   render() {
+    if (!this.props.data || !this.props.data.status)
+      return (<Spinner className="spinner clearfix" name='circle'/>);
+
+    if (this.props.data && this.props.data.status && this.props.data.hasOwnProperty("error"))
+      return (<div className="alert alert-warning" role="alert">Data not available ({this.props.data.error.message})</div>);
+
+    const data = Object.keys(this.props.data.values).map((id) => ({
+      id,
+      ...this.props.data.values[id],
+      TotalCost: (this.props.data.values[id].StorageCost + this.props.data.values[id].BandwidthCost + this.props.data.values[id].RequestsCost)
+    }));
+
+    /* istanbul ignore next */
     return (
       <div>
         <ReactTable
-          data={this.props.data}
-          columns={
-            [
+          data={data}
+          noDataText="No buckets available"
+          columns={[
               {
                 Header: 'Name',
-                accessor: '_id',
-                Cell: row => (
-                  <strong>{row.value}</strong>
-                )
-              },
-              {
+                accessor: 'id',
+                Cell: row => (<strong>{row.value}</strong>)
+              }, {
                 Header: 'Size',
-                accessor: 'size',
-                Cell: row => (
-                  formatBytes(row.value, 1)
-                )
-              },
-              {
+                accessor: 'GbMonth',
+                Cell: row => (formatGigaBytes(row.value, 1))
+              }, {
                 Header: 'Cost',
                 columns: [
                   {
                     Header: 'Storage',
-                    accessor: 'storage_cost',
-                    Cell: row => (
-                      formatPrice(row.value)
-                    )
-                  },
-                  {
+                    accessor: 'StorageCost',
+                    Cell: row => (formatPrice(row.value))
+                  }, {
                     Header: 'Bandwidth',
-                    accessor: 'bw_cost',
-                    Cell: row => (
-                      formatPrice(row.value)
-                    )
-                  },
-                  {
+                    accessor: 'BandwidthCost',
+                    Cell: row => (formatPrice(row.value))
+                  }, {
+                    Header: 'Requests',
+                    accessor: 'RequestsCost',
+                    Cell: row => (formatPrice(row.value))
+                  }, {
                     Header: 'Total',
-                    accessor: 'total_cost',
-                    Cell: row => (
-                      <span className="total-cell">{formatPrice(row.value)}</span>
-                    )
-                  },
+                    accessor: 'TotalCost',
+                    Cell: row => (<span className="total-cell">{formatPrice(row.value)}</span>)
+                  }
                 ]
-              },
-              {
+              }, {
                 Header: 'Data transfers',
                 columns: [
                   {
                     Header: 'In',
-                    accessor: 'transfer_in',
-                    Cell: row => (
-                      formatBytes(row.value)
-                    )
-                  },
-                  {
+                    accessor: 'DataIn',
+                    Cell: row => (formatGigaBytes(row.value))
+                  }, {
                     Header: 'Out',
-                    accessor: 'transfer_out',
-                    Cell: row => (
-                      formatBytes(row.value)
-                    )
-                  },
+                    accessor: 'DataOut',
+                    Cell: row => (formatGigaBytes(row.value))
+                  }
                 ]
-              },
-              {
-                Header: 'Chargify',
-                accessor: 'chargify',
-                Cell: row => (
-                  <span>
-                      <span style={{
-                        color: row.value === 'not_synced' ? '#ff2e00'
-                          : row.value === 'in_sync' ? '#ffbf00'
-                            : '#57d500',
-                        transition: 'all .3s ease'
-                      }}>
-                        &#x25cf;
-                      </span>
-                    &nbsp;
-                    {row.value}
-                    </span>
-                )
-              },
-
-
+              }
             ]
           }
+          defaultSorted={[{
+            id: 'TotalCost',
+            desc: true
+          }]}
           defaultPageSize={10}
           className=" -highlight"
         />
@@ -107,18 +88,7 @@ class TableComponent extends Component {
 }
 
 TableComponent.propTypes = {
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      size: PropTypes.number.isRequired,
-      storage_cost: PropTypes.number.isRequired,
-      bw_cost: PropTypes.number.isRequired,
-      total_cost: PropTypes.number.isRequired,
-      transfer_in: PropTypes.number.isRequired,
-      transfer_out: PropTypes.number.isRequired,
-      chargify: PropTypes.oneOf(['not_synced', 'in_sync', 'synced'])
-    })
-  ),
+  data: PropTypes.object
 };
 
 export default TableComponent;

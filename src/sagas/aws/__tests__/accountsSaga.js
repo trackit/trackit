@@ -2,9 +2,13 @@ import { put, call, all } from 'redux-saga/effects';
 import {
   getAccountsSaga, newAccountSaga, editAccountSaga, deleteAccountSaga,
   newExternalSaga,
-  getAccountBillsSaga, newAccountBillSaga, editAccountBillSaga, deleteAccountBillSaga
+  getAccountBillsSaga, newAccountBillSaga, editAccountBillSaga, deleteAccountBillSaga,
+  saveSelectedAccountSaga, loadSelectedAccountSaga
 } from '../accountsSaga';
-import { getToken } from '../../misc';
+import {
+  getSelectedAccounts as getSelectedAccountsLS
+} from '../../../common/localStorage';
+import {getSelectedAccounts, getToken} from '../../misc';
 import API from '../../../api';
 import Constants from '../../../constants';
 
@@ -336,7 +340,7 @@ describe("Account Bills Saga", () => {
 
       expect(saga.next(validResponse).value)
         .toEqual(all([
-          put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS }),
+          put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS, bucket: bill }),
           put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
 
@@ -427,6 +431,75 @@ describe("Account Bills Saga", () => {
           put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
           put({ type: Constants.AWS_GET_ACCOUNTS })
         ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+});
+
+describe("Selected Accounts Saga", () => {
+
+  describe("Save Selected Accounts", () => {
+
+    it("handles saga", () => {
+
+      let saga = saveSelectedAccountSaga();
+
+      expect(saga.next().value)
+        .toEqual(getSelectedAccounts());
+
+      expect(saga.next([]).done).toBe(true);
+
+    });
+
+  });
+
+  describe("Load Selected Accounts", () => {
+
+    const data = ["account1","account2"];
+
+    const invalidData = {};
+
+    it("handles saga with valid data", () => {
+
+      let saga = loadSelectedAccountSaga();
+
+      expect(saga.next().value)
+        .toEqual(call(getSelectedAccountsLS));
+
+      expect(saga.next(data).value)
+        .toEqual(put({type: Constants.AWS_INSERT_SELECTED_ACCOUNTS, accounts: data}));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with invalid data", () => {
+
+      let saga = loadSelectedAccountSaga();
+
+      expect(saga.next().value)
+        .toEqual(call(getSelectedAccountsLS));
+
+      expect(saga.next(invalidData).value)
+        .toEqual(put({ type: Constants.AWS_LOAD_SELECTED_ACCOUNTS_ERROR, error: Error("Invalid data for selected accounts") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with no response", () => {
+
+      let saga = loadSelectedAccountSaga();
+
+      expect(saga.next().value)
+        .toEqual(call(getSelectedAccountsLS));
+
+      expect(saga.next(null).value)
+        .toEqual(put({ type: Constants.AWS_LOAD_SELECTED_ACCOUNTS_ERROR, error: Error("No selected accounts available") }));
 
       expect(saga.next().done).toBe(true);
 

@@ -35,9 +35,13 @@ const store = configureStore();
 // Creating theme
 const theme = createMuiTheme(Theme.theme);
 
-// Retrieving user Token and Mail from localStorage if any
+// Retrieving user Token, user Mail and CostBreakdown charts from localStorage if any
 store.dispatch({ type: Constants.GET_USER_TOKEN });
 store.dispatch({ type: Constants.GET_USER_MAIL });
+store.dispatch({ type: Constants.AWS_LOAD_SELECTED_ACCOUNTS });
+store.dispatch({ type: Constants.AWS_LOAD_CHARTS });
+store.dispatch({ type: Constants.AWS_LOAD_S3_DATES });
+store.dispatch({ type: Constants.DASHBOARD_LOAD_ITEMS });
 
 ReactDOM.render((
     <MuiThemeProvider theme={theme}>

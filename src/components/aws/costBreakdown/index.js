@@ -1,5 +1,11 @@
-import Chart from './Chart';
+import Chart from './ChartComponent';
+import BarChart from './BarChartComponent';
+import PieChart from './PieChartComponent';
+import Infos from './InfosComponent';
 
 export default {
-  Chart
+  Chart,
+  BarChart,
+  PieChart,
+  Infos
 };

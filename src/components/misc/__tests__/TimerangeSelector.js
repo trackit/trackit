@@ -2,7 +2,7 @@ import React from 'react';
 import TimerangeSelector from '../TimerangeSelector';
 import Moment from 'moment';
 import DateRangePicker from 'react-bootstrap-daterangepicker';
-import Selector from '../Selector';
+import IntervalSelector from '../IntervalSelector';
 import { shallow } from "enzyme";
 
 const range = {
@@ -30,9 +30,9 @@ describe('<TimerangeSelector />', () => {
     expect(picker.length).toBe(1);
   });
 
-  it('renders a <Selector /> component inside', () => {
+  it('renders a <IntervalSelector /> component inside', () => {
     const wrapper = shallow(<TimerangeSelector {...props}/>);
-    const interval = wrapper.find(Selector);
+    const interval = wrapper.find(IntervalSelector);
     expect(interval.length).toBe(1);
   });
 

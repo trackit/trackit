@@ -19,6 +19,27 @@ export class AccountsContainer extends Component {
   }
 
   render() {
+    const noAccountsInfos = (
+      <div id="welcome">
+        <hr />
+        <div className="alert alert-info" role="alert" style={{ fontSize: '15px', lineHeight: '2' }}>
+          <strong>
+            <i className="fa fa-info-circle"/>
+            &nbsp;
+            Welcome to TrackIt !
+          </strong>
+          <br />
+          {"It seems you don't have any AWS account setup yet."}
+          <br />
+          {"Please click the above "}
+          <strong>Add</strong>
+          {" button and follow the instructions. It will get you up and running in no time !"}
+          <br />
+          {"Thank you for using TrackIt !"}
+        </div>
+      </div>
+    );
+
     return (
       <Panel>
 
@@ -34,10 +55,16 @@ export class AccountsContainer extends Component {
               external={this.props.external}
               submitAccount={this.props.accountActions.new}
               clearAccount={this.props.accountActions.clearNew}
-              submitBucket={this.props.newBill}
+              submitBucket={this.props.addBill}
+              clearBucket={this.props.clearBill}
               account={this.props.newAccount}
+              bill={this.props.newBill}
             />
           </div>
+          {
+            (!this.props.accounts.length && this.props.match.params.hasAccounts === "false")
+            && noAccountsInfos
+          }
 
         </div>
 
@@ -53,17 +80,35 @@ export class AccountsContainer extends Component {
 }
 
 AccountsContainer.propTypes = {
-  accounts: PropTypes.arrayOf(
-    PropTypes.shape({
+  accounts: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        id: PropTypes.number.isRequired,
+        roleArn: PropTypes.string.isRequired,
+        pretty: PropTypes.string,
+        bills: PropTypes.arrayOf(
+          PropTypes.shape({
+            bucket: PropTypes.string.isRequired,
+            path: PropTypes.string.isRequired
+          })
+        ),
+      })
+    ),
+  }),
+  newAccount: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.shape({
       id: PropTypes.number.isRequired,
       roleArn: PropTypes.string.isRequired,
       pretty: PropTypes.string
     })
-  ),
-  newAccount: PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    roleArn: PropTypes.string.isRequired,
-    pretty: PropTypes.string,
+  }),
+  newBill: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error)
   }),
   external: PropTypes.shape({
     external: PropTypes.string.isRequired,
@@ -75,7 +120,8 @@ AccountsContainer.propTypes = {
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
-  newBill: PropTypes.func.isRequired,
+  addBill: PropTypes.func.isRequired,
+  clearBill: PropTypes.func.isRequired,
   newExternal: PropTypes.func.isRequired
 };
 
@@ -83,6 +129,7 @@ AccountsContainer.propTypes = {
 const mapStateToProps = (state) => ({
   accounts: state.aws.accounts.all,
   newAccount: state.aws.accounts.creation,
+  newBill: state.aws.accounts.billCreation,
   external: state.aws.accounts.external
 });
 
@@ -105,8 +152,11 @@ const mapDispatchToProps = (dispatch) => ({
       dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
     },
   },
-  newBill: (accountID, bill) => {
+  addBill: (accountID, bill) => {
     dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
+  },
+  clearBill: () => {
+    dispatch(Actions.AWS.Accounts.clearNewAccountBill())
   },
   newExternal: () => {
     dispatch(Actions.AWS.Accounts.newExternal())

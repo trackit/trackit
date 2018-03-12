@@ -1,13 +1,18 @@
 import React from 'react';
 import { Route } from 'react-router-dom';
 import { shallow } from 'enzyme';
-import App from '../App';
+import { App } from '../App';
 import Containers from '../containers';
 
 const props = {
   match: {
-    url: null
-  }
+    url: null,
+  },
+  accounts: {
+    status: true,
+    values: []
+  },
+  getAccounts: jest.fn(),
 };
 
 describe('<App />', () => {
@@ -23,10 +28,10 @@ describe('<App />', () => {
     expect(main.length).toBe(1);
   });
 
-  it('renders a <Route /> component', () => {
+  it('renders <Route /> components', () => {
     const wrapper = shallow(<App {...props} />);
     const route = wrapper.find(Route);
-    expect(route.length).toBe(3);
+    expect(route.length).toBe(4);
   });
 
 });

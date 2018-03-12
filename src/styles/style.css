@@ -9,6 +9,11 @@ body {
     color: #bbbbbb;
 }
 
+.badge {
+  background-color: #d6413b;
+  color: white;
+}
+
 .card-label {
   color: #808080;
   font-weight: 300;
@@ -99,6 +104,13 @@ button {
     float: right;
 }
 
+.no-click, .no-click:active, .no-click:focus, .no-click:hover, .no-click:active:focus, .no-click:active:hover {
+    color: #4885ed;
+    background-color: #fff;
+    border-color: #4885ed;
+    box-shadow: none;
+}
+
 /* COLORS */
 
 .red-color {
@@ -131,6 +143,14 @@ button {
 
 .blue-bg {
     background-color: #1e88e5;
+}
+
+.purple-color {
+    color: #9C27B0;
+}
+
+.purple-bg {
+    background-color: #9C27B0;
 }
 
 
@@ -220,3 +240,52 @@ label {
     margin: auto;
 }
 
+/* S3 Analytics */
+.s3analytics.piechart h2 {
+    text-transform: capitalize;
+    text-align: center;
+	font-size: 22px;
+}
+
+/* Dashboard */
+.dashboard-item {
+    padding: 5px;
+}
+
+.dashboard-item-content {
+    padding: 25px;
+}
+
+.dashboard-btn-group {
+    margin-left: 20px;
+}
+
+.dashboard-btn-group-title {
+    margin-right: 10px;
+}
+
+.dashboard-btn-group-title img,
+.dashboard-item-icon img {
+    height: 20px;
+}
+
+.dashboard-btn-group-title i,
+.dashboard-item-icon i {
+    font-size: 20px;
+}
+
+.dashboard-item-icon {
+    margin: 5px;
+    float: left;
+    color: #bbb;
+}
+
+h4.no-data {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.dashboard-item-content .popover-trigger {
+    margin: 0 10px;
+    font-size: 15px;
+}

@@ -20,7 +20,7 @@ const propsForRegistration = {
   registration: true
 };
 
-const propsWithError = {
+const propsWithLoginError = {
   ...props,
   loginStatus: {
     status: false,
@@ -32,6 +32,14 @@ const propsForRegistrationSpinner = {
   ...props,
   registration: true,
   registrationStatus: {}
+};
+
+const propsWithRegistrationError = {
+  ...propsForRegistrationSpinner,
+  registrationStatus: {
+    status: false,
+    error: "error"
+  }
 };
 
 const propsForLoginSpinner = {
@@ -72,7 +80,13 @@ describe('<FormComponent />', () => {
   });
 
   it('renders <div/> component if there is a login error', () => {
-    const wrapper = shallow(<FormComponent {...propsWithError}/>);
+    const wrapper = shallow(<FormComponent {...propsWithLoginError}/>);
+    const form = wrapper.find("div.alert");
+    expect(form.length).toBe(1);
+  });
+
+  it('renders <div/> component if there is a registration error', () => {
+    const wrapper = shallow(<FormComponent {...propsWithRegistrationError}/>);
     const form = wrapper.find("div.alert");
     expect(form.length).toBe(1);
   });

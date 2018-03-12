@@ -18,14 +18,28 @@ const defaultActions = {
 
 const props = {
   ...defaultActions,
-  accounts: [],
+  accounts: {
+    status: true,
+    values: []
+  },
+  match: { params : [] },
   external: {
     external: "external",
     accountId: "accountId"
   },
   getAccounts: jest.fn(),
   newExternal: jest.fn(),
-  newBill: jest.fn()
+  addBill: jest.fn(),
+  clearBill: jest.fn()
+};
+
+const propsWithParam = {
+  ...props,
+  match: {
+    params: {
+      hasAccounts: "false"
+    }
+  }
 };
 
 describe('<AccountsContainer />', () => {
@@ -53,8 +67,14 @@ describe('<AccountsContainer />', () => {
 
   it('renders a <Wizard /> component', () => {
     const wrapper = shallow(<AccountsContainer {...props} />);
-    const form = wrapper.find(Wizard);
-    expect(form.length).toBe(1);
+    const wizard = wrapper.find(Wizard);
+    expect(wizard.length).toBe(1);
+  });
+
+  it('renders a welcome message', () => {
+    const wrapper = shallow(<AccountsContainer {...propsWithParam} />);
+    const message = wrapper.find("div#welcome");
+    expect(message.length).toBe(1);
   });
 
 });

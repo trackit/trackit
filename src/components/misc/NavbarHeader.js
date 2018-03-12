@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Actions from '../../actions';
-
+import SelectedIndicator from '../aws/accounts/SelectedIndicatorComponent';
 import '../../styles/Navigation.css';
 
 import logo from '../../assets/logo-white-coloured.png';
@@ -38,6 +38,7 @@ export class NavbarHeader extends Component {
               </div>
 
               <div className="top-right-part pull-right">
+                 <span style={{ display: 'inline-block', marginTop: '19px' }}><SelectedIndicator longVersion={true} icon={true} /></span>
                  <div className={this.state.userMenuExpanded ? 'open dropdown-trigger' : 'dropdown-trigger'}>
                    <button className="navbar-user-dropdown-toggle" onClick={this.toggleUserMenu.bind(this)}>
                      <span className="fa-stack red-color">
