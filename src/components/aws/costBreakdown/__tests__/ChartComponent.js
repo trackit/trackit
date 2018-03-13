@@ -65,6 +65,26 @@ const propsWithClose = {
   close: jest.fn()
 };
 
+const propsWithTable = {
+  ...propsPie,
+  table: true,
+};
+
+const propsWithTableShow = {
+  ...propsWithTable,
+  tableStatus: false
+};
+
+const propsWithTableHide = {
+  ...propsWithTable,
+  tableStatus: true
+};
+
+const propsWithTableAndClose = {
+  ...propsWithTable,
+  close: jest.fn()
+};
+
 const updatedDateProps = {
   ...props,
   dates: {
@@ -90,6 +110,11 @@ const updatedFilterPropsPie = {
   ...propsPie,
   filter: "region",
   getCosts: jest.fn()
+};
+
+const propsNoDates = {
+  ...props,
+  setDates: undefined
 };
 
 describe('<Chart />', () => {
@@ -170,6 +195,15 @@ describe('<Chart />', () => {
     expect(props.getCosts).toHaveBeenCalledTimes(1);
   });
 
+  it('can show and hide table', () => {
+    const wrapper = shallow(<Chart {...props}/>);
+    expect(wrapper.state('table')).toBe(false);
+    wrapper.instance().toggleTable({ preventDefault(){} });
+    expect(wrapper.state('table')).toBe(true);
+    wrapper.instance().toggleTable({ preventDefault(){} });
+    expect(wrapper.state('table')).toBe(false);
+  });
+
 });
 
 describe('<Header />', () => {
@@ -190,6 +224,14 @@ describe('<Header />', () => {
     expect(interval.length).toBe(1);
   });
 
+  it('renders nothing when setDates is not set', () => {
+    const wrapper = shallow(<Header {...propsNoDates}/>);
+    const timerange = wrapper.find(TimerangeSelector);
+    expect(timerange.length).toBe(0);
+    const interval = wrapper.find(IntervalNavigator);
+    expect(interval.length).toBe(0);
+  });
+
   it('renders <Selector/> component', () => {
     const wrapper = shallow(<Header {...props}/>);
     const selector = wrapper.find(Selector);
@@ -206,6 +248,21 @@ describe('<Header />', () => {
     const wrapper = shallow(<Header {...propsWithClose}/>);
     const button = wrapper.find("button");
     expect(button.length).toBe(1);
+  });
+
+  it('renders a <button/> component when can toggle table', () => {
+    let wrapper = shallow(<Header {...propsWithTableShow}/>);
+    let button = wrapper.find("button");
+    expect(button.length).toBe(1);
+    wrapper = shallow(<Header {...propsWithTableHide}/>);
+    button = wrapper.find("button");
+    expect(button.length).toBe(1);
+  });
+
+  it('renders two <button/> components when can toggle table and can be closed', () => {
+    const wrapper = shallow(<Header {...propsWithTableAndClose}/>);
+    const button = wrapper.find("button");
+    expect(button.length).toBe(2);
   });
 
   it('renders an alert component when there is an error', () => {

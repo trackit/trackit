@@ -294,7 +294,7 @@ describe("Dashboard Saga", () => {
       expect(saga.next(data).value)
         .toEqual(all([
           put({type: Constants.DASHBOARD_INSERT_ITEMS, items: data.items}),
-          put({type: Constants.DASHBOARD_INSERT_ITEMS_DATES, dates: data.dates}),
+          put({type: Constants.DASHBOARD_INSERT_DATES, dates: data.dates}),
           put({type: Constants.DASHBOARD_INSERT_ITEMS_INTERVAL, intervals: data.intervals}),
           put({type: Constants.DASHBOARD_INSERT_ITEMS_FILTER, filters: data.filters})
         ]));
@@ -348,7 +348,7 @@ describe("Dashboard Saga", () => {
       expect(saga.next(validResponse).value)
         .toEqual(all([
           put({type: Constants.DASHBOARD_INSERT_ITEMS, items: validResponse.items}),
-          put({type: Constants.DASHBOARD_INSERT_ITEMS_DATES, dates: validResponse.dates}),
+          put({type: Constants.DASHBOARD_INSERT_DATES, dates: validResponse.dates}),
           put({type: Constants.DASHBOARD_INSERT_ITEMS_INTERVAL, intervals: validResponse.intervals}),
           put({type: Constants.DASHBOARD_INSERT_ITEMS_FILTER, filters: validResponse.filters})
         ]));

@@ -6,7 +6,6 @@ import moment from 'moment';
 import AWS from '../../../aws';
 import Misc from '../../../misc';
 
-const TimerangeSelector = Misc.TimerangeSelector;
 const Selector = Misc.Selector;
 const Charts = AWS.S3Analytics;
 
@@ -115,18 +114,6 @@ describe('<S3AnalyticsCharts />', () => {
     expect(spinner.length).toBe(1);
   });
 
-  it('renders <TimerangeSelector/> component if dates are available', () => {
-    const wrapper = shallow(<S3AnalyticsCharts {...validProps}/>);
-    const timerange = wrapper.find(TimerangeSelector);
-    expect(timerange.length).toBe(1);
-  });
-
-  it('renders no <TimerangeSelector/> component if dates are not available', () => {
-    const wrapper = shallow(<S3AnalyticsCharts {...props}/>);
-    const timerange = wrapper.find(TimerangeSelector);
-    expect(timerange.length).toBe(0);
-  });
-
   it('renders <Selector/> component', () => {
     const wrapper = shallow(<S3AnalyticsCharts {...props}/>);
     const selector = wrapper.find(Selector);
@@ -143,13 +130,6 @@ describe('<S3AnalyticsCharts />', () => {
     expect(props.getValues).not.toHaveBeenCalled();
     shallow(<S3AnalyticsCharts {...props}/>);
     expect(props.getValues).not.toHaveBeenCalled();
-  });
-
-  it('can set dates', () => {
-    const wrapper = shallow(<S3AnalyticsCharts {...validProps}/>);
-    expect(props.setDates).not.toHaveBeenCalled();
-    wrapper.instance().setDates(moment().startOf("month"), moment().endOf("month"));
-    expect(props.setDates).toHaveBeenCalled();
   });
 
   it('can set filter', () => {

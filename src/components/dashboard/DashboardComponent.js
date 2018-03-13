@@ -100,15 +100,6 @@ const renderItem = (key, item, child, close=null) => {
 
 export class Header extends Component {
 
-  constructor(props) {
-    super(props);
-    this.setDates = this.setDates.bind(this);
-  }
-
-  setDates = (startDate, endDate) => {
-    this.props.setDates(startDate, endDate);
-  };
-
   /* istanbul ignore next */
   render() {
     return (
@@ -127,7 +118,7 @@ export class Header extends Component {
             <TimerangeSelector
               startDate={this.props.dates.startDate}
               endDate={this.props.dates.endDate}
-              setDatesFunc={this.setDates}
+              setDatesFunc={this.props.setDates}
             />
           </div>
           <div className="inline-block pull-right">

@@ -43,6 +43,7 @@ class InfosComponent extends Component {
     if (!totals)
       return (<h2>No data available.</h2>);
 
+    /* istanbul ignore next */
     return (
       <div>
         <div className={"col-md-2 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs" + (this.props.offset ? " col-md-offset-1" : "")}>

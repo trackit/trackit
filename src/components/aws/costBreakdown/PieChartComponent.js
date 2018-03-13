@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
 import ReactTable from 'react-table';
-import {costBreakdown, formatGigaBytes, formatPrice} from '../../../common/formatters';
+import {costBreakdown, formatPrice} from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
 
@@ -35,6 +35,7 @@ class PieChartComponent extends Component {
 
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
 
+    /* istanbul ignore next */
     const table = (this.props.table ? (
       <ReactTable
         data={datum}
@@ -94,7 +95,7 @@ PieChartComponent.propTypes = {
 
 PieChartComponent.defaultProps = {
   margin: true,
-  table: true
+  table: false
 };
 
 export default PieChartComponent;
