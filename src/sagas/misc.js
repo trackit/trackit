@@ -52,9 +52,11 @@ export const getDashboard = () => {
 export const initialCostBreakdownCharts = () => {
   const id1 = UUID();
   const id2 = UUID();
+  const id3 = UUID();
   let charts = {};
   charts[id1] = "bar";
-  charts[id2] = "bar";
+  charts[id2] = "pie";
+  charts[id3] = "bar";
   let dates = {};
   Object.keys(charts).forEach((id) => {
     dates[id] = {
@@ -64,10 +66,12 @@ export const initialCostBreakdownCharts = () => {
   });
   let interval = {};
   interval[id1] = "day";
-  interval[id2] = "week";
+  interval[id2] = "month";
+  interval[id3] = "day";
   let filter = {};
   filter[id1] = "product";
-  filter[id2] = "region";
+  filter[id2] = "product";
+  filter[id3] = "region";
   return { charts, dates, interval, filter };
 };
 
