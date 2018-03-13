@@ -41,7 +41,7 @@ class InfosComponent extends Component {
     const totals = this.extractTotals();
 
     if (!totals)
-      return (<h2>No data available.</h2>);
+      return (<h4 className="no-data">No data available.</h4>);
 
     /* istanbul ignore next */
     return (

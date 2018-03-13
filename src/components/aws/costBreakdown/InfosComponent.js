@@ -76,7 +76,7 @@ class InfosComponent extends Component {
 
     const totals = (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("values") ? this.extractTotals() : null);
 
-    const noData = (!totals && !loading ? (<h2>No data available.</h2>) : null);
+    const noData = (!totals && !loading ? (<h4 className="no-data">No data available.</h4>) : null);
 
     let values = null;
 
