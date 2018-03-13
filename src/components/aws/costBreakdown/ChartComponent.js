@@ -49,6 +49,8 @@ export class Header extends Component {
   };
 
   getDateSelector() {
+    if (!this.props.setDates)
+      return null;
     switch (this.props.type) {
       case "pie":
         return (
@@ -85,6 +87,12 @@ export class Header extends Component {
       <div className="alert alert-warning" role="alert">Data not available ({this.props.values.error.message})</div>
     ) : null);
 
+    const table = (this.props.table && this.props.type === "pie" ? (
+      <div className="inline-block">
+        <button className="btn btn-default" onClick={this.props.toggleTable}>{(this.props.tableStatus ? "Hide" : "Show")} details</button>
+      </div>
+    ) : null);
+
     return (
       <div className="clearfix">
 
@@ -94,6 +102,8 @@ export class Header extends Component {
         </div>
 
         <div className="inline-block pull-right">
+
+          {table}
 
           <div className="inline-block">
             <Selector
@@ -127,13 +137,28 @@ Header.propTypes = {
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
   getCosts: PropTypes.func.isRequired,
-  setDates: PropTypes.func.isRequired,
+  setDates: PropTypes.func,
   setInterval: PropTypes.func.isRequired,
   setFilter: PropTypes.func.isRequired,
-  close: PropTypes.func
+  close: PropTypes.func,
+  toggleTable: PropTypes.func,
+  tableStatus: PropTypes.bool
 };
 
 class Chart extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      table: false
+    };
+  }
+
+  toggleTable = (e) => {
+    e.preventDefault();
+    const table = !this.state.table;
+    this.setState({table});
+  };
 
   componentWillMount() {
     let filters = [this.props.filter];
@@ -164,6 +189,7 @@ class Chart extends Component {
             legend={this.props.legend}
             height={this.props.height}
             margin={this.props.margin}
+            table={this.state.table}
           />);
         case "bar":
         default:
@@ -183,7 +209,7 @@ class Chart extends Component {
 
     return (
       <div className="clearfix">
-        <Header {...this.props} />
+        <Header {...this.props} toggleTable={this.toggleTable} tableStatus={this.state.table}/>
         {chart}
       </div>
     );
@@ -203,17 +229,19 @@ Chart.propTypes = {
   interval: PropTypes.string.isRequired,
   filter: PropTypes.string.isRequired,
   getCosts: PropTypes.func.isRequired,
-  setDates: PropTypes.func.isRequired,
+  setDates: PropTypes.func,
   setInterval: PropTypes.func.isRequired,
   setFilter: PropTypes.func.isRequired,
   close: PropTypes.func,
   legend: PropTypes.bool,
   height: PropTypes.number,
-  margin: PropTypes.bool
+  margin: PropTypes.bool,
+  table: PropTypes.bool
 };
 
 Chart.defaultProps = {
   legend: true,
+  table: true,
   height: 400,
   margin: true
 };
