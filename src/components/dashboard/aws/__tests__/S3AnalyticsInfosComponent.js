@@ -3,9 +3,7 @@ import S3AnalyticsInfos  from '../S3AnalyticsInfosComponent';
 import { shallow } from 'enzyme';
 import moment from 'moment';
 import AWS from '../../../aws';
-import Misc from '../../../misc';
 
-const TimerangeSelector = Misc.TimerangeSelector;
 const Infos = AWS.S3Analytics.Infos;
 
 const props = {
@@ -67,18 +65,6 @@ describe('<S3AnalyticsInfos />', () => {
     expect(chart.length).toBe(1);
   });
 
-  it('renders <TimerangeSelector/> component if dates are available', () => {
-    const wrapper = shallow(<S3AnalyticsInfos {...validProps}/>);
-    const timerange = wrapper.find(TimerangeSelector);
-    expect(timerange.length).toBe(1);
-  });
-
-  it('renders no <TimerangeSelector/> component if dates are not available', () => {
-    const wrapper = shallow(<S3AnalyticsInfos {...props}/>);
-    const timerange = wrapper.find(TimerangeSelector);
-    expect(timerange.length).toBe(0);
-  });
-
   it('can get values while mounting if dates are available', () => {
     expect(props.getValues).not.toHaveBeenCalled();
     shallow(<S3AnalyticsInfos {...validProps}/>);
@@ -89,13 +75,6 @@ describe('<S3AnalyticsInfos />', () => {
     expect(props.getValues).not.toHaveBeenCalled();
     shallow(<S3AnalyticsInfos {...props}/>);
     expect(props.getValues).not.toHaveBeenCalled();
-  });
-
-  it('can set dates', () => {
-    const wrapper = shallow(<S3AnalyticsInfos {...validProps}/>);
-    expect(props.setDates).not.toHaveBeenCalled();
-    wrapper.instance().setDates(moment().startOf("month"), moment().endOf("month"));
-    expect(props.setDates).toHaveBeenCalled();
   });
 
   it('reloads values when dates are updated', () => {

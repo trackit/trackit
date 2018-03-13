@@ -4,15 +4,13 @@ import Spinner from 'react-spinkit';
 import Misc from '../../misc';
 import {formatPrice} from '../../../common/formatters';
 
-const IntervalNavigator = Misc.IntervalNavigator;
+const TimerangeSelector = Misc.TimerangeSelector;
 
 class InfosComponent extends Component {
 
   constructor(props) {
     super(props);
     this.close = this.close.bind(this);
-    this.setDates = this.setDates.bind(this);
-    this.setInterval = this.setInterval.bind(this);
   }
 
   close = (e) => {
@@ -26,18 +24,9 @@ class InfosComponent extends Component {
 
   componentWillReceiveProps(nextProps) {
     if (this.props.dates !== nextProps.dates ||
-      this.props.interval !== nextProps.interval ||
       this.props.accounts !== nextProps.accounts)
       nextProps.getCosts(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, ['region', 'product']);
   }
-
-  setDates = (start, end) => {
-    this.props.setDates(this.props.id, start, end);
-  };
-
-  setInterval = (interval) => {
-    this.props.setInterval(this.props.id, interval);
-  };
 
   extractTotals() {
     if (!this.props.values.values.hasOwnProperty("region"))
@@ -77,9 +66,17 @@ class InfosComponent extends Component {
       <div className="alert alert-warning" role="alert">Data not available ({this.props.values.error.message})</div>
     ) : null);
 
+    const timerange = (this.props.setDates ? (
+      <TimerangeSelector
+        startDate={this.props.dates.startDate}
+        endDate={this.props.dates.endDate}
+        setDatesFunc={this.setDates}
+      />
+    ) : null);
+
     const totals = (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("values") ? this.extractTotals() : null);
 
-    const noData = (!totals && !loading ? (<h2>No data available.</h2>) : null);
+    const noData = (!totals && !loading ? (<h4 className="no-data">No data available.</h4>) : null);
 
     let values = null;
 
@@ -145,14 +142,9 @@ class InfosComponent extends Component {
           </div>
           <div className="inline-block pull-right">
             <div className="inline-block">
-              <IntervalNavigator
-                startDate={this.props.dates.startDate}
-                endDate={this.props.dates.endDate}
-                setDatesFunc={this.setDates}
-                interval={this.props.interval}
-                setIntervalFunc={this.setInterval}
-              />
+              {timerange}
             </div>
+            &nbsp;
             {close}
           </div>
         </div>
@@ -166,17 +158,14 @@ class InfosComponent extends Component {
 
 InfosComponent.propTypes = {
   id: PropTypes.string.isRequired,
-  type: PropTypes.oneOf(["bar", "pie"]),
   values: PropTypes.object,
   dates: PropTypes.shape({
     startDate: PropTypes.object,
     endDate: PropTypes.object,
   }),
   accounts: PropTypes.arrayOf(PropTypes.object),
-  interval: PropTypes.string.isRequired,
   getCosts: PropTypes.func.isRequired,
-  setDates: PropTypes.func.isRequired,
-  setInterval: PropTypes.func.isRequired,
+  setDates: PropTypes.func,
   close: PropTypes.func
 };
 

@@ -4,7 +4,6 @@ import Spinner from 'react-spinkit';
 import AWS from '../../aws';
 import Misc from '../../misc';
 
-const TimerangeSelector = Misc.TimerangeSelector;
 const Selector = Misc.Selector;
 const Charts = AWS.S3Analytics;
 
@@ -19,7 +18,6 @@ class S3AnalyticsChartsComponent extends Component {
 
   constructor(props) {
     super(props);
-    this.setDates = this.setDates.bind(this);
     this.setFilter = this.setFilter.bind(this);
   }
 
@@ -34,10 +32,6 @@ class S3AnalyticsChartsComponent extends Component {
       this.props.accounts !== nextProps.accounts)
       nextProps.getValues(nextProps.id, "s3", nextProps.dates.startDate, nextProps.dates.endDate, null);
   }
-
-  setDates = (startDate, endDate) => {
-    this.props.setDates(this.props.id, startDate, endDate);
-  };
 
   setFilter = (filter) => {
     this.props.setFilter(this.props.id, filter);
@@ -59,14 +53,6 @@ class S3AnalyticsChartsComponent extends Component {
   }
 
   render() {
-    const timerange = (this.props.dates ? (
-      <TimerangeSelector
-        startDate={this.props.dates.startDate}
-        endDate={this.props.dates.endDate}
-        setDatesFunc={this.setDates}
-      />
-    ) : null);
-
     return (
       <div>
         <div className="clearfix">
@@ -76,7 +62,6 @@ class S3AnalyticsChartsComponent extends Component {
               selected={this.props.filter}
               selectValue={this.setFilter}
             />
-            {timerange}
           </div>
         </div>
         {this.getChart()}
@@ -95,7 +80,6 @@ S3AnalyticsChartsComponent.propTypes = {
     startDate: PropTypes.object,
     endDate: PropTypes.object,
   }),
-  setDates: PropTypes.func.isRequired,
   filter: PropTypes.string.isRequired,
   setFilter: PropTypes.func.isRequired
 };

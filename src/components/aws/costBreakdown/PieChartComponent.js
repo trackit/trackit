@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
-import {costBreakdown} from '../../../common/formatters';
+import ReactTable from 'react-table';
+import {costBreakdown, formatPrice} from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
 
@@ -28,11 +29,39 @@ class PieChartComponent extends Component {
 
   render() {
     const datum = this.generateDatum();
+
     if (!datum)
       return (<h4 className="no-data">No data available for this timerange</h4>);
+
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
+
+    /* istanbul ignore next */
+    const table = (this.props.table ? (
+      <ReactTable
+        data={datum}
+        noDataText="No buckets available"
+        columns={[
+          {
+            Header: 'Name',
+            accessor: 'key',
+            Cell: row => (<strong>{row.value}</strong>)
+          }, {
+            Header: 'Cost',
+            accessor: 'value',
+            Cell: row => (<span className="total-cell">{formatPrice(row.value)}</span>)
+          }
+        ]}
+        defaultSorted={[{
+          id: 'Cost',
+          desc: true
+        }]}
+        defaultPageSize={10}
+        className=" -highlight"
+      />
+    ) : null);
+
     return (
-      <div>
+      <div className="clearfix">
         <NVD3Chart
           id="pieChart"
           type="pieChart"
@@ -47,6 +76,7 @@ class PieChartComponent extends Component {
           donut={true}
           height={this.props.height}
         />
+        {table}
       </div>
     )
   }
@@ -59,11 +89,13 @@ PieChartComponent.propTypes = {
   filter: PropTypes.string.isRequired,
   legend: PropTypes.bool.isRequired,
   height: PropTypes.number.isRequired,
-  margin: PropTypes.bool
+  margin: PropTypes.bool,
+  table: PropTypes.bool
 };
 
 PieChartComponent.defaultProps = {
-  margin: true
+  margin: true,
+  table: false
 };
 
 export default PieChartComponent;

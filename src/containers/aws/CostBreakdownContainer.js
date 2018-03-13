@@ -20,6 +20,8 @@ const clearTooltips = () => {
   }
 };
 
+const minimalCount = 2;
+
 export class CostBreakdownContainer extends Component {
 
   constructor(props) {
@@ -75,7 +77,7 @@ export class CostBreakdownContainer extends Component {
             getCosts={this.props.getCosts}
             setDates={this.props.setCostsDates}
             setInterval={this.props.setCostsInterval}
-            close={Object.keys(this.props.charts).length > 2 ? this.props.removeChart : null}
+            close={Object.keys(this.props.charts).length > minimalCount ? this.props.removeChart : null}
           />
         );
       return (
@@ -92,7 +94,7 @@ export class CostBreakdownContainer extends Component {
           setDates={this.props.setCostsDates}
           setInterval={this.props.setCostsInterval}
           setFilter={this.props.setCostsFilter}
-          close={Object.keys(this.props.charts).length > 2 ? this.props.removeChart : null}
+          close={Object.keys(this.props.charts).length > minimalCount ? this.props.removeChart : null}
         />
       );
     }

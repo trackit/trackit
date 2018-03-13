@@ -3,6 +3,9 @@ import InfosComponent from '../InfosComponent';
 import { shallow } from 'enzyme';
 import Spinner from "react-spinkit";
 import Moment from "moment/moment";
+import Misc from '../../../misc';
+
+const TimerangeSelector = Misc.TimerangeSelector;
 
 const props = {
   id: "42",
@@ -12,12 +15,15 @@ const props = {
     startDate: Moment().startOf('month'),
     endDate: Moment(),
   },
-  interval: "day",
   filter: "product",
   getCosts: jest.fn(),
   setDates: jest.fn(),
-  setInterval: jest.fn(),
   setFilter: jest.fn(),
+};
+
+const propsNoDates = {
+  ...props,
+  setDates: undefined
 };
 
 const propsLoading = {
@@ -67,12 +73,6 @@ const updatedDateProps = {
   getCosts: jest.fn()
 };
 
-const updatedIntervalProps = {
-  ...props,
-  interval: "month",
-  getCosts: jest.fn()
-};
-
 const propsWithClose = {
   ...props,
   close: jest.fn()
@@ -93,6 +93,18 @@ describe('<InfosComponent />', () => {
     const wrapper = shallow(<InfosComponent {...propsLoading}/>);
     const spinner = wrapper.find(Spinner);
     expect(spinner.length).toBe(1);
+  });
+
+  it('renders a <TimerangeSelector /> component when setDates is available', () => {
+    const wrapper = shallow(<InfosComponent {...props}/>);
+    const selector = wrapper.find(TimerangeSelector);
+    expect(selector.length).toBe(1);
+  });
+
+  it('renders no <TimerangeSelector /> component when setDates is not available', () => {
+    const wrapper = shallow(<InfosComponent {...propsNoDates}/>);
+    const selector = wrapper.find(TimerangeSelector);
+    expect(selector.length).toBe(0);
   });
 
   it('renders an alert component when there is an error', () => {
@@ -128,14 +140,7 @@ describe('<InfosComponent />', () => {
     expect(updatedDateProps.getCosts).toHaveBeenCalled();
   });
 
-  it('reloads costs when interval is updated', () => {
-    const wrapper = shallow(<InfosComponent {...props}/>);
-    expect(updatedIntervalProps.getCosts).not.toHaveBeenCalled();
-    wrapper.instance().componentWillReceiveProps(updatedIntervalProps);
-    expect(updatedIntervalProps.getCosts).toHaveBeenCalled();
-  });
-
-  it('does not reload when dates, interval nor filters are updated', () => {
+  it('does not reload when dates nor filters are updated', () => {
     const wrapper = shallow(<InfosComponent {...props}/>);
     expect(props.getCosts).toHaveBeenCalledTimes(1);
     wrapper.instance().componentWillReceiveProps(props);
@@ -147,20 +152,6 @@ describe('<InfosComponent />', () => {
     expect(propsWithClose.close).not.toHaveBeenCalled();
     wrapper.instance().close({ preventDefault() {} });
     expect(propsWithClose.close).toHaveBeenCalledTimes(1);
-  });
-
-  it('can set dates', () => {
-    const wrapper = shallow(<InfosComponent {...props}/>);
-    expect(props.setDates).not.toHaveBeenCalled();
-    wrapper.instance().setDates(Moment().startOf('month'), Moment().endOf('month'));
-    expect(props.setDates).toHaveBeenCalledTimes(1);
-  });
-
-  it('can set interval', () => {
-    const wrapper = shallow(<InfosComponent {...props}/>);
-    expect(props.setInterval).not.toHaveBeenCalled();
-    wrapper.instance().setInterval("interval");
-    expect(props.setInterval).toHaveBeenCalledTimes(1);
   });
 
 });
