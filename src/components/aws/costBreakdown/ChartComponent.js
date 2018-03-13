@@ -202,6 +202,7 @@ class Chart extends Component {
             margin={this.props.margin}
           />);
       }
+      return (<div className="no-chart" style={{height: this.props.height}}/>);
   }
 
   render() {
