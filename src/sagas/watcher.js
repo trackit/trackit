@@ -13,8 +13,8 @@ const Dashboard = {
     yield takeEvery(Constants.DASHBOARD_UPDATE_ITEMS, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_ADD_ITEM, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_REMOVE_ITEM, saveDashboardSaga);
-    yield takeEvery(Constants.DASHBOARD_SET_ITEM_DATES, saveDashboardSaga);
-    yield takeEvery(Constants.DASHBOARD_RESET_ITEMS_DATES, saveDashboardSaga);
+    yield takeEvery(Constants.DASHBOARD_SET_DATES, saveDashboardSaga);
+    yield takeEvery(Constants.DASHBOARD_RESET_DATES, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_SET_ITEM_INTERVAL, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_RESET_ITEMS_INTERVAL, saveDashboardSaga);
     yield takeEvery(Constants.DASHBOARD_SET_ITEM_FILTER, saveDashboardSaga);

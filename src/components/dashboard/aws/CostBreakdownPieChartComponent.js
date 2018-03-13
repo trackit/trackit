@@ -20,18 +20,18 @@ class CostBreakdownPieChartComponent extends Component {
       <Chart
         type="pie"
         legend={false}
-        height={375}
+        height={350}
         margin={false}
         id={this.props.id}
         accounts={this.props.accounts}
         values={this.props.values}
         getCosts={this.getValues}
         dates={this.props.dates}
-        setDates={this.props.setDates}
         interval={this.props.interval}
         setInterval={this.props.setInterval}
         filter={this.props.filter}
         setFilter={this.props.setFilter}
+        table={false}
       />
     );
   }
@@ -47,7 +47,6 @@ CostBreakdownPieChartComponent.propTypes = {
     startDate: PropTypes.object,
     endDate: PropTypes.object,
   }),
-  setDates: PropTypes.func.isRequired,
   filter: PropTypes.string.isRequired,
   setFilter: PropTypes.func.isRequired,
   interval: PropTypes.string.isRequired,

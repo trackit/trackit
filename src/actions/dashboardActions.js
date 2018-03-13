@@ -21,6 +21,13 @@ export default {
       endDate
     }
   }),
+  setDates: (startDate, endDate) => ({
+    type: Constants.DASHBOARD_SET_DATES,
+    dates: {
+      startDate,
+      endDate
+    }
+  }),
   clearItemDates: () => ({type: Constants.DASHBOARD_CLEAR_ITEMS_DATES}),
   resetItemDates: () => ({type: Constants.DASHBOARD_RESET_ITEMS_DATES}),
   setItemInterval: (id, interval) => ({

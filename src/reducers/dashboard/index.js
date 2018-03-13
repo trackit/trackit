@@ -10,5 +10,5 @@ export default combineReducers({
   values,
   dates,
   intervals,
-  filters
+  filters,
 });

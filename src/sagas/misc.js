@@ -87,13 +87,10 @@ export const initialDashboard = () => {
   items[id5] = {maxSize:[6, null], position:[0, 9], size:[2, 4], static: false, type: "s3_chart"};
   items[id6] = {maxSize:[6, null], position:[2, 9], size:[2, 4], static: false, type: "s3_chart"};
   items[id7] = {maxSize:[6, null], position:[4, 9], size:[2, 4], static: false, type: "s3_chart"};
-  let dates = {};
-  Object.keys(items).forEach((id) => {
-    dates[id] = {
-      startDate: moment().subtract(1, 'month').startOf('month'),
-      endDate: moment().subtract(1, 'month').endOf('month')
-    };
-  });
+  let dates = {
+    startDate: moment().subtract(1, 'month').startOf('month'),
+    endDate: moment().subtract(1, 'month').endOf('month')
+  };
   let intervals = {};
   intervals[id1] = "month";
   intervals[id2] = "day";
