@@ -43,6 +43,15 @@ func init() {
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
 			},
 		),
+		http.MethodPatch: routes.H(patchUser).With(
+			RequireAuthenticatedUser{},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
+			routes.Documentation{
+				Summary:     "edit the current user",
+				Description: "Edit the current user, and responds with the user's data.",
+			},
+		),
 		http.MethodGet: routes.H(me).With(
 			RequireAuthenticatedUser{},
 			routes.Documentation{
