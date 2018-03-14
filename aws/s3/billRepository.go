@@ -27,6 +27,7 @@ import (
 
 	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit2/es"
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
@@ -49,6 +50,26 @@ func init() {
 			routes.Documentation{
 				Summary:     "add a new bill repository to an aws account",
 				Description: "Adds a bill repository to an AWS account.",
+			},
+		),
+		http.MethodPatch: routes.H(patchBillRepository).With(
+			routes.RequestContentType{"application/json"},
+			routes.QueryArgs{routes.BillPositoryQueryArg},
+			routes.RequestBody{postBillRepositoryBody{
+				Bucket: "my-bucket",
+				Prefix: "bills/",
+			}},
+			routes.Documentation{
+				Summary:     "add a new bill repository to an aws account",
+				Description: "Adds a bill repository to an AWS account.",
+			},
+		),
+		http.MethodDelete: routes.H(deleteBillRepository).With(
+			routes.RequestContentType{"application/json"},
+			routes.QueryArgs{routes.BillPositoryQueryArg},
+			routes.Documentation{
+				Summary:     "delete a bill repository from an aws account",
+				Description: "delete a bill repository from an AWS account.",
 			},
 		),
 	}.H().With(
@@ -91,6 +112,21 @@ func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (Bil
 	err := dbbr.Insert(tx)
 	if err == nil {
 		out = billRepoFromDbBillRepo(dbbr)
+	}
+	return out, err
+}
+
+// UpdateBillRepository updates a BillRepository in the database
+func UpdateBillRepositorySafe(dbBr *models.AwsBillRepository, br BillRepository, tx *sql.Tx) (BillRepository, error) {
+	dbBr.Prefix = br.Prefix
+	dbBr.Bucket = br.Bucket
+	dbBr.AwsAccountID = br.AwsAccountId
+	dbBr.NextUpdate = br.NextUpdate
+	dbBr.LastImportedManifest = br.LastImportedManifest
+	var out BillRepository
+	err := dbBr.Update(tx)
+	if err == nil {
+		out = billRepoFromDbBillRepo(*dbBr)
 	}
 	return out, err
 }
@@ -207,6 +243,57 @@ func postBillRepositoryWithValidBody(
 
 }
 
+func patchBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
+	var body postBillRepositoryBody
+	routes.MustRequestBody(a, &body)
+	err := isBillRepositoryValid(body)
+	if err == nil {
+		tx := a[db.Transaction].(*sql.Tx)
+		aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+		brId := a[routes.BillPositoryQueryArg].(int)
+		return patchBillRepositoryWithValidBody(r, tx, aa, brId, body)
+	} else {
+		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
+	}
+}
+
+func patchBillRepositoryWithValidBody(
+	r *http.Request,
+	tx *sql.Tx,
+	aa aws.AwsAccount,
+	brId int,
+	body postBillRepositoryBody,
+) (int, interface{}) {
+	l := jsonlog.LoggerFromContextOrDefault(r.Context())
+	dbBillingRepo, err := models.AwsBillRepositoryByID(tx, brId)
+	if err != nil {
+		l.Error("Failed to find bill repository to update.", map[string]interface{}{
+			"error": err.Error(),
+		})
+		return http.StatusNotFound, errors.New("failed to find bill repository to update")
+	}
+	br, err := UpdateBillRepositorySafe(dbBillingRepo, BillRepository{Id: brId, AwsAccountId: aa.Id, Bucket: body.Bucket, Prefix: body.Prefix}, tx)
+	if err == nil {
+		go func() {
+			err = es.CleanByBillRepositoryId(context.Background(), aa.UserId, br.Id)
+			if err != nil {
+				l.Error("Failed to clean ES data for bill repository", map[string]interface{}{
+					"billRepository": br,
+					"error":          err.Error(),
+				})
+			}
+			UpdateReport(context.Background(), aa, br)
+		}()
+		return http.StatusOK, br
+	} else {
+		l.Error("Failed to update bill repository.", map[string]interface{}{
+			"billRepository": br,
+			"error":          err.Error(),
+		})
+		return http.StatusInternalServerError, errors.New("failed to update bill repository")
+	}
+}
+
 const noTwoDotsInBucketNameRegex = `^[a-z-](?:[a-z0-9.-]?[a-z0-9-])+$`
 
 var noTwoDotsInBucketName = regexp.MustCompile(noTwoDotsInBucketNameRegex)
@@ -242,6 +329,42 @@ func isPrefixValid(p string) error {
 	}
 }
 
+func DeleteBillRepositoryById(brId int, tx *sql.Tx) error {
+	dbBr, err := models.AwsBillRepositoryByID(tx, brId)
+	if err == nil {
+		return dbBr.Delete(tx)
+	} else if err.Error() == "sql: no rows in result set" {
+		return errors.New("Failed to retrieve bill repository.")
+	}
+	return err
+}
+
+func deleteBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
+	l := jsonlog.LoggerFromContextOrDefault(r.Context())
+	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+	brId := a[routes.BillPositoryQueryArg].(int)
+	tx := a[db.Transaction].(*sql.Tx)
+	err := DeleteBillRepositoryById(brId, tx)
+	if err == nil {
+		go func() {
+			err = es.CleanByBillRepositoryId(context.Background(), aa.UserId, brId)
+			if err != nil {
+				l.Error("Failed to clean ES data for bill repository", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}()
+		return http.StatusOK, nil
+	} else if err.Error() == "Failed to retrieve bill repository." {
+		l.Error("Failed to delete billing repository.", err.Error())
+		return http.StatusNotFound, errors.New("Billing repository not found.")
+	} else {
+		l.Error("Failed to delete billing repository.", err.Error())
+		return http.StatusInternalServerError, errors.New("Failed to delete billing repository.")
+	}
+
+}
+
 func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	tx := a[db.Transaction].(*sql.Tx)
@@ -256,5 +379,4 @@ func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 		})
 		return http.StatusInternalServerError, errors.New("Failed to retrieve bill repositories.")
 	}
-
 }

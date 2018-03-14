@@ -36,6 +36,15 @@ var (
 		Description: "The ID for an AWS account.",
 	}
 
+	// BillPositoryQueryArg allows to get the bill repository ID in the URL Parameters
+	// with routes.RequiredQueryArgs. This bill repository ID will be an int stored
+	// in the routes.Arguments map with itself for key.
+	BillPositoryQueryArg = QueryArg{
+		Name:        "br",
+		Type:        QueryArgInt{},
+		Description: "The ID for an AWS account.",
+	}
+
 	// DateBeginQueryArg allows to get the iso8601 begin date in the URL
 	// Parameters with routes.QueryArgs. This date will be a
 	// time.Time stored in the routes.Arguments map with itself for key.
