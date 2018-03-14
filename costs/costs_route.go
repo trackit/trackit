@@ -18,11 +18,11 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/es"
 	"github.com/trackit/trackit2/routes"
@@ -48,30 +48,21 @@ var simpleCriterionMap = map[string]bool{
 type esQueryParams struct {
 	dateBegin         time.Time
 	dateEnd           time.Time
-	accountList       []string
+	accountList       []int
 	aggregationParams []string
 }
 
 // costQueryArgs allows to get required queryArgs params
 var costsQueryArgs = []routes.QueryArg{
+	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
 	routes.QueryArg{
 		Name:        "accounts",
 		Description: "List of comma separated AWS accounts ids",
-		Type:        routes.QueryArgStringSlice{},
+		Type:        routes.QueryArgIntSlice{},
 		Optional:    true,
 	},
-	routes.QueryArg{
-		Name:        "begin",
-		Description: "Begining of date interval. Format is ISO8601",
-		Type:        routes.QueryArgDate{},
-		Optional:    false,
-	},
-	routes.QueryArg{
-		Name:        "end",
-		Description: "End of date interval. Format is ISO8601",
-		Type:        routes.QueryArgDate{},
-		Optional:    false,
-	},
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
 	routes.QueryArg{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation, comma separated. Possible values are year, month, week, day, account, product, region, tag(soon)",
@@ -107,17 +98,6 @@ func validateCriteriaParam(parsedParams esQueryParams) error {
 				return fmt.Errorf("tags not yet implemented")
 			}
 			return fmt.Errorf("Error parsing criterion : %s", criterion)
-		}
-	}
-	return nil
-}
-
-// validateAwsAccounts will validate awsAccounts passed to it.
-// It checks that they are numbers that are 12 character long
-func validateAwsAccounts(parsedParams esQueryParams) error {
-	for _, account := range parsedParams.accountList {
-		if _, err := strconv.ParseInt(account, 10, 0); err != nil || len(account) != 12 {
-			return fmt.Errorf("invalid account format : %s", account)
 		}
 	}
 	return nil
@@ -161,18 +141,18 @@ func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQuer
 func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		accountList:       []string{},
+		accountList:       []int{},
 		dateBegin:         a[costsQueryArgs[1]].(time.Time),
 		dateEnd:           a[costsQueryArgs[2]].(time.Time),
 		aggregationParams: a[costsQueryArgs[3]].([]string),
 	}
 	if a[costsQueryArgs[0]] != nil {
-		parsedParams.accountList = a[costsQueryArgs[0]].([]string)
+		parsedParams.accountList = a[costsQueryArgs[0]].([]int)
 	}
 	if err := validateCriteriaParam(parsedParams); err != nil {
 		return http.StatusBadRequest, err
 	}
-	if err := validateAwsAccounts(parsedParams); err != nil {
+	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
 		return http.StatusBadRequest, err
 	}
 	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)

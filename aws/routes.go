@@ -34,7 +34,7 @@ func init() {
 				Summary:     "get aws accounts' data",
 				Description: "Gets the data for all of the user's AWS accounts.",
 			},
-			routes.QueryArgs{AwsAccountsOptionalQueryArg},
+			routes.QueryArgs{routes.AwsAccountsOptionalQueryArg},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
 			routes.RequestContentType{"application/json"},
@@ -50,14 +50,14 @@ func init() {
 		),
 		http.MethodPatch: routes.H(patchAwsAccount).With(
 			routes.RequestContentType{"application/json"},
-			routes.QueryArgs{AwsAccountQueryArg},
+			routes.QueryArgs{routes.AwsAccountQueryArg},
 			routes.Documentation{
 				Summary:     "edit an aws account",
 				Description: "Edits an AWS account from the user's list of accounts.",
 			},
 		),
 		http.MethodDelete: routes.H(deleteAwsAccount).With(
-			routes.QueryArgs{AwsAccountQueryArg},
+			routes.QueryArgs{routes.AwsAccountQueryArg},
 			routes.Documentation{
 				Summary:     "delete an aws account",
 				Description: "Delete the aws account passed in the query args.",
@@ -85,29 +85,6 @@ func init() {
 	}.H().Register("/aws/next")
 }
 
-var (
-	// AwsAccountsOptionalQueryArg allows to get the AWS Account IDs in the URL
-	// Parameters with routes.RequiredQueryArgs. This AWS Account IDs will be a
-	// slice of Uint stored in the routes.Arguments map with itself for key.
-	// AwsAccountsOptionalQueryArg is optional and will not panic if no query
-	// argument is found.
-	AwsAccountsOptionalQueryArg = routes.QueryArg{
-		Name:        "aa",
-		Type:        routes.QueryArgIntSlice{},
-		Description: "The IDs for many AWS account.",
-		Optional:    true,
-	}
-
-	// AwsAccountQueryArg allows to get the AWS Account ID in the URL Parameters
-	// with routes.RequiredQueryArgs. This AWS Account ID will be an Uint stored
-	// in the routes.Arguments map with itself for key.
-	AwsAccountQueryArg = routes.QueryArg{
-		Name:        "aa",
-		Type:        routes.QueryArgInt{},
-		Description: "The ID for an AWS account.",
-	}
-)
-
 // RequireAwsAccount decorates handler to require that an AwsAccount be
 // selected using RequiredQueryArgs{AwsAccountQueryArg}. The decorator will
 // panic if no AwsAccountQueryArg query argument is found.
@@ -131,7 +108,7 @@ func (_ RequireAwsAccount) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			l.Error("missing transaction or user for handler with AWS account", err.Error())
 			return http.StatusInternalServerError, nil
 		}
-		aaid := a[AwsAccountQueryArg].(int)
+		aaid := a[routes.AwsAccountQueryArg].(int)
 		aa, err := GetAwsAccountWithIdFromUser(user, aaid, tx)
 		if err != nil {
 			return http.StatusNotFound, errors.New("AWS account not found")

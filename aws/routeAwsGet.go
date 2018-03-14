@@ -80,7 +80,7 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
-	if accountIds, ok := a[AwsAccountsOptionalQueryArg]; ok {
+	if accountIds, ok := a[routes.AwsAccountsOptionalQueryArg]; ok {
 		awsAccounts, err = AwsAccountsFromUserIDByAccountID(tx, u.Id, accountIds.([]int))
 	} else {
 		awsAccounts, err = GetAwsAccountsFromUser(u, tx)

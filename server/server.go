@@ -27,6 +27,7 @@ import (
 	_ "github.com/trackit/trackit2/aws/s3"
 	"github.com/trackit/trackit2/config"
 	_ "github.com/trackit/trackit2/costs"
+	_ "github.com/trackit/trackit2/costs/diff"
 	"github.com/trackit/trackit2/periodic"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/s3/costs"

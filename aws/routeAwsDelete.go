@@ -48,7 +48,7 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
-	accountToDeleteID := a[AwsAccountQueryArg].(int)
+	accountToDeleteID := a[routes.AwsAccountQueryArg].(int)
 	res, err := DeleteAwsAccountFromAccountID(tx, u.Id, accountToDeleteID)
 	if err != nil {
 		l.Error("error while deleting user's AWS account", err.Error())

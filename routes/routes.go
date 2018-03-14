@@ -15,8 +15,11 @@
 package routes
 
 import (
+	"encoding/csv"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/trackit/trackit2/config"
 )
@@ -51,20 +54,49 @@ type Decorator interface {
 	Decorate(Handler) Handler
 }
 
+// csvGenerator is an interface for any type that can generate a CSV file content
+type csvGenerator interface {
+	ToCSVable() [][]string
+}
+
 func resetRegisteredHandlers() {
 	RegisteredHandlers = RegisteredHandlers[:0]
 }
 
+// BUG(zanchi-r): We do not support content type negociation
+// Only a single type without quality factor should be specified in the Accept header
+// Example : "Accept: text/csv"
+// If an unsupported type is specified an empty body will be returned
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	arguments := make(Arguments)
 	status, output := h.Func(w, r, arguments)
-	w.Header()["Content-Type"] = []string{"application/json; charset=utf-8"}
-	w.WriteHeader(status)
-	e := json.NewEncoder(w)
-	if config.PrettyJsonResponses {
-		e.SetIndent("", "\t")
+	acceptType := "*/*"
+	if len(r.Header["Accept"]) > 0 {
+		acceptType = r.Header["Accept"][0]
 	}
-	e.Encode(output)
+	// If no specific accept type is specified we use application/json by default
+	if strings.HasPrefix(acceptType, "*/*") {
+		acceptType = "application/json"
+	}
+	w.Header()["Content-Type"] = []string{fmt.Sprintf("%s; charset=utf-8", acceptType)}
+	switch acceptType {
+	case "application/json":
+		w.WriteHeader(status)
+		e := json.NewEncoder(w)
+		if config.PrettyJsonResponses {
+			e.SetIndent("", "\t")
+		}
+		e.Encode(output)
+	case "text/csv":
+		w.Header().Set("Content-Disposition", "attachment; filename=trackit.csv")
+		w.WriteHeader(status)
+		if outputGen, ok := output.(csvGenerator); ok {
+			csvWriter := csv.NewWriter(w)
+			csvWriter.WriteAll(outputGen.ToCSVable())
+		} else {
+			// TODO: if the data do not implement the csvGenerator interface, try to generate it by reflection
+		}
+	}
 }
 
 func (h Handler) With(ds ...Decorator) Handler {
