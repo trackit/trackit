@@ -46,6 +46,9 @@ const TemplateLineItem = `
 	"mappings": {
 		"lineitem": {
 			"properties": {
+				"billRepositoryId": {
+					"type": "integer"
+				},
 				"lineItemId": {
 					"type": "keyword",
 					"norms": false

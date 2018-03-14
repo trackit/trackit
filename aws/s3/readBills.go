@@ -93,6 +93,7 @@ type billRepositoryWithRegion struct {
 }
 
 type LineItem struct {
+	BillRepositoryId   int               `csv:"-"                            json:"billRepositoryId"`
 	LineItemId         string            `csv:"identity/LineItemId"          json:"lineItemId"`
 	TimeInterval       string            `csv:"identity/TimeInterval"        json:"-"`
 	InvoiceId          string            `csv:"bill/InvoiceId"               json:"invoiceId"`
