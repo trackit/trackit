@@ -20,13 +20,10 @@ import (
 	"errors"
 	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit2/config"
+	"github.com/trackit/trackit2/awsSession"
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/users"
 )
@@ -48,8 +45,6 @@ const (
 )
 
 var (
-	// Session is an AWS API session.
-	Session client.ConfigProvider
 	// stsService gives access to the AWS STS API.
 	stsService *sts.STS
 	// accountId is the AWS account ID for the credentials provided to the
@@ -58,10 +53,7 @@ var (
 )
 
 func init() {
-	Session = session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(config.AwsRegion),
-	}))
-	stsService = sts.New(Session)
+	stsService = sts.New(awsSession.Session)
 	accountId = initAccountId(stsService)
 }
 
