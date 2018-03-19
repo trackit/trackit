@@ -70,7 +70,7 @@ class InfosComponent extends Component {
       <TimerangeSelector
         startDate={this.props.dates.startDate}
         endDate={this.props.dates.endDate}
-        setDatesFunc={this.setDates}
+        setDatesFunc={this.props.setDates}
       />
     ) : null);
 
