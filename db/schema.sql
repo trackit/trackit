@@ -90,7 +90,7 @@ CREATE TABLE aws_product_pricing_ec2 (
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-CREATE TABLE aws_update_job (
+CREATE TABLE aws_bill_update_job (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	modified               TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
