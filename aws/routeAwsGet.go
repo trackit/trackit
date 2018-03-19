@@ -103,7 +103,7 @@ func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInf
 		    SELECT
 		      *,
 		      ROW_NUMBER() OVER(PARTITION BY aws_bill_repository_id
-		                        ORDER BY     created) AS rn
+		                        ORDER BY     created DESC) AS rn
 		    FROM aws_bill_update_job
 		    WHERE completed > 0
 		  ) AS completed
@@ -115,7 +115,7 @@ func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInf
 		    SELECT
 		      *,
 		      ROW_NUMBER() OVER(PARTITION BY aws_bill_repository_id
-		                        ORDER BY     completed) AS rn
+		                        ORDER BY     completed DESC) AS rn
 		    FROM aws_bill_update_job
 		    WHERE completed = 0 AND expired >= NOW()
 		  ) AS pending
