@@ -86,17 +86,10 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	} else if latestManifest, err := s3.UpdateReport(ctx, aa, br); err != nil {
 	} else {
 		err = updateBillRepositoryForNextUpdate(ctx, tx, br, latestManifest)
-		rErr := registerUpdateCompletion(db.Db, updateId, err)
-		if rErr != nil {
-			logger.Error("Failed to register ingestion completion.", map[string]interface{}{
-				"awsAccountId":     aaId,
-				"billRepositoryId": brId,
-				"error":            rErr.Error(),
-				"updateId":         updateId,
-			})
-		}
+		updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	}
 	if err != nil {
+		updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 		logger.Error("Failed to ingest billing data.", map[string]interface{}{
 			"awsAccountId":     aaId,
 			"billRepositoryId": brId,
@@ -117,6 +110,19 @@ func registerUpdate(db *sql.DB, br s3.BillRepository) (int64, error) {
 		return 0, err
 	}
 	return res.LastInsertId()
+}
+
+func updateCompletion(ctx context.Context, aaId, brId int, db *sql.DB, updateId int64, err error) {
+	rErr := registerUpdateCompletion(db, updateId, err)
+	if rErr != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to register ingestion completion.", map[string]interface{}{
+			"awsAccountId":     aaId,
+			"billRepositoryId": brId,
+			"error":            rErr.Error(),
+			"updateId":         updateId,
+		})
+	}
 }
 
 func registerUpdateCompletion(db *sql.DB, updateId int64, err error) error {
