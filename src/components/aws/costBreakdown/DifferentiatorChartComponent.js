@@ -14,8 +14,9 @@ class DifferentiatorChartComponent extends Component {
     return null;
   };
 
-  generateColumns = (dates) => (
-    dates.map((date, index) => {
+  /* istanbul ignore next */
+  generateColumns(dates) {
+    return dates.map((date, index) => {
       let columns = [{
         Header: 'Cost',
         id: date + '.cost',
@@ -34,7 +35,7 @@ class DifferentiatorChartComponent extends Component {
         columns
       })
     })
-  );
+  }
 
   render() {
     const datum = this.generateDatum();
