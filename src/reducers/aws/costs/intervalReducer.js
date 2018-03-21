@@ -1,7 +1,7 @@
 import Constants from '../../../constants';
 
 const defaultValue = "day";
-const defaultValuePie = "month";
+const defaultValueMonth = "month";
 
 export default (state={}, action) => {
   let intervals = Object.assign({}, state);
@@ -11,7 +11,8 @@ export default (state={}, action) => {
     case Constants.AWS_ADD_CHART:
       switch (action.chartType) {
         case "pie":
-          intervals[action.id] = defaultValuePie;
+        case "diff":
+          intervals[action.id] = defaultValueMonth;
           break;
         case "bar":
         default:

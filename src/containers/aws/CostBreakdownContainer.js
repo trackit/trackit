@@ -54,6 +54,11 @@ export class CostBreakdownContainer extends Component {
     this.props.addChart("pie");
   };
 
+  addDiffChart = (e) => {
+    e.preventDefault();
+    this.props.addChart("diff");
+  };
+
   resetCharts = (e) => {
     e.preventDefault();
     Object.keys(this.props.charts).forEach((id) => {this.props.removeChart(id)});
@@ -115,6 +120,8 @@ export class CostBreakdownContainer extends Component {
           &nbsp;
           <button className="btn btn-default inline-block" onClick={this.addPieChart}>Add a pie chart</button>
           &nbsp;
+          <button className="btn btn-default inline-block" onClick={this.addDiffChart}>Add a cost differentiator table</button>
+          &nbsp;
           <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
       </div>
@@ -167,8 +174,8 @@ const mapDispatchToProps = (dispatch) => ({
   removeChart: (id) => {
     dispatch(Actions.AWS.Costs.removeChart(id));
   },
-  getCosts: (id, begin, end, filters) => {
-    dispatch(Actions.AWS.Costs.getCosts(id, begin, end, filters));
+  getCosts: (id, begin, end, filters, chartType) => {
+    dispatch(Actions.AWS.Costs.getCosts(id, begin, end, filters, chartType));
   },
   setCostsDates: (id, startDate, endDate) => {
     dispatch(Actions.AWS.Costs.setCostsDates(id, startDate, endDate))

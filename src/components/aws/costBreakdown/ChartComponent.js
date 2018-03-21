@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Spinner from 'react-spinkit';
 import BarChart from './BarChartComponent';
 import PieChart from './PieChartComponent';
+import DifferentiatorChart from './DifferentiatorChartComponent';
 import Misc from '../../misc';
 
 const TimerangeSelector = Misc.TimerangeSelector;
@@ -62,6 +63,17 @@ export class Header extends Component {
             setIntervalFunc={this.setInterval}
           />
         );
+      case "diff":
+        return (
+          <TimerangeSelector
+            startDate={this.props.dates.startDate}
+            endDate={this.props.dates.endDate}
+            setDatesFunc={this.setDates}
+            interval={this.props.interval}
+            availableIntervals={["week", "month"]}
+            setIntervalFunc={this.setInterval}
+          />
+        );
       case "bar":
       default:
         return (
@@ -87,8 +99,18 @@ export class Header extends Component {
       <div className="alert alert-warning" role="alert">Data not available ({this.props.values.error.message})</div>
     ) : null);
 
-    const table = (this.props.table && this.props.type === "pie" ? (
+    const selector = (this.props.type !== "diff" ? (
       <div className="inline-block">
+        <Selector
+          values={getFilters(!(this.props.type === "pie"))}
+          selected={this.props.filter}
+          selectValue={this.setFilter}
+        />
+      </div>
+    ) : null);
+
+    const table = (this.props.table && (this.props.type === "pie")? (
+      <div className="inline-block table-toggle">
         <button className="btn btn-default" onClick={this.props.toggleTable}>{(this.props.tableStatus ? "Hide" : "Show")} details</button>
       </div>
     ) : null);
@@ -105,13 +127,7 @@ export class Header extends Component {
 
           {table}
 
-          <div className="inline-block">
-            <Selector
-              values={getFilters(!(this.props.type === "pie"))}
-              selected={this.props.filter}
-              selectValue={this.setFilter}
-            />
-          </div>
+          {selector}
 
           <div className="inline-block">
             {this.getDateSelector()}
@@ -128,7 +144,7 @@ export class Header extends Component {
 }
 
 Header.propTypes = {
-  type: PropTypes.oneOf(["bar", "pie"]),
+  type: PropTypes.oneOf(["bar", "pie", "diff"]),
   values: PropTypes.object,
   dates: PropTypes.shape({
     startDate: PropTypes.object,
@@ -142,7 +158,12 @@ Header.propTypes = {
   setFilter: PropTypes.func.isRequired,
   close: PropTypes.func,
   toggleTable: PropTypes.func,
-  tableStatus: PropTypes.bool
+  tableStatus: PropTypes.bool,
+  table: PropTypes.bool
+};
+
+Header.defaultProps = {
+  table: true,
 };
 
 class Chart extends Component {
@@ -164,7 +185,10 @@ class Chart extends Component {
     let filters = [this.props.filter];
     if (this.props.type === "bar")
       filters.push(this.props.interval);
-    this.props.getCosts(this.props.id, this.props.dates.startDate, this.props.dates.endDate, filters);
+    if (this.props.type === "diff")
+      this.props.getCosts(this.props.id, this.props.dates.startDate, this.props.dates.endDate, [this.props.interval], "differentiator");
+    else
+      this.props.getCosts(this.props.id, this.props.dates.startDate, this.props.dates.endDate, filters, "breakdown");
   }
 
   componentWillReceiveProps(nextProps) {
@@ -174,13 +198,25 @@ class Chart extends Component {
     if (this.props.dates !== nextProps.dates ||
       this.props.interval !== nextProps.interval ||
       this.props.filter !== nextProps.filter ||
-      this.props.accounts !== nextProps.accounts)
-        nextProps.getCosts(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, filters);
+      this.props.accounts !== nextProps.accounts) {
+      if (nextProps.type === "diff")
+        nextProps.getCosts(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, [nextProps.interval], "differentiator");
+      else
+        nextProps.getCosts(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, filters, "breakdown");
+    }
   }
 
   getChart() {
     if (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("values"))
       switch (this.props.type) {
+        case "diff":
+          return (<DifferentiatorChart
+            values={this.props.values.values}
+            interval={this.props.interval}
+            legend={this.props.legend}
+            height={this.props.height}
+            margin={this.props.margin}
+          />);
         case "pie":
           return (<PieChart
             values={this.props.values.values}
@@ -220,7 +256,7 @@ class Chart extends Component {
 
 Chart.propTypes = {
   id: PropTypes.string.isRequired,
-  type: PropTypes.oneOf(["bar", "pie"]),
+  type: PropTypes.oneOf(["bar", "pie", "diff"]),
   values: PropTypes.object,
   dates: PropTypes.shape({
     startDate: PropTypes.object,
@@ -242,9 +278,9 @@ Chart.propTypes = {
 
 Chart.defaultProps = {
   legend: true,
-  table: true,
   height: 400,
-  margin: true
+  margin: true,
+  table: true
 };
 
 export default Chart;

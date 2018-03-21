@@ -50,7 +50,7 @@ class TimerangeSelector extends Component {
             </button>
         </DateRangePicker>
         {(this.props.interval && this.props.setIntervalFunc) &&
-          <IntervalSelector interval={this.props.interval} setInterval={this.props.setIntervalFunc}/>
+          <IntervalSelector interval={this.props.interval} setInterval={this.props.setIntervalFunc} availableIntervals={this.props.availableIntervals}/>
         }
       </div>
     );
@@ -63,6 +63,7 @@ TimerangeSelector.propTypes = {
   endDate: PropTypes.object.isRequired,
   setDatesFunc: PropTypes.func.isRequired,
   interval: PropTypes.string, //only if interval is needed
+  availableIntervals: PropTypes.arrayOf(PropTypes.string), //only if interval is needed
   setIntervalFunc: PropTypes.func, //only if interval is needed
 };
 

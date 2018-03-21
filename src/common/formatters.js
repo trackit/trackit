@@ -11,6 +11,23 @@ export const formatGigaBytes = (a,d = 2) => (formatBytes(a * Math.pow(1024,3), d
 
 export const formatPrice = (value, decimals = 2) => (<span><span className="dollar-sign">$</span>{parseFloat(value.toFixed(decimals)).toLocaleString()}</span>);
 
+export const formatPercent = (value, decimals = 2) => {
+  const formattedValue = parseFloat(value.toFixed(decimals)).toLocaleString();
+  return (<span className={"percent " + (value > 0 ? "red-color" : (value < 0 ? "green-color" : ""))}>{formattedValue}<span className="percent-sign">%</span></span>);
+};
+
+export const formatDate = (moment, precision) => {
+  switch (precision) {
+    case "year":
+      return moment.format('Y');
+    case "month":
+      return moment.format('MMM Y');
+    case "day":
+    default:
+      return moment.format('MMM Do Y');
+  }
+};
+
 export const costBreakdown = {
   transformProductsBarChart: (data, filter, interval) => {
     if (filter === "all" && data.hasOwnProperty(interval))
@@ -52,6 +69,25 @@ export const costBreakdown = {
         total += item.value;
       });
     return total;
+  },
+  transformCostDifferentiator: (data) => {
+    let dates = [];
+    const values = Object.keys(data).map((id) => {
+      const itemValues = {};
+      data[id].forEach((item) => {
+        if (dates.indexOf(item.Date) === -1)
+          dates.push(item.Date);
+        itemValues[item.Date] = {
+          cost: item.Cost,
+          variation: item.PercentVariation
+        };
+      });
+      return {
+        key: id,
+        ...itemValues
+      };
+    });
+    return {dates, values};
   }
 };
 

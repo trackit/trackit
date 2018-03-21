@@ -5,7 +5,8 @@ body {
     background: #edf1f5 !important;
 }
 
-.dollar-sign {
+.dollar-sign,
+.percent-sign {
     color: #bbbbbb;
 }
 
@@ -44,14 +45,16 @@ body {
 }
 
 select {
-  margin: 0 10px;
   height: 34px;
   background: white;
   border: 1px solid #4885ed;
   color: #4885ed;
 }
 
-
+select,
+.table-toggle {
+    margin: 0 10px;
+}
 
 /* BORDERS */
 
