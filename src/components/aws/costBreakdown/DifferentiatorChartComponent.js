@@ -28,7 +28,8 @@ class DifferentiatorChartComponent extends Component {
           Header: 'Variation',
           id: date + '.variation',
           accessor: row => row[date].variation,
-          Cell: row => (<span className="percentvariation-cell">{formatPercent(row.value)}</span>)
+          Cell: row => (<span className="percentvariation-cell">{formatPercent(row.value)}</span>),
+          sortMethod: (a, b) => (Math.abs(a) > Math.abs(b) ? 1 : -1)
         });
       return ({
         Header: formatDate(Moment(date), this.props.interval),
@@ -61,7 +62,7 @@ class DifferentiatorChartComponent extends Component {
             ...dates
           ]}
           defaultSorted={[{
-            id: 'Cost',
+            id: datum.dates[datum.dates.length - 1] + '.cost',
             desc: true
           }]}
           defaultPageSize={10}
