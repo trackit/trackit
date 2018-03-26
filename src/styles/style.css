@@ -5,8 +5,13 @@ body {
     background: #edf1f5 !important;
 }
 
-.dollar-sign {
+.dollar-sign,
+.percent-sign {
     color: #bbbbbb;
+}
+
+.percent-bold {
+    font-weight: 500;
 }
 
 .badge {
@@ -44,14 +49,16 @@ body {
 }
 
 select {
-  margin: 0 10px;
   height: 34px;
   background: white;
   border: 1px solid #4885ed;
   color: #4885ed;
 }
 
-
+select,
+.table-toggle {
+    margin: 0 10px;
+}
 
 /* BORDERS */
 
@@ -288,4 +295,11 @@ h4.no-data {
 .dashboard-item-content .popover-trigger {
     margin: 0 10px;
     font-size: 20px;
+}
+
+/* Cost Breakdown */
+
+.cost-breakdown-chart-icon {
+    font-size: 20px;
+    font-weight: 200;
 }

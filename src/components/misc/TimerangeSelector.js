@@ -19,23 +19,13 @@ class TimerangeSelector extends Component {
 
   render() {
 
-    const ranges = {
-     'Last 7 Days': [Moment().subtract(6, 'days'), Moment()],
-     'Last 30 Days': [Moment().subtract(29, 'days'), Moment()],
-     'This Month': [Moment().startOf('month'), Moment()],
-     'Last Month': [Moment().subtract(1, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
-     'Last 12 Months': [Moment().subtract(1, 'year').startOf('month'), Moment().subtract(1, 'months').endOf('month')],
-     'This Year': [Moment().startOf('year'), Moment()],
-     'Last Year': [Moment().subtract(1, 'year').startOf('year'), Moment().subtract(1, 'year').endOf('year')]
-    };
-
     return(
       <div className="inline-block">
         <DateRangePicker
           parentEl="body"
           startDate={Moment(this.props.startDate)}
           endDate={Moment(this.props.endDate)}
-          ranges={ranges}
+          ranges={this.props.ranges}
           opens="left"
           onApply={this.handleApply}
         >
@@ -50,7 +40,7 @@ class TimerangeSelector extends Component {
             </button>
         </DateRangePicker>
         {(this.props.interval && this.props.setIntervalFunc) &&
-          <IntervalSelector interval={this.props.interval} setInterval={this.props.setIntervalFunc}/>
+          <IntervalSelector interval={this.props.interval} setInterval={this.props.setIntervalFunc} availableIntervals={this.props.availableIntervals}/>
         }
       </div>
     );
@@ -63,7 +53,21 @@ TimerangeSelector.propTypes = {
   endDate: PropTypes.object.isRequired,
   setDatesFunc: PropTypes.func.isRequired,
   interval: PropTypes.string, //only if interval is needed
+  availableIntervals: PropTypes.arrayOf(PropTypes.string), //only if interval is needed
   setIntervalFunc: PropTypes.func, //only if interval is needed
+  ranges: PropTypes.object
+};
+
+TimerangeSelector.defaultProps = {
+  ranges: {
+    'Last 7 Days': [Moment().subtract(6, 'days'), Moment()],
+    'Last 30 Days': [Moment().subtract(29, 'days'), Moment()],
+    'This Month': [Moment().startOf('month'), Moment()],
+    'Last Month': [Moment().subtract(1, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
+    'Last 12 Months': [Moment().subtract(1, 'year').startOf('month'), Moment().subtract(1, 'months').endOf('month')],
+    'This Year': [Moment().startOf('year'), Moment()],
+    'Last Year': [Moment().subtract(1, 'year').startOf('year'), Moment().subtract(1, 'year').endOf('year')]
+  }
 };
 
 export default TimerangeSelector;

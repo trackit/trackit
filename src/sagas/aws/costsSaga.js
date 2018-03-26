@@ -4,11 +4,17 @@ import { setCostBreakdownCharts, getCostBreakdownCharts as getCostBreakdownChart
 import API from '../../api';
 import Constants from '../../constants';
 
-export function* getCostsSaga({ id, begin, end, filters }) {
+export function* getCostsSaga({ id, begin, end, filters, chartType }) {
   try {
     const token = yield getToken();
     const accounts = yield getAWSAccounts();
-    const res = yield call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts);
+    let res;
+    if (chartType === "breakdown")
+      res = yield call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts);
+    else if (chartType === "differentiator")
+      res = yield call(API.AWS.Costs.getCostDiff, token, begin, end, filters, accounts);
+    else
+      res = {success: false};
     if (res.success && res.hasOwnProperty("data")) {
       if (res.data.hasOwnProperty("error"))
         throw Error(res.data.error);

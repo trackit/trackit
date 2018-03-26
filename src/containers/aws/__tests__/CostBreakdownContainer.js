@@ -182,6 +182,13 @@ describe('<CostBreakdownContainer />', () => {
     expect(props.addChart).toHaveBeenCalled();
   });
 
+  it('can add a diff chart', () => {
+    const wrapper = shallow(<CostBreakdownContainer {...propsWithValidCharts}/>);
+    expect(props.addChart).not.toHaveBeenCalled();
+    wrapper.instance().addDiffChart({ preventDefault() {} });
+    expect(props.addChart).toHaveBeenCalled();
+  });
+
   it('can reset charts', () => {
     const wrapper = shallow(<CostBreakdownContainer {...propsWithValidCharts}/>);
     expect(props.removeChart).not.toHaveBeenCalled();

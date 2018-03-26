@@ -111,16 +111,16 @@ export class Header extends Component {
               <Popover info popOver="You can move/delete any element on this dashboard or add new ones using the buttons on the right"/>
             </div>
           </div>
-        </div>
-        &nbsp;
-        <div className="clearfix">
-          <div className="inline-block">
+          <div className="inline-block pull-right">
             <TimerangeSelector
               startDate={this.props.dates.startDate}
               endDate={this.props.dates.endDate}
               setDatesFunc={this.props.setDates}
             />
           </div>
+        </div>
+        &nbsp;
+        <div className="clearfix">
           <div className="inline-block pull-right">
             <div className="inline-block dashboard-btn-group">
             <div className="inline-block dashboard-btn-group-title">

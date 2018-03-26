@@ -13,8 +13,16 @@ const intervals = {
 class IntervalSelector extends Component {
 
   render() {
+
+    const listedIntervals = (!this.props.availableIntervals || !this.props.availableIntervals.length ? intervals : {});
+    if (this.props.availableIntervals) {
+      this.props.availableIntervals.forEach((interval) => {
+        listedIntervals[interval] = intervals[interval];
+      });
+    }
+
     return(
-      <Selector values={intervals} selected={this.props.interval} selectValue={this.props.setInterval}/>
+      <Selector values={listedIntervals} selected={this.props.interval} selectValue={this.props.setInterval}/>
     );
   }
 
@@ -22,7 +30,8 @@ class IntervalSelector extends Component {
 
 IntervalSelector.propTypes = {
   interval: PropTypes.string,
-  setInterval: PropTypes.func
+  setInterval: PropTypes.func,
+  availableIntervals: PropTypes.arrayOf(PropTypes.string)
 };
 
 export default IntervalSelector;

@@ -13,6 +13,11 @@ describe("DatesReducer", () => {
     startDate: moment().subtract(1, 'month').startOf('month'),
     endDate: moment().subtract(1, 'month').endOf('month')
   };
+  let stateDefaultDiff = {};
+  stateDefaultDiff[id] = {
+    startDate: moment().subtract(2, 'month').startOf('month'),
+    endDate: moment().subtract(1, 'month').endOf('month')
+  };
   let insert = {
     "id": {
       startDate: moment().subtract(1, 'month').startOf('month'),
@@ -29,7 +34,10 @@ describe("DatesReducer", () => {
   });
 
   it("handles add chart state", () => {
-    expect(DatesReducer({}, { type: Constants.AWS_ADD_CHART, id })).toEqual(stateDefault);
+    expect(DatesReducer({}, { type: Constants.AWS_ADD_CHART, id, chartType: "bar"})).toEqual(stateDefault);
+    expect(DatesReducer({}, { type: Constants.AWS_ADD_CHART, id, chartType: "pie"})).toEqual(stateDefault);
+    expect(DatesReducer({}, { type: Constants.AWS_ADD_CHART, id, chartType: "diff" })).toEqual(stateDefaultDiff);
+    expect(DatesReducer({}, { type: Constants.AWS_ADD_CHART, id, chartType: null})).toEqual(stateDefault);
   });
 
   it("handles set dates state", () => {

@@ -56,6 +56,14 @@ class InfosComponent extends Component {
   }
 
   render() {
+    const icon = (this.props.icon ? (
+      <div className="cost-breakdown-chart-icon">
+        <i className="menu-icon red-color fa fa-list"/>
+        &nbsp;
+        Summary
+      </div>
+    ) : null);
+
     const loading = (!this.props.values || !this.props.values.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
 
     const close = (this.props.close ? (
@@ -137,6 +145,7 @@ class InfosComponent extends Component {
       <div>
         <div className="clearfix">
           <div className="inline-block pull-left">
+            {icon}
             {loading}
             {error}
           </div>
@@ -166,7 +175,12 @@ InfosComponent.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   getCosts: PropTypes.func.isRequired,
   setDates: PropTypes.func,
-  close: PropTypes.func
+  close: PropTypes.func,
+  icon: PropTypes.bool
+};
+
+InfosComponent.defaultProps = {
+  icon: true
 };
 
 export default InfosComponent;

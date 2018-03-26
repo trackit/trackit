@@ -30,6 +30,7 @@ class CostBreakdownBarChartComponent extends Component {
         setInterval={this.props.setInterval}
         filter={this.props.filter}
         setFilter={this.props.setFilter}
+        icon={false}
       />
     );
   }
