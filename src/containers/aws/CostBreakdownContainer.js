@@ -114,13 +114,29 @@ export class CostBreakdownContainer extends Component {
           Cost Breakdown
         </h3>
         <div className="inline-block pull-right">
-          <button className="btn btn-default inline-block" onClick={this.addSummary}>Add a summary</button>
+          <button className="btn btn-default inline-block" onClick={this.addSummary}>
+            <i className="menu-icon fa fa-list"/>
+            &nbsp;
+            Add a summary
+          </button>
           &nbsp;
-          <button className="btn btn-default inline-block" onClick={this.addBarChart}>Add a bar chart</button>
+          <button className="btn btn-default inline-block" onClick={this.addBarChart}>
+            <i className="menu-icon fa fa-bar-chart"/>
+            &nbsp;
+            Add a bar chart
+          </button>
           &nbsp;
-          <button className="btn btn-default inline-block" onClick={this.addPieChart}>Add a pie chart</button>
+          <button className="btn btn-default inline-block" onClick={this.addPieChart}>
+            <i className="menu-icon fa fa-pie-chart"/>
+            &nbsp;
+            Add a pie chart
+          </button>
           &nbsp;
-          <button className="btn btn-default inline-block" onClick={this.addDiffChart}>Add a cost differentiator table</button>
+          <button className="btn btn-default inline-block" onClick={this.addDiffChart}>
+            <i className="menu-icon fa fa-table"/>
+            &nbsp;
+            Add a cost table
+          </button>
           &nbsp;
           <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
