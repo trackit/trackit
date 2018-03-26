@@ -122,15 +122,14 @@ export class Header extends Component {
           </div>
         );
       case "bar":
+      default:
         return (
           <div className="cost-breakdown-chart-icon">
-            <i className="menu-icon red-color fa fa-pie-chart"/>
+            <i className="menu-icon red-color fa fa-bar-chart"/>
             &nbsp;
             Bar Chart
           </div>
         );
-      default:
-        return null;
     }
   }
 
@@ -206,11 +205,13 @@ Header.propTypes = {
   close: PropTypes.func,
   toggleTable: PropTypes.func,
   tableStatus: PropTypes.bool,
-  table: PropTypes.bool
+  table: PropTypes.bool,
+  icon: PropTypes.bool
 };
 
 Header.defaultProps = {
   table: true,
+  icon: true
 };
 
 class Chart extends Component {

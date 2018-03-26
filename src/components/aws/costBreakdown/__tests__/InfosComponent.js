@@ -78,6 +78,11 @@ const propsWithClose = {
   close: jest.fn()
 };
 
+const propsWithoutIcon = {
+  ...props,
+  icon: false
+};
+
 describe('<InfosComponent />', () => {
 
   beforeEach(() => {
@@ -105,6 +110,18 @@ describe('<InfosComponent />', () => {
     const wrapper = shallow(<InfosComponent {...propsNoDates}/>);
     const selector = wrapper.find(TimerangeSelector);
     expect(selector.length).toBe(0);
+  });
+
+  it('renders an <i /> component when icon is asked', () => {
+    const wrapper = shallow(<InfosComponent {...props}/>);
+    const icon = wrapper.find("i");
+    expect(icon.length).toBe(1);
+  });
+
+  it('renders no <i /> component when icon is not asked', () => {
+    const wrapper = shallow(<InfosComponent {...propsWithoutIcon}/>);
+    const icon = wrapper.find("i");
+    expect(icon.length).toBe(0);
   });
 
   it('renders an alert component when there is an error', () => {

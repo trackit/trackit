@@ -14,9 +14,9 @@ export const formatPrice = (value, decimals = 2) => (<span><span className="doll
 export const formatPercent = (value, decimals = 2) => {
   const formattedValue = parseFloat(Math.abs(value).toFixed(decimals)).toLocaleString();
   const color = (value > 0 ? "red-color" : (value < 0 ? "green-color" : ""));
-  const bold = (Math.abs(value) >= 100 ? "-bold " : " ");
+  const bold = (Math.abs(value) >= 100 ? "percent-bold " : "");
   const sign = (value > 0 ? "+" : (value < 0 ? "-" : ""));
-  return (<span className={"percent" + bold + color}>{sign + formattedValue}<span className="percent-sign">%</span></span>);
+  return (<span className={"percent " + bold + color}>{sign + formattedValue}<span className="percent-sign">%</span></span>);
 };
 
 export const formatDate = (moment, precision) => {
@@ -82,7 +82,7 @@ export const costBreakdown = {
         if (dates.indexOf(item.Date) === -1)
           dates.push(item.Date);
         let variation = item.PercentVariation;
-        if (previous && Math.abs(previous).toFixed(2) < 0.01 && Math.abs(item.Cost).toFixed(2) < 0.01)
+        if (previous !== null && Math.abs(previous).toFixed(2) < 0.01 && Math.abs(item.Cost).toFixed(2) < 0.01)
           variation = 0;
         previous = item.Cost;
         itemValues[item.Date] = {

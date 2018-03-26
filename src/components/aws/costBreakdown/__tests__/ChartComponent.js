@@ -67,7 +67,6 @@ const propsPieWithoutData = {
   }
 };
 
-
 const propsDiffWithoutData = {
   ...propsDiff,
   values: {
@@ -136,6 +135,11 @@ const updatedFilterPropsPie = {
 const propsNoDates = {
   ...props,
   setDates: undefined
+};
+
+const propsWithoutIcon = {
+  ...props,
+  icon: false
 };
 
 describe('<Chart />', () => {
@@ -270,6 +274,30 @@ describe('<Header />', () => {
     expect(timerange.length).toBe(1);
     const interval = wrapper.find(IntervalNavigator);
     expect(interval.length).toBe(0);
+  });
+
+  it('renders <i.fa-pie-chart/> component when PieChart is selected', () => {
+    const wrapper = shallow(<Header {...propsPie}/>);
+    const icon = wrapper.find("i.fa-pie-chart");
+    expect(icon.length).toBe(1);
+  });
+
+  it('renders <i.fa-table/> component when DiffChart is selected', () => {
+    const wrapper = shallow(<Header {...propsDiff}/>);
+    const icon = wrapper.find("i.fa-table");
+    expect(icon.length).toBe(1);
+  });
+
+  it('renders <i.fa-bar-chart/> component when BarChart is selected', () => {
+    const wrapper = shallow(<Header {...props}/>);
+    const icon = wrapper.find("i.fa-bar-chart");
+    expect(icon.length).toBe(1);
+  });
+
+  it('renders no <i/> component when icon is not asked', () => {
+    const wrapper = shallow(<Header {...propsWithoutIcon}/>);
+    const icon = wrapper.find("i.fa");
+    expect(icon.length).toBe(0);
   });
 
   it('renders nothing when setDates is not set', () => {
