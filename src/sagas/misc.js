@@ -53,10 +53,12 @@ export const initialCostBreakdownCharts = () => {
   const id1 = UUID();
   const id2 = UUID();
   const id3 = UUID();
+  const id4 = UUID();
   let charts = {};
   charts[id1] = "bar";
-  charts[id2] = "pie";
-  charts[id3] = "bar";
+  charts[id2] = "diff";
+  charts[id3] = "pie";
+  charts[id4] = "bar";
   let dates = {};
   Object.keys(charts).forEach((id) => {
     dates[id] = {
@@ -64,14 +66,20 @@ export const initialCostBreakdownCharts = () => {
       endDate: moment().subtract(1, 'month').endOf('month')
     };
   });
+  dates[id2] = {
+    startDate: moment().subtract(2, 'month').startOf('month'),
+    endDate: moment().subtract(1, 'month').endOf('month')
+  };
   let interval = {};
   interval[id1] = "day";
   interval[id2] = "month";
-  interval[id3] = "day";
+  interval[id3] = "month";
+  interval[id4] = "day";
   let filter = {};
   filter[id1] = "product";
   filter[id2] = "product";
-  filter[id3] = "region";
+  filter[id3] = "product";
+  filter[id4] = "region";
   return { charts, dates, interval, filter };
 };
 
