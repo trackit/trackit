@@ -37,6 +37,16 @@ var (
 	AwsRegion string
 	// BackendId is an identifier for the current instance of the server.
 	BackendId string
+	// DefaultRole is the role added by default to new user accounts
+	DefaultRole string
+	// DefaultRoleName is the pretty name for the role added by default
+	DefaultRoleName string
+	// DefaultRoleExternal is the external ID for the role added by default
+	DefaultRoleExternal string
+	// DefaultRoleBucket is the billing bucket name for the role added by default
+	DefaultRoleBucket string
+	// DefaultRoleBucketPrefix is the billing prefix for the role added by default
+	DefaultRoleBucketPrefix string
 	// PrettyJsonResponses, if set, indicates JSON HTTP responses should be pretty.
 	PrettyJsonResponses bool
 	// EsAuth is the authentication used to connect to the ElasticSearch database.
@@ -60,6 +70,11 @@ func init() {
 	flag.StringVar(&AuthSecret, "auth-secret", "trackitdefaultsecret", "The secret used to sign and verify JWT tokens.")
 	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
 	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
+	flag.StringVar(&DefaultRole, "default-role", "", "The default role added to new user accounts. No role is added if left empty.")
+	flag.StringVar(&DefaultRoleName, "default-role-name", "Demo", "The pretty name for the default role.")
+	flag.StringVar(&DefaultRoleExternal, "default-role-external", "defaultroleexternal", "The external ID for the default role.")
+	flag.StringVar(&DefaultRoleBucket, "default-role-bucket", "", "The bucket name for the default role.")
+	flag.StringVar(&DefaultRoleBucketPrefix, "default-role-bucket-prefix", "", "The billing prefix for the default role.")
 	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
 	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")

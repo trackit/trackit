@@ -21,7 +21,9 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
 )
 
@@ -67,7 +69,14 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	return createUserWithValidBody(request, body, tx)
+	code, resp := createUserWithValidBody(request, body, tx)
+	// Add the default role to the new account. No error is returned in case of failure
+	// The billing repository is not processed instantly
+	if code == 200 && config.DefaultRole != "" && config.DefaultRoleName != "" &&
+		config.DefaultRoleExternal != "" && config.DefaultRoleBucket != "" {
+		addDefaultRole(request, resp.(User), tx)
+	}
+	return code, resp
 }
 
 func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx) (int, interface{}) {
@@ -80,5 +89,30 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	} else {
 		logger.Error(err.Error(), nil)
 		return 500, errors.New("Failed to create user.")
+	}
+}
+
+func addDefaultRole(request *http.Request, user User, tx *sql.Tx) {
+	ctx := request.Context()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	accoundDB := models.AwsAccount{
+		UserID:   user.Id,
+		Pretty:   config.DefaultRoleName,
+		RoleArn:  config.DefaultRole,
+		External: config.DefaultRoleExternal,
+	}
+	err := accoundDB.Insert(tx)
+	if err != nil {
+		logger.Error("Failed to add default role", err)
+	} else {
+		brDB := models.AwsBillRepository{
+			AwsAccountID: accoundDB.ID,
+			Bucket:       config.DefaultRoleBucket,
+			Prefix:       config.DefaultRoleBucketPrefix,
+		}
+		err = brDB.Insert(tx)
+		if err != nil {
+			logger.Error("Failed to add default bill repository", err)
+		}
 	}
 }
