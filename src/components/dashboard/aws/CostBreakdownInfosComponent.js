@@ -26,6 +26,7 @@ class CostBreakdownInfosComponent extends Component {
         values={this.props.values}
         getCosts={this.getValues}
         dates={this.props.dates}
+        icon={false}
       />
     );
   }

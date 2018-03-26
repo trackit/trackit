@@ -32,6 +32,7 @@ class CostBreakdownPieChartComponent extends Component {
         filter={this.props.filter}
         setFilter={this.props.setFilter}
         table={false}
+        icon={false}
       />
     );
   }
