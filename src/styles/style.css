@@ -10,6 +10,10 @@ body {
     color: #bbbbbb;
 }
 
+.percent-bold {
+    font-weight: 500;
+}
+
 .badge {
   background-color: #d6413b;
   color: white;
@@ -291,4 +295,11 @@ h4.no-data {
 .dashboard-item-content .popover-trigger {
     margin: 0 10px;
     font-size: 20px;
+}
+
+/* Cost Breakdown */
+
+.cost-breakdown-chart-icon {
+    font-size: 20px;
+    font-weight: 200;
 }
