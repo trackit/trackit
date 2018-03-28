@@ -58,6 +58,7 @@ func init() {
 		),
 		http.MethodDelete: routes.H(deleteAwsAccount).With(
 			routes.QueryArgs{routes.AwsAccountQueryArg},
+			RequireAwsAccount{},
 			routes.Documentation{
 				Summary:     "delete an aws account",
 				Description: "Delete the aws account passed in the query args.",

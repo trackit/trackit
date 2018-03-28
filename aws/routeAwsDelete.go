@@ -15,6 +15,7 @@
 package aws
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"net/http"
@@ -22,6 +23,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit2/es"
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
@@ -31,7 +33,7 @@ import (
 // accountID passed to it. It does not perform any check, especially
 // on authorizations, which needs to be done by the caller
 func DeleteAwsAccountFromAccountID(db models.XODB, userID int, accountID int) (int, error) {
-	var sqlstr = `DELETE FROM trackit.aws_account WHERE id = ? and userId = ?`
+	var sqlstr = `DELETE FROM trackit.aws_account WHERE id = ? and user_id = ?`
 
 	models.XOLog(sqlstr, accountID, userID)
 	buff, err := db.Exec(sqlstr, accountID, userID)
@@ -48,7 +50,12 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
-	accountToDeleteID := a[routes.AwsAccountQueryArg].(int)
+	aa := a[AwsAccountSelection].(AwsAccount)
+	accountToDeleteID := aa.Id
+	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
+	if err != nil {
+		l.Error("unable to retrieve bill repositories", err.Error())
+	}
 	res, err := DeleteAwsAccountFromAccountID(tx, u.Id, accountToDeleteID)
 	if err != nil {
 		l.Error("error while deleting user's AWS account", err.Error())
@@ -60,5 +67,13 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 			return http.StatusInternalServerError, errors.New("specified AWS account is not in user's accounts")
 		}
 	}
+	go func() {
+		for _, br := range dbAwsBillRepositories {
+			err = es.CleanByBillRepositoryId(context.Background(), aa.UserId, br.ID)
+			if err != nil {
+				l.Error("Failed to clean ES data for bill repository", err.Error())
+			}
+		}
+	}()
 	return http.StatusOK, nil
 }

@@ -57,6 +57,24 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 	return userFromDbUser(dbUser), err
 }
 
+// UpdateUserWithPassword updates a user with an email and a password. A nil
+// error indicates a success.
+func UpdateUserWithPassword(ctx context.Context, tx *sql.Tx, dbUser *models.User, email string, password string) (User, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbUser.Email = email
+	auth, err := getPasswordHash(password)
+	if err != nil {
+		logger.Error("Failed to create password hash.", err.Error())
+	} else {
+		dbUser.Auth = auth
+		err = dbUser.Update(tx)
+		if err != nil {
+			logger.Error("Failed to update user.", err.Error())
+		}
+	}
+	return userFromDbUser(*dbUser), err
+}
+
 func (u User) UpdateNextExternal(ctx context.Context, db models.XODB) error {
 	dbUser, err := models.UserByID(db, u.Id)
 	if err == nil {

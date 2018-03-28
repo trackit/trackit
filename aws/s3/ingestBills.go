@@ -138,7 +138,7 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 			ctx,
 			aa,
 			br,
-			ingestLineItems(ctx, bp, index),
+			ingestLineItems(ctx, bp, index, br),
 			manifestsModifiedAfter(br.LastImportedManifest),
 		)
 	}
@@ -159,9 +159,10 @@ func getBulkProcessor(ctx context.Context) (*elastic.BulkProcessor, error) {
 
 // ingestLineItems returns an OnLineItem handler which ingests LineItems in an
 // ElasticSearch index.
-func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index string) OnLineItem {
+func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index string, br BillRepository) OnLineItem {
 	return func(li LineItem, ok bool) {
 		if ok {
+			li.BillRepositoryId = br.Id
 			li = extractTags(li)
 			rq := elastic.NewBulkIndexRequest()
 			rq = rq.Index(index)

@@ -42,10 +42,13 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 4,
+	"version": 5,
 	"mappings": {
 		"lineitem": {
 			"properties": {
+				"billRepositoryId": {
+					"type": "integer"
+				},
 				"lineItemId": {
 					"type": "keyword",
 					"norms": false

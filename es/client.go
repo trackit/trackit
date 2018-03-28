@@ -26,7 +26,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	taws "github.com/trackit/trackit2/aws"
+	"github.com/trackit/trackit2/awsSession"
 	"github.com/trackit/trackit2/config"
 )
 
@@ -133,7 +133,7 @@ func getElasticSearchIamAuth(auth string) elastic.ClientOptionFunc {
 // requests to the ElasticSearch server.
 func getElasticSearchEc2RoleAuth() elastic.ClientOptionFunc {
 	var err error
-	if creds := ec2rolecreds.NewCredentials(taws.Session); creds != nil {
+	if creds := ec2rolecreds.NewCredentials(awsSession.Session); creds != nil {
 		if _, err = creds.Get(); err == nil {
 			return getElasticSearchEc2RoleAuthOptionFunc(creds)
 		}
