@@ -37,6 +37,8 @@ var (
 	AwsRegion string
 	// BackendId is an identifier for the current instance of the server.
 	BackendId string
+	// ReportsBucket is the bucket name where the reports are stored.
+	ReportsBucket string
 	// DefaultRole is the role added by default to new user accounts
 	DefaultRole string
 	// DefaultRoleName is the pretty name for the role added by default
@@ -70,6 +72,7 @@ func init() {
 	flag.StringVar(&AuthSecret, "auth-secret", "trackitdefaultsecret", "The secret used to sign and verify JWT tokens.")
 	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
 	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
+	flag.StringVar(&ReportsBucket, "reports-bucket", "", "The bucket name where the reports are stored. The feature is disabled if left empty.")
 	flag.StringVar(&DefaultRole, "default-role", "", "The default role added to new user accounts. No role is added if left empty.")
 	flag.StringVar(&DefaultRoleName, "default-role-name", "Demo", "The pretty name for the default role.")
 	flag.StringVar(&DefaultRoleExternal, "default-role-external", "defaultroleexternal", "The external ID for the default role.")
