@@ -31,6 +31,7 @@ import (
 	_ "github.com/trackit/trackit2/costs"
 	_ "github.com/trackit/trackit2/costs/diff"
 	"github.com/trackit/trackit2/periodic"
+	_ "github.com/trackit/trackit2/reports"
 	"github.com/trackit/trackit2/routes"
 	_ "github.com/trackit/trackit2/s3/costs"
 	_ "github.com/trackit/trackit2/users"
