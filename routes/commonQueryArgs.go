@@ -64,4 +64,24 @@ var (
 		Description: "End of date interval. Format is ISO8601",
 		Optional:    false,
 	}
+
+	// ReportTypeQueryArg allows to get the report type in the URL
+	// Parameters with routes.QueryArgs. This type will be a
+	// string stored in the routes.Arguments map with itself for key.
+	ReportTypeQueryArg = QueryArg{
+		Name:        "report-type",
+		Type:        QueryArgString{},
+		Description: "The report type",
+		Optional:    false,
+	}
+
+	// FileNameQueryArg allows to a file name in the URL
+	// Parameters with routes.QueryArgs. This type will be a
+	// string stored in the routes.Arguments map with itself for key.
+	FileNameQueryArg = QueryArg{
+		Name:        "file-name",
+		Type:        QueryArgString{},
+		Description: "The file type",
+		Optional:    false,
+	}
 )

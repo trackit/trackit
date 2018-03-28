@@ -59,6 +59,12 @@ type csvGenerator interface {
 	ToCSVable() [][]string
 }
 
+// xlsGenerator is an interface for any type that can generate an xls file content
+type xlsGenerator interface {
+	GetFileContent() []byte
+	GetFileName() string
+}
+
 func resetRegisteredHandlers() {
 	RegisteredHandlers = RegisteredHandlers[:0]
 }
@@ -95,6 +101,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			csvWriter.WriteAll(outputGen.ToCSVable())
 		} else {
 			// TODO: if the data do not implement the csvGenerator interface, try to generate it by reflection
+		}
+	case "application/vnd.ms-excel":
+		if outputGen, ok := output.(xlsGenerator); ok {
+			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", outputGen.GetFileName()))
+			w.WriteHeader(status)
+			w.Write(outputGen.GetFileContent())
+		} else {
+			if status == http.StatusOK {
+				w.WriteHeader(http.StatusNotImplemented)
+			} else {
+				w.WriteHeader(status)
+			}
 		}
 	}
 }
