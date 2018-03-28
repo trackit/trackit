@@ -15,11 +15,13 @@
 package aws
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -29,6 +31,140 @@ import (
 	"github.com/trackit/trackit2/users"
 )
 
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getBillRepositoryUpdates).With(
+			routes.Documentation{
+				Summary:     "get user's bill repositories and info about their update status",
+				Description: "Gets the list of the user's bill repositories and info about when they have updated or will update.",
+			},
+		),
+	}.H().With(
+		db.RequestTransaction{db.Db},
+		users.RequireAuthenticatedUser{},
+	).Register("/aws/billrepositoryupdates")
+}
+
+type dbAccessor interface {
+	Exec(string, ...interface{}) (sql.Result, error)
+	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
+	Query(string, ...interface{}) (*sql.Rows, error)
+	QueryRow(string, ...interface{}) *sql.Row
+}
+
+type BillRepositoryUpdateInfo struct {
+	BillRepositoryId int        `json:"billRepositoryId`
+	AwsAccountPretty string     `json:"awsAccountPretty`
+	AwsAccountId     int        `json:"awsAccountId`
+	Bucket           string     `json:"bucket"`
+	Prefix           string     `json:"prefix"`
+	NextStarted      *time.Time `json:"nextStarted"`
+	NextPending      *bool      `json:"nextPending"`
+	LastStarted      *time.Time `json:"lastStarted"`
+	LastFinished     *time.Time `json:"lastFinished"`
+	LastError        *string    `json:"lastError"`
+}
+
+func getBillRepositoryUpdates(r *http.Request, a routes.Arguments) (int, interface{}) {
+	u := a[users.AuthenticatedUser].(users.User)
+	tx := a[db.Transaction].(*sql.Tx)
+	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
+	updateInfo, err := BillRepositoryUpdates(tx, u.Id)
+	if err != nil {
+		logger.Error("Failed to get bill repository update jobs.", map[string]interface{}{
+			"user":  u,
+			"error": err.Error(),
+		})
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, updateInfo
+}
+
+func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInfo, error) {
+	// for each seleced bill repository, find data about the last and
+	// next/current update and join it all
+	var sqlstr = `
+		SELECT
+		  aws_bill_repository.id             AS id,
+		  aws_account.pretty                 AS aws_account_pretty,
+		  aws_bill_repository.aws_account_id AS aws_account_id,
+		  aws_bill_repository.bucket         AS bucket,
+		  aws_bill_repository.prefix         AS prefix,
+		  aws_bill_repository.next_update    AS next_update,
+		  (last_pending.id IS NOT NULL)      AS next_pending,
+		  last_completed.created             AS last_started,
+		  last_completed.completed           AS last_finished,
+		  last_completed.error               AS last_error
+		FROM aws_bill_repository
+		INNER JOIN aws_account ON
+		  aws_bill_repository.aws_account_id = aws_account.id
+		LEFT OUTER JOIN (
+		  SELECT * FROM (
+		    SELECT
+		      *,
+		      ROW_NUMBER() OVER(PARTITION BY aws_bill_repository_id
+		                        ORDER BY     created DESC) AS rn
+		    FROM aws_bill_update_job
+		    WHERE completed > 0
+		  ) AS completed
+		  WHERE completed.rn = 1
+		) AS last_completed ON
+		  aws_bill_repository.id = last_completed.aws_bill_repository_id
+		LEFT OUTER JOIN (
+		  SELECT * FROM (
+		    SELECT
+		      *,
+		      ROW_NUMBER() OVER(PARTITION BY aws_bill_repository_id
+		                        ORDER BY     completed DESC) AS rn
+		    FROM aws_bill_update_job
+		    WHERE completed = 0 AND expired >= NOW()
+		  ) AS pending
+		  WHERE pending.rn = 1
+		) AS last_pending ON
+		  aws_bill_repository.id = last_pending.aws_bill_repository_id
+		WHERE aws_account.user_id = ?
+	`
+	q, err := db.Query(sqlstr, userId)
+	if err != nil {
+		return nil, err
+	}
+	defer q.Close()
+	var res []BillRepositoryUpdateInfo
+	var i int
+	for i = 0; q.Next(); i++ {
+		res = append(res, BillRepositoryUpdateInfo{})
+		err = q.Scan(
+			&res[i].BillRepositoryId,
+			&res[i].AwsAccountPretty,
+			&res[i].AwsAccountId,
+			&res[i].Bucket,
+			&res[i].Prefix,
+			&res[i].NextStarted,
+			&res[i].NextPending,
+			&res[i].LastStarted,
+			&res[i].LastFinished,
+			&res[i].LastError,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res[:i], nil
+}
+
+func intArrayToStringArray(integers []int) (strings []string) {
+	strings = make([]string, len(integers))
+	for i := range integers {
+		strings[i] = strconv.FormatInt(int64(integers[i]), 10)
+	}
+	return
+}
+
+func intArrayToSqlSet(integers []int) string {
+	ss := intArrayToStringArray(integers)
+	return "(" + strings.Join(ss, ",") + ")"
+}
+
 // AwsAccountsFromUserIDByAccountID retrieves rows from 'trackit.aws_account' as AwsAccount.
 // The result is filtered by a slice of accountID
 func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) ([]AwsAccount, error) {
@@ -36,9 +172,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 	var stringAccountIDs []string
 
 	// gen account_id
-	for _, id := range accountIDs {
-		stringAccountIDs = append(stringAccountIDs, strconv.FormatInt(int64(id), 10))
-	}
+	stringAccountIDs = intArrayToStringArray(accountIDs)
 	accountID := "(" + strings.Join(stringAccountIDs, ",") + ")"
 
 	// sql query

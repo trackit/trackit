@@ -68,6 +68,7 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var br s3.BillRepository
+	var updateId int64
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -81,18 +82,61 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if br, err = s3.GetBillRepositoryForAwsAccountById(aa, brId, tx); err != nil {
+	} else if updateId, err = registerUpdate(db.Db, br); err != nil {
 	} else if latestManifest, err := s3.UpdateReport(ctx, aa, br); err != nil {
 	} else {
 		err = updateBillRepositoryForNextUpdate(ctx, tx, br, latestManifest)
+		updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	}
 	if err != nil {
+		updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 		logger.Error("Failed to ingest billing data.", map[string]interface{}{
-			"error":            err.Error(),
 			"awsAccountId":     aaId,
 			"billRepositoryId": brId,
+			"error":            err.Error(),
 		})
 	}
 	return
+}
+
+func registerUpdate(db *sql.DB, br s3.BillRepository) (int64, error) {
+	const sqlstr = `INSERT INTO aws_bill_update_job(
+		aws_bill_repository_id,
+		worker_id,
+		error
+	) VALUES (?, ?, "")`
+	res, err := db.Exec(sqlstr, br.Id, backendId)
+	if err != nil {
+		return 0, err
+	}
+	return res.LastInsertId()
+}
+
+func updateCompletion(ctx context.Context, aaId, brId int, db *sql.DB, updateId int64, err error) {
+	rErr := registerUpdateCompletion(db, updateId, err)
+	if rErr != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to register ingestion completion.", map[string]interface{}{
+			"awsAccountId":     aaId,
+			"billRepositoryId": brId,
+			"error":            rErr.Error(),
+			"updateId":         updateId,
+		})
+	}
+}
+
+func registerUpdateCompletion(db *sql.DB, updateId int64, err error) error {
+	const sqlstr = `UPDATE aws_bill_update_job SET
+		completed=?,
+		error=?
+	WHERE id=?`
+	var errorValue string
+	var now = time.Now()
+	if err != nil {
+		errorValue = err.Error()
+	}
+	_, err = db.Exec(sqlstr, now, errorValue, updateId)
+	return err
 }
 
 const (
