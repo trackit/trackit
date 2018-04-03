@@ -22,13 +22,12 @@ export class Item extends Component {
   }
 
   editBill = (body) => {
-    console.log("Bill repository edition is not available yet");
-//    this.props.editBill(body);
+    body.id = this.props.bill.id;
+    this.props.editBill(this.props.account, body);
   };
 
   deleteBill = () => {
-    console.log("Bill repository deletion is not available yet");
-//    this.props.deleteBill(this.props.bill.id);
+    this.props.deleteBill(this.props.account, this.props.bill.id);
   };
 
   render() {
@@ -169,8 +168,8 @@ const mapDispatchToProps = (dispatch) => ({
   editBill: (accountID, bill) => {
     dispatch(Actions.AWS.Accounts.editAccountBill(accountID, bill))
   },
-  deleteBill: (accountID, bill) => {
-    dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, bill));
+  deleteBill: (accountID, billID) => {
+    dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, billID));
   },
   clearBills: () => {
     dispatch(Actions.AWS.Accounts.clearAccountBills());

@@ -66,11 +66,14 @@ export function* newAccountBillSaga({ accountID, bill }) {
 export function* editAccountSaga({ account }) {
   try {
     const token = yield getToken();
-    yield call(API.AWS.Accounts.editAccount, account, token);
-    yield all([
-      put({ type: Constants.AWS_EDIT_ACCOUNT_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNTS })
-    ]);
+    const res = yield call(API.AWS.Accounts.editAccount, account, token);
+    if (res.success && res.hasOwnProperty("data"))
+      yield all([
+        put({ type: Constants.AWS_EDIT_ACCOUNT_SUCCESS }),
+        put({ type: Constants.AWS_GET_ACCOUNTS })
+      ]);
+    else
+      throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_EDIT_ACCOUNT_ERROR, error });
   }
@@ -79,11 +82,14 @@ export function* editAccountSaga({ account }) {
 export function* editAccountBillSaga({ accountID, bill }) {
   try {
     const token = yield getToken();
-    yield call(API.AWS.Accounts.editAccountBill, accountID, bill, token);
-    yield all([
-      put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
-    ]);
+    const res = yield call(API.AWS.Accounts.editAccountBill, accountID, bill, token);
+    if (res.success && res.hasOwnProperty("data"))
+      yield all([
+        put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
+        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+      ]);
+    else
+      throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_ERROR, error });
   }
@@ -92,24 +98,30 @@ export function* editAccountBillSaga({ accountID, bill }) {
 export function* deleteAccountSaga({ accountID }) {
   try {
     const token = yield getToken();
-    yield call(API.AWS.Accounts.deleteAccount, accountID, token);
-    yield all([
-      put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNTS })
-    ]);
+    const res = yield call(API.AWS.Accounts.deleteAccount, accountID, token);
+    if (res.success && res.hasOwnProperty("data"))
+      yield all([
+        put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),
+        put({ type: Constants.AWS_GET_ACCOUNTS })
+      ]);
+    else
+      throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_DELETE_ACCOUNT_ERROR, error });
   }
 }
 
-export function* deleteAccountBillSaga({ accountID, bill }) {
+export function* deleteAccountBillSaga({ accountID, billID }) {
   try {
     const token = yield getToken();
-    yield call(API.AWS.Accounts.deleteAccountBill, accountID, bill, token);
-    yield all([
-      put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
-      put({ type: Constants.AWS_GET_ACCOUNTS })
-    ]);
+    const res = yield call(API.AWS.Accounts.deleteAccountBill, accountID, billID, token);
+    if (res.success && res.hasOwnProperty("data"))
+      yield all([
+        put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
+        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+      ]);
+    else
+      throw Error("Error with request");
   } catch (error) {
     yield put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_ERROR, error });
   }
