@@ -42,10 +42,10 @@ export default {
     type: Constants.AWS_DELETE_ACCOUNT,
     accountID
   }),
-  deleteAccountBill: (accountID, bill) => ({
+  deleteAccountBill: (accountID, billID) => ({
     type: Constants.AWS_DELETE_ACCOUNT_BILL,
     accountID,
-    bill
+    billID
   }),
 	newExternal: () => ({
 		type: Constants.AWS_NEW_EXTERNAL

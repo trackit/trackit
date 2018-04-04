@@ -45,7 +45,7 @@ class FormComponent extends Component {
       bucket: bucketValues[0],
       prefix: bucketValues[1]
     };
-    this.props.submit(this.props.account, bill);
+    this.props.submit(bill);
   };
 
   render() {
