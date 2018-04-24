@@ -92,6 +92,12 @@ export class Navigation extends Component {
                 <span className="hide-menu">AWS S3 Analytics</span>
               </NavLink>
             </li>
+            <li>
+              <NavLink to='/app/reports' activeClassName="active">
+                <i className="menu-icon fa fa-file-text"/>
+                <span className="hide-menu">AWS reports</span>
+              </NavLink>
+            </li>
             {/*
             <li>
               <NavLink to='/app/optimize' activeClassName="active">

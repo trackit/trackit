@@ -28,7 +28,10 @@ export default {
       dates: {},
       interval: {},
       filter: {}
-    }
+    },
+    reports: {
+      account: '',
+    },
   },
   gcp: {},
   dashboard: {
