@@ -5,11 +5,7 @@ import PropTypes from 'prop-types';
 import Actions from "../../../actions";
 import Selector from '../../misc/Selector';
 
-export class SingleAccountSelectorComponent extends Component {
-
-  componentWillMount() {
-    this.props.getAccounts();
-  }
+export class ReportAccountSelectorComponent extends Component {
 
   render() {
     const listedAccounts = (this.props.accounts.values && this.props.accounts.values.length > 0 ? this.props.accounts.values : null);
@@ -27,7 +23,7 @@ export class SingleAccountSelectorComponent extends Component {
 
 }
 
-SingleAccountSelectorComponent.propTypes = {
+ReportAccountSelectorComponent.propTypes = {
   accounts: PropTypes.shape({
     status: PropTypes.bool.isRequired,
     error: PropTypes.instanceOf(Error),
@@ -47,7 +43,6 @@ SingleAccountSelectorComponent.propTypes = {
   }),
   account: PropTypes.string,
   selectAccount: PropTypes.func.isRequired,
-  getAccounts: PropTypes.func.isRequired,
 };
 
 /* istanbul ignore next */
@@ -58,12 +53,9 @@ const mapStateToProps = ({aws}) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getAccounts: () => {
-    dispatch(Actions.AWS.Accounts.getAccounts());
-  },
   selectAccount: (accountId) => {
     dispatch(Actions.AWS.Reports.selectAccount(accountId));
   }
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(SingleAccountSelectorComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(ReportAccountSelectorComponent);

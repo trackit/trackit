@@ -1,5 +1,5 @@
 import React from 'react';
-import { SingleAccountSelectorComponent } from '../SingleAccountSelectorComponent';
+import { ReportAccountSelectorComponent } from '../ReportAccountSelectorComponent';
 import { shallow } from 'enzyme';
 
 const account1 = {
@@ -20,7 +20,7 @@ const account3 = {
   pretty: "pretty_bis_again"
 };
 
-describe('<SingleAccountSelectorComponent />', () => {
+describe('<ReportAccountSelectorComponent />', () => {
 
   const props = {
     selectAccount: jest.fn(),
@@ -44,12 +44,12 @@ describe('<SingleAccountSelectorComponent />', () => {
     jest.resetAllMocks();
   });
 
-  it('renders a <SingleAccountSelectorComponent /> component', () => {
-    const wrapper = shallow(<SingleAccountSelectorComponent {...propsWithAccounts}/>);
+  it('renders a <ReportAccountSelectorComponent /> component', () => {
+    const wrapper = shallow(<ReportAccountSelectorComponent {...propsWithAccounts}/>);
     expect(wrapper.length).toBe(1);
   });
-  it('renders a <SingleAccountSelectorComponent /> component without accounts', () => {
-    const wrapper = shallow(<SingleAccountSelectorComponent {...props}/>);
+  it('renders a <ReportAccountSelectorComponent /> component without accounts', () => {
+    const wrapper = shallow(<ReportAccountSelectorComponent {...props}/>);
     expect(wrapper.get(0)).toBeNull();
   });
 });
