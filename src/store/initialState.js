@@ -31,6 +31,13 @@ export default {
     },
     reports: {
       account: '',
+      download: {
+        failed: false,
+      },
+      reportList: {
+        status: false,
+        values: []
+      }
     },
   },
   gcp: {},
