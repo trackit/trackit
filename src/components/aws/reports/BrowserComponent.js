@@ -1,13 +1,25 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-import ReactTable from 'react-table';
 import Spinner from 'react-spinkit';
+import List, { ListItem, ListItemText } from 'material-ui/List';
 
 import Actions from "../../../actions";
 
 
 export class BrowserComponent extends Component {
+
+  constructor(props) {
+    super(props);
+    this.handleDownloadClick = this.handleDownloadClick.bind(this);
+  }
+
+  handleDownloadClick = (e, report) => {
+    e.preventDefault();
+    let reportInfos = report.split('/');
+    this.props.startDownload(this.props.account, reportInfos[0], reportInfos[1]);
+  };
+
   render() {
     if (!this.props.reportList.status) {
       return (<Spinner className="spinner" name='circle'/>);
@@ -17,41 +29,27 @@ export class BrowserComponent extends Component {
     if (noReports !== '') {
       return (noReports);
     }
-    const data = (this.props.reportList.status && this.props.reportList.values && this.props.reportList.values.length ? (
-      this.props.reportList.values.map((report, index) => (
-        {Name: report}
-      ))
-    ) : []);
+    const listItems = this.props.reportList.values.map((report, index) => (
+      <div key={report}>
+        <ListItem divider>
+          <i class="fa fa-file-excel-o fa-2x red-color"></i>
+          <ListItemText
+            disableTypography
+            className="report-name"
+            primary={report}
+          />
+          <div className="actions">
+            <div className="inline-block">
+              <button className="btn btn-default" onClick={(e) => this.handleDownloadClick(e, report)}>Download</button>
+            </div>
+          </div>
+        </ListItem>
+      </div>
+    ));
     return(
-      <ReactTable
-        data={data}
-        noDataText="No reports available"
-        columns={[
-            {
-              Header: 'Reports',
-              accessor: 'Name',
-            },
-          ]
-        }
-        defaultPageSize={10}
-        defaultSorted={[{
-          id: 'Name',
-          desc: true
-        }]}
-        className=" -highlight"
-        getTdProps={(state, rowInfo, column, instance) => {
-          return {
-            onClick: (e, handleOriginal) => {
-              let res = rowInfo.original.Name.split('/');
-              this.props.startDownload(this.props.account, res[0], res[1]);
-              /* istanbul ignore next */
-              if (handleOriginal) {
-                handleOriginal();
-              }
-            }
-          };
-        }}
-      />
+      <List disablePadding className="reports-list">
+        {listItems}
+      </List>
     );
   }
 }

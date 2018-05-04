@@ -58,7 +58,7 @@ describe('<BrowserComponent />', () => {
 
   it('calls startDownload when clicking on a report', () => {
     const wrapper = mount(<BrowserComponent {...propsWithReports}/>);
-    wrapper.find("div.rt-td").at(0).simulate('click');
+    wrapper.find("button").at(0).simulate('click');
     expect(props.startDownload).toHaveBeenCalled();
   });
 });
