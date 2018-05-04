@@ -32,7 +32,7 @@ export class BrowserComponent extends Component {
     const listItems = this.props.reportList.values.map((report, index) => (
       <div key={report}>
         <ListItem divider>
-          <i class="fa fa-file-excel-o fa-2x red-color"></i>
+          <i className="fa fa-file-excel-o fa-2x red-color"></i>
           <ListItemText
             disableTypography
             className="report-name"
