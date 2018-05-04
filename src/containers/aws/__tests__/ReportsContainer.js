@@ -73,7 +73,7 @@ describe('<ReportsContainer />', () => {
   });
 
   it('Calls getAccounts when accounts are missing', () => {
-    const wrapper = shallow(<ReportsContainer {...accountsMissingProps}/>);
+    shallow(<ReportsContainer {...accountsMissingProps}/>);
     expect(baseProps.getAccounts).toHaveBeenCalled();
   });
 

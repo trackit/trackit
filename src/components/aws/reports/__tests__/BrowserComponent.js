@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserComponent } from '../BrowserComponent';
 import { shallow, mount } from 'enzyme';
 import Spinner from "react-spinkit";
-import ReactTable from 'react-table';
 
 const props = {
   startDownload: jest.fn(),
