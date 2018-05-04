@@ -39,6 +39,7 @@ export class ReportsContainer extends Component {
               AWS Reports
             </h3>
             <div className="inline-block pull-right">
+              Selected account :
               <SingleAccountSelector/>
             </div>
           </div>
