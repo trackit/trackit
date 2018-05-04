@@ -1,5 +1,5 @@
 import fetchMock from 'fetch-mock';
-import { call } from '../misc';
+import { call, download } from '../misc';
 
 const token = "42";
 
@@ -64,6 +64,35 @@ describe("API Calls", () => {
 
     });
 
+  });
+
+  describe("API Downloads", () => {
+
+    afterEach(() => {
+      fetchMock.restore();
+    });
+
+    it("handles valid response", () => {
+
+      const response = { data: "data" };
+      fetchMock.get('*', response);
+
+      download('/test')
+        .then((result) => {
+          expect(result).toEqual({success: true, data: response});
+        });
+
+    });
+
+    it("handles valid response with token", () => {
+
+      fetchMock.get('*', (url, data) => ({ token: data.headers['Authorization'] }));
+
+      download('/test', 'GET', null, token)
+        .then((result) => {
+          expect(result).toEqual({success: true, data: { token }});
+        });
+    });
   });
 
 });

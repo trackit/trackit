@@ -28,7 +28,17 @@ export default {
       dates: {},
       interval: {},
       filter: {}
-    }
+    },
+    reports: {
+      account: '',
+      download: {
+        failed: false,
+      },
+      reportList: {
+        status: false,
+        values: []
+      }
+    },
   },
   gcp: {},
   dashboard: {
