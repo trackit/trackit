@@ -10,10 +10,6 @@ const Form = Components.Auth.Form;
 // RegisterContainer Component
 export class RegisterContainer extends Component {
 
-  componentWillUnmount() {
-    this.props.clear();
-  }
-
   render() {
     if (this.props.registrationStatus && this.props.registrationStatus.status)
       return (<Redirect to="/login"/>);
@@ -42,9 +38,6 @@ const mapDispatchToProps = (dispatch) => ({
   register: (email, password) => {
     dispatch(Actions.Auth.register(email, password))
   },
-  clear: () => {
-    dispatch(Actions.Auth.clearRegister());
-  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RegisterContainer);

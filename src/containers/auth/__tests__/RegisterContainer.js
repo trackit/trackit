@@ -40,11 +40,4 @@ describe('<RegisterContainer />', () => {
     expect(redirect.length).toBe(1);
   });
 
-  it('clear registration when component unmount', () => {
-    const wrapper = shallow(<RegisterContainer {...propsWithRegistration}/>);
-    expect(propsWithRegistration.clear).not.toHaveBeenCalled();
-    wrapper.instance().componentWillUnmount();
-    expect(propsWithRegistration.clear).toHaveBeenCalled();
-  });
-
 });
