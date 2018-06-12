@@ -34,6 +34,7 @@ import (
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getBillRepositoryUpdates).With(
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
 				Summary:     "get user's bill repositories and info about their update status",
 				Description: "Gets the list of the user's bill repositories and info about when they have updated or will update.",
@@ -41,7 +42,6 @@ func init() {
 		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
-		users.RequireAuthenticatedUser{},
 	).Register("/aws/billrepositoryupdates")
 }
 

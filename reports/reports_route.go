@@ -38,7 +38,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getAwsReports).With(
 			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
 				Summary:     "get the list of aws reports",
 				Description: "Responds with the list of reports based on the queryparams passed to it",
@@ -50,7 +50,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getAwsReportsDownload).With(
 			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
 				Summary:     "get an aws cost report spreadsheet",
 				Description: "Responds with the spreadsheet based on the queryparams passed to it",

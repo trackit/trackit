@@ -64,7 +64,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getDiffData).With(
 			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(diffQueryArgs),
 			routes.Documentation{
 				Summary:     "get the cost diff",

@@ -16,7 +16,9 @@ package users
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"errors"
 
 	"github.com/trackit/jsonlog"
@@ -27,6 +29,7 @@ var (
 	ErrNotImplemented = errors.New("Not implemented")
 	ErrUserNotFound   = errors.New("User not found")
 	ErrUserExists     = errors.New("User already exists")
+	ErrFailedCreating = errors.New("Failed to create user")
 )
 
 // User is a user of the platform. It is different from models.User which is
@@ -35,6 +38,7 @@ type User struct {
 	Id           int    `json:"id"`
 	Email        string `json:"email"`
 	NextExternal string `json:"-"`
+	ParentId     *int   `json:"parentId,omitempty"`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
@@ -55,6 +59,62 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 		}
 	}
 	return userFromDbUser(dbUser), err
+}
+
+// CreateUserWithParent creates a viewer user with an email and a parent. A nil
+// error indicates a success.
+func CreateUserWithParent(ctx context.Context, db models.XODB, email string, parent User) (User, string, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbUser := models.User{
+		Email:        email,
+		ParentUserID: sql.NullInt64{int64(parent.Id), true},
+	}
+	var user User
+	var passRandom [12]byte
+	_, err := rand.Read(passRandom[:])
+	if err != nil {
+		logger.Error("Failed to produce secure random password.", err.Error())
+		return user, "", err
+	}
+	var passHuman [16]byte
+	base64.StdEncoding.Encode(passHuman[:], passRandom[:])
+	auth, err := getPasswordHash(string(passHuman[:]))
+	if err != nil {
+		logger.Error("Failed to create password hash.", err.Error())
+		return user, "", err
+	}
+	dbUser.Auth = auth
+	err = dbUser.Insert(db)
+	if err != nil {
+		logger.Error("Failed to insert viewer user in database.", err.Error())
+		return user, "", err
+	}
+	user = userFromDbUser(dbUser)
+	return user, string(passHuman[:]), nil
+}
+
+func GetUsersByParent(ctx context.Context, db models.XODB, parent User) ([]User, error) {
+	dbUsers, err := models.UsersByParentUserID(db, sql.NullInt64{int64(parent.Id), true})
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to get viewer users by their parent.", err.Error())
+		return nil, err
+	}
+	res := make([]User, len(dbUsers))
+	for i := range dbUsers {
+		res[i] = userFromDbUser(*dbUsers[i])
+	}
+	return res, nil
+}
+
+func GetUserParent(ctx context.Context, db models.XODB, user User) (parent User, err error) {
+	if user.ParentId == nil {
+		jsonlog.LoggerFromContextOrDefault(ctx).Error("Tried to get parent of orphan user.", user)
+		err = errors.New("Failed getting parent of orphan user.")
+		return
+	}
+	parent, err = GetUserWithId(db, *user.ParentId)
+	return
 }
 
 // UpdateUserWithPassword updates a user with an email and a password. A nil
@@ -161,6 +221,10 @@ func userFromDbUser(dbUser models.User) User {
 	}
 	if dbUser.NextExternal.Valid {
 		u.NextExternal = dbUser.NextExternal.String
+	}
+	if dbUser.ParentUserID.Valid {
+		parentId := int(dbUser.ParentUserID.Int64)
+		u.ParentId = &parentId
 	}
 	return u
 }

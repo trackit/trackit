@@ -46,7 +46,7 @@ func init() {
 			},
 		),
 		http.MethodPatch: routes.H(patchUser).With(
-			RequireAuthenticatedUser{},
+			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
 			routes.Documentation{
@@ -55,7 +55,7 @@ func init() {
 			},
 		),
 		http.MethodGet: routes.H(me).With(
-			RequireAuthenticatedUser{},
+			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.Documentation{
 				Summary:     "get the current user",
 				Description: "Responds with the currently authenticated user's data.",
@@ -67,6 +67,27 @@ func init() {
 			Summary: "register or get the user",
 		},
 	).Register("/user")
+
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(createViewerUser).With(
+			routes.RequestContentType{"application/json"},
+			RequireAuthenticatedUser{ViewerCannot},
+			routes.RequestBody{createViewerUserRequestBody{"example@example.com"}},
+			routes.Documentation{
+				Summary:     "register a new viewer user",
+				Description: "Registers a new viewer user linked to the current user, which will only be able to view its parent user's data.",
+			},
+		),
+		http.MethodGet: routes.H(getViewerUsers).With(
+			RequireAuthenticatedUser{ViewerAsParent},
+			routes.Documentation{
+				Summary:     "list viewer users",
+				Description: "Lists the viewer users registered for the current account.",
+			},
+		),
+	}.H().With(
+		db.RequestTransaction{db.Db},
+	).Register("/user/viewer")
 }
 
 type createUserRequestBody struct {
@@ -99,6 +120,43 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 		logger.Error(err.Error(), nil)
 		return 500, errors.New("Failed to create user.")
 	}
+}
+
+type createViewerUserRequestBody struct {
+	Email string `json:"email"    req:"nonzero"`
+}
+
+type createViewerUserResponseBody struct {
+	User
+	Password string `json:"password" req:"nonzero"`
+}
+
+func createViewerUser(request *http.Request, a routes.Arguments) (int, interface{}) {
+	var body createViewerUserRequestBody
+	routes.MustRequestBody(a, &body)
+	currentUser := a[AuthenticatedUser].(User)
+	tx := a[db.Transaction].(*sql.Tx)
+	ctx := request.Context()
+	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
+	if err != nil {
+		return http.StatusInternalServerError, errors.New("Failed to create viewer user.")
+	}
+	response := createViewerUserResponseBody{
+		User:     viewerUser,
+		Password: viewerUserPassword,
+	}
+	return http.StatusOK, response
+}
+
+func getViewerUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
+	currentUser := a[AuthenticatedUser].(User)
+	tx := a[db.Transaction].(*sql.Tx)
+	ctx := request.Context()
+	users, err := GetUsersByParent(ctx, tx, currentUser)
+	if err != nil {
+		return http.StatusInternalServerError, errors.New("Failed to get viewer users.")
+	}
+	return http.StatusOK, users
 }
 
 func addDefaultRole(request *http.Request, user User, tx *sql.Tx) {
