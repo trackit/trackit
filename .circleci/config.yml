@@ -22,6 +22,11 @@ jobs:
             ./buildstatic.sh
       - setup_remote_docker
       - run:
+          name: Copy SQL schema
+          command: |
+            set -xe
+            ./scripts/copy_schema.sh
+      - run:
           name: Build SQL Docker image
           command: |
             set -xe
