@@ -31,6 +31,13 @@ export default {
     }
   },
   gcp: {},
+  user: {
+    viewers: {
+      all: {
+        status: false
+      }
+    },
+  },
   dashboard: {
     items: {},
     values: {},
