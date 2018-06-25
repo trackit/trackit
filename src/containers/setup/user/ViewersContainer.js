@@ -1,10 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import Components from '../../../components';
 import Actions from "../../../actions";
-import PropTypes from "prop-types";
-import s3square from '../../../assets/s3-square.png';
 
 class ViewersContainer extends Component {
   componentWillMount() {
