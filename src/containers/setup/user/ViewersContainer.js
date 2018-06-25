@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Components from '../../../components';
 import { connect } from 'react-redux';
+import Validator from 'validator';
 
 import List, {
   ListItem,
@@ -20,11 +21,12 @@ import Actions from "../../../actions";
 const Panel = Components.Misc.Panel;
 
 class NewViewerForm extends Component {
-  state = { email: '', password: null }
+  state = { email: '' }
 
   createViewer = () => this.props.createViewer(this.state.email)
 
   render() {
+    const emailInvalid = !Validator.isEmail(this.state.email);
     return (
       <div>
         <TextField
@@ -32,10 +34,12 @@ class NewViewerForm extends Component {
           value={ this.state.email }
           fullWidth
           label='Email'
+          error={ emailInvalid }
           helperText='Email for the user you will create and give read-only access to your data. The password will be generated later.'
         />
         <Button
           onClick={ this.createViewer }
+          disabled={ emailInvalid }
         >
           Create
         </Button>
