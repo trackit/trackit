@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { NavLink, withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Spinner from 'react-spinkit';
 
@@ -64,59 +64,53 @@ export class FormComponent extends Component {
 
     const buttons = (this.props.registration ? (
       <div className="clearfix">
-
-        <NavLink
-          exact to='/login'
-          className="btn btn-default col-md-5 btn-left"
+        <div>
+          <Button
+            className="btn btn-primary col-md-5 btn-right"
+            type="submit"
+          >
+            {(this.props.registrationStatus && !Object.keys(this.props.registrationStatus).length ? (
+              (<Spinner className="spinner" name='circle' color='white'/>)
+            ) : (
+              <div>
+                <i className="fa fa-user-plus" />
+                &nbsp;
+                Sign up
+              </div>
+            ))}
+          </Button>
+        </div>
+        <Link
+          to="/login"
         >
-          <i className="fa fa-sign-in" />
-          &nbsp;
-          Sign in
-        </NavLink>
+          Already have an account ? Sign in here.
+        </Link>
 
-        <Button
-          className="btn btn-primary col-md-5 btn-right"
-          type="submit"
-        >
-          {(this.props.registrationStatus && !Object.keys(this.props.registrationStatus).length ? (
-            (<Spinner className="spinner" name='circle' color='white'/>)
-          ) : (
-            <div>
-              <i className="fa fa-user-plus" />
-              &nbsp;
-              Sign up
-            </div>
-          ))}
-        </Button>
 
       </div>
     ) : (
       <div className="clearfix">
-
-        <NavLink
-          exact to='/register'
-          className="btn btn-default col-md-5 btn-left"
+        <div>
+          <Button
+            className="btn btn-primary col-md-5 btn-right"
+            type="submit"
+          >
+            {(this.props.loginStatus && !Object.keys(this.props.loginStatus).length ? (
+              (<Spinner className="spinner" name='circle' color='white'/>)
+            ) : (
+              <div>
+                <i className="fa fa-sign-in" />
+                &nbsp;
+                Sign in
+              </div>
+            ))}
+          </Button>
+        </div>
+        <Link
+          to="/register"
         >
-          <i className="fa fa-user-plus" />
-          &nbsp;
-          Sign up
-        </NavLink>
-
-        <Button
-          className="btn btn-primary col-md-5 btn-right"
-          type="submit"
-        >
-          {(this.props.loginStatus && !Object.keys(this.props.loginStatus).length ? (
-            (<Spinner className="spinner" name='circle' color='white'/>)
-          ) : (
-            <div>
-              <i className="fa fa-sign-in" />
-              &nbsp;
-              Sign in
-            </div>
-          ))}
-        </Button>
-
+          Don't have an account ? Register here.
+        </Link>
       </div>
     ));
 
@@ -129,6 +123,14 @@ export class FormComponent extends Component {
       error = (this.props.registrationStatus && this.props.registrationStatus.hasOwnProperty("error") ? (
         <div className="alert alert-warning">{this.props.registrationStatus.error}</div>
       ): "");
+    }
+
+    let success;
+    if (this.props.registrationStatus && this.props.registrationStatus.status) {
+      success = <div className="alert alert-success">
+        <strong>Success : </strong>
+        Your registration was successful. You may now Sign In using the form below. Enjoy using TrackIt.
+      </div>;
     }
 
     return (
@@ -144,6 +146,9 @@ export class FormComponent extends Component {
               <hr />
 
               {error}
+              {success}
+
+
 
               <Form
                 ref={
