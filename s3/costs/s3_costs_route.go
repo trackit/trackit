@@ -66,7 +66,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getS3CostData).With(
 			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
 				Summary:     "get the s3 costs data",
 				Description: "Responds with cost data based on the queryparams passed to it",

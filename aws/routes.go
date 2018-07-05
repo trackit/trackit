@@ -30,6 +30,7 @@ import (
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getAwsAccount).With(
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
 				Summary:     "get aws accounts' data",
 				Description: "Gets the data for all of the user's AWS accounts.",
@@ -37,6 +38,7 @@ func init() {
 			routes.QueryArgs{routes.AwsAccountsOptionalQueryArg},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
+			users.RequireAuthenticatedUser{users.ViewerCannot},
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{postAwsAccountRequestBody{
 				RoleArn:  "arn:aws:iam::123456789012:role/example",
@@ -49,6 +51,7 @@ func init() {
 			},
 		),
 		http.MethodPatch: routes.H(patchAwsAccount).With(
+			users.RequireAuthenticatedUser{users.ViewerCannot},
 			routes.RequestContentType{"application/json"},
 			routes.QueryArgs{routes.AwsAccountQueryArg},
 			routes.Documentation{
@@ -57,6 +60,7 @@ func init() {
 			},
 		),
 		http.MethodDelete: routes.H(deleteAwsAccount).With(
+			users.RequireAuthenticatedUser{users.ViewerCannot},
 			routes.QueryArgs{routes.AwsAccountQueryArg},
 			RequireAwsAccount{},
 			routes.Documentation{
@@ -66,7 +70,6 @@ func init() {
 		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
-		users.RequireAuthenticatedUser{},
 		routes.Documentation{
 			Summary: "interact with user's aws accounts",
 		},
@@ -77,7 +80,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(nextExternal).With(
 			db.RequestTransaction{db.Db},
-			users.RequireAuthenticatedUser{},
+			users.RequireAuthenticatedUser{users.ViewerCannot},
 			routes.Documentation{
 				Summary:     "get data to add next aws account",
 				Description: "Gets data the user must have in order to successfully set up their account with the product.",

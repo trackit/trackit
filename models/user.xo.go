@@ -10,10 +10,11 @@ import (
 
 // User represents a row from 'trackit.user'.
 type User struct {
-	ID           int            `json:"id"`            // id
-	Email        string         `json:"email"`         // email
-	Auth         string         `json:"auth"`          // auth
-	NextExternal sql.NullString `json:"next_external"` // next_external
+	ID           int            `json:"id"`             // id
+	Email        string         `json:"email"`          // email
+	Auth         string         `json:"auth"`           // auth
+	NextExternal sql.NullString `json:"next_external"`  // next_external
+	ParentUserID sql.NullInt64  `json:"parent_user_id"` // parent_user_id
 
 	// xo fields
 	_exists, _deleted bool
@@ -40,14 +41,14 @@ func (u *User) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.user (` +
-		`email, auth, next_external` +
+		`email, auth, next_external, parent_user_id` +
 		`) VALUES (` +
-		`?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal)
-	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal)
+	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID)
+	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID)
 	if err != nil {
 		return err
 	}
@@ -81,12 +82,12 @@ func (u *User) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.user SET ` +
-		`email = ?, auth = ?, next_external = ?` +
+		`email = ?, auth = ?, next_external = ?, parent_user_id = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ID)
-	_, err = db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ID)
+	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.ID)
+	_, err = db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.ID)
 	return err
 }
 
@@ -129,6 +130,52 @@ func (u *User) Delete(db XODB) error {
 	return nil
 }
 
+// User returns the User associated with the User's ParentUserID (parent_user_id).
+//
+// Generated from foreign key 'parent_user'.
+func (u *User) User(db XODB) (*User, error) {
+	return UserByID(db, int(u.ParentUserID.Int64))
+}
+
+// UsersByParentUserID retrieves a row from 'trackit.user' as a User.
+//
+// Generated from index 'parent_user'.
+func UsersByParentUserID(db XODB, parentUserID sql.NullInt64) ([]*User, error) {
+	var err error
+
+	// sql query
+	const sqlstr = `SELECT ` +
+		`id, email, auth, next_external, parent_user_id ` +
+		`FROM trackit.user ` +
+		`WHERE parent_user_id = ?`
+
+	// run query
+	XOLog(sqlstr, parentUserID)
+	q, err := db.Query(sqlstr, parentUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer q.Close()
+
+	// load results
+	res := []*User{}
+	for q.Next() {
+		u := User{
+			_exists: true,
+		}
+
+		// scan
+		err = q.Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, &u)
+	}
+
+	return res, nil
+}
+
 // UserByEmail retrieves a row from 'trackit.user' as a User.
 //
 // Generated from index 'unique_email'.
@@ -137,7 +184,7 @@ func UserByEmail(db XODB, email string) (*User, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external ` +
+		`id, email, auth, next_external, parent_user_id ` +
 		`FROM trackit.user ` +
 		`WHERE email = ?`
 
@@ -147,7 +194,7 @@ func UserByEmail(db XODB, email string) (*User, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, email).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal)
+	err = db.QueryRow(sqlstr, email).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +210,7 @@ func UserByID(db XODB, id int) (*User, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external ` +
+		`id, email, auth, next_external, parent_user_id ` +
 		`FROM trackit.user ` +
 		`WHERE id = ?`
 
@@ -173,7 +220,7 @@ func UserByID(db XODB, id int) (*User, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal)
+	err = db.QueryRow(sqlstr, id).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID)
 	if err != nil {
 		return nil, err
 	}

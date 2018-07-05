@@ -16,6 +16,7 @@ package users
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
@@ -24,13 +25,22 @@ import (
 	"github.com/trackit/trackit2/routes"
 )
 
-type RequireAuthenticatedUser struct{}
+type RequireAuthenticatedUser struct {
+	ViewerHandling viewerHandling
+}
 
 type authenticatedUserArgumentKey uint
+type viewerHandling uint
 
 const (
 	AuthenticatedUser            = authenticatedUserArgumentKey(iota)
 	TagRequireUserAuthentication = "require:userauth"
+)
+
+const (
+	ViewerCannot = viewerHandling(iota)
+	ViewerAsSelf
+	ViewerAsParent
 )
 
 func (d RequireAuthenticatedUser) Decorate(h routes.Handler) routes.Handler {
@@ -39,7 +49,7 @@ func (d RequireAuthenticatedUser) Decorate(h routes.Handler) routes.Handler {
 	return h
 }
 
-func (_ RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
+func (d RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
 		logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 		auth := r.Header["Authorization"]
@@ -47,8 +57,7 @@ func (_ RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerF
 		if auth != nil && len(auth) == 1 {
 			tokenString := auth[0]
 			if user, err := testToken(tx, tokenString); err == nil {
-				a[AuthenticatedUser] = user
-				return hf(w, r, a)
+				return d.handleWithAuthenticatedUser(user, tx, hf, w, r, a)
 			} else if err != ErrCannotReadToken && err != ErrInvalidClaims {
 				logger.Error("Abnormal authentication failure.", err.Error())
 				return http.StatusInternalServerError, ErrFailedToValidateToken
@@ -59,6 +68,27 @@ func (_ RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerF
 			return http.StatusUnauthorized, ErrMissingToken
 		}
 	}
+}
+
+func (d RequireAuthenticatedUser) handleWithAuthenticatedUser(user User, tx *sql.Tx, hf routes.HandlerFunc, w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
+	switch d.ViewerHandling {
+	case ViewerAsParent:
+		if user.ParentId != nil {
+			var err error
+			user, err = GetUserParent(r.Context(), tx, user)
+			if err != nil {
+				jsonlog.LoggerFromContextOrDefault(r.Context()).Error("Failed to get viewer user parent.", err.Error())
+				return http.StatusInternalServerError, errors.New("Failed to get viewer user parent.")
+			}
+		}
+	case ViewerCannot:
+		if user.ParentId != nil {
+			return http.StatusUnauthorized, errors.New("This action is unavailable to viewer users.")
+		}
+	default:
+	}
+	a[AuthenticatedUser] = user
+	return hf(w, r, a)
 }
 
 func (_ RequireAuthenticatedUser) getDocumentation(hd routes.HandlerDocumentation) routes.HandlerDocumentation {

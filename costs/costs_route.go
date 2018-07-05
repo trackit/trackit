@@ -75,7 +75,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getCostData).With(
 			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(costsQueryArgs),
 			routes.Documentation{
 				Summary:     "get the costs data",
