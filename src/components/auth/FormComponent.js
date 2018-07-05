@@ -51,14 +51,22 @@ export class FormComponent extends Component {
         </div>
       </div>
     ) : (
-      <div className="form-group">
-        <label htmlFor="password">Password</label>
-        <Input
-          type="password"
-          name="password"
-          className="form-control"
-          validations={[Validation.required]}
-        />
+      <div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <Link
+            to="/forgot"
+            className="pull-right"
+          >
+            Forgot password ?
+          </Link>
+          <Input
+            type="password"
+            name="password"
+            className="form-control"
+            validations={[Validation.required]}
+          />
+        </div>
       </div>
     ));
 

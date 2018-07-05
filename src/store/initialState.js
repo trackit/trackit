@@ -53,6 +53,8 @@ export default {
   },
   auth: {
     token: null,
-    mail: null
+    mail: null,
+    recoverStatus: {status: true, value: null},
+    renewStatus: {status: true, value: null}
   },
 };
