@@ -25,7 +25,9 @@ jobs:
           name: Copy SQL schema
           command: |
             set -xe
-            ./scripts/copy_schema.sh
+            pushd scripts
+            ./copy_schema.sh
+            popd
       - run:
           name: Build SQL Docker image
           command: |
