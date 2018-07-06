@@ -2,16 +2,20 @@
 ul.accounts-list div:last-child li,
 ul.accounts-list > li:last-child,
 ul.bills-list div:last-child li,
-ul.bills-list > li:last-child {
+ul.bills-list > li:last-child,
+ul.viewers-list div:last-child li,
+ul.viewers-list > li:last-child {
 	border-bottom: none;
 }
 
-.accounts-list .account-name {
+.accounts-list .account-name,
+.viewers-list .viewer-name {
 	font-size: 20px;
 }
 
 .accounts-list .actions,
-.bills-list .actions {
+.bills-list .actions,
+.viewers-list .actions {
 	display: inherit;
 }
 
@@ -25,4 +29,14 @@ ul.bills-list > li:last-child {
 
 .dialog-title-children {
 	float: right;
+}
+
+i.white-box-title-icon {
+	color: #d6413b;
+}
+
+.viewer.badge {
+	background: #4885ed;
+	margin: 0 10px;
+	padding: 5px 10px;
 }

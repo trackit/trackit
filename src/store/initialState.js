@@ -33,9 +33,8 @@ export default {
   gcp: {},
   user: {
     viewers: {
-      all: {
-        status: false
-      }
+      all: {status: true, value: null},
+      creation: {status: true, value: null}
     },
   },
   dashboard: {

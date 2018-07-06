@@ -20,7 +20,9 @@ export function* newViewerSaga({ email }) {
   try {
     const token = yield getToken();
     const res = yield call(API.User.Viewers.create, email, token);
-    if (res.success && res.hasOwnProperty('data'))
+    if (res.success && res.hasOwnProperty('data') && res.data.hasOwnProperty('error'))
+      throw Error(res.data.error);
+    else if (res.success && res.hasOwnProperty('data'))
       yield put({ type: Constants.USER_NEW_VIEWER_SUCCESS, viewer: res.data });
     else
       throw Error('Error with request');
