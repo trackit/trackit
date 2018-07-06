@@ -1,64 +1,13 @@
 import React, { Component } from 'react';
 import Components from '../../../components';
 import { connect } from 'react-redux';
-import Validator from 'validator';
 import PropTypes from "prop-types";
 
-import Dialog, {
-  DialogContent,
-  DialogTitle,
-} from 'material-ui/Dialog';
-
-import TextField from 'material-ui/TextField';
-import Button from 'material-ui/Button';
-
 import Actions from "../../../actions";
-import creation from "../../../reducers/user/viewers/creationReducer";
 
 const Panel = Components.Misc.Panel;
 const List = Components.User.List;
 const Form = Components.User.ViewerForm;
-
-class NewViewerForm extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      email: ''
-    };
-    this.createViewer = this.createViewer.bind(this);
-  }
-
-  createViewer = () => {
-    this.props.create(this.state.email);
-  };
-
-  render() {
-    const emailInvalid = !Validator.isEmail(this.state.email);
-    return (
-      <div>
-        <TextField
-          onChange={ event => this.setState({ email: event.target.value }) }
-          value={ this.state.email }
-          fullWidth
-          label='Email'
-          error={ emailInvalid }
-          helperText='Email for the user you will create and give read-only access to your data. The password will be generated later.'
-        />
-        <Button
-          onClick={ this.createViewer }
-          disabled={ emailInvalid }
-        >
-          Create
-        </Button>
-      </div>
-    )
-  }
-}
-
-NewViewerForm.propTypes = {
-  create: PropTypes.func.isRequired
-};
 
 class ViewersContainer extends Component {
 
@@ -120,13 +69,11 @@ ViewersContainer.propTypes = {
   lastCreated: PropTypes.shape({
     status: PropTypes.bool.isRequired,
     error: PropTypes.instanceOf(Error),
-    value: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        email: PropTypes.string.isRequired,
-        password: PropTypes.string
-      })
-    ),
+    value: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      email: PropTypes.string.isRequired,
+      password: PropTypes.string
+    }),
   }),
   getViewers: PropTypes.func.isRequired,
   viewerActions: PropTypes.shape({

@@ -56,8 +56,7 @@ Item.propTypes = {
     password: PropTypes.string,
   }),
   viewerActions: PropTypes.shape({
-    edit: PropTypes.func.isRequired,
-    delete: PropTypes.func.isRequired,
+    delete: PropTypes.func,
   }).isRequired,
 };
 
@@ -104,8 +103,7 @@ ListComponent.propTypes = {
     ),
   }),
   viewerActions: PropTypes.shape({
-    edit: PropTypes.func.isRequired,
-    delete: PropTypes.func.isRequired,
+    delete: PropTypes.func,
   }).isRequired,
 };
 

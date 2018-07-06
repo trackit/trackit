@@ -49,6 +49,10 @@ class ViewerFormComponent extends Component {
 
     const password = (this.props.viewer.status && this.props.viewer.value ? (
       <div>
+        <div className="alert alert-info">
+          Please save this password safely, you will not be able to see it again later.
+        </div>
+
         <div className="form-group">
           <div className="input-title">
             <label htmlFor="email">Email</label>
@@ -81,10 +85,6 @@ class ViewerFormComponent extends Component {
             disabled
           />
         </div>
-
-        <div className="form-group">
-          Note : Please save this password safely, you will not be able to see it again later.
-        </div>
       </div>
     ) : null);
 
@@ -97,16 +97,21 @@ class ViewerFormComponent extends Component {
     ) : null);
 
     const form = (!loading && !password ? (
-      <div className="form-group">
-        <div className="input-title">
-          <label htmlFor="email">Email</label>
+      <div>
+        <div className="alert alert-info">
+          Email for the user you will create and give read-only access to your data. The password will be generated later.
         </div>
-        <Input
-          name="email"
-          type="email"
-          className="form-control"
-          validations={[Validation.required, Validation.email]}
-        />
+        <div className="form-group">
+          <div className="input-title">
+            <label htmlFor="email">Email</label>
+          </div>
+          <Input
+            name="email"
+            type="email"
+            className="form-control"
+            validations={[Validation.required, Validation.email]}
+          />
+        </div>
       </div>
     ) : null);
 
@@ -159,13 +164,11 @@ ViewerFormComponent.propTypes = {
   viewer: PropTypes.shape({
     status: PropTypes.bool.isRequired,
     error: PropTypes.instanceOf(Error),
-    value: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-        email: PropTypes.string.isRequired,
-        password: PropTypes.string
-      })
-    ),
+    value: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      email: PropTypes.string.isRequired,
+      password: PropTypes.string
+    }),
   }),
 };
 
