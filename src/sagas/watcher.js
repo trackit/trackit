@@ -1,6 +1,7 @@
 import * as AWS from './aws';
 import * as GCP from './gcp';
 import * as Auth from './auth';
+import * as User from './user';
 import { takeEvery, takeLatest } from 'redux-saga/effects';
 import {getDataSaga, saveDashboardSaga, loadDashboardSaga, initDashboardSaga} from "./dashboardSaga";
 import Constants from "../constants";
@@ -32,5 +33,6 @@ export default {
   ...AWS,
   ...GCP,
   ...Auth,
-  ...Dashboard
+  ...Dashboard,
+  ...User,
 };
