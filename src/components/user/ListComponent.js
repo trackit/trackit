@@ -36,7 +36,7 @@ export class Item extends Component {
           <div className="actions">
 
             <div className="inline-block">
-              <DeleteConfirmation entity="viewer" confirm={this.deleteViewer}/>
+              {/*'<DeleteConfirmation entity="viewer" confirm={this.deleteViewer}/>'*/}
             </div>
 
           </div>
