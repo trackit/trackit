@@ -5,6 +5,7 @@ import external from './externalReducer';
 import bills from './billsReducer';
 import creation from './creationReducer';
 import billCreation from './billCreationReducer';
+import billsStatus from './billsStatusReducer';
 
 export default combineReducers({
   all,
@@ -12,5 +13,6 @@ export default combineReducers({
   external,
   bills,
   creation,
-  billCreation
+  billCreation,
+  billsStatus
 });

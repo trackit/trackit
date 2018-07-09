@@ -98,3 +98,7 @@ export function* watchSelectReports() {
 export function* watchDownloadReport() {
   yield takeLatest(Constants.AWS_DOWNLOAD_REPORT_REQUESTED, downloadReportSaga)
 }
+
+export function* watchGetAccountBillStatus() {
+  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILL_STATUS, AccountsSaga.getAccountBillStatusSaga)
+}

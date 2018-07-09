@@ -13,6 +13,9 @@ export default {
       billCreation: {
         status: true
       },
+      billsStatus: {
+        status: false
+      },
       external: null,
     },
     s3: {

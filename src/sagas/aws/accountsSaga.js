@@ -63,6 +63,19 @@ export function* newAccountBillSaga({ accountID, bill }) {
   }
 }
 
+export function* getAccountBillStatusSaga() {
+  try {
+    const token = yield getToken();
+    const res = yield call(API.AWS.Accounts.getAccountBillsStatus, token);
+    if (res.success && res.hasOwnProperty("data"))
+      yield put({ type: Constants.AWS_GET_ACCOUNT_BILL_STATUS_SUCCESS, values: res.data });
+    else
+      throw Error("Error with request");
+  } catch (error) {
+    yield put({ type: Constants.AWS_GET_ACCOUNT_BILL_STATUS_ERROR, error });
+  }
+}
+
 export function* editAccountSaga({ account }) {
   try {
     const token = yield getToken();

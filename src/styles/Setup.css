@@ -2,7 +2,9 @@
 ul.accounts-list div:last-child li,
 ul.accounts-list > li:last-child,
 ul.bills-list div:last-child li,
-ul.bills-list > li:last-child {
+ul.bills-list > li:last-child,
+ul.status-list div:last-child li,
+ul.status-list > li:last-child {
 	border-bottom: none;
 }
 
@@ -25,4 +27,8 @@ ul.bills-list > li:last-child {
 
 .dialog-title-children {
 	float: right;
+}
+
+.status-list .status-list-item{
+	display: block;
 }

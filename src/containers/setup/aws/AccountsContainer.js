@@ -8,6 +8,7 @@ import s3square from '../../../assets/s3-square.png';
 
 const List = Components.AWS.Accounts.List;
 const Wizard = Components.AWS.Accounts.Wizard;
+const Status = Components.AWS.Accounts.Bills.Status;
 const Panel = Components.Misc.Panel;
 
 // Accounts Container for AWS Accounts
@@ -51,16 +52,26 @@ export class AccountsContainer extends Component {
           </h3>
 
           <div className="inline-block pull-right">
-            <Wizard
-              external={this.props.external}
-              submitAccount={this.props.accountActions.new}
-              clearAccount={this.props.accountActions.clearNew}
-              submitBucket={this.props.addBill}
-              clearBucket={this.props.clearBill}
-              account={this.props.newAccount}
-              bill={this.props.newBill}
-            />
+            <div className="inline-block">
+              <Status
+                bills={this.props.billsStatus}
+                billsStatusActions={this.props.billsStatusActions}
+              />
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <Wizard
+                external={this.props.external}
+                submitAccount={this.props.accountActions.new}
+                clearAccount={this.props.accountActions.clearNew}
+                submitBucket={this.props.addBill}
+                clearBucket={this.props.clearBill}
+                account={this.props.newAccount}
+                bill={this.props.newBill}
+              />
+            </div>
           </div>
+
           {
             (!this.props.accounts.length && this.props.match.params.hasAccounts === "false")
             && noAccountsInfos
@@ -120,6 +131,28 @@ AccountsContainer.propTypes = {
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
+  billsStatus: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        BillRepositoryId: PropTypes.number.isRequired,
+        AwsAccountPretty: PropTypes.string.isRequired,
+        AwsAccountId: PropTypes.number.isRequired,
+        bucket: PropTypes.string.isRequired,
+        prefix: PropTypes.string.isRequired,
+        nextStarted: PropTypes.string.isRequired,
+        nextPending: PropTypes.bool.isRequired,
+        lastStarted: PropTypes.string.isRequired,
+        lastFinished: PropTypes.string.isRequired,
+        lastError: PropTypes.string.isRequired
+      })
+    )
+  }),
+  billsStatusActions: PropTypes.shape({
+    get: PropTypes.func.isRequired,
+    clear: PropTypes.func.isRequired,
+  }).isRequired,
   addBill: PropTypes.func.isRequired,
   clearBill: PropTypes.func.isRequired,
   newExternal: PropTypes.func.isRequired
@@ -130,7 +163,8 @@ const mapStateToProps = (state) => ({
   accounts: state.aws.accounts.all,
   newAccount: state.aws.accounts.creation,
   newBill: state.aws.accounts.billCreation,
-  external: state.aws.accounts.external
+  external: state.aws.accounts.external,
+  billsStatus: state.aws.accounts.billsStatus
 });
 
 /* istanbul ignore next */
@@ -151,6 +185,14 @@ const mapDispatchToProps = (dispatch) => ({
     delete: (accountID) => {
       dispatch(Actions.AWS.Accounts.deleteAccount(accountID));
     },
+  },
+  billsStatusActions: {
+    get: () => {
+      dispatch(Actions.AWS.Accounts.getAccountBillsStatus());
+    },
+    clear: () => {
+      dispatch(Actions.AWS.Accounts.clearAccountBillsStatus());
+    }
   },
   addBill: (accountID, bill) => {
     dispatch(Actions.AWS.Accounts.newAccountBill(accountID, bill))
