@@ -28,14 +28,14 @@ class Item extends Component {
         </div>
         <div>
           <div className="info">
-            <h5>Last import</h5>
+            <h5><i className="fa fa-clock-o"/>&nbsp;Last import</h5>
             {lastError}
             Started : {Moment(this.props.status.lastStarted).format('MMM Do Y HH:mm:ss')}
             <br/>
             Finished : {Moment(this.props.status.lastFinished).format('MMM Do Y HH:mm:ss')}
           </div>
           <div className="info">
-            <h5>Next import {pendingBadge}</h5>
+            <h5><i className="fa fa-cloud-download"/>&nbsp;Next import {pendingBadge}</h5>
             Planned : {Moment(this.props.status.nextStarted).format('MMM Do Y HH:mm')}
           </div>
         </div>

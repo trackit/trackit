@@ -33,10 +33,18 @@ ul.viewers-list > li:last-child {
 	float: right;
 }
 
+.status-list {
+	max-height: 500px;
+	overflow-y: scroll;
+}
+
 .status-list .status-list-item{
 	display: block;
 }
 
+.status-list .status-list-item h3,
+.status-list .status-list-item h4,
+.status-list .status-list-item h5 i,
 i.white-box-title-icon {
 	color: #d6413b;
 }
