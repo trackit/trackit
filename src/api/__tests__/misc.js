@@ -1,5 +1,5 @@
 import fetchMock from 'fetch-mock';
-import { call, download } from '../misc';
+import { call } from '../misc';
 
 const token = "42";
 
