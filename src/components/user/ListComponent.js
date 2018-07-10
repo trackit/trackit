@@ -7,7 +7,7 @@ import Spinner from 'react-spinkit';
 import PropTypes from 'prop-types';
 import Misc from '../misc';
 
-const DeleteConfirmation = Misc.DeleteConfirmation;
+//const DeleteConfirmation = Misc.DeleteConfirmation;
 
 export class Item extends Component {
 
