@@ -117,6 +117,8 @@ export class Header extends Component {
               endDate={this.props.dates.endDate}
               setDatesFunc={this.props.setDates}
             />
+            &nbsp;
+            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}>Reset dashboard</button>
           </div>
         </div>
         &nbsp;
@@ -148,8 +150,6 @@ export class Header extends Component {
                 <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}>Chart</button>
               </div>
             </div>
-            &nbsp;
-            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}>Reset dashboard</button>
           </div>
         </div>
       </div>

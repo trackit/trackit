@@ -3,6 +3,8 @@ ul.accounts-list div:last-child li,
 ul.accounts-list > li:last-child,
 ul.bills-list div:last-child li,
 ul.bills-list > li:last-child,
+ul.status-list div:last-child li,
+ul.status-list > li:last-child,
 ul.viewers-list div:last-child li,
 ul.viewers-list > li:last-child {
 	border-bottom: none;
@@ -31,6 +33,18 @@ ul.viewers-list > li:last-child {
 	float: right;
 }
 
+.status-list {
+	max-height: 500px;
+	overflow-y: scroll;
+}
+
+.status-list .status-list-item{
+	display: block;
+}
+
+.status-list .status-list-item h3,
+.status-list .status-list-item h4,
+.status-list .status-list-item h5 i,
 i.white-box-title-icon {
 	color: #d6413b;
 }

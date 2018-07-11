@@ -79,7 +79,7 @@ export class ListComponent extends Component {
     super(props);
     this.getBills = this.getBills.bind(this);
     this.clearBills = this.clearBills.bind(this);
-	this.newBill = this.newBill.bind(this);
+	  this.newBill = this.newBill.bind(this);
   }
 
   getBills() {
@@ -91,7 +91,7 @@ export class ListComponent extends Component {
   }
 
   newBill = (body) => {
-	this.props.newBill(this.props.account, body);
+	  this.props.newBill(this.props.account, body);
   };
 
   render() {
