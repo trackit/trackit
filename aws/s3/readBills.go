@@ -331,7 +331,7 @@ func readManifest(ctx context.Context, s3mgr *dumbS3Manager, bk BillKey) <-chan 
 }
 
 // getServiceForRepository instantiates an *s3.S3 service from an AwsAccount
-// and a billRepositoryWithRegion. It returns a nil error iff the operation was
+// and a billRepositoryWithRegion. It returns a nil error if the operation was
 // successful.
 func getServiceForRepository(ctx context.Context, aa taws.AwsAccount, br BillRepository) (*s3.S3, billRepositoryWithRegion, error) {
 	var brr billRepositoryWithRegion
@@ -397,6 +397,7 @@ func getManifestKeys(ctx context.Context, in <-chan BillKey) <-chan BillKey {
 // listBillsFromRepositoryPage handles a page of results for
 // listBillsFromRepository. It will only trigger the processing of the next
 // page if less than MaxCheckedKeysByRepository keys where encountered.
+// It will only send the new objects, thanks to LastModified in brr.
 func listBillsFromRepositoryPage(
 	ctx context.Context,
 	c chan<- BillKey,
@@ -406,15 +407,18 @@ func listBillsFromRepositoryPage(
 	count := 0
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
-			select {
-			case c <- BillKey{
-				Key:          *o.Key,
-				Bucket:       brr.Bucket,
-				Region:       brr.Region,
-				LastModified: *o.LastModified,
-			}:
-			case <-ctx.Done():
-				return false
+			if  brr.LastImportedManifest.Before(*o.LastModified) {
+				count += 1
+				select {
+				case c <- BillKey{
+					Key:          *o.Key,
+					Bucket:       brr.Bucket,
+					Region:       brr.Region,
+					LastModified: *o.LastModified,
+				}:
+				case <-ctx.Done():
+					return false
+				}
 			}
 		}
 		count += len(page.Contents)
@@ -453,7 +457,7 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 
 // getBucketRegionFromGetBucketLocationOutput gets the region name for a bucket
 // from a non-null *s3.GetBucketLocationOutput. It handles the API's special
-// case where a nil LocationConstraint indicates the bucke is situated in the
+// case where a nil LocationConstraint indicates the bucket is situated in the
 // us-east-1 region.
 func getBucketRegionFromGetBucketLocationOutput(output *s3.GetBucketLocationOutput) string {
 	if output.LocationConstraint == nil || *output.LocationConstraint == "" {
