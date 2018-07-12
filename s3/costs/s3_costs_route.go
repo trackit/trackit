@@ -32,7 +32,7 @@ import (
 type esQueryParams struct {
 	dateBegin   time.Time
 	dateEnd     time.Time
-	accountList []uint
+	accountList []string
 }
 
 // esFilter represents an elasticsearch filter
@@ -85,7 +85,7 @@ var (
 	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
 	awsAccountsQueryArg = routes.QueryArg{
 		Name:        "aas",
-		Type:        routes.QueryArgUintSlice{},
+		Type:        routes.QueryArgStringSlice{},
 		Description: "The IDs for many AWS account.",
 		Optional:    true,
 	}
@@ -136,10 +136,10 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 	parsedParams := esQueryParams{
 		dateBegin:   a[routes.DateBeginQueryArg].(time.Time),
 		dateEnd:     a[routes.DateEndQueryArg].(time.Time),
-		accountList: []uint{},
+		accountList: []string{},
 	}
 	if a[awsAccountsQueryArg] != nil {
-		parsedParams.accountList = a[awsAccountsQueryArg].([]uint)
+		parsedParams.accountList = a[awsAccountsQueryArg].([]string)
 	}
 	var err error
 	var returnCode int

@@ -58,7 +58,7 @@ type paramAggrAndName struct {
 const aggregationMaxSize = 0x7FFFFFFF
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilter(accountList []int) *elastic.TermsQuery {
+func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
 		accountListFormatted[i] = v
@@ -251,7 +251,7 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 //	- If a param in the slice is not present in the detailedLineItemsFieldsName, the program will crash.
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchParams(accountList []int, durationBegin time.Time,
+func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	durationEnd time.Time, params []string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {

@@ -43,7 +43,7 @@ var validAggregationPeriodMap = map[string]struct{}{
 type esQueryParams struct {
 	dateBegin         time.Time
 	dateEnd           time.Time
-	accountList       []int
+	accountList       []string
 	aggregationPeriod string
 }
 
@@ -107,13 +107,13 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		accountList:       []int{},
+		accountList:       []string{},
 		dateBegin:         a[diffQueryArgs[1]].(time.Time),
 		dateEnd:           a[diffQueryArgs[2]].(time.Time),
 		aggregationPeriod: a[diffQueryArgs[3]].(string),
 	}
 	if a[diffQueryArgs[0]] != nil {
-		parsedParams.accountList = a[diffQueryArgs[0]].([]int)
+		parsedParams.accountList = a[diffQueryArgs[0]].([]string)
 	}
 	if _, ok := validAggregationPeriodMap[parsedParams.aggregationPeriod]; ok == false {
 		return http.StatusBadRequest, fmt.Errorf("invalid aggregation period : %s", parsedParams.aggregationPeriod)

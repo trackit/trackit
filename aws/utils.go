@@ -16,15 +16,14 @@ package aws
 
 import (
 	"fmt"
-	"strconv"
 )
 
 // ValidateAwsAccounts will validate a slice of int passed to it.
 // It checks that they are 12 digit numbers
-func ValidateAwsAccounts(awsAccounts []int) error {
+func ValidateAwsAccounts(awsAccounts []string) error {
 	for _, account := range awsAccounts {
-		if len(strconv.Itoa(account)) != 12 {
-			return fmt.Errorf("invalid account format : %d", account)
+		if len(account) != 12 {
+			return fmt.Errorf("invalid account format : %s", account)
 		}
 	}
 	return nil
