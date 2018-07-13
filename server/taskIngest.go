@@ -23,6 +23,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
+
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit2/aws"
@@ -53,10 +55,17 @@ func taskIngest(ctx context.Context) error {
 func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
 	for _, r := range ruccs {
 		if r.Error != nil {
-			return r.Error
-		}
-		if err := updateBillRepositoryForNextUpdate(ctx, tx, r.BillRepository, r.LastImportedManifest); err != nil {
-			return err
+			if cast, castok := r.Error.(awserr.Error); castok {
+				r.BillRepository.Status = cast.Message()
+				if err := s3.UpdateBillRepository(r.BillRepository, tx); err != nil {
+					return err
+				}
+			}
+		} else {
+			r.BillRepository.Status = ""
+			if err := updateBillRepositoryForNextUpdate(ctx, tx, r.BillRepository, r.LastImportedManifest); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

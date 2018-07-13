@@ -130,6 +130,7 @@ func UpdateBillRepositorySafe(dbBr *models.AwsBillRepository, br BillRepository,
 	dbBr.AwsAccountID = br.AwsAccountId
 	dbBr.NextUpdate = br.NextUpdate
 	dbBr.LastImportedManifest = br.LastImportedManifest
+	dbBr.Status = br.Status
 	var out BillRepository
 	err := dbBr.Update(tx)
 	if err == nil {

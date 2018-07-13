@@ -12,4 +12,4 @@
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE user ADD ws_bill_repository VARCHAR(255) NULL;
+ALTER TABLE aws_bill_repository ADD status VARCHAR(255) NULL;

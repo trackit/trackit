@@ -141,9 +141,9 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 			ingestLineItems(ctx, bp, index, br),
 			manifestsModifiedAfter(br.LastImportedManifest),
 		)
+		logger.Info("Done ingesting data.", nil)
+		return latestManifest, err
 	}
-	logger.Info("Done ingesting data.", nil)
-	return
 }
 
 // getBulkProcessor builds a bulk processor for ElasticSearch.
