@@ -14,6 +14,11 @@ export class LoginContainer extends Component {
     this.props.clear();
   }
 
+  componentWillMount() {
+    this.props.clear();
+  }
+
+
   render() {
     if (this.props.token)
       return (<Redirect to="/"/>);
