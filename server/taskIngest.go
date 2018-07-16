@@ -55,8 +55,8 @@ func taskIngest(ctx context.Context) error {
 func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
 	for _, r := range ruccs {
 		if r.Error != nil {
-			if cast, castok := r.Error.(awserr.Error); castok {
-				r.BillRepository.Status = cast.Message()
+			if billError, castok := r.Error.(awserr.Error); castok {
+				r.BillRepository.Status = billError.Message()
 				if err := s3.UpdateBillRepository(r.BillRepository, tx); err != nil {
 					return err
 				}
