@@ -53,10 +53,14 @@ export class AccountsContainer extends Component {
 
           <div className="inline-block pull-right">
             <div className="inline-block">
-              <Status
-                bills={this.props.billsStatus}
-                billsStatusActions={this.props.billsStatusActions}
-              />
+              {
+                !(!this.props.accounts.length && this.props.match.params.hasAccounts === "false") && (
+                  <Status
+                    bills={this.props.billsStatus}
+                    billsStatusActions={this.props.billsStatusActions}
+                  />
+                )
+              }
             </div>
             &nbsp;
             <div className="inline-block">
