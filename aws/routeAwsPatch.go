@@ -44,7 +44,7 @@ func patchAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	if err == nil {
 		tx := a[db.Transaction].(*sql.Tx)
 		u := a[users.AuthenticatedUser].(users.User)
-		id := a[routes.AwsAccountQueryArg].(int)
+		id := a[routes.AwsAccountIdQueryArg].(int)
 		return patchAwsAccountWithValidBody(r, tx, u, body, int(id))
 	} else {
 		return 400, errors.New("body is invalid")

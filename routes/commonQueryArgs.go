@@ -15,24 +15,45 @@
 package routes
 
 var (
-	// AwsAccountsOptionalQueryArg allows to get the AWS Account IDs in the URL
+	// AwsAccountIdsOptionalQueryArg allows to get the AWS Account IDs in the URL
 	// Parameters with routes.RequiredQueryArgs. This AWS Account IDs will be a
 	// slice of Uint stored in the routes.Arguments map with itself for key.
-	// AwsAccountsOptionalQueryArg is optional and will not panic if no query
+	// AwsAccountIdsOptionalQueryArg is optional and will not panic if no query
 	// argument is found.
-	AwsAccountsOptionalQueryArg = QueryArg{
+	AwsAccountIdsOptionalQueryArg = QueryArg{
 		Name:        "aa",
 		Type:        QueryArgIntSlice{},
 		Description: "The IDs for many AWS account.",
 		Optional:    true,
 	}
 
-	// AwsAccountQueryArg allows to get the AWS Account ID in the URL Parameters
+	// AwsAccountIdQueryArg allows to get the AWS Account ID in the URL Parameters
 	// with routes.RequiredQueryArgs. This AWS Account ID will be an Uint stored
+	// in the routes.Arguments map with itself for key.
+	AwsAccountIdQueryArg = QueryArg{
+		Name:        "aa",
+		Type:        QueryArgInt{},
+		Description: "The ID for an AWS account.",
+	}
+
+	// AwsAccountsOptionalQueryArg allows to get the AWS Accounts in the URL
+	// Parameters with routes.RequiredQueryArgs. This AWS Accounts will be a
+	// slice of String stored in the routes.Arguments map with itself for key.
+	// AwsAccountsOptionalQueryArg is optional and will not panic if no query
+	// argument is found.
+	AwsAccountsOptionalQueryArg = QueryArg{
+		Name:        "aa",
+		Type:        QueryArgStringSlice{},
+		Description: "The IDs for many AWS account.",
+		Optional:    true,
+	}
+
+	// AwsAccountQueryArg allows to get the AWS Account in the URL Parameters
+	// with routes.RequiredQueryArgs. This AWS Account will be a String stored
 	// in the routes.Arguments map with itself for key.
 	AwsAccountQueryArg = QueryArg{
 		Name:        "aa",
-		Type:        QueryArgInt{},
+		Type:        QueryArgString{},
 		Description: "The ID for an AWS account.",
 	}
 

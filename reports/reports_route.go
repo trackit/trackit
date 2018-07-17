@@ -43,7 +43,7 @@ func init() {
 				Summary:     "get the list of aws reports",
 				Description: "Responds with the list of reports based on the queryparams passed to it",
 			},
-			routes.QueryArgs{routes.AwsAccountQueryArg},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
 		),
 	}.H().Register("/reports")
 
@@ -55,7 +55,7 @@ func init() {
 				Summary:     "get an aws cost report spreadsheet",
 				Description: "Responds with the spreadsheet based on the queryparams passed to it",
 			},
-			routes.QueryArgs{routes.AwsAccountQueryArg},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
 			routes.QueryArgs{routes.ReportTypeQueryArg},
 			routes.QueryArgs{routes.FileNameQueryArg},
 		),
@@ -74,7 +74,7 @@ func getAwsReports(request *http.Request, a routes.Arguments) (int, interface{})
 		return http.StatusInternalServerError, fmt.Errorf("Reports bucket not configured")
 	}
 	user := a[users.AuthenticatedUser].(users.User)
-	aa := a[routes.AwsAccountQueryArg].(int)
+	aa := a[routes.AwsAccountIdQueryArg].(int)
 	tx := a[db.Transaction].(*sql.Tx)
 	if aaOk, aaErr := isUserAccount(tx, user, aa); !aaOk {
 		return http.StatusUnauthorized, aaErr
@@ -119,7 +119,7 @@ func getAwsReportsDownload(request *http.Request, a routes.Arguments) (int, inte
 		return http.StatusInternalServerError, fmt.Errorf("Reports bucket not configured")
 	}
 	user := a[users.AuthenticatedUser].(users.User)
-	aa := a[routes.AwsAccountQueryArg].(int)
+	aa := a[routes.AwsAccountIdQueryArg].(int)
 	reportType := a[routes.ReportTypeQueryArg].(string)
 	reportName := a[routes.FileNameQueryArg].(string)
 	tx := a[db.Transaction].(*sql.Tx)
