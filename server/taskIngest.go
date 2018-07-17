@@ -56,13 +56,13 @@ func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs
 	for _, r := range ruccs {
 		if r.Error != nil {
 			if billError, castok := r.Error.(awserr.Error); castok {
-				r.BillRepository.Status = billError.Message()
+				r.BillRepository.Error = billError.Message()
 				if err := s3.UpdateBillRepository(r.BillRepository, tx); err != nil {
 					return err
 				}
 			}
 		} else {
-			r.BillRepository.Status = ""
+			r.BillRepository.Error = ""
 			if err := updateBillRepositoryForNextUpdate(ctx, tx, r.BillRepository, r.LastImportedManifest); err != nil {
 				return err
 			}
