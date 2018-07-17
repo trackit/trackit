@@ -1,7 +1,6 @@
 import React from 'react';
 import { RegisterContainer } from '../RegisterContainer';
 import { shallow } from "enzyme";
-import {Redirect} from "react-router-dom";
 import Components from '../../../components';
 
 const Form = Components.Auth.Form;
@@ -9,11 +8,6 @@ const Form = Components.Auth.Form;
 const props = {
   register: jest.fn(),
   clear: jest.fn()
-};
-
-const propsWithRegistration = {
-  ...props,
-  registrationStatus: { status: true }
 };
 
 describe('<RegisterContainer />', () => {
@@ -32,12 +26,6 @@ describe('<RegisterContainer />', () => {
     const form = wrapper.find(Form);
     expect(form.length).toBe(1);
     expect(form.props().registration).toBe(true);
-  });
-
-  it('renders <Redirect/> component if registration is done', () => {
-    const wrapper = shallow(<RegisterContainer {...propsWithRegistration}/>);
-    const redirect = wrapper.find(Redirect);
-    expect(redirect.length).toBe(1);
   });
 
 });
