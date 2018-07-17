@@ -37,7 +37,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getBillRepository).With(
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			aws.RequireAwsAccount{},
+			aws.RequireAwsAccountId{},
 			routes.Documentation{
 				Summary:     "get aws account's bill repositories",
 				Description: "Gets the list of bill repositories for an AWS account.",
@@ -45,7 +45,7 @@ func init() {
 		),
 		http.MethodPost: routes.H(postBillRepository).With(
 			users.RequireAuthenticatedUser{users.ViewerCannot},
-			aws.RequireAwsAccount{},
+			aws.RequireAwsAccountId{},
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{postBillRepositoryBody{
 				Bucket: "my-bucket",
@@ -58,7 +58,7 @@ func init() {
 		),
 		http.MethodPatch: routes.H(patchBillRepository).With(
 			users.RequireAuthenticatedUser{users.ViewerCannot},
-			aws.RequireAwsAccount{},
+			aws.RequireAwsAccountId{},
 			routes.RequestContentType{"application/json"},
 			routes.QueryArgs{routes.BillPositoryQueryArg},
 			routes.RequestBody{postBillRepositoryBody{
@@ -72,7 +72,7 @@ func init() {
 		),
 		http.MethodDelete: routes.H(deleteBillRepository).With(
 			users.RequireAuthenticatedUser{users.ViewerCannot},
-			aws.RequireAwsAccount{},
+			aws.RequireAwsAccountId{},
 			routes.RequestContentType{"application/json"},
 			routes.QueryArgs{routes.BillPositoryQueryArg},
 			routes.Documentation{
@@ -82,7 +82,7 @@ func init() {
 		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
-		routes.QueryArgs{routes.AwsAccountQueryArg},
+		routes.QueryArgs{routes.AwsAccountIdQueryArg},
 		routes.Documentation{
 			Summary:     "interact with aws account's bill repositories",
 			Description: "A bill repository is an S3 location (bucket+prefix) where Cost And Usage Reports can be found.",

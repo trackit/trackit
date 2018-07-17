@@ -35,7 +35,7 @@ func init() {
 				Summary:     "get aws accounts' data",
 				Description: "Gets the data for all of the user's AWS accounts.",
 			},
-			routes.QueryArgs{routes.AwsAccountsOptionalQueryArg},
+			routes.QueryArgs{routes.AwsAccountIdsOptionalQueryArg},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
 			users.RequireAuthenticatedUser{users.ViewerCannot},
@@ -53,7 +53,7 @@ func init() {
 		http.MethodPatch: routes.H(patchAwsAccount).With(
 			users.RequireAuthenticatedUser{users.ViewerCannot},
 			routes.RequestContentType{"application/json"},
-			routes.QueryArgs{routes.AwsAccountQueryArg},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
 			routes.Documentation{
 				Summary:     "edit an aws account",
 				Description: "Edits an AWS account from the user's list of accounts.",
@@ -61,8 +61,8 @@ func init() {
 		),
 		http.MethodDelete: routes.H(deleteAwsAccount).With(
 			users.RequireAuthenticatedUser{users.ViewerCannot},
-			routes.QueryArgs{routes.AwsAccountQueryArg},
-			RequireAwsAccount{},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
+			RequireAwsAccountId{},
 			routes.Documentation{
 				Summary:     "delete an aws account",
 				Description: "Delete the aws account passed in the query args.",
@@ -90,21 +90,21 @@ func init() {
 }
 
 // RequireAwsAccount decorates handler to require that an AwsAccount be
-// selected using RequiredQueryArgs{AwsAccountQueryArg}. The decorator will
-// panic if no AwsAccountQueryArg query argument is found.
-type RequireAwsAccount struct{}
+// selected using RequiredQueryArgs{AwsAccountIdQueryArg}. The decorator will
+// panic if no AwsAccountIdQueryArg query argument is found.
+type RequireAwsAccountId struct{}
 type routeArgKey uint
 
 const (
 	AwsAccountSelection = routeArgKey(iota)
 )
 
-func (d RequireAwsAccount) Decorate(h routes.Handler) routes.Handler {
+func (d RequireAwsAccountId) Decorate(h routes.Handler) routes.Handler {
 	h.Func = d.getFunc(h.Func)
 	return h
 }
 
-func (_ RequireAwsAccount) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
+func (_ RequireAwsAccountId) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		user, tx, err := getUserAndTransactionFromArguments(a)
@@ -112,7 +112,7 @@ func (_ RequireAwsAccount) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			l.Error("missing transaction or user for handler with AWS account", err.Error())
 			return http.StatusInternalServerError, nil
 		}
-		aaid := a[routes.AwsAccountQueryArg].(int)
+		aaid := a[routes.AwsAccountIdQueryArg].(int)
 		aa, err := GetAwsAccountWithIdFromUser(user, aaid, tx)
 		if err != nil {
 			return http.StatusNotFound, errors.New("AWS account not found")
