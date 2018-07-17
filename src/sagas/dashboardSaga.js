@@ -45,7 +45,7 @@ export function* loadDashboardSaga() {
     else if (data.hasOwnProperty("items") && data.hasOwnProperty("dates") && data.hasOwnProperty("intervals") && data.hasOwnProperty("filters"))
       yield all([
         put({type: Constants.DASHBOARD_INSERT_ITEMS, items: data.items}),
-        put({type: Constants.DASHBOARD_INSERT_ITEMS_DATES, dates: data.dates}),
+        put({type: Constants.DASHBOARD_INSERT_DATES, dates: data.dates}),
         put({type: Constants.DASHBOARD_INSERT_ITEMS_INTERVAL, intervals: data.intervals}),
         put({type: Constants.DASHBOARD_INSERT_ITEMS_FILTER, filters: data.filters})
       ]);
@@ -62,7 +62,7 @@ export function* initDashboardSaga() {
     if (data.hasOwnProperty("items") && data.hasOwnProperty("dates") && data.hasOwnProperty("intervals") && data.hasOwnProperty("filters")) {
       yield all([
         put({type: Constants.DASHBOARD_INSERT_ITEMS, items: data.items}),
-        put({type: Constants.DASHBOARD_INSERT_ITEMS_DATES, dates: data.dates}),
+        put({type: Constants.DASHBOARD_INSERT_DATES, dates: data.dates}),
         put({type: Constants.DASHBOARD_INSERT_ITEMS_INTERVAL, intervals: data.intervals}),
         put({type: Constants.DASHBOARD_INSERT_ITEMS_FILTER, filters: data.filters})
       ]);

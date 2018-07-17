@@ -8,6 +8,9 @@ import {formatGigaBytes, formatPrice} from '../../../common/formatters';
 class InfosComponent extends Component {
 
   extractTotals() {
+    if (!this.props.data.hasOwnProperty("values") || !Object.keys(this.props.data.values).length)
+      return null;
+
     const res = {
       buckets: 0,
       size: 0,
@@ -37,9 +40,13 @@ class InfosComponent extends Component {
 
     const totals = this.extractTotals();
 
+    if (!totals)
+      return (<h4 className="no-data">No data available.</h4>);
+
+    /* istanbul ignore next */
     return (
       <div>
-        <div className="col-md-2 col-md-offset-1 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs">
+        <div className={"col-md-2 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs" + (this.props.offset ? " col-md-offset-1" : "")}>
           <ul className="in-col">
             <li>
               <i className="fa fa-shopping-bag fa-2x green-color"/>
@@ -122,7 +129,12 @@ class InfosComponent extends Component {
 }
 
 InfosComponent.propTypes = {
-  data: PropTypes.object
+  data: PropTypes.object,
+  offset: PropTypes.bool
+};
+
+InfosComponent.defaultProps = {
+  offset: true
 };
 
 export default InfosComponent;

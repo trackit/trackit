@@ -27,6 +27,13 @@ const propsWithData = {
   }
 };
 
+const propsWithWrongData = {
+  data: {
+    status: true,
+    values: {}
+  }
+};
+
 const propsWithError = {
   data: {
     status: true,
@@ -61,6 +68,12 @@ describe('<InfosComponent />', () => {
     expect(totals.bandwidth_cost).toBe(propsWithData.data.values.bucket.BandwidthCost);
     expect(totals.storage_cost).toBe(propsWithData.data.values.bucket.StorageCost);
     expect(totals.requests_cost).toBe(propsWithData.data.values.bucket.RequestsCost);
+  });
+
+  it('calculates nothing when there is no data', () => {
+    const wrapper = shallow(<InfosComponent {...propsWithWrongData}/>);
+    const totals = wrapper.instance().extractTotals();
+    expect(totals).toBe(null);
   });
 
 });

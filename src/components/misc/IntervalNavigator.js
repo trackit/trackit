@@ -26,8 +26,8 @@ class IntervalNavigator extends Component {
         end = this.props.endDate.subtract(1, 'months').endOf('months');
         break;
       case "week":
-        start = this.props.startDate.subtract(1, 'weeks');
-        end = this.props.endDate.subtract(1, 'weeks');
+        start = this.props.startDate.subtract(1, 'weeks').startOf('isoWeek');
+        end = this.props.endDate.subtract(1, 'weeks').endOf('isoWeek');
         break;
       case "day":
       default:
@@ -51,8 +51,8 @@ class IntervalNavigator extends Component {
         end = this.props.endDate.add(1, 'months').endOf('months');
         break;
       case "week":
-        start = this.props.startDate.add(1, 'weeks');
-        end = this.props.endDate.add(1, 'weeks');
+        start = this.props.startDate.add(1, 'weeks').startOf('isoWeek');
+        end = this.props.endDate.add(1, 'weeks').endOf('isoWeek');
         break;
       case "day":
       default:
@@ -98,8 +98,8 @@ class IntervalNavigator extends Component {
         end = Moment().subtract(1, 'month').endOf('month');
         break;
       case "week":
-        start = Moment().subtract(1, 'month').endOf('month').startOf('week');
-        end = Moment().subtract(1, 'month').endOf('month').endOf('week');
+        start = Moment().subtract(1, 'month').endOf('month').startOf('isoWeek');
+        end = Moment().subtract(1, 'month').endOf('month').endOf('isoWeek');
         break;
       case "day":
       default:
@@ -125,7 +125,7 @@ class IntervalNavigator extends Component {
             <i className="fa fa-caret-right"/>
           </button>
         </div>
-        <IntervalSelector interval={this.props.interval} setInterval={this.updateInterval}/>
+        <IntervalSelector interval={this.props.interval} setInterval={this.updateInterval} availableIntervals={this.props.availableIntervals}/>
       </div>
     );
   }
@@ -137,6 +137,7 @@ IntervalNavigator.propTypes = {
   endDate: PropTypes.object.isRequired,
   setDatesFunc: PropTypes.func.isRequired,
   interval: PropTypes.string,
+  availableIntervals: PropTypes.arrayOf(PropTypes.string),
   setIntervalFunc: PropTypes.func
 };
 

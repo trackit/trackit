@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import { NavLink, withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Spinner from 'react-spinkit';
 
@@ -19,14 +19,30 @@ export class FormComponent extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      email: (this.props.match && this.props.match.params && this.props.match.params.prefill) ? decodeURIComponent(this.props.match.params.prefill) : '',
+      password: '',
+      passwordConfirmation: '',
+    }
     this.submit = this.submit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
   }
 
   submit = (e) => {
     e.preventDefault();
-    let values = this.form.getValues();
-    this.props.submit(values.email, values.password);
+    this.props.submit(this.state.email, this.state.password);
   };
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
 
   render() {
     const password = (this.props.registration ? (
@@ -38,6 +54,8 @@ export class FormComponent extends Component {
             name="password"
             className="form-control"
             validations={[Validation.required]}
+            value={this.state.password}
+            onChange={this.handleInputChange}
           />
         </div>
         <div className="form-group">
@@ -47,6 +65,8 @@ export class FormComponent extends Component {
             name="passwordConfirmation"
             className="form-control"
             validations={[Validation.required, Validation.passwordConfirmation]}
+            value={this.state.passwordConfirmation}
+            onChange={this.handleInputChange}
           />
         </div>
       </div>
@@ -58,65 +78,63 @@ export class FormComponent extends Component {
           name="password"
           className="form-control"
           validations={[Validation.required]}
+          value={this.state.password}
+          onChange={this.handleInputChange}
         />
       </div>
     ));
 
     const buttons = (this.props.registration ? (
       <div className="clearfix">
-
-        <NavLink
-          exact to='/login'
-          className="btn btn-default col-md-5 btn-left"
+        <div>
+          <Button
+            className="btn btn-primary btn-block"
+            type="submit"
+          >
+            {(this.props.registrationStatus && !Object.keys(this.props.registrationStatus).length ? (
+              (<Spinner className="spinner" name='circle' color='white'/>)
+            ) : (
+              <div>
+                <i className="fa fa-user-plus" />
+                &nbsp;
+                Sign up
+              </div>
+            ))}
+          </Button>
+        </div>
+        <br />
+        <Link
+          to="/login"
         >
-          <i className="fa fa-sign-in" />
-          &nbsp;
-          Sign in
-        </NavLink>
+          Already have an account ? Sign in here.
+        </Link>
 
-        <Button
-          className="btn btn-primary col-md-5 btn-right"
-          type="submit"
-        >
-          {(this.props.registrationStatus && !Object.keys(this.props.registrationStatus).length ? (
-            (<Spinner className="spinner" name='circle' color='white'/>)
-          ) : (
-            <div>
-              <i className="fa fa-user-plus" />
-              &nbsp;
-              Sign up
-            </div>
-          ))}
-        </Button>
 
       </div>
     ) : (
       <div className="clearfix">
-
-        <NavLink
-          exact to='/register'
-          className="btn btn-default col-md-5 btn-left"
+        <div>
+          <Button
+            className="btn btn-primary btn-block"
+            type="submit"
+          >
+            {(this.props.loginStatus && !Object.keys(this.props.loginStatus).length ? (
+              (<Spinner className="spinner" name='circle' color='white'/>)
+            ) : (
+              <div>
+                <i className="fa fa-sign-in" />
+                &nbsp;
+                Sign in
+              </div>
+            ))}
+          </Button>
+        </div>
+        <br />
+        <Link
+          to="/register"
         >
-          <i className="fa fa-user-plus" />
-          &nbsp;
-          Sign up
-        </NavLink>
-
-        <Button
-          className="btn btn-primary col-md-5 btn-right"
-          type="submit"
-        >
-          {(this.props.loginStatus && !Object.keys(this.props.loginStatus).length ? (
-            (<Spinner className="spinner" name='circle' color='white'/>)
-          ) : (
-            <div>
-              <i className="fa fa-sign-in" />
-              &nbsp;
-              Sign in
-            </div>
-          ))}
-        </Button>
-
+          Don't have an account ? Register here.
+        </Link>
       </div>
     ));
 
@@ -131,6 +149,14 @@ export class FormComponent extends Component {
       ): "");
     }
 
+    let success;
+    if (this.props.registrationStatus && this.props.registrationStatus.status) {
+      success = <div className="alert alert-success">
+        <strong>Success : </strong>
+        Your registration was successful. You may now <Link to={`/login/${encodeURIComponent(this.state.email)}`}>Sign in</Link>.
+      </div>;
+    }
+
     return (
       <div className="login">
         <div className="row">
@@ -142,29 +168,38 @@ export class FormComponent extends Component {
               <img src={logo} id="logo" alt="TrackIt logo" />
 
               <hr />
+              <h3 style={{textAlign: 'center'}}>
+                {this.props.registration ? 'Register' : 'Sign in'}
+              </h3>
 
               {error}
+              {success}
+
+
 
               <Form
-                ref={
-                  /* istanbul ignore next */
-                  (form) => {this.form = form;}
-                }
                 onSubmit={this.submit}>
 
-                <div className="form-group">
-                  <label htmlFor="email">Email address</label>
-                  <Input
-                    name="email"
-                    type="email"
-                    className="form-control"
-                    validations={[Validation.required, Validation.email]}
-                  />
-                </div>
+                {
+                  !(this.props.registrationStatus && this.props.registrationStatus.status) &&
+                  (
+                    <div className="form-group">
+                      <label htmlFor="email">Email address</label>
+                      <Input
+                        name="email"
+                        type="email"
+                        className="form-control"
+                        validations={[Validation.required, Validation.email]}
+                        value={this.state.email}
+                        onChange={this.handleInputChange}
+                      />
+                    </div>
+                  )
+                }
 
-                {password}
+                {!(this.props.registrationStatus && this.props.registrationStatus.status) && password}
 
-                {buttons}
+                {!(this.props.registrationStatus && this.props.registrationStatus.status) && buttons}
 
               </Form>
 

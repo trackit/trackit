@@ -14,6 +14,17 @@ import s3square from '../../assets/s3-square.png';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const Popover = Misc.Popover;
+const TimerangeSelector = Misc.TimerangeSelector;
+
+// This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
+// Similar issue : https://github.com/novus/nvd3/issues/1262
+/* istanbul ignore next */
+const clearTooltips = () => {
+  const tooltips = document.getElementsByClassName("nvtooltip xy-tooltip");
+  for (let i = 0; i < tooltips.length; i++) {
+    tooltips[i].style.opacity = 0;
+  }
+};
 
 const defaultValues = {
   position: [0,0],
@@ -22,12 +33,12 @@ const defaultValues = {
 };
 
 const itemsSize = {
-  header: [6, 1],
-  cb_infos: [6,2],
-  cb_pie: [3,5],
-  cb_bar: [3,5],
-  s3_infos: [6,2],
-  s3_chart: [2,5],
+  header: [6, 2],
+  cb_infos: [6,3],
+  cb_pie: [3,6],
+  cb_bar: [3,6],
+  s3_infos: [6,3],
+  s3_chart: [2,6],
 };
 
 const generateLayout = (item) => {
@@ -88,6 +99,7 @@ const renderItem = (key, item, child, close=null) => {
 };
 
 export class Header extends Component {
+
   /* istanbul ignore next */
   render() {
     return (
@@ -100,19 +112,31 @@ export class Header extends Component {
             </div>
           </div>
           <div className="inline-block pull-right">
+            <TimerangeSelector
+              startDate={this.props.dates.startDate}
+              endDate={this.props.dates.endDate}
+              setDatesFunc={this.props.setDates}
+            />
+            &nbsp;
+            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}>Reset dashboard</button>
+          </div>
+        </div>
+        &nbsp;
+        <div className="clearfix">
+          <div className="inline-block pull-right">
             <div className="inline-block dashboard-btn-group">
-              <div className="inline-block dashboard-btn-group-title">
-                <i className="menu-icon fa fa-area-chart red-color"/>
-                &nbsp;
-                Cost Breakdown
-              </div>
+            <div className="inline-block dashboard-btn-group-title">
+              <i className="menu-icon fa fa-area-chart red-color"/>
               &nbsp;
-              <div className="btn-group">
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}>Info</button>
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}>Bar Chart</button>
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}>Pie Chart</button>
-              </div>
+              Cost Breakdown
             </div>
+            &nbsp;
+            <div className="btn-group">
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}>Info</button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}>Bar Chart</button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}>Pie Chart</button>
+            </div>
+          </div>
             &nbsp;
             <div className="inline-block dashboard-btn-group">
               <div className="inline-block dashboard-btn-group-title">
@@ -126,8 +150,6 @@ export class Header extends Component {
                 <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}>Chart</button>
               </div>
             </div>
-            &nbsp;
-            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}>Reset dashboard</button>
           </div>
         </div>
       </div>
@@ -137,6 +159,11 @@ export class Header extends Component {
 
 Header.propsTypes = {
   addItem: PropTypes.func.isRequired,
+  dates: PropTypes.shape({
+    startDate: PropTypes.object,
+    endDate: PropTypes.object,
+  }),
+  setDates: PropTypes.func.isRequired,
   reset: PropTypes.func.isRequired,
 };
 
@@ -163,6 +190,7 @@ export class DashboardComponent extends Component {
   componentWillReceiveProps(nextProps) {
     if (!Object.keys(nextProps.items).length)
       nextProps.initDashboard();
+    clearTooltips();
   }
 
   addItem = (mode) => {
@@ -196,8 +224,7 @@ export class DashboardComponent extends Component {
 
   renderItem = (key, item) => {
     let content = null;
-    if (this.props.values &&
-      this.props.dates && this.props.dates.hasOwnProperty(key) &&
+    if (this.props.values && this.props.dates &&
       this.props.intervals && this.props.intervals.hasOwnProperty(key) &&
       this.props.filters && this.props.filters.hasOwnProperty(key)
     ) {
@@ -208,8 +235,7 @@ export class DashboardComponent extends Component {
             accounts={this.props.accounts}
             values={this.props.values[key]}
             getValues={this.props.getData}
-            dates={this.props.dates[key]}
-            setDates={this.props.setItemDates}
+            dates={this.props.dates}
           />;
           break;
         case "s3_chart":
@@ -218,8 +244,7 @@ export class DashboardComponent extends Component {
             accounts={this.props.accounts}
             values={this.props.values[key]}
             getValues={this.props.getData}
-            dates={this.props.dates[key]}
-            setDates={this.props.setItemDates}
+            dates={this.props.dates}
             filter={this.props.filters[key]}
             setFilter={this.props.setItemFilter}
           />;
@@ -230,8 +255,7 @@ export class DashboardComponent extends Component {
             accounts={this.props.accounts}
             values={this.props.values[key]}
             getValues={this.props.getData}
-            dates={this.props.dates[key]}
-            setDates={this.props.setItemDates}
+            dates={this.props.dates}
             interval={this.props.intervals[key]}
             setInterval={this.props.setItemInterval}
           />;
@@ -242,8 +266,7 @@ export class DashboardComponent extends Component {
             accounts={this.props.accounts}
             values={this.props.values[key]}
             getValues={this.props.getData}
-            dates={this.props.dates[key]}
-            setDates={this.props.setItemDates}
+            dates={this.props.dates}
             filter={this.props.filters[key]}
             setFilter={this.props.setItemFilter}
             interval={this.props.intervals[key]}
@@ -256,8 +279,7 @@ export class DashboardComponent extends Component {
             accounts={this.props.accounts}
             values={this.props.values[key]}
             getValues={this.props.getData}
-            dates={this.props.dates[key]}
-            setDates={this.props.setItemDates}
+            dates={this.props.dates}
             filter={this.props.filters[key]}
             setFilter={this.props.setItemFilter}
             interval={this.props.intervals[key]}
@@ -280,9 +302,15 @@ export class DashboardComponent extends Component {
           containerPadding={[0,0]}
           cols={{lg: 6, md: 6, sm: 6, xs: 3, xxs: 3}}
           onLayoutChange={this.updateLayout}
-          rowHeight={80}
+          rowHeight={60}
         >
-          {renderItem("header", header, (<Header addItem={this.addItem} reset={this.resetDashboard}/>))}
+          {renderItem("header", header, (
+            <Header
+              addItem={this.addItem}
+              reset={this.resetDashboard}
+              dates={this.props.dates}
+              setDates={this.props.setDates}
+            />))}
           {Object.keys(this.props.items).map(key => this.renderItem(key, this.props.items[key]))}
         </ResponsiveReactGridLayout>
 
@@ -297,6 +325,10 @@ DashboardComponent.propTypes = {
   items: PropTypes.object,
   values: PropTypes.object,
   dates: PropTypes.object,
+  newdates: PropTypes.shape({
+    startDate: PropTypes.object,
+    endDate: PropTypes.object,
+  }),
   intervals: PropTypes.object.isRequired,
   filters: PropTypes.object.isRequired,
   initDashboard: PropTypes.func.isRequired,
@@ -304,12 +336,9 @@ DashboardComponent.propTypes = {
   addItem: PropTypes.func.isRequired,
   removeItem: PropTypes.func.isRequired,
   getData: PropTypes.func.isRequired,
-  setItemDates: PropTypes.func.isRequired,
+  setDates: PropTypes.func.isRequired,
   setItemInterval: PropTypes.func.isRequired,
   setItemFilter: PropTypes.func.isRequired,
-  resetItemDates: PropTypes.func.isRequired,
-  resetItemInterval: PropTypes.func.isRequired,
-  resetItemFilter: PropTypes.func.isRequired,
 };
 
 /* istanbul ignore next */
@@ -339,6 +368,9 @@ const mapDispatchToProps = (dispatch) => ({
   getData: (id, type, begin, end, filters) => {
     dispatch(Actions.Dashboard.getData(id, type, begin, end, filters));
   },
+  setDates: (startDate, endDate) => {
+    dispatch(Actions.Dashboard.setDates(startDate, endDate))
+  },
   setItemDates: (id, startDate, endDate) => {
     dispatch(Actions.Dashboard.setItemDates(id, startDate, endDate))
   },
@@ -348,14 +380,8 @@ const mapDispatchToProps = (dispatch) => ({
   setItemInterval: (id, interval) => {
     dispatch(Actions.Dashboard.setItemInterval(id, interval));
   },
-  resetItemInterval: () => {
-    dispatch(Actions.Dashboard.resetItemInterval());
-  },
   setItemFilter: (id, filter) => {
     dispatch(Actions.Dashboard.setItemFilter(id, filter));
-  },
-  resetItemFilter: () => {
-    dispatch(Actions.Dashboard.resetItemFilter());
   }
 });
 

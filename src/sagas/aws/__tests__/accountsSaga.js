@@ -142,9 +142,12 @@ describe("Accounts Saga", () => {
 
   describe("Edit Account", () => {
 
-    it("handles saga", () => {
+    const account = {roleArn: "roleArn"};
+    const validResponse = {success: true, data: account};
+    const invalidResponse = {success: true, account};
+    const noResponse = {success: false};
 
-      const account = {roleArn: "roleArn"};
+    it("handles saga with valid data", () => {
 
       let saga = editAccountSaga({account});
 
@@ -154,11 +157,45 @@ describe("Accounts Saga", () => {
       expect(saga.next(token).value)
         .toEqual(call(API.AWS.Accounts.editAccount, account, token));
 
-      expect(saga.next().value)
+      expect(saga.next(validResponse).value)
         .toEqual(all([
-          put({ type: Constants.AWS_EDIT_ACCOUNT_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({type: Constants.AWS_EDIT_ACCOUNT_SUCCESS}),
+          put({type: Constants.AWS_GET_ACCOUNTS})
         ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with invalid data", () => {
+
+      let saga = editAccountSaga({account});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.editAccount, account, token));
+
+      expect(saga.next(invalidResponse).value)
+        .toEqual(put({type: Constants.AWS_EDIT_ACCOUNT_ERROR, error: Error("Error with request")}));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with no response", () => {
+
+      let saga = editAccountSaga({account});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.editAccount, account, token));
+
+      expect(saga.next(noResponse).value)
+        .toEqual(put({type: Constants.AWS_EDIT_ACCOUNT_ERROR, error: Error("Error with request")}));
 
       expect(saga.next().done).toBe(true);
 
@@ -231,9 +268,12 @@ describe("Accounts Saga", () => {
 
   describe("Delete Account", () => {
 
-    it("handles saga", () => {
+    const accountID = 42;
+    const validResponse = {success: true, data: {}};
+    const invalidResponse = {success: true, accountID};
+    const noResponse = {success: false};
 
-      const accountID = 42;
+    it("handles saga with valid data", () => {
 
       let saga = deleteAccountSaga({accountID});
 
@@ -243,11 +283,45 @@ describe("Accounts Saga", () => {
       expect(saga.next(token).value)
         .toEqual(call(API.AWS.Accounts.deleteAccount, accountID, token));
 
-      expect(saga.next().value)
+      expect(saga.next(validResponse).value)
         .toEqual(all([
-          put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({type: Constants.AWS_DELETE_ACCOUNT_SUCCESS}),
+          put({type: Constants.AWS_GET_ACCOUNTS})
         ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with invalid data", () => {
+
+      let saga = deleteAccountSaga({accountID});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccount, accountID, token));
+
+      expect(saga.next(invalidResponse).value)
+        .toEqual(put({type: Constants.AWS_DELETE_ACCOUNT_ERROR, error: Error("Error with request")}));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with no response", () => {
+
+      let saga = deleteAccountSaga({accountID});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccount, accountID, token));
+
+      expect(saga.next(noResponse).value)
+        .toEqual(put({type: Constants.AWS_DELETE_ACCOUNT_ERROR, error: Error("Error with request")}));
 
       expect(saga.next().done).toBe(true);
 
@@ -386,10 +460,13 @@ describe("Account Bills Saga", () => {
 
   describe("Edit Account Bill", () => {
 
-    it("handles saga", () => {
+    const accountID = 42;
+    const bill = {bucket: "test"};
+    const validResponse = { success: true, data: bill };
+    const invalidResponse = { success: true, bill };
+    const noResponse = { success: false };
 
-      const accountID = 42;
-      const bill = {bucket: "test"};
+    it("handles saga", () => {
 
       let saga = editAccountBillSaga({accountID, bill});
 
@@ -399,7 +476,7 @@ describe("Account Bills Saga", () => {
       expect(saga.next(token).value)
         .toEqual(call(API.AWS.Accounts.editAccountBill, accountID, bill, token));
 
-      expect(saga.next().value)
+      expect(saga.next(validResponse).value)
         .toEqual(all([
           put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
           put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
@@ -409,28 +486,99 @@ describe("Account Bills Saga", () => {
 
     });
 
-  });
+    it("handles saga with invalid data", () => {
 
-  describe("Delete Account Bill", () => {
-
-    it("handles saga", () => {
-
-      const accountID = 42;
-      const bill = {bucket: "test"};
-
-      let saga = deleteAccountBillSaga({accountID, bill});
+      let saga = editAccountBillSaga({accountID, bill});
 
       expect(saga.next().value)
         .toEqual(getToken());
 
       expect(saga.next(token).value)
-        .toEqual(call(API.AWS.Accounts.deleteAccountBill, accountID, bill, token));
+        .toEqual(call(API.AWS.Accounts.editAccountBill, accountID, bill, token));
+
+      expect(saga.next(invalidResponse).value)
+        .toEqual(put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with no response", () => {
+
+      let saga = editAccountBillSaga({accountID, bill});
 
       expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.editAccountBill, accountID, bill, token));
+
+      expect(saga.next(noResponse).value)
+        .toEqual(put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+  });
+
+  describe("Delete Account Bill", () => {
+
+    const accountID = 42;
+    const billID = 84;
+    const validResponse = { success: true, data: {} };
+    const invalidResponse = { success: true, billID };
+    const noResponse = { success: false };
+
+    it("handles saga", () => {
+
+      let saga = deleteAccountBillSaga({accountID, billID});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccountBill, accountID, billID, token));
+
+      expect(saga.next(validResponse).value)
         .toEqual(all([
           put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with invalid data", () => {
+
+      let saga = deleteAccountBillSaga({accountID, billID});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccountBill, accountID, billID, token));
+
+      expect(saga.next(invalidResponse).value)
+        .toEqual(put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_ERROR, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with no response", () => {
+
+      let saga = deleteAccountBillSaga({accountID, billID});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.deleteAccountBill, accountID, billID, token));
+
+      expect(saga.next(noResponse).value)
+        .toEqual(put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_ERROR, error: Error("Error with request") }));
 
       expect(saga.next().done).toBe(true);
 

@@ -25,9 +25,9 @@ describe("Costs Saga", () => {
     const invalidResponse = { success: true, costs };
     const noResponse = { success: false };
 
-    it("handles saga with valid data", () => {
+    it("handles saga with valid data for Cost Breakdown", () => {
 
-      let saga = getCostsSaga({id, begin, end, filters, accounts});
+      let saga = getCostsSaga({id, begin, end, filters, accounts, chartType: "breakdown"});
 
       expect(saga.next().value)
         .toEqual(getToken());
@@ -45,9 +45,29 @@ describe("Costs Saga", () => {
 
     });
 
+    it("handles saga with valid data for Cost Differentiator", () => {
+
+      let saga = getCostsSaga({id, begin, end, filters, accounts, chartType: "differentiator"});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(getAWSAccounts());
+
+      expect(saga.next(accounts).value)
+        .toEqual(call(API.AWS.Costs.getCostDiff, token, begin, end, filters, accounts));
+
+      expect(saga.next(validResponse).value)
+        .toEqual(put({ type: Constants.AWS_GET_COSTS_SUCCESS, id, costs }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
     it("handles saga with valid data and without accounts", () => {
 
-      let saga = getCostsSaga({id, begin, end, filters});
+      let saga = getCostsSaga({id, begin, end, filters, chartType: "breakdown"});
 
       expect(saga.next().value)
         .toEqual(getToken());
@@ -67,7 +87,7 @@ describe("Costs Saga", () => {
 
     it("handles saga with invalid data", () => {
 
-      let saga = getCostsSaga({id, begin, end, filters, accounts});
+      let saga = getCostsSaga({id, begin, end, filters, accounts, chartType: "breakdown"});
 
       expect(saga.next().value)
         .toEqual(getToken());
@@ -87,7 +107,7 @@ describe("Costs Saga", () => {
 
     it("handles saga with error in data", () => {
 
-      let saga = getCostsSaga({id, begin, end, filters, accounts});
+      let saga = getCostsSaga({id, begin, end, filters, accounts, chartType: "breakdown"});
 
       expect(saga.next().value)
         .toEqual(getToken());
@@ -105,9 +125,26 @@ describe("Costs Saga", () => {
 
     });
 
+    it("handles saga with error in chart type", () => {
+
+      let saga = getCostsSaga({id, begin, end, filters, accounts, chartType: null});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(getAWSAccounts());
+
+      expect(saga.next(errorResponse).value)
+        .toEqual(put({ type: Constants.AWS_GET_COSTS_ERROR, id, error: Error("Error with request") }));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
     it("handles saga with no response", () => {
 
-      let saga = getCostsSaga({id, begin, end, filters, accounts});
+      let saga = getCostsSaga({id, begin, end, filters, accounts, chartType: "breakdown"});
 
       expect(saga.next().value)
         .toEqual(getToken());

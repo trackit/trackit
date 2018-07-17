@@ -10,10 +10,23 @@ const Form = Components.Auth.Form;
 // LoginContainer Component
 export class LoginContainer extends Component {
 
+  componentWillUnmount() {
+    this.props.clear();
+  }
+
+  componentWillMount() {
+    this.props.clear();
+  }
+
+
   render() {
     if (this.props.token)
       return (<Redirect to="/"/>);
-    return (<Form submit={this.props.login} loginStatus={this.props.loginStatus}/>);
+    return (<Form
+      submit={this.props.login}
+      loginStatus={this.props.loginStatus}
+      registrationStatus={this.props.registrationStatus}
+      />);
   }
 
 }
@@ -30,13 +43,17 @@ LoginContainer.propTypes = {
 /* istanbul ignore next */
 const mapStateToProps = (state) => ({
   token: state.auth.token,
-  loginStatus: state.auth.loginStatus
+  loginStatus: state.auth.loginStatus,
+  registrationStatus: state.auth.registration
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   login: (email, password) => {
     dispatch(Actions.Auth.login(email, password))
+  },
+  clear: () => {
+    dispatch(Actions.Auth.clearRegister());
   }
 });
 

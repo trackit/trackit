@@ -13,6 +13,9 @@ export default {
       billCreation: {
         status: true
       },
+      billsStatus: {
+        status: false
+      },
       external: null,
     },
     s3: {
@@ -28,15 +31,34 @@ export default {
       dates: {},
       interval: {},
       filter: {}
-    }
+    },
+    reports: {
+      account: '',
+      download: {
+        failed: false,
+      },
+      reportList: {
+        status: false,
+        values: []
+      }
+    },
   },
   gcp: {},
+  user: {
+    viewers: {
+      all: {status: true, value: null},
+      creation: {status: true, value: null}
+    },
+  },
   dashboard: {
     items: {},
     values: {},
-    dates: {},
     intervals: {},
-    filters: {}
+    filters: {},
+    dates: {
+      startDate: moment().subtract(1, 'month').startOf('month'),
+      endDate: moment().subtract(1, 'month').endOf('month')
+    }
   },
   auth: {
     token: null,

@@ -4,20 +4,16 @@ import moment from "moment/moment";
 
 describe("DatesReducer", () => {
 
-  const id = "id";
-  const dates = "dates";
-  let state = {};
-  state[id] = dates;
-  let stateDefault = {};
-  stateDefault[id] = {
+  const dates = {
+    startDate: moment().subtract(1, 'week').startOf('week'),
+    endDate: moment().subtract(1, 'week').endOf('week')
+  };
+
+  const state = dates;
+
+  const defaultState = {
     startDate: moment().subtract(1, 'month').startOf('month'),
     endDate: moment().subtract(1, 'month').endOf('month')
-  };
-  let insert = {
-    "id": {
-      startDate: moment().subtract(1, 'month').startOf('month'),
-      endDate: moment().subtract(1, 'month').endOf('month')
-    }
   };
 
   it("handles initial state", () => {
@@ -25,28 +21,19 @@ describe("DatesReducer", () => {
   });
 
   it("handles insert dates state", () => {
-    expect(DatesReducer({}, { type: Constants.DASHBOARD_INSERT_ITEMS_DATES, dates: insert })).toEqual(insert);
-  });
-
-  it("handles add chart state", () => {
-    expect(DatesReducer({}, { type: Constants.DASHBOARD_ADD_ITEM, id })).toEqual(stateDefault);
+    expect(DatesReducer({}, { type: Constants.DASHBOARD_INSERT_DATES, dates })).toEqual(state);
   });
 
   it("handles set dates state", () => {
-    expect(DatesReducer({}, { type: Constants.DASHBOARD_SET_ITEM_DATES, id, dates })).toEqual(state);
+    expect(DatesReducer({}, { type: Constants.DASHBOARD_SET_DATES, dates })).toEqual(state);
   });
 
   it("handles reset dates state", () => {
-    expect(DatesReducer(state, { type: Constants.DASHBOARD_RESET_ITEMS_DATES, id, dates })).toEqual(stateDefault);
+    expect(DatesReducer(state, { type: Constants.DASHBOARD_RESET_DATES })).toEqual(defaultState);
   });
 
   it("handles clear dates state", () => {
-    expect(DatesReducer(state, { type: Constants.DASHBOARD_CLEAR_ITEMS_DATES })).toEqual({});
-  });
-
-  it("handles chart deletion state", () => {
-    expect(DatesReducer(state, { type: Constants.DASHBOARD_REMOVE_ITEM, id })).toEqual({});
-    expect(DatesReducer(state, { type: Constants.DASHBOARD_REMOVE_ITEM, id: "fakeID" })).toEqual(state);
+    expect(DatesReducer(state, { type: Constants.DASHBOARD_CLEAR_DATES })).toEqual({});
   });
 
   it("handles wrong type state", () => {

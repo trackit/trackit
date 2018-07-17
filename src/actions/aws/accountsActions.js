@@ -42,10 +42,10 @@ export default {
     type: Constants.AWS_DELETE_ACCOUNT,
     accountID
   }),
-  deleteAccountBill: (accountID, bill) => ({
+  deleteAccountBill: (accountID, billID) => ({
     type: Constants.AWS_DELETE_ACCOUNT_BILL,
     accountID,
-    bill
+    billID
   }),
 	newExternal: () => ({
 		type: Constants.AWS_NEW_EXTERNAL
@@ -56,5 +56,11 @@ export default {
   }),
   clearAccountSelection: () => ({
     type: Constants.AWS_CLEAR_ACCOUNT_SELECTION
+  }),
+  getAccountBillsStatus: () => ({
+    type: Constants.AWS_GET_ACCOUNT_BILL_STATUS,
+  }),
+  clearAccountBillsStatus: () => ({
+    type: Constants.AWS_GET_ACCOUNT_BILL_STATUS_CLEAR
   })
 };

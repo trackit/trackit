@@ -1,8 +1,9 @@
 import { shallow } from 'enzyme';
+import Moment from 'moment';
 import {
   noNeg,
   capitalizeFirstLetter,
-  formatBytes, formatGigaBytes, formatPrice,
+  formatBytes, formatGigaBytes, formatPrice, formatPercent, formatDate,
   costBreakdown, s3Analytics
 } from '../formatters';
 
@@ -83,6 +84,95 @@ describe('Formatters', () => {
       const spans = output.find("span");
       expect(spans.length).toBe(2);
       expect(spans.first().props().children[1]).toBe(formattedValue);
+    });
+
+  });
+
+  describe('FormatPercent', () => {
+
+    const validPositiveInput = 42.042;
+    const formattedPositiveValue = "+42.04";
+    const validNegativeInput = -42.042;
+    const formattedNegativeValue = "-42.04";
+
+    const redValue = 1;
+    const nullValue = 0;
+    const greenValue = -1;
+    const boldValue = 100;
+    const notBoldValue = 99;
+
+    it('should return formatted positive value', () => {
+      const output = shallow(formatPercent(validPositiveInput));
+      expect(output.length).toBe(1);
+      const spans = output.find("span");
+      expect(spans.length).toBe(2);
+      expect(spans.first().props().children[0]).toBe(formattedPositiveValue);
+    });
+
+    it('should return formatted negative value', () => {
+      const output = shallow(formatPercent(validNegativeInput));
+      expect(output.length).toBe(1);
+      const spans = output.find("span");
+      expect(spans.length).toBe(2);
+      expect(spans.first().props().children[0]).toBe(formattedNegativeValue);
+    });
+
+    it('should have red class when value is above 0', () => {
+      const output = shallow(formatPercent(redValue));
+      expect(output.length).toBe(1);
+      let color = output.find(".red-color");
+      expect(color.length).toBe(1);
+      color = output.find(".green-color");
+      expect(color.length).toBe(0);
+    });
+
+    it('should have green class when value is below 0', () => {
+      const output = shallow(formatPercent(greenValue));
+      expect(output.length).toBe(1);
+      let color = output.find(".green-color");
+      expect(color.length).toBe(1);
+      color = output.find(".red-color");
+      expect(color.length).toBe(0);
+    });
+
+    it('should have no color class when value is 0', () => {
+      const output = shallow(formatPercent(nullValue));
+      expect(output.length).toBe(1);
+      let color = output.find(".green-color");
+      expect(color.length).toBe(0);
+      color = output.find(".red-color");
+      expect(color.length).toBe(0);
+    });
+
+    it('should have bold class when value is higher or equal to 100', () => {
+      const output = shallow(formatPercent(boldValue));
+      expect(output.length).toBe(1);
+      let color = output.find(".percent-bold");
+      expect(color.length).toBe(1);
+    });
+
+    it('should not have bold class when value is lower than 100', () => {
+      const output = shallow(formatPercent(notBoldValue));
+      expect(output.length).toBe(1);
+      let color = output.find(".percent-bold");
+      expect(color.length).toBe(0);
+    });
+
+  });
+
+  describe('FormatDate', () => {
+
+    const validInput = Moment();
+    const formattedValues = {
+      year: validInput.format('Y'),
+      month: validInput.format('MMM Y'),
+      day: validInput.format('MMM Do Y')
+    };
+
+    it('should return formatted value', () => {
+      Object.keys(formattedValues).forEach((precision) => {
+        expect(formatDate(validInput, precision)).toBe(formattedValues[precision]);
+      })
     });
 
   });
@@ -232,6 +322,76 @@ describe('Formatters', () => {
 
       it('returns total when valid data', () => {
         expect(getTotalPieChart(data)).toEqual((42 +  84));
+      });
+
+    });
+
+    describe('TransformCostDifferentiator', () => {
+
+      const transformCostDifferentiator = costBreakdown.transformCostDifferentiator;
+
+      it('returns formatted data', () => {
+        const data = {
+          product: [{
+            Date: "date1",
+            Cost: 42,
+            PercentVariation: 4.2
+          }, {
+            Date: "date2",
+            Cost: 84,
+            PercentVariation: 8.4
+          }],
+          product2: [{
+            Date: "date1",
+            Cost: 21,
+            PercentVariation: 2.1
+          }]
+        };
+
+        const output = {
+          dates: ["date1", "date2"],
+          values: [{
+            key: "product",
+            date1: {cost: 42, variation: 4.2},
+            date2: {cost: 84, variation: 8.4}
+          }, {
+            key: "product2",
+            date1: {cost: 21, variation: 2.1}
+          }]
+        };
+        expect(transformCostDifferentiator(data)).toEqual(output);
+      });
+
+      it('formats variation when cost are almost null', () => {
+        const data = {
+          product: [{
+            Date: "date1",
+            Cost: 0,
+            PercentVariation: 0
+          }, {
+            Date: "date2",
+            Cost: 0,
+            PercentVariation: 8.4
+          }],
+          product2: [{
+            Date: "date1",
+            Cost: 21,
+            PercentVariation: 2.1
+          }]
+        };
+
+        const output = {
+          dates: ["date1", "date2"],
+          values: [{
+            key: "product",
+            date1: {cost: 0, variation: 0},
+            date2: {cost: 0, variation: 0}
+          }, {
+            key: "product2",
+            date1: {cost: 21, variation: 2.1}
+          }]
+        };
+        expect(transformCostDifferentiator(data)).toEqual(output);
       });
 
     });

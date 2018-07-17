@@ -20,6 +20,8 @@ const clearTooltips = () => {
   }
 };
 
+const minimalCount = 2;
+
 export class CostBreakdownContainer extends Component {
 
   constructor(props) {
@@ -52,6 +54,11 @@ export class CostBreakdownContainer extends Component {
     this.props.addChart("pie");
   };
 
+  addDiffChart = (e) => {
+    e.preventDefault();
+    this.props.addChart("diff");
+  };
+
   resetCharts = (e) => {
     e.preventDefault();
     Object.keys(this.props.charts).forEach((id) => {this.props.removeChart(id)});
@@ -75,7 +82,7 @@ export class CostBreakdownContainer extends Component {
             getCosts={this.props.getCosts}
             setDates={this.props.setCostsDates}
             setInterval={this.props.setCostsInterval}
-            close={Object.keys(this.props.charts).length > 2 ? this.props.removeChart : null}
+            close={Object.keys(this.props.charts).length > minimalCount ? this.props.removeChart : null}
           />
         );
       return (
@@ -92,7 +99,7 @@ export class CostBreakdownContainer extends Component {
           setDates={this.props.setCostsDates}
           setInterval={this.props.setCostsInterval}
           setFilter={this.props.setCostsFilter}
-          close={Object.keys(this.props.charts).length > 2 ? this.props.removeChart : null}
+          close={Object.keys(this.props.charts).length > minimalCount ? this.props.removeChart : null}
         />
       );
     }
@@ -107,11 +114,29 @@ export class CostBreakdownContainer extends Component {
           Cost Breakdown
         </h3>
         <div className="inline-block pull-right">
-          <button className="btn btn-default inline-block" onClick={this.addSummary}>Add a summary</button>
+          <button className="btn btn-default inline-block" onClick={this.addSummary}>
+            <i className="menu-icon fa fa-list"/>
+            &nbsp;
+            Add a summary
+          </button>
           &nbsp;
-          <button className="btn btn-default inline-block" onClick={this.addBarChart}>Add a bar chart</button>
+          <button className="btn btn-default inline-block" onClick={this.addBarChart}>
+            <i className="menu-icon fa fa-bar-chart"/>
+            &nbsp;
+            Add a bar chart
+          </button>
           &nbsp;
-          <button className="btn btn-default inline-block" onClick={this.addPieChart}>Add a pie chart</button>
+          <button className="btn btn-default inline-block" onClick={this.addPieChart}>
+            <i className="menu-icon fa fa-pie-chart"/>
+            &nbsp;
+            Add a pie chart
+          </button>
+          &nbsp;
+          <button className="btn btn-default inline-block" onClick={this.addDiffChart}>
+            <i className="menu-icon fa fa-table"/>
+            &nbsp;
+            Add a cost table
+          </button>
           &nbsp;
           <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
         </div>
@@ -165,8 +190,8 @@ const mapDispatchToProps = (dispatch) => ({
   removeChart: (id) => {
     dispatch(Actions.AWS.Costs.removeChart(id));
   },
-  getCosts: (id, begin, end, filters) => {
-    dispatch(Actions.AWS.Costs.getCosts(id, begin, end, filters));
+  getCosts: (id, begin, end, filters, chartType) => {
+    dispatch(Actions.AWS.Costs.getCosts(id, begin, end, filters, chartType));
   },
   setCostsDates: (id, startDate, endDate) => {
     dispatch(Actions.AWS.Costs.setCostsDates(id, startDate, endDate))

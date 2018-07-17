@@ -6,6 +6,11 @@ const defaultValue = {
   endDate: moment().subtract(1, 'month').endOf('month')
 };
 
+const defaultValueDiff = {
+  startDate: moment().subtract(2, 'month').startOf('month'),
+  endDate: moment().subtract(1, 'month').endOf('month')
+};
+
 export default (state={}, action) => {
   let dates = Object.assign({}, state);
   switch (action.type) {
@@ -17,7 +22,15 @@ export default (state={}, action) => {
       });
       return newDates;
     case Constants.AWS_ADD_CHART:
-      dates[action.id] = defaultValue;
+      switch (action.chartType) {
+        case "diff":
+          dates[action.id] = defaultValueDiff;
+          break;
+        case "pie":
+        case "bar":
+        default:
+          dates[action.id] = defaultValue;
+      }
       return dates;
     case Constants.AWS_SET_COSTS_DATES:
       dates[action.id] = action.dates;

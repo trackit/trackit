@@ -26,9 +26,7 @@ class CostBreakdownInfosComponent extends Component {
         values={this.props.values}
         getCosts={this.getValues}
         dates={this.props.dates}
-        setDates={this.props.setDates}
-        interval={this.props.interval}
-        setInterval={this.props.setInterval}
+        icon={false}
       />
     );
   }
@@ -44,7 +42,6 @@ CostBreakdownInfosComponent.propTypes = {
     startDate: PropTypes.object,
     endDate: PropTypes.object,
   }),
-  setDates: PropTypes.func.isRequired,
   interval: PropTypes.string.isRequired,
   setInterval: PropTypes.func.isRequired
 };

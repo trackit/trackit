@@ -4,12 +4,13 @@ export default {
   initCharts: () => ({type: Constants.AWS_INIT_CHARTS}),
   addChart: (id, chartType) => ({type: Constants.AWS_ADD_CHART, id, chartType}),
   removeChart: (id) => ({type: Constants.AWS_REMOVE_CHART, id}),
-	getCosts: (id, begin, end, filters) => ({
+	getCosts: (id, begin, end, filters, chartType="breakdown") => ({
 		type: Constants.AWS_GET_COSTS,
     id,
     begin,
     end,
-    filters
+    filters,
+    chartType
 	}),
   setCostsDates: (id, startDate, endDate) => ({
     type: Constants.AWS_SET_COSTS_DATES,

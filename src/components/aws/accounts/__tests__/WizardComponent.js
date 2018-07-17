@@ -277,7 +277,7 @@ describe('<StepTwo />', () => {
   it('renders 2 <button /> components in <Form />', () => {
     const wrapper = shallow(<StepTwo {...props}/>);
     const form = wrapper.find(Form);
-    const button = form.find("button");
+    const button = form.find("div.btn");
     expect(button.length).toBe(2);
   });
 
@@ -400,7 +400,7 @@ describe('<StepThree />', () => {
   it('renders 1 <button /> component in <Form />', () => {
     const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
     const form = wrapper.find(Form);
-    const button = form.find("button");
+    const button = form.find("div.btn");
     expect(button.length).toBe(1);
   });
 

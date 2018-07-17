@@ -22,13 +22,12 @@ export class Item extends Component {
   }
 
   editBill = (body) => {
-    console.log("Bill repository edition is not available yet");
-//    this.props.editBill(body);
+    body.id = this.props.bill.id;
+    this.props.editBill(this.props.account, body);
   };
 
   deleteBill = () => {
-    console.log("Bill repository deletion is not available yet");
-//    this.props.deleteBill(this.props.bill.id);
+    this.props.deleteBill(this.props.account, this.props.bill.id);
   };
 
   render() {
@@ -80,6 +79,7 @@ export class ListComponent extends Component {
     super(props);
     this.getBills = this.getBills.bind(this);
     this.clearBills = this.clearBills.bind(this);
+	  this.newBill = this.newBill.bind(this);
   }
 
   getBills() {
@@ -89,6 +89,10 @@ export class ListComponent extends Component {
   clearBills() {
     this.props.clearBills();
   }
+
+  newBill = (body) => {
+	  this.props.newBill(this.props.account, body);
+  };
 
   render() {
     const loading = (!this.props.bills.status ? (<Spinner className="spinner" name='circle'/>) : null);
@@ -109,7 +113,7 @@ export class ListComponent extends Component {
 
     const form = (<Form
       account={this.props.account}
-      submit={this.props.newBill}
+      submit={this.newBill}
     />);
 
     return (
@@ -147,7 +151,7 @@ ListComponent.propTypes = {
     )
   }),
   getBills: PropTypes.func.isRequired,
-  newBill: PropTypes.func.isRequired,
+	newBill: PropTypes.func.isRequired,
   editBill: PropTypes.func.isRequired,
   deleteBill: PropTypes.func.isRequired,
   clearBills: PropTypes.func.isRequired
@@ -169,8 +173,8 @@ const mapDispatchToProps = (dispatch) => ({
   editBill: (accountID, bill) => {
     dispatch(Actions.AWS.Accounts.editAccountBill(accountID, bill))
   },
-  deleteBill: (accountID, bill) => {
-    dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, bill));
+  deleteBill: (accountID, billID) => {
+    dispatch(Actions.AWS.Accounts.deleteAccountBill(accountID, billID));
   },
   clearBills: () => {
     dispatch(Actions.AWS.Accounts.clearAccountBills());

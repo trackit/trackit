@@ -26,11 +26,11 @@ class CostBreakdownBarChartComponent extends Component {
         values={this.props.values}
         getCosts={this.getValues}
         dates={this.props.dates}
-        setDates={this.props.setDates}
         interval={this.props.interval}
         setInterval={this.props.setInterval}
         filter={this.props.filter}
         setFilter={this.props.setFilter}
+        icon={false}
       />
     );
   }
@@ -46,7 +46,6 @@ CostBreakdownBarChartComponent.propTypes = {
     startDate: PropTypes.object,
     endDate: PropTypes.object,
   }),
-  setDates: PropTypes.func.isRequired,
   filter: PropTypes.string.isRequired,
   setFilter: PropTypes.func.isRequired,
   interval: PropTypes.string.isRequired,

@@ -28,26 +28,6 @@ const validProps = {
   },
 };
 
-const updatedDateProps = {
-  ...validProps,
-  dates: {
-    startDate: moment().startOf('year'),
-    endDate: moment(),
-  },
-  getValues: jest.fn()
-};
-
-const updatedAccountsProps = {
-  ...validProps,
-  accounts: ["account"],
-  getValues: jest.fn()
-};
-
-const notUpdatedProps = {
-  ...validProps,
-  getValues: jest.fn()
-};
-
 describe('<CostBreakdownInfos />', () => {
 
   beforeEach(() => {

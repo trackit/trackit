@@ -1,6 +1,7 @@
 import React from 'react';
 import PieChart  from '../PieChartComponent';
 import NVD3Chart from 'react-nvd3';
+import ReactTable from 'react-table';
 import { shallow } from "enzyme";
 
 const props = {
@@ -11,7 +12,7 @@ const props = {
   interval: "day",
   filter: "product",
   legend: true,
-  title: false
+  table: true
 };
 
 const propsWithoutCosts = {
@@ -27,6 +28,11 @@ const propsEmptyCosts = {
 const propsWithoutMargin = {
   ...props,
   margin: false
+};
+
+const propsWithoutTable = {
+  ...props,
+  table: false
 };
 
 describe('<PieChart />', () => {
@@ -58,6 +64,18 @@ describe('<PieChart />', () => {
     const wrapper = shallow(<PieChart {...propsWithoutMargin}/>);
     const chart = wrapper.find(NVD3Chart);
     expect(chart.length).toBe(1);
+  });
+
+  it('renders <ReactTable/> component if table is set', () => {
+    const wrapper = shallow(<PieChart {...props}/>);
+    const table = wrapper.find(ReactTable);
+    expect(table.length).toBe(1);
+  });
+
+  it('renders no <ReactTable/> component if table is not set', () => {
+    const wrapper = shallow(<PieChart {...propsWithoutTable}/>);
+    const table = wrapper.find(ReactTable);
+    expect(table.length).toBe(0);
   });
 
 });
