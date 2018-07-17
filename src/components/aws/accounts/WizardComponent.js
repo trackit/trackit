@@ -116,13 +116,13 @@ export class StepTwo extends Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.account.status && nextProps.account.value && !nextProps.account.value.error)
+    if (nextProps.account.status && nextProps.account.value && !nextProps.account.hasOwnProperty("error"))
       nextProps.next();
   }
 
   render() {
-    const error = (this.props.account && this.props.account.status && this.props.account.value && this.props.account.value.error) ? (
-      <div className="alert alert-warning" role="alert">{this.props.account.value.error}</div>
+    const error = (this.props.account && this.props.account.status && this.props.account.hasOwnProperty("error")) ? (
+      <div className="alert alert-warning" role="alert">{this.props.account.error.message}</div>
     ) : (null);
 
     return (
