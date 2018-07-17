@@ -56,6 +56,16 @@ var (
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
 	EsAddress string
+	// SmtpAddress is the SMTP address where to send mails.
+	SmtpAddress string
+	// SmtpPort is the SMTP port where to send mails.
+	SmtpPort string
+	// SmtpUser is the user used to connect to the SMTP server.
+	SmtpUser string
+	// SmtpPassword is the password used to connect to the SMTP server.
+	SmtpPassword string
+	// SmtpSender is the mail address used to send mails.
+	SmtpSender string
 	// UrlEc2Pricing is the URL used by downloadJson to fetch the EC2 pricing.
 	UrlEc2Pricing string
 	// Task is the task to be run. "server", by default.
@@ -82,6 +92,11 @@ func init() {
 	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.StringVar(&UrlEc2Pricing, "url-ec2-pricing", "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json", "The URL used to download the EC2 pricing.")
+	flag.StringVar(&SmtpAddress, "smtp-address", "", "The address of the SMTP server.")
+	flag.StringVar(&SmtpPort, "smtp-port", "", "The port of the SMTP server.")
+	flag.StringVar(&SmtpUser, "smtp-user", "", "The user for the SMTP server.")
+	flag.StringVar(&SmtpPassword, "smtp-password", "", "The password for the SMTP server.")
+	flag.StringVar(&SmtpSender, "smtp-sender", "", "The mail address used to send mails.")
 	flag.StringVar(&Task, "task", "server", "The task to be run.")
 	flag.BoolVar(&Periodics, "periodics", true, "Periodic jobs should be run by the process.")
 	flag.Parse()
