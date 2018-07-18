@@ -50,7 +50,7 @@ export class Item extends Component {
     else if (pending)
       return (
           <Popover
-            children={<i className="fa account-badge fa-circle"/>}
+            children={<i className="fa account-badge fa-clock-o"/>}
             popOver={"Import in progress"}
           />
       );
