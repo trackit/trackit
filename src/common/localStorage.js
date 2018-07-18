@@ -45,6 +45,10 @@ export const setSelectedAccounts = (accounts) => {
   setValue('selectedAccounts', JSON.stringify(accounts));
 };
 
+export const unsetSelectedAccounts = () => {
+  unsetValue('selectedAccounts');
+};
+
 export const getSelectedAccounts = () => {
   return JSON.parse(getValue('selectedAccounts'));
 };
