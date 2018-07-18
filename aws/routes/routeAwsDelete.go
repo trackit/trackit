@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package aws
+package routes
 
 import (
 	"context"
@@ -27,6 +27,7 @@ import (
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
+	"github.com/trackit/trackit2/aws"
 )
 
 // DeleteAwsAccountFromAccountID delete an AWS account based on the
@@ -50,7 +51,7 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
-	aa := a[AwsAccountSelection].(AwsAccount)
+	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	accountToDeleteID := aa.Id
 	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
 	if err != nil {
