@@ -18,13 +18,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"net/http"
+	
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
-	"strings"
 )
 
 const (
