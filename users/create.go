@@ -19,12 +19,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit2/config"
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
+	"strings"
 )
 
 const (
@@ -118,7 +118,12 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 		return 200, user
 	} else {
 		logger.Error(err.Error(), nil)
-		return 500, errors.New("Failed to create user.")
+		errSplit := strings.Split(err.Error(), ":")
+		if (len(errSplit) >= 1 && errSplit[0] == "Error 1062") {
+			return 409, errors.New("Account already exists.")
+		} else {
+			return 500, errors.New("Failed to create user.")
+		}
 	}
 }
 
