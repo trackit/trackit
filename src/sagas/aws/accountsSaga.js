@@ -34,7 +34,9 @@ export function* newAccountSaga({ account }) {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.newAccount, account, token);
-    if (res.success && res.hasOwnProperty("data"))
+    if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      throw Error(res.data.error);
+    else if (res.success && res.hasOwnProperty("data"))
       yield all([
         put({ type: Constants.AWS_NEW_ACCOUNT_SUCCESS, account: res.data }),
         put({ type: Constants.AWS_NEW_EXTERNAL }),
@@ -43,7 +45,7 @@ export function* newAccountSaga({ account }) {
     else
       throw Error("Error with request");
   } catch (error) {
-    yield put({ type: Constants.AWS_NEW_ACCOUNT_ERROR, error });
+    yield put({ type: Constants.AWS_NEW_ACCOUNT_ERROR, error: error });
   }
 }
 
