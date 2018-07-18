@@ -23,7 +23,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit2/config"
+	"github.com/trackit/trackit-server/config"
 )
 
 // Mail contains the data necessary to send a mail.

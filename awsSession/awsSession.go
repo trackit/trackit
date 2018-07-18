@@ -19,7 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 
-	"github.com/trackit/trackit2/config"
+	"github.com/trackit/trackit-server/config"
 )
 
 var (

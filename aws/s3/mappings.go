@@ -20,7 +20,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit2/es"
+	"github.com/trackit/trackit-server/es"
 )
 
 const TypeLineItem = "lineitem"

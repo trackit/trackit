@@ -27,9 +27,9 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit2/aws"
-	"github.com/trackit/trackit2/aws/s3"
-	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/db"
 )
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.

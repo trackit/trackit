@@ -21,10 +21,10 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit2/config"
-	"github.com/trackit/trackit2/db"
-	"github.com/trackit/trackit2/models"
-	"github.com/trackit/trackit2/routes"
+	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/routes"
 )
 
 const (

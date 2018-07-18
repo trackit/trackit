@@ -6,8 +6,8 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit2/aws/s3"
-	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/db"
 )
 
 // taskIngestDue lists all BillRepositories with due updates and updates them.

@@ -22,7 +22,7 @@ import (
 	"errors"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit2/models"
+	"github.com/trackit/trackit-server/models"
 )
 
 var (
