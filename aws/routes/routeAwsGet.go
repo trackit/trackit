@@ -31,6 +31,7 @@ import (
 	"github.com/trackit/trackit2/users"
 	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/aws/s3"
+	"fmt"
 )
 
 func init() {
@@ -210,7 +211,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 
 type AwsAccountWithBillRepositories struct {
 	aws.AwsAccount
-	BillRepositories []s3.BillRepository `json:"billRepositories"`
+	BillRepositories []s3.BillRepositoryWithPending `json:"billRepositories"`
 }
 
 // getAwsAccount is a route handler which returns the caller's list of
@@ -250,10 +251,25 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 	for _, aa := range awsAccounts {
 		aawbr := AwsAccountWithBillRepositories{
 			aa,
-			[]s3.BillRepository{},
+			[]s3.BillRepositoryWithPending{},
 		}
-		if aawbr.BillRepositories, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
+		var brs []s3.BillRepository
+		if brs, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
 			return
+		}
+		var updates []BillRepositoryUpdateInfo
+		if updates, err = BillRepositoryUpdates(tx, aa.UserId); err != nil {
+			return
+		}
+		fmt.Printf("oui %v\n", updates)
+		for _, br := range brs {
+			brwp := s3.BillRepositoryWithPending{br, false}
+			for _, update := range updates {
+				if update.BillRepositoryId == br.Id {
+					brwp.NextPending = *update.NextPending
+				}
+			}
+			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
 		}
 		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
 	}
