@@ -12,6 +12,7 @@ import Actions from "../../../../actions";
 
 const Dialog = Misc.Dialog;
 const DeleteConfirmation = Misc.DeleteConfirmation;
+const Popover = Misc.Popover;
 
 export class Item extends Component {
 
@@ -19,6 +20,7 @@ export class Item extends Component {
     super(props);
     this.editBill = this.editBill.bind(this);
     this.deleteBill = this.deleteBill.bind(this);
+    this.getBillLocationBadge = this.getBillLocationBadge.bind(this);
   }
 
   editBill = (body) => {
@@ -30,11 +32,23 @@ export class Item extends Component {
     this.props.deleteBill(this.props.account, this.props.bill.id);
   };
 
+  getBillLocationBadge = () => {
+    if (this.props.bill.error !== "")
+      return (
+          <Popover
+            children={<i className="fa account-badge fa-times-circle"/>}
+            popOver={this.props.bill.error}
+          />
+      );
+    return (<i className="fa account-badge fa-check-circle"/>);
+  };
+
   render() {
 
     return (
       <ListItem divider>
 
+        {this.getBillLocationBadge()}
         <ListItemText
           disableTypography
           primary={`s3://${this.props.bill.bucket}/${this.props.bill.prefix}`}
@@ -151,7 +165,7 @@ ListComponent.propTypes = {
     )
   }),
   getBills: PropTypes.func.isRequired,
-	newBill: PropTypes.func.isRequired,
+  newBill: PropTypes.func.isRequired,
   editBill: PropTypes.func.isRequired,
   deleteBill: PropTypes.func.isRequired,
   clearBills: PropTypes.func.isRequired

@@ -10,6 +10,7 @@ import Form from './FormComponent';
 import Bills from './bills';
 
 const DeleteConfirmation = Misc.DeleteConfirmation;
+const Popover = Misc.Popover;
 
 export class Item extends Component {
 
@@ -17,6 +18,7 @@ export class Item extends Component {
     super(props);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
+    this.getAccountBadge = this.getAccountBadge.bind(this);
   }
 
   editAccount = (body) => {
@@ -29,12 +31,39 @@ export class Item extends Component {
     this.props.accountActions.delete(this.props.account.id);
   };
 
+  getAccountBadge = () => {
+    let error = false;
+    let pending = false;
+    this.props.account.billRepositories.forEach((billRepository) => {
+      if (billRepository.error !== "")
+        error = true;
+      if (billRepository.nextPending)
+        pending = true;
+    });
+    if (error || !this.props.account.billRepositories.length)
+      return (
+          <Popover
+            children={<i className="fa account-badge fa-times-circle"/>}
+            popOver={"Please check your bill locations"}
+          />
+      );
+    else if (pending)
+      return (
+          <Popover
+            children={<i className="fa account-badge fa-circle"/>}
+            popOver={"Import in progress"}
+          />
+      );
+    return (<i className="fa account-badge fa-check-circle"/>);
+  };
+
   render() {
     return (
       <div>
 
         <ListItem divider>
 
+          {this.getAccountBadge()}
           <ListItemText
             disableTypography
             className="account-name"
