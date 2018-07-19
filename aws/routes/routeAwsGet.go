@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package aws
+package routes
 
 import (
 	"context"
@@ -29,6 +29,8 @@ import (
 	"github.com/trackit/trackit2/models"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
+	"github.com/trackit/trackit2/aws"
+	"github.com/trackit/trackit2/aws/s3"
 )
 
 func init() {
@@ -167,7 +169,7 @@ func intArrayToSqlSet(integers []int) string {
 
 // AwsAccountsFromUserIDByAccountID retrieves rows from 'trackit.aws_account' as AwsAccount.
 // The result is filtered by a slice of accountID
-func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) ([]AwsAccount, error) {
+func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) ([]aws.AwsAccount, error) {
 	var err error
 	var stringAccountIDs []string
 
@@ -190,9 +192,9 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 	}
 	defer q.Close()
 	// load results
-	res := []AwsAccount{}
+	res := []aws.AwsAccount{}
 	for q.Next() {
-		aa := AwsAccount{}
+		aa := aws.AwsAccount{}
 
 		// scan
 		err = q.Scan(&aa.Id, &aa.UserId, &aa.Pretty, &aa.RoleArn, &aa.External)
@@ -206,23 +208,68 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 	return res, nil
 }
 
+type AwsAccountWithBillRepositories struct {
+	aws.AwsAccount
+	BillRepositories []s3.BillRepositoryWithPending `json:"billRepositories"`
+}
+
 // getAwsAccount is a route handler which returns the caller's list of
 // AwsAccounts.
 func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
-	var err error
-	var awsAccounts []AwsAccount
+	var awsErr error
+	var billErr error
+	var awsAccounts []aws.AwsAccount
+	var awsAccountsWithBillRepositories []AwsAccountWithBillRepositories
+	var detailedRes bool
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
 	if accountIds, ok := a[routes.AwsAccountIdsOptionalQueryArg]; ok {
-		awsAccounts, err = AwsAccountsFromUserIDByAccountID(tx, u.Id, accountIds.([]int))
+		awsAccounts, awsErr = AwsAccountsFromUserIDByAccountID(tx, u.Id, accountIds.([]int))
 	} else {
-		awsAccounts, err = GetAwsAccountsFromUser(u, tx)
+		awsAccounts, awsErr = aws.GetAwsAccountsFromUser(u, tx)
 	}
-	if err == nil {
+	if detailed, ok := a[DetailedOptionalQueryArg].(bool); ok && detailed {
+		detailedRes = detailed
+		awsAccountsWithBillRepositories, billErr = buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts, tx)
+	}
+	if detailedRes && awsErr == nil && billErr == nil {
+		return 200, awsAccountsWithBillRepositories
+	} else if awsErr == nil {
 		return 200, awsAccounts
+	} else if billErr != nil {
+		l.Error("failed to get AWS accounts' bill repositories", awsErr.Error())
+		return 500, errors.New("failed to retrieve bill repositories")
 	} else {
-		l.Error("failed to get user's AWS accounts", err.Error())
+		l.Error("failed to get user's AWS accounts", awsErr.Error())
 		return 500, errors.New("failed to retrieve AWS accounts")
 	}
+}
+
+func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAccount, tx *sql.Tx) (awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, err error){
+	for _, aa := range awsAccounts {
+		aawbr := AwsAccountWithBillRepositories{
+			aa,
+			[]s3.BillRepositoryWithPending{},
+		}
+		var brs []s3.BillRepository
+		if brs, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
+			return
+		}
+		var updates []BillRepositoryUpdateInfo
+		if updates, err = BillRepositoryUpdates(tx, aa.UserId); err != nil {
+			return
+		}
+		for _, br := range brs {
+			brwp := s3.BillRepositoryWithPending{br, false}
+			for _, update := range updates {
+				if update.BillRepositoryId == br.Id {
+					brwp.NextPending = *update.NextPending
+				}
+			}
+			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
+		}
+		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
+	}
+	return
 }
