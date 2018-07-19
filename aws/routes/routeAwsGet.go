@@ -261,7 +261,6 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 		if updates, err = BillRepositoryUpdates(tx, aa.UserId); err != nil {
 			return
 		}
-		fmt.Printf("oui %v\n", updates)
 		for _, br := range brs {
 			brwp := s3.BillRepositoryWithPending{br, false}
 			for _, update := range updates {
