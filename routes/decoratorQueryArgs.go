@@ -36,6 +36,10 @@ const (
 )
 
 type (
+	// QueryArgBool denotes an int query argument. It fulfills the QueryParser
+	// interface.
+	QueryArgBool struct{}
+
 	// QueryArgInt denotes an int query argument. It fulfills the QueryParser
 	// interface.
 	QueryArgInt struct{}
@@ -89,6 +93,26 @@ type (
 	QueryArgs []QueryArg
 )
 
+func (d QueryArgBool) FormatName() string        { return "bool" }
+func (d QueryArgInt) FormatName() string         { return "int" }
+func (d QueryArgUint) FormatName() string        { return "uint" }
+func (d QueryArgString) FormatName() string      { return "string" }
+func (d QueryArgIntSlice) FormatName() string    { return "[]int" }
+func (d QueryArgUintSlice) FormatName() string   { return "[]uint" }
+func (d QueryArgStringSlice) FormatName() string { return "[]string" }
+func (d QueryArgDate) FormatName() string        { return "time.Time" }
+
+// QueryParse parses an int. A nil error indicates a success. With this func,
+// QueryArgBool fulfills QueryArgType.
+func (QueryArgBool) QueryParse(val string) (interface{}, error) {
+	if val == "" {
+		return true, nil
+	} else if res, err := strconv.ParseBool(val); err == nil {
+		return res, nil
+	}
+	return nil, errors.New("must be a bool")
+}
+
 // QueryParse parses an int. A nil error indicates a success. With this func,
 // QueryArgInt fulfills QueryArgType.
 func (QueryArgInt) QueryParse(val string) (interface{}, error) {
@@ -98,14 +122,6 @@ func (QueryArgInt) QueryParse(val string) (interface{}, error) {
 	}
 	return nil, errors.New("must be an int")
 }
-
-func (d QueryArgInt) FormatName() string         { return "int" }
-func (d QueryArgUint) FormatName() string        { return "uint" }
-func (d QueryArgString) FormatName() string      { return "string" }
-func (d QueryArgIntSlice) FormatName() string    { return "[]int" }
-func (d QueryArgUintSlice) FormatName() string   { return "[]uint" }
-func (d QueryArgStringSlice) FormatName() string { return "[]string" }
-func (d QueryArgDate) FormatName() string        { return "time.Time" }
 
 // QueryParse parses a uint. A nil error indicates a success. With this func,
 // QueryArgUint fulfills QueryArgType.
@@ -177,8 +193,10 @@ func (QueryArgDate) QueryParse(val string) (interface{}, error) {
 }
 
 func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
-	if rawVal := r.URL.Query().Get(arg.Name); rawVal != "" {
-		if val, err := arg.Type.QueryParse(rawVal); err == nil {
+	if rawVal, ok := r.URL.Query()[arg.Name]; ok &&
+		len(rawVal) > 0 &&
+		(rawVal[0] != "" || arg.Type.FormatName() == "bool") {
+		if val, err := arg.Type.QueryParse(rawVal[0]); err == nil {
 			a[arg] = val
 		} else {
 			return http.StatusBadRequest, fmt.Errorf("query arg '%s': %s", arg.Name, err.Error())

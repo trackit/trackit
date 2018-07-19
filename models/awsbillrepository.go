@@ -48,11 +48,11 @@ func (abr *AwsBillRepository) UpdateUnsafe(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_bill_repository SET ` +
-		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_manifest = ?, next_update = ?, status = ?` +
+		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_manifest = ?, next_update = ?, error = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Status, abr.ID)
-	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Status, abr.ID)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
+	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
 	return err
 }

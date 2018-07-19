@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package aws
+package routes
 
 import (
 	"database/sql"
@@ -24,6 +24,7 @@ import (
 	"github.com/trackit/trackit2/db"
 	"github.com/trackit/trackit2/routes"
 	"github.com/trackit/trackit2/users"
+	"github.com/trackit/trackit2/aws"
 )
 
 // patchAwsAccountRequestBody is all the possible bodies for the
@@ -56,7 +57,7 @@ func patchAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 func patchAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, body patchAwsAccountRequestBody, id int) (int, interface{}) {
 	ctx := r.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	awsAccount, err := GetAwsAccountWithIdFromUser(user, id, tx)
+	awsAccount, err := aws.GetAwsAccountWithIdFromUser(user, id, tx)
 	if err == nil {
 		awsAccount.Pretty = body.Pretty
 		if err := awsAccount.UpdatePrettyAwsAccount(ctx, tx); err != nil {
