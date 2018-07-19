@@ -18,8 +18,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"net/http"
-
+	
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
@@ -118,7 +119,12 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 		return 200, user
 	} else {
 		logger.Error(err.Error(), nil)
-		return 500, errors.New("Failed to create user.")
+		errSplit := strings.Split(err.Error(), ":")
+		if (len(errSplit) >= 1 && errSplit[0] == "Error 1062") {
+			return 409, errors.New("Account already exists.")
+		} else {
+			return 500, errors.New("Failed to create user.")
+		}
 	}
 }
 
@@ -139,7 +145,12 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	ctx := request.Context()
 	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
 	if err != nil {
-		return http.StatusInternalServerError, errors.New("Failed to create viewer user.")
+		errSplit := strings.Split(err.Error(), ":")
+		if (len(errSplit) >= 1 && errSplit[0] == "Error 1062") {
+			return 409, errors.New("Email already taken.")
+		} else {
+			return 500, errors.New("Failed to create viewer user.")
+		}
 	}
 	response := createViewerUserResponseBody{
 		User:     viewerUser,
