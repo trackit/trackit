@@ -15,6 +15,7 @@
 package users
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -71,11 +72,29 @@ func init() {
 	}.H().Register("/user/password/reset")
 }
 
+func cleanExpiredTokens() {
+	transaction, err := db.Db.BeginTx(context.Background(), nil)
+	if err == nil {
+		now := time.Now()
+		expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
+		models.DeleteExpiredForgottenPassword(transaction, expire)
+		defer func() {
+			rec := recover()
+			if rec != nil {
+				transaction.Rollback()
+			} else {
+				transaction.Commit()
+			}
+		}()
+	}
+}
+
 // forgottenPassword handles users requesting to reset a forgotten password
 func forgottenPassword(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body forgottenPasswordRequestBody
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
+	go cleanExpiredTokens()
 	return forgottenPasswordWithValidBody(request, body, tx)
 }
 
@@ -85,7 +104,8 @@ func forgottenPasswordWithValidBody(request *http.Request, body forgottenPasswor
 	if err != nil {
 		logger.Warning("Forgotten password request failure", struct {
 			Email string `json:"user"`
-		}{body.Email})
+			Error string `json:"error"`
+		}{body.Email, err.Error()})
 		return 404, errors.New("User not found")
 	}
 	return createForgottenPasswordEntry(request, body, tx, user)
@@ -133,7 +153,8 @@ func resetPasswordWithValidBody(request *http.Request, body resetPasswordRequest
 	if err != nil {
 		logger.Warning("Forgotten password token not found", struct {
 			Token string `json:"token"`
-		}{body.Token})
+			Error string `json:"error"`
+		}{body.Token, err.Error()})
 		return 404, errors.New("Reset token not found")
 	}
 	err = passwordMatchesHash(body.Token, forgottenPassword.Token)
@@ -154,7 +175,8 @@ func updatePasswordFromForgottenToken(request *http.Request, body resetPasswordR
 	if err != nil {
 		logger.Warning("Unable to retrieve user associated to forgotten password token", struct {
 			Token string `json:"token"`
-		}{forgottenPassword.Token})
+			Error string `json:"error"`
+		}{forgottenPassword.Token, err.Error()})
 		return 404, errors.New("Unable to retrieve user")
 	}
 	err = user.UpdatePassword(tx, body.Password)
