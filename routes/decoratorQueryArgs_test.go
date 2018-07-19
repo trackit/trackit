@@ -23,6 +23,7 @@ import (
 )
 
 var (
+	QueryArgTestBool           = QueryArg{"testBool", "Test boolean", QueryArgBool{}, false}
 	QueryArgTestInt            = QueryArg{"testInt", "Test signed integer", QueryArgInt{}, false}
 	QueryArgTestUint           = QueryArg{"testUint", "Test unsigned integer", QueryArgUint{}, false}
 	QueryArgTestString         = QueryArg{"testString", "Test string", QueryArgString{}, false}
@@ -87,6 +88,43 @@ func sliceIsEqual(first, second interface{}) bool {
 }
 
 const testOverflowIntArgExpectedError = `query arg 'testInt': must be an int`
+
+func TestGoodBool(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{
+			QueryArgTestBool,
+		},
+	)
+	paramsURL := "false"
+	request := httptest.NewRequest("GET", "/test?testBool="+paramsURL, nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusOK {
+		t.Errorf("Expected %d but got %d (%v)", http.StatusOK, status, body)
+	} else if args, ok := body.(Arguments); !ok {
+		t.Errorf("Expected type Arguments")
+	} else if args[QueryArgTestBool] == true {
+		t.Errorf("Expected false but got %v", args[QueryArgTestBool])
+	}
+}
+
+func TestEmptyBool(t *testing.T) {
+	h := H(argHandler).With(
+		QueryArgs{
+			QueryArgTestBool,
+		},
+	)
+	request := httptest.NewRequest("GET", "/test?testBool", nil)
+	response := httptest.NewRecorder()
+	status, body := h.Func(response, request, Arguments{})
+	if status != http.StatusOK {
+		t.Errorf("Expected %d but got %d (%v)", http.StatusOK, status, body)
+	} else if args, ok := body.(Arguments); !ok {
+		t.Errorf("Expected type Arguments")
+	} else if args[QueryArgTestBool] == false {
+		t.Errorf("Expected true but got %v", args[QueryArgTestBool])
+	}
+}
 
 func TestOverflowIntArg(t *testing.T) {
 	h := H(argHandler).With(
@@ -300,9 +338,9 @@ func TestGoodStringSlice(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("Expected %d but got %d (%v)", http.StatusOK, status, body)
 	} else if args, ok := body.(Arguments); !ok {
-		t.Errorf("Exptected type Arguments")
+		t.Errorf("Expected type Arguments")
 	} else if !sliceIsEqual(expectedResult, args[QueryArgTestStringSlice]) {
-		t.Errorf("Exptected %v but got %v", expectedResult, args[QueryArgTestStringSlice])
+		t.Errorf("Expected %v but got %v", expectedResult, args[QueryArgTestStringSlice])
 	}
 }
 
@@ -341,11 +379,11 @@ func TestGoodDate(t *testing.T) {
 	if status != http.StatusOK {
 		t.Errorf("Expected %d but got %d (%v)", http.StatusOK, status, body)
 	} else if args, ok := body.(Arguments); !ok {
-		t.Errorf("Exptected type Arguments")
+		t.Errorf("Expected type Arguments")
 	} else if responseTime, ok := args[QueryArgTestDate].(time.Time); !ok {
-		t.Errorf("Exptected type time")
+		t.Errorf("Expected type time")
 	} else if !expectedDate.Equal(responseTime) {
-		t.Errorf("Exptected time %v but got time %v", expectedDate, responseTime)
+		t.Errorf("Expected time %v but got time %v", expectedDate, responseTime)
 	}
 }
 
