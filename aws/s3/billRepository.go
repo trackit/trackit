@@ -107,6 +107,11 @@ type BillRepository struct {
 	NextUpdate           time.Time `json:"nextUpdate"`
 }
 
+type BillRepositoryWithPending struct {
+	BillRepository
+	NextPending bool `json:"nextPending"`
+}
+
 // CreateBillRepository creates a BillRepository for an AwsAccount. It does
 // not perform checks on the repository.
 func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (BillRepository, error) {
