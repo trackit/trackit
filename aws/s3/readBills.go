@@ -421,7 +421,6 @@ func listBillsFromRepositoryPage(
 				}
 			}
 		}
-		count += len(page.Contents)
 		if count < MaxCheckedKeysByRepository {
 			return !last
 		} else {
