@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    working_directory: /go/src/github.com/trackit/trackit2
+    working_directory: /go/src/github.com/trackit/trackit-server
     docker:
       - image: msolution/trackit2-circleci
     branches:
@@ -57,5 +57,5 @@ jobs:
             docker tag msolution/trackit2-api msolution/trackit2-api:${CIRCLE_SHA1}
             docker push msolution/trackit2-api
             docker push msolution/trackit2-api:${CIRCLE_SHA1}
-            
+
 # vim: set ts=2 sts=2 et:

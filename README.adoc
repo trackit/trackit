@@ -31,7 +31,7 @@ $> export PATH=$PATH:$HOME/go/bin
 [source,sh]
 ----
 $> mkdir -p $HOME/go/src/github.com/trackit && cd $HOME/go/src/github.com/trackit
-$> git clone https://github.com/trackit/trackit2 && cd trackit2
+$> git clone https://github.com/trackit/trackit-server && cd trackit-server
 ----
 
 === #2 Check out TrackIt's dependencies

@@ -21,7 +21,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/trackit/trackit2/db"
+	"github.com/trackit/trackit-server/db"
 )
 
 func TestNonExistingUserByIdFailure(t *testing.T) {

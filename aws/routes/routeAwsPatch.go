@@ -21,10 +21,10 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit2/db"
-	"github.com/trackit/trackit2/routes"
-	"github.com/trackit/trackit2/users"
-	"github.com/trackit/trackit2/aws"
+	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws"
 )
 
 // patchAwsAccountRequestBody is all the possible bodies for the

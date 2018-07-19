@@ -22,12 +22,12 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit2/db"
-	"github.com/trackit/trackit2/es"
-	"github.com/trackit/trackit2/models"
-	"github.com/trackit/trackit2/routes"
-	"github.com/trackit/trackit2/users"
-	"github.com/trackit/trackit2/aws"
+	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws"
 )
 
 // DeleteAwsAccountFromAccountID delete an AWS account based on the
