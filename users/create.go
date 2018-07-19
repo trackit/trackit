@@ -147,7 +147,7 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	if err != nil {
 		errSplit := strings.Split(err.Error(), ":")
 		if (len(errSplit) >= 1 && errSplit[0] == "Error 1062") {
-			return 409, errors.New("Account already exists.")
+			return 409, errors.New("Email already taken.")
 		} else {
 			return 500, errors.New("Failed to create viewer user.")
 		}
