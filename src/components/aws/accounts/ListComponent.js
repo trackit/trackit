@@ -102,6 +102,14 @@ Item.propTypes = {
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
     pretty: PropTypes.string,
+    billRepositories: PropTypes.arrayOf(
+      PropTypes.shape({
+        error: PropTypes.string.isRequired,
+        nextPending: PropTypes.bool.isRequired,
+        bucket: PropTypes.string.isRequired,
+        prefix: PropTypes.string.isRequired
+      })
+    ),
   }),
   accountActions: PropTypes.shape({
     edit: PropTypes.func.isRequired,
@@ -148,10 +156,12 @@ ListComponent.propTypes = {
         id: PropTypes.number.isRequired,
         roleArn: PropTypes.string.isRequired,
         pretty: PropTypes.string,
-        bills: PropTypes.arrayOf(
+        billRepositories: PropTypes.arrayOf(
           PropTypes.shape({
+            error: PropTypes.string.isRequired,
+            nextPending: PropTypes.bool.isRequired,
             bucket: PropTypes.string.isRequired,
-            path: PropTypes.string.isRequired
+            prefix: PropTypes.string.isRequired
           })
         ),
       })

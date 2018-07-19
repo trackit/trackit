@@ -79,6 +79,7 @@ export class Item extends Component {
 Item.propTypes = {
   account: PropTypes.number.isRequired,
   bill: PropTypes.shape({
+    error: PropTypes.string.isRequired,
     bucket: PropTypes.string.isRequired,
     prefix: PropTypes.string.isRequired
   }),
@@ -159,6 +160,7 @@ ListComponent.propTypes = {
     error: PropTypes.instanceOf(Error),
     values: PropTypes.arrayOf(
       PropTypes.shape({
+        error: PropTypes.string.isRequired,
         bucket: PropTypes.string.isRequired,
         prefix: PropTypes.string.isRequired
       })
