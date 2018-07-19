@@ -31,7 +31,6 @@ import (
 	"github.com/trackit/trackit2/users"
 	"github.com/trackit/trackit2/aws"
 	"github.com/trackit/trackit2/aws/s3"
-	"fmt"
 )
 
 func init() {
