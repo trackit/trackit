@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package aws
+package routes
 
 import (
 	"context"
@@ -26,6 +26,7 @@ import (
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws"
 )
 
 // postAwsAccountRequestBody is the expected request body for the
@@ -57,7 +58,7 @@ func postAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, body postAwsAccountRequestBody) (int, interface{}) {
 	ctx := r.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	account := AwsAccount{
+	account := aws.AwsAccount{
 		RoleArn:  body.RoleArn,
 		External: body.External,
 		UserId:   user.Id,
@@ -80,9 +81,9 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 
 // testAndCreateAwsAccount tests an AwsAccount can be assumed-role and then
 // saves it to the database.
-func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *AwsAccount, user *users.User) error {
+func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *aws.AwsAccount, user *users.User) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	if _, err := GetTemporaryCredentials(*account, "validityTest"); err != nil {
+	if _, err := aws.GetTemporaryCredentials(*account, "validityTest"); err != nil {
 		fmt.Print(err)
 		return errInvalidAccount
 	}
@@ -101,14 +102,14 @@ func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *AwsAccoun
 // testAndCreateAwsAccountError is used to log errors in
 // testAndCreateAwsAccount.
 type testAndCreateAwsAccountError struct {
-	err     string     `json:"error"`
-	account AwsAccount `json:"account"`
-	user    users.User `json:"user"`
+	err     string         `json:"error"`
+	account aws.AwsAccount `json:"account"`
+	user    users.User     `json:"user"`
 }
 
 // newTestAndCreateAwsAccountError is used to log errors in
 // testAndCreateAwsAccount.
-func newTestAndCreateAwsAccountError(e error, a AwsAccount, u users.User) testAndCreateAwsAccountError {
+func newTestAndCreateAwsAccountError(e error, a aws.AwsAccount, u users.User) testAndCreateAwsAccountError {
 	return testAndCreateAwsAccountError{
 		err:     e.Error(),
 		account: a,

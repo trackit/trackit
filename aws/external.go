@@ -42,10 +42,10 @@ type nextExternalResponseBody struct {
 	AccountId string `json:"accountId"`
 }
 
-// nextExternal is a route handler returning all necessary info to setup an IAM
+// NextExternal is a route handler returning all necessary info to setup an IAM
 // role we can assume. It returns both our AWS account ID, and the external ID
 // we will provide when assuming the role.
-func nextExternal(r *http.Request, a routes.Arguments) (int, interface{}) {
+func NextExternal(r *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	ctx := r.Context()
@@ -73,8 +73,8 @@ func generateExternal() string {
 	var remainingBits uint64
 	for i := range b {
 	top:
-		// For performance reasons, we use all bits from the random
-		// uint64 before generating a new one.
+	// For performance reasons, we use all bits from the random
+	// uint64 before generating a new one.
 		if remainingBitsCount < externalBitsPerChar {
 			remainingBits = rand.Uint64()
 			remainingBitsCount = 64

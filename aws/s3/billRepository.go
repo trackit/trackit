@@ -102,9 +102,14 @@ type BillRepository struct {
 	AwsAccountId         int       `json:"awsAccountId"`
 	Bucket               string    `json:"bucket"`
 	Prefix               string    `json:"prefix"`
-	Status               string    `json:"status"`
+	Error                string    `json:"error"`
 	LastImportedManifest time.Time `json:"lastImportedManifest"`
 	NextUpdate           time.Time `json:"nextUpdate"`
+}
+
+type BillRepositoryWithPending struct {
+	BillRepository
+	NextPending bool `json:"nextPending"`
 }
 
 // CreateBillRepository creates a BillRepository for an AwsAccount. It does
@@ -130,7 +135,7 @@ func UpdateBillRepositorySafe(dbBr *models.AwsBillRepository, br BillRepository,
 	dbBr.AwsAccountID = br.AwsAccountId
 	dbBr.NextUpdate = br.NextUpdate
 	dbBr.LastImportedManifest = br.LastImportedManifest
-	dbBr.Status = br.Status
+	dbBr.Error = br.Error
 	var out BillRepository
 	err := dbBr.Update(tx)
 	if err == nil {
@@ -195,7 +200,7 @@ func billRepoFromDbBillRepo(dbBillRepo models.AwsBillRepository) BillRepository 
 		Id:                   dbBillRepo.ID,
 		Bucket:               dbBillRepo.Bucket,
 		Prefix:               dbBillRepo.Prefix,
-		Status:               dbBillRepo.Status,
+		Error:                dbBillRepo.Error,
 		AwsAccountId:         dbBillRepo.AwsAccountID,
 		LastImportedManifest: dbBillRepo.LastImportedManifest,
 		NextUpdate:           dbBillRepo.NextUpdate,
@@ -207,7 +212,7 @@ func dbBillRepoFromBillRepo(br BillRepository) models.AwsBillRepository {
 		ID:                   br.Id,
 		Bucket:               br.Bucket,
 		Prefix:               br.Prefix,
-		Status:               br.Status,
+		Error:                br.Error,
 		AwsAccountID:         br.AwsAccountId,
 		LastImportedManifest: br.LastImportedManifest,
 		NextUpdate:           br.NextUpdate,
