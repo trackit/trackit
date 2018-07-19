@@ -8,6 +8,10 @@ export const getAccountBills = (accountID, token) => {
   return call(`/aws/billrepository?aa=${accountID}`, 'GET', null, token);
 };
 
+export const getAccountBillsStatus = (token) => {
+  return call(`/aws/billrepositoryupdates`, 'GET', null, token);
+};
+
 export const newAccount = (account, token) => {
   return call('/aws', 'POST', account, token);
 };

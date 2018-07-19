@@ -56,5 +56,11 @@ export default {
   }),
   clearAccountSelection: () => ({
     type: Constants.AWS_CLEAR_ACCOUNT_SELECTION
+  }),
+  getAccountBillsStatus: () => ({
+    type: Constants.AWS_GET_ACCOUNT_BILL_STATUS,
+  }),
+  clearAccountBillsStatus: () => ({
+    type: Constants.AWS_GET_ACCOUNT_BILL_STATUS_CLEAR
   })
 };

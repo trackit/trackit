@@ -103,3 +103,7 @@ export function* watchDownloadReport() {
 export function* watchGetMapCosts() {
   yield takeLatest(Constants.AWS_MAP_GET_COSTS, getMapCostsSaga);
 }
+
+export function* watchGetAccountBillStatus() {
+  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILL_STATUS, AccountsSaga.getAccountBillStatusSaga)
+}

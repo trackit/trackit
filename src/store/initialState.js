@@ -13,6 +13,9 @@ export default {
       billCreation: {
         status: true
       },
+      billsStatus: {
+        status: false
+      },
       external: null,
     },
     s3: {
@@ -48,6 +51,12 @@ export default {
     },
   },
   gcp: {},
+  user: {
+    viewers: {
+      all: {status: true, value: null},
+      creation: {status: true, value: null}
+    },
+  },
   dashboard: {
     items: {},
     values: {},
