@@ -49,9 +49,11 @@ ReactDOM.render((
         <BrowserRouter>
           <div>
             <Route exact path="/" component={IndexRedirect}/>
-            <Route path="/login" component={Containers.Auth.Login} exact/>
+            <Route path="/login" component={Containers.Auth.Login} eOxact/>
             <Route path="/login/:prefill" component={Containers.Auth.Login}/>
             <Route path="/register" component={Containers.Auth.Register}/>
+            <Route path="/forgot" component={Containers.Auth.Forgot}/>
+            <Route path="/reset/:id/:token" component={Containers.Auth.Renew}/>
             <PrivateRoute path="/app" component={App} store={store}/>
           </div>
         </BrowserRouter>

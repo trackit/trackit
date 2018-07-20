@@ -73,6 +73,12 @@ export class FormComponent extends Component {
     ) : (
       <div className="form-group">
         <label htmlFor="password">Password</label>
+        <Link
+          to="/forgot"
+          className="pull-right"
+        >
+          Forgot password ?
+        </Link>
         <Input
           type="password"
           name="password"
