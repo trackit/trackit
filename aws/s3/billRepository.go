@@ -238,8 +238,6 @@ func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) 
 	return postBillRepositoryWithValidBody(r, tx, aa, body)
 }
 
-
-
 func postBillRepositoryWithValidBody(
 	r *http.Request,
 	tx *sql.Tx,
