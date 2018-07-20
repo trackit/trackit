@@ -14,31 +14,32 @@ const Panel = Components.Misc.Panel;
 const Map = Components.AWS.Map.Map;
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 
-const regions = [
-  "ap-southeast-2",
-  "sa-east-1",
-  "ca-central-1",
-  "cn-north-1",
-  "cn-northwest-1",
-  "eu-central-1",
-  "eu-west-2",
-  "ap-south-1",
-  "eu-west-1",
-  "ap-northeast-1",
-  "ap-northeast-2",
-  "ap-southeast-1",
-  "us-east-1",
-  "us-east-2",
-  "us-west-1",
-  "us-west-2",
-  "eu-west-3"
-];
+const regions = {
+  "sa-east-1": "Sao Paulo",
+  "ca-central-1": "Canada",
+  "cn-north-1": "Bejing",
+  "cn-northwest-1": "Ningxia",
+  "eu-central-1": "Frankfurt",
+  "eu-west-1": "Ireland",
+  "eu-west-2": "London",
+  "eu-west-3": "Paris",
+  "ap-northeast-1": "Tokyo",
+  "ap-northeast-2": "Seoul",
+  "ap-south-1": "Mumbai",
+  "ap-southeast-1": "Singapore",
+  "ap-southeast-2": "Sydney",
+  "us-east-1": "North Virginia",
+  "us-east-2": "Ohio",
+  "us-west-1": "North California",
+  "us-west-2": "Oregon"
+};
 
 const formatData = (costs) => {
   const data = {};
   let maxTotal = 0;
-  regions.forEach((region) => {
+  Object.keys(regions).forEach((region) => {
     data[region] = {
+      name: regions[region],
       total: 0,
       zones: {},
       opacity: 0
@@ -69,7 +70,7 @@ const formatData = (costs) => {
   return data;
 };
 
-const regionDetails = (region, data) => {
+const regionDetails = (region, data, close) => {
   const zones = Object.keys(data.zones).map((zone, index) => (
     <div className="zone-item" key={index}>
       <div className="zone-name">
@@ -86,6 +87,11 @@ const regionDetails = (region, data) => {
   ));
   return (
     <div className="region-details">
+      <div className="header">
+        <div className="close" onClick={close}>
+          <i className="fa fa-times"/>
+        </div>
+      </div>
       <div className="region-name">
         {region}
       </div>
@@ -156,6 +162,7 @@ export class ResourcesMapContainer extends Component {
       data: {}
     };
     this.selectRegion = this.selectRegion.bind(this);
+    this.unselectRegion = this.unselectRegion.bind(this);
   }
 
   componentWillMount() {
@@ -176,6 +183,10 @@ export class ResourcesMapContainer extends Component {
     this.setState({selected});
   };
 
+  unselectRegion = () => {
+    this.setState({selected: null});
+  };
+
   render() {
     const loading = (!this.props.costs || !this.props.costs.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
 
@@ -186,6 +197,14 @@ export class ResourcesMapContainer extends Component {
     const map = (!loading && !error ? (
       <Map data={this.state.data} selectRegion={this.selectRegion}/>
     ) : null);
+
+    const emptySelection = (
+      <div className="map-empty-selection">
+        <i className="fa fa-globe"/>
+        &nbsp;
+        Select a region to see more details
+      </div>
+    );
 
     return (
       <Panel>
@@ -212,8 +231,8 @@ export class ResourcesMapContainer extends Component {
 
         <div>
           {!this.state.selected ?
-            "Select a region to see more details" :
-            regionDetails(this.state.selected, this.state.data[this.state.selected])
+            emptySelection :
+            regionDetails(this.state.selected, this.state.data[this.state.selected], this.unselectRegion)
           }
         </div>
 

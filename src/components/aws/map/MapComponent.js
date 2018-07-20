@@ -64,12 +64,13 @@ class MapComponent extends Component {
             "fill": (this.props.data[region].total ? "#d9534f" : "#cccccc"),
             "fill-opacity": (this.props.data[region].total ? this.props.data[region].opacity : 1),
             "cursor": "pointer",
-            "pointer-events": "all"
+            "pointer-events": "all",
+            "stroke": "#777777"
           };
           d3.selectAll("g#AWS-Regions")
             .select("#" + region)
             .on("mouseover", () => {
-              tooltip.innerHTML = region + " : $" + parseFloat(this.props.data[region].total.toFixed(2)).toLocaleString();
+              tooltip.innerHTML = region + "(" + this.props.data[region].name + ") : <span class='dollar-sign'>$</span>" + parseFloat(this.props.data[region].total.toFixed(2)).toLocaleString();
               d3.select(tooltip)
                 .style({
                   opacity: 1,
