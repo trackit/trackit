@@ -227,14 +227,19 @@ type postBillRepositoryBody struct {
 func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
-	err := isBillRepositoryValid(body)
-	if err == nil {
-		tx := a[db.Transaction].(*sql.Tx)
-		aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
-		return postBillRepositoryWithValidBody(r, tx, aa, body)
-	} else {
+	if err := isBillRepositoryValid(body); err != nil {
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
 	}
+	tx := a[db.Transaction].(*sql.Tx)
+	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+	if err := isBillRepositoryAccesible(aa, body); err != nil {
+		return http.StatusBadRequest, err
+	}
+	return postBillRepositoryWithValidBody(r, tx, aa, body)
+}
+
+func isBillRepositoryAccesible(aa aws.AwsAccount, body postBillRepositoryBody) (error) {
+	return nil
 }
 
 func postBillRepositoryWithValidBody(
