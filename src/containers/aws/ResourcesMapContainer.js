@@ -93,7 +93,8 @@ const regionDetails = (region, data, close) => {
         </div>
       </div>
       <div className="region-name">
-        {region}
+        <h3>{region}</h3>
+        <h4>{regions[region]}</h4>
       </div>
       <div className="region-info">
         <div>
@@ -167,6 +168,10 @@ export class ResourcesMapContainer extends Component {
 
   componentWillMount() {
     this.props.getCosts(this.props.dates.startDate, this.props.dates.endDate);
+  }
+
+  componentWillUnmount() {
+    this.props.clearCosts();
   }
 
   componentWillReceiveProps(nextProps) {
