@@ -7,12 +7,14 @@ import Components from '../../../components';
 const Form = Components.Auth.Form;
 
 const props = {
-  login: jest.fn()
+  login: jest.fn(),
+  clear: jest.fn(),
 };
 
 const propsWithToken = {
   ...props,
-  token: "token"
+  token: "token",
+  clear: jest.fn(),
 };
 
 describe('<LoginContainer />', () => {

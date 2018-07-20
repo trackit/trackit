@@ -11,12 +11,8 @@ class InfosComponent extends Component {
   constructor(props) {
     super(props);
     this.close = this.close.bind(this);
+    this.setDates = this.setDates.bind(this);
   }
-
-  close = (e) => {
-    e.preventDefault();
-    this.props.close(this.props.id);
-  };
 
   componentWillMount() {
     this.props.getCosts(this.props.id, this.props.dates.startDate, this.props.dates.endDate, ['region', 'product']);
@@ -27,6 +23,15 @@ class InfosComponent extends Component {
       this.props.accounts !== nextProps.accounts)
       nextProps.getCosts(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, ['region', 'product']);
   }
+
+  close = (e) => {
+    e.preventDefault();
+    this.props.close(this.props.id);
+  };
+
+  setDates = (start, end) => {
+    this.props.setDates(this.props.id, start, end);
+  };
 
   extractTotals() {
     if (!this.props.values.values.hasOwnProperty("region"))
@@ -78,7 +83,7 @@ class InfosComponent extends Component {
       <TimerangeSelector
         startDate={this.props.dates.startDate}
         endDate={this.props.dates.endDate}
-        setDatesFunc={this.props.setDates}
+        setDatesFunc={this.setDates}
       />
     ) : null);
 

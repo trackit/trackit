@@ -6,5 +6,6 @@ export default function* logoutSaga() {
     put({ type: Constants.LOGOUT_REQUEST_SUCCESS }),
     put({ type: Constants.CLEAN_USER_TOKEN }),
     put({ type: Constants.CLEAN_USER_MAIL }),
+    put({ type: Constants.CLEAN_USER_SELECTED_ACCOUNTS }),
   ]);
 }

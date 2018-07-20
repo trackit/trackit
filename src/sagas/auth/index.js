@@ -6,6 +6,7 @@ import LogoutSaga from './logoutSaga';
 import CleanUserTokenSaga from './cleanUserTokenSaga';
 import CleanUserMailSaga from './cleanUserMailSaga';
 import RegistrationSaga from './registrationSaga';
+import CleanUserSelectedAccountsSaga from './cleanUserSelectedAccountsSaga';
 import RecoverPasswordSaga from './recoverPasswordSaga';
 import RenewPasswordSaga from './renewPasswordSaga';
 import Constants from '../../constants';
@@ -38,6 +39,10 @@ export function* watchCleanUserMail() {
 
 export function* watchRegistration() {
   yield takeLatest(Constants.REGISTRATION_REQUEST, RegistrationSaga);
+}
+
+export function* watchCleanUserSelectedAccounts() {
+  yield takeLatest(Constants.CLEAN_USER_SELECTED_ACCOUNTS, CleanUserSelectedAccountsSaga);
 }
 
 export function* watchRecoverPassword() {

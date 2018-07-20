@@ -116,19 +116,17 @@ export class StepTwo extends Component {
   };
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.account.status && nextProps.account.value)
+    if (nextProps.account.status && nextProps.account.value && !nextProps.account.hasOwnProperty("error"))
       nextProps.next();
   }
 
   render() {
-    const error = (this.props.account && this.props.account.hasOwnProperty("error") ? (
+    const error = (this.props.account && this.props.account.status && this.props.account.hasOwnProperty("error")) ? (
       <div className="alert alert-warning" role="alert">{this.props.account.error.message}</div>
-    ) : null);
+    ) : (null);
 
     return (
       <div className="step step-two">
-
-        {error}
 
         <div className="tutorial">
 
@@ -150,7 +148,7 @@ export class StepTwo extends Component {
           </ol>
 
         </div>
-
+        {error}
         <Form ref={
           /* istanbul ignore next */
           form => { this.form = form; }
@@ -185,8 +183,8 @@ export class StepTwo extends Component {
 
           <div className="form-group clearfix">
             <div className="btn-group col-md-5" role="group">
-              <button className="btn btn-default btn-left" onClick={this.props.close}>Cancel</button>
-              <button className="btn btn-default btn-left" onClick={this.props.back}>Previous</button>
+              <div className="btn btn-default btn-left" onClick={this.props.close}>Cancel</div>
+              <div className="btn btn-default btn-left" onClick={this.props.back}>Previous</div>
             </div>
             <Button className="btn btn-primary col-md-5 btn-right" type="submit">{this.props.account.status ? "Next" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
           </div>
@@ -259,10 +257,13 @@ export class StepThree extends Component {
 
         </div>
 
-        <Form ref={
-          /* istanbul ignore next */
-          form => { this.form = form; }
-        } onSubmit={this.submit} >
+        <Form
+          ref={
+            /* istanbul ignore next */
+            form => { this.form = form; }
+          }
+          onSubmit={this.submit}
+        >
 
           <div className="form-group">
             <div className="input-title">
@@ -270,17 +271,20 @@ export class StepThree extends Component {
               &nbsp;
               <Popover info popOver="Name of S3 bucket and path to bills"/>
             </div>
-            <Input
-              name="bucket"
-              type="text"
-              className="form-control"
-              placeholder="s3://<bucket-name>/<path>"
-              validations={[Validation.required, Validation.s3BucketFormat]}
-            />
+            <div className="input-group">
+              <div className="input-group-addon">s3://</div>
+              <Input
+                name="bucket"
+                type="text"
+                className="form-control"
+                placeholder="<bucket-name>/<path>"
+                validations={[Validation.required, Validation.s3BucketFormat]}
+              />
+            </div>
           </div>
 
           <div className="form-group clearfix">
-            <button className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</button>
+            <div className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</div>
             <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{!this.props.bill || this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
           </div>
 
