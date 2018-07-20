@@ -20,7 +20,7 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit2/routes"
+	"github.com/trackit/trackit-server/routes"
 )
 
 // Transaction is a decorator which manages a transaction for an HTTP request.

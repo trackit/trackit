@@ -12,22 +12,26 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package es
+// Package models contains the types for schema 'trackit'.
+package models
 
 import (
-	"fmt"
-
-	"github.com/trackit/trackit-server/users"
+	"time"
 )
 
-const (
-	IndexPrefixLineItems = "lineitems"
-)
+// DeleteExpiredForgottenPassword deletes the ForgottenPassword that are older than the date parameter
+func DeleteExpiredForgottenPassword(db XODB, date time.Time) error {
+	var err error
 
-func IndexNameForUser(u users.User, p string) string {
-	return IndexNameForUserId(u.Id, p)
-}
+	// sql query
+	const sqlstr = `DELETE FROM trackit.forgotten_password WHERE created < ?`
 
-func IndexNameForUserId(i int, p string) string {
-	return fmt.Sprintf("%06d-%s", i, p)
+	// run query
+	XOLog(sqlstr, date)
+	_, err = db.Exec(sqlstr, date)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -30,9 +30,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit2/aws"
-	"github.com/trackit/trackit2/config"
-	"github.com/trackit/trackit2/util/csv"
+	taws "github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/util/csv"
 )
 
 const (
@@ -415,7 +415,6 @@ func listBillsFromRepositoryPage(
 				}
 			}
 		}
-		count += len(page.Contents)
 		if count < MaxCheckedKeysByRepository {
 			return !last
 		} else {

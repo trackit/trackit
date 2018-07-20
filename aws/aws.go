@@ -23,9 +23,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit2/awsSession"
-	"github.com/trackit/trackit2/models"
-	"github.com/trackit/trackit2/users"
+	"github.com/trackit/trackit-server/awsSession"
+	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/users"
 )
 
 // AwsAccount represents a client's AWS account.

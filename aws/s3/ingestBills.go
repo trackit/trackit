@@ -25,8 +25,8 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit2/aws"
-	"github.com/trackit/trackit2/es"
+	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/es"
 )
 
 const (

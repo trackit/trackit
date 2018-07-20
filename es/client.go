@@ -26,8 +26,8 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit2/awsSession"
-	"github.com/trackit/trackit2/config"
+	"github.com/trackit/trackit-server/awsSession"
+	"github.com/trackit/trackit-server/config"
 )
 
 var Client *elastic.Client
