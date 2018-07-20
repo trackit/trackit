@@ -10,6 +10,7 @@ import Form from './FormComponent';
 import Bills from './bills';
 
 const DeleteConfirmation = Misc.DeleteConfirmation;
+const Popover = Misc.Popover;
 
 export class Item extends Component {
 
@@ -17,6 +18,7 @@ export class Item extends Component {
     super(props);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
+    this.getAccountBadge = this.getAccountBadge.bind(this);
   }
 
   editAccount = (body) => {
@@ -29,12 +31,39 @@ export class Item extends Component {
     this.props.accountActions.delete(this.props.account.id);
   };
 
+  getAccountBadge = () => {
+    let error = false;
+    let pending = false;
+    this.props.account.billRepositories.forEach((billRepository) => {
+      if (billRepository.error !== "")
+        error = true;
+      if (billRepository.nextPending)
+        pending = true;
+    });
+    if (error || !this.props.account.billRepositories.length)
+      return (
+          <Popover
+            children={<i className="fa account-badge fa-times-circle"/>}
+            popOver={"Please check your bill locations"}
+          />
+      );
+    else if (pending)
+      return (
+          <Popover
+            children={<i className="fa account-badge fa-clock-o"/>}
+            popOver={"Import in progress"}
+          />
+      );
+    return (<i className="fa account-badge fa-check-circle"/>);
+  };
+
   render() {
     return (
       <div>
 
         <ListItem divider>
 
+          {this.getAccountBadge()}
           <ListItemText
             disableTypography
             className="account-name"
@@ -73,6 +102,14 @@ Item.propTypes = {
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
     pretty: PropTypes.string,
+    billRepositories: PropTypes.arrayOf(
+      PropTypes.shape({
+        error: PropTypes.string.isRequired,
+        nextPending: PropTypes.bool.isRequired,
+        bucket: PropTypes.string.isRequired,
+        prefix: PropTypes.string.isRequired
+      })
+    ),
   }),
   accountActions: PropTypes.shape({
     edit: PropTypes.func.isRequired,
@@ -119,10 +156,12 @@ ListComponent.propTypes = {
         id: PropTypes.number.isRequired,
         roleArn: PropTypes.string.isRequired,
         pretty: PropTypes.string,
-        bills: PropTypes.arrayOf(
+        billRepositories: PropTypes.arrayOf(
           PropTypes.shape({
+            error: PropTypes.string.isRequired,
+            nextPending: PropTypes.bool.isRequired,
             bucket: PropTypes.string.isRequired,
-            path: PropTypes.string.isRequired
+            prefix: PropTypes.string.isRequired
           })
         ),
       })

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import NVD3Chart from 'react-nvd3';
 import * as d3 from 'd3';
+import NVD3Chart from 'react-nvd3';
 import { costBreakdown } from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
 

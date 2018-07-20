@@ -303,3 +303,67 @@ h4.no-data {
     font-size: 20px;
     font-weight: 200;
 }
+
+/* Resources Map */
+
+#map {
+    position: relative;
+    height: 600px;
+}
+
+#map svg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+
+#tooltip_map {
+    background: #FFFFFF;
+    border: 1px solid #666;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+.map-empty-selection {
+    font-size: 1.5em;
+}
+
+.map-empty-selection i {
+    color: #d9534f;
+}
+
+.region-details .header {
+  height: 10px;
+}
+
+.region-name {
+    text-align: center;
+}
+
+.zone-item {
+    border-bottom: 1px solid #ddd;
+    padding: 15px;
+}
+
+.zone-item:last-child {
+    border-bottom: none;
+}
+
+.zone-name {
+    font-size: 1.3em;
+}
+
+.zone-products {
+    padding: 10px;
+    padding-bottom: 0;
+}
+
+.zone-products {
+    padding: 10px;
+    padding-bottom: 0;
+}
