@@ -10,6 +10,10 @@ const Form = Components.Auth.ForgotPassword;
 // ForgotContainer Component
 export class ForgotContainer extends Component {
 
+  componentWillMount() {
+    this.props.clear();
+  }
+
   componentWillUnmount() {
     this.props.clear();
   }

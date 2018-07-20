@@ -15,14 +15,19 @@ export class RenewContainer extends Component {
     this.submit = this.submit.bind(this);
   }
 
-  submit = (email, password) => {
-    const token = this.props.match.params.token;
-    this.props.renew(email, password, token);
-  };
+  componentWillMount() {
+    this.props.clear();
+  }
 
   componentWillUnmount() {
     this.props.clear();
   }
+
+  submit = (email, password) => {
+    const token = this.props.match.params.token;
+    const id = parseInt(this.props.match.params.id);
+    this.props.renew(id, password, token);
+  };
 
   render() {
     if (this.props.token)
@@ -47,13 +52,13 @@ RenewContainer.propTypes = {
 /* istanbul ignore next */
 const mapStateToProps = (state) => ({
   token: state.auth.token,
-  renewStatus: state.auth.recoverStatus
+  renewStatus: state.auth.renewStatus
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  renew: (email, password, token) => {
-    dispatch(Actions.Auth.renew(email, password, token))
+  renew: (id, password, token) => {
+    dispatch(Actions.Auth.renew(id, password, token))
   },
   clear: () => {
     dispatch(Actions.Auth.clearRenew());

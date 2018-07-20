@@ -9,9 +9,9 @@ export const register = (email, password) => {
 };
 
 export const recoverPassword = (email) => {
-  return call('/user/recover', 'POST', {email});
+  return call('/user/password/forgotten', 'POST', {email});
 };
 
-export const renewPassword = (email, password, token) => {
-  return call('/user/renew', 'POST', {email, password, token});
+export const renewPassword = (id, password, token) => {
+  return call('/user/password/reset', 'POST', {id, password, token});
 };

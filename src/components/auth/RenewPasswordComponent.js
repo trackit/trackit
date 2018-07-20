@@ -29,7 +29,7 @@ export class RenewPasswordComponent extends Component {
   };
 
   render() {
-    const buttons = (
+    const buttons = (this.props.renewStatus && this.props.renewStatus.status && this.props.renewStatus.value ? null : (
       <div className="clearfix">
         <div>
           <Button
@@ -52,10 +52,8 @@ export class RenewPasswordComponent extends Component {
         >
           Return to Login
         </Link>
-
-
       </div>
-    );
+    ));
 
     const error = (this.props.renewStatus && this.props.renewStatus.hasOwnProperty("error") ? (
       <div className="alert alert-warning">{this.props.renewStatus.error}</div>
@@ -64,9 +62,32 @@ export class RenewPasswordComponent extends Component {
     const success = (this.props.renewStatus && this.props.renewStatus.status && this.props.renewStatus.value ? (
       <div className="alert alert-success">
         <strong>Success : </strong>
-        An email has been sent to you with a link to setup a new password.
+        Your new password has been set. You may now <Link to="/login/">Sign in</Link>.
       </div>
     ) : null);
+
+    const form = (
+      <div>
+        <div className="form-group">
+          <label htmlFor="password">Password</label>
+          <Input
+            type="password"
+            name="password"
+            className="form-control"
+            validations={[Validation.required]}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="password">Confirm your password</label>
+          <Input
+            type="password"
+            name="passwordConfirmation"
+            className="form-control"
+            validations={[Validation.required, Validation.passwordConfirmation]}
+          />
+        </div>
+      </div>
+    );
 
     return (
       <div className="login">
@@ -81,9 +102,6 @@ export class RenewPasswordComponent extends Component {
               <hr />
 
               {error}
-              {success}
-
-
 
               <Form
                 ref={
@@ -91,37 +109,8 @@ export class RenewPasswordComponent extends Component {
                   (form) => {this.form = form;}
                 }
                 onSubmit={this.submit}>
-
-                <div className="form-group">
-                  <label htmlFor="email">Email address</label>
-                  <Input
-                    name="email"
-                    type="email"
-                    className="form-control"
-                    validations={[Validation.required, Validation.email]}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <Input
-                    type="password"
-                    name="password"
-                    className="form-control"
-                    validations={[Validation.required]}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="password">Confirm your password</label>
-                  <Input
-                    type="password"
-                    name="passwordConfirmation"
-                    className="form-control"
-                    validations={[Validation.required, Validation.passwordConfirmation]}
-                  />
-                </div>
-
+                {success || form}
                 {buttons}
-
               </Form>
 
             </div>

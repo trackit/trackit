@@ -29,24 +29,28 @@ export class ForgotPasswordComponent extends Component {
   };
 
   render() {
+    const send = (this.props.recoverStatus && this.props.recoverStatus.status && this.props.recoverStatus.value ? null : (
+      <div>
+        <Button
+          className="btn btn-primary col-md-5 btn-right"
+          type="submit"
+        >
+          {(this.props.recoverStatus && !Object.keys(this.props.recoverStatus).length ? (
+            (<Spinner className="spinner" name='circle' color='white'/>)
+          ) : (
+            <div>
+              <i className="fa fa-envelope" />
+              &nbsp;
+              Send
+            </div>
+          ))}
+        </Button>
+      </div>
+    ));
+
     const buttons = (
       <div className="clearfix">
-        <div>
-          <Button
-            className="btn btn-primary col-md-5 btn-right"
-            type="submit"
-          >
-            {(this.props.recoverStatus && !Object.keys(this.props.recoverStatus).length ? (
-              (<Spinner className="spinner" name='circle' color='white'/>)
-            ) : (
-              <div>
-                <i className="fa fa-envelope" />
-                &nbsp;
-                Send
-              </div>
-            ))}
-          </Button>
-        </div>
+        {send}
         <Link
           to="/login"
         >
@@ -68,6 +72,18 @@ export class ForgotPasswordComponent extends Component {
       </div>
     ) : null);
 
+    const form = (
+        <div className="form-group">
+          <label htmlFor="email">Email address</label>
+          <Input
+            name="email"
+            type="email"
+            className="form-control"
+            validations={[Validation.required, Validation.email]}
+          />
+        </div>
+    );
+
     return (
       <div className="login">
         <div className="row">
@@ -81,8 +97,6 @@ export class ForgotPasswordComponent extends Component {
               <hr />
 
               {error}
-              {success}
-
 
 
               <Form
@@ -92,15 +106,7 @@ export class ForgotPasswordComponent extends Component {
                 }
                 onSubmit={this.submit}>
 
-                <div className="form-group">
-                  <label htmlFor="email">Email address</label>
-                  <Input
-                    name="email"
-                    type="email"
-                    className="form-control"
-                    validations={[Validation.required, Validation.email]}
-                  />
-                </div>
+                {success || form}
 
                 {buttons}
 

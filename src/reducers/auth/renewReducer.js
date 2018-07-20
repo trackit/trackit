@@ -5,7 +5,7 @@ export default (state=null, action) => {
     case Constants.RENEW_PASSWORD_SUCCESS:
       return { status: true, value: true };
     case Constants.RENEW_PASSWORD_ERROR:
-      return { status: false, error: action.error };
+      return { status: true, error: action.error };
     case Constants.RENEW_PASSWORD_LOADING:
       return {};
     case Constants.RENEW_PASSWORD_REQUEST:

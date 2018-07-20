@@ -8,9 +8,9 @@ export default {
   clearRecover: () => ({
     type: Constants.RECOVER_PASSWORD_CLEAR
   }),
-  renew: (username, password, token) => ({
+  renew: (id, password, token) => ({
     type: Constants.RENEW_PASSWORD_REQUEST,
-    username,
+    id,
 	  password,
 	  token
   }),
