@@ -61,7 +61,7 @@ class MapComponent extends Component {
         node.appendChild(importedNode.cloneNode(true));
         Object.keys(this.props.data).forEach((region) => {
           const style = {
-            "fill": (this.props.data[region].total ? "#d9534f" : "#cccccc"),
+            "fill": (this.props.data[region].total ? "#d9534f" : "#f1f1f1"),
             "fill-opacity": (this.props.data[region].total ? this.props.data[region].opacity : 1),
             "cursor": "pointer",
             "pointer-events": "all",
