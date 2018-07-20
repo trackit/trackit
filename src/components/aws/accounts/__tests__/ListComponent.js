@@ -18,7 +18,7 @@ const accountWithoutBills = {
   id: 42,
   userId: 42,
   roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
-  bills: []
+  billRepositories: []
 };
 
 const accountWithBills = {
@@ -26,7 +26,20 @@ const accountWithBills = {
   userId: 42,
   roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
   pretty: "Name",
-  bills: []
+  billRepositories: [
+    {
+      error: "",
+      nextPending: false,
+      bucket: "billing-bucket",
+      prefix: "prefix"
+    },
+    {
+      error: "access denied",
+      nextPending: true,
+      bucket: "another-billing-bucket",
+      prefix: "another-prefix"
+    },
+  ],
 };
 
 describe('<ListComponent />', () => {

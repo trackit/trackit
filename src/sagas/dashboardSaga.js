@@ -3,6 +3,9 @@ import { getToken, getAWSAccounts, getDashboard, initialDashboard } from './misc
 import { setDashboard, getDashboard as getDashboardLS } from '../common/localStorage';
 import API from '../api';
 import Constants from '../constants';
+import Validation from '../common/forms/AWSAccountForm';
+
+const getAccountIDFromRole = Validation.getAccountIDFromRole;
 
 export function* getDataSaga({ id, itemType, begin, end, filters }) {
   try {
@@ -22,8 +25,29 @@ export function* getDataSaga({ id, itemType, begin, end, filters }) {
     if (res && res.success && res.hasOwnProperty("data")) {
       if (res.data.hasOwnProperty("error"))
         throw Error(res.data.error);
-      else
+      else {
+        if (res.data.hasOwnProperty("account")) {
+          const accountsRaw = yield call(API.AWS.Accounts.getAccounts, token);
+          if (accountsRaw.success && accountsRaw.hasOwnProperty("data")) {
+            const accounts = {};
+            accountsRaw.data.forEach((item) => {
+              const accountID = getAccountIDFromRole(item.roleArn);
+              accounts[accountID] = {...item, accountID};
+            });
+            const newData = {};
+            Object.keys(res.data.account).forEach((accountID) => {
+              if (Object.keys(accounts).indexOf(accountID) !== -1)
+                newData[accounts[accountID].pretty] = res.data.account[accountID];
+              else
+                newData[accountID] = res.data.account[accountID];
+            });
+            res.data.account = newData;
+          }
+          else
+            throw Error("Error while getting accounts");
+        }
         yield put({type: Constants.DASHBOARD_GET_VALUES_SUCCESS, id, data: res.data});
+      }
     }
     else
       throw Error("Error with request");

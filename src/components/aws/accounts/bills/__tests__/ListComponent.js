@@ -16,6 +16,7 @@ const defaultProps = {
 };
 
 const bill = {
+  error: "",
   bucket: "s3://test.test",
   prefix: "/path/to/bill"
 };
