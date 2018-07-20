@@ -42,7 +42,7 @@ export class RenewPasswordComponent extends Component {
               <div>
                 <i className="fa fa-key" />
                 &nbsp;
-                Renew my password
+                Reset
               </div>
             ))}
           </Button>
