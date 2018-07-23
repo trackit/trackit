@@ -77,7 +77,7 @@ export class AccountsContainer extends Component {
           </div>
 
           {
-            (!this.props.accounts.length && this.props.match.params.hasAccounts === "false")
+            (!(this.props.accounts.values && this.props.accounts.values.length) && this.props.match.params.hasAccounts === "false")
             && noAccountsInfos
           }
 

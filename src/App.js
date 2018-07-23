@@ -16,7 +16,7 @@ export class App extends Component {
   render() {
 
     const redirectToSetup = () => <Redirect to={`${this.props.match.url}/setup/false`}/>;
-    const hasAccounts = (this.props.accounts.status && this.props.accounts.hasOwnProperty("values") ? this.props.accounts.values.length > 0 : true);
+    const hasAccounts = (this.props.accounts.status ? (this.props.accounts.hasOwnProperty("values") && this.props.accounts.values && this.props.accounts.values.length > 0 ): true);
 
     return (
       <div>
