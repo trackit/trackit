@@ -130,7 +130,7 @@ func createForgottenPasswordEntry(request *http.Request, body forgottenPasswordR
 		return 500, errors.New("Failed to create forgotten password token")
 	}
 	mailSubject := "Reset your Trackit password"
-	mailBody := fmt.Sprintf("Please follow this link to recover your password: https://trackit.io/forgottenpassword?token=%s&id=%d. This link is valid for an hour.", token, dbForgottenPassword.ID)
+	mailBody := fmt.Sprintf("Please follow this link to recover your password: https://re.trackit.io/reset/%d/%s. This link is valid for an hour.", dbForgottenPassword.ID, token)
 	err = mail.SendMail(user.Email, mailSubject, mailBody, request.Context())
 	if err != nil {
 		logger.Error("Failed to send password recovery email.", err.Error())
