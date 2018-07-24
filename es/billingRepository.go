@@ -27,3 +27,11 @@ func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	_, err := elastic.NewDeleteByQueryService(Client).Index(index).Query(query).Do(ctx)
 	return err
 }
+
+func CleanCurrentMonthBillByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
+	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
+	query := elastic.NewBoolQuery()
+	query = query.Filter(elastic.NewTermQuery("billRepositoryId", brId), elastic.NewTermQuery("invoiceId", ""))
+	_, err := elastic.NewDeleteByQueryService(Client).Index(index).Query(query).Do(ctx)
+	return err
+}
