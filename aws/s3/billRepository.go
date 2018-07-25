@@ -231,7 +231,7 @@ func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) 
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
 	}
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
-	if err := isBillRepositoryAccessible(aa, body); err != nil {
+	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
 		return http.StatusBadRequest, err
 	}
 	tx := a[db.Transaction].(*sql.Tx)
@@ -265,7 +265,7 @@ func patchBillRepository(r *http.Request, a routes.Arguments) (int, interface{})
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
 	}
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
-	if err := isBillRepositoryAccessible(aa, body); err != nil {
+	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
 		return http.StatusBadRequest, err
 	}
 	tx := a[db.Transaction].(*sql.Tx)
@@ -345,13 +345,12 @@ func isPrefixValid(p string) error {
 	}
 }
 
-func isBillRepositoryAccessible(aa aws.AwsAccount, body postBillRepositoryBody) (error) {
-	ctx := context.Background()
+func isBillRepositoryAccessible(ctx context.Context, aa aws.AwsAccount, body postBillRepositoryBody) (error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	_, _, err := getServiceForRepository(ctx, aa, BillRepository{Bucket: body.Bucket, Prefix: body.Prefix})
 	if (err != nil) {
 		l.Warning("Trying to add a bad bill location.", err.Error())
-		return errors.New("Can't acces to this bill location.")
+		return errors.New("Couldn't access to this bill location.")
 	}
 	return nil
 }
