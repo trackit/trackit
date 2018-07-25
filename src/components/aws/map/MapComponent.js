@@ -124,11 +124,13 @@ class MapComponent extends Component {
             "pointer-events": "all",
             "stroke": "#777777"
           };
+          if (region === "")
+            style["stroke"] = "none";
           d3.selectAll("g#AWS-Regions")
-            .select("#" + region)
+            .select("#" + (region === "" ? "no_region" : region))
             .on("mouseover", () => {
               tooltip.innerHTML = null;
-              tooltip.appendChild(generateTooltip(region, this.props.data[region]));
+              tooltip.appendChild(generateTooltip((region === "" ? "Global products" : region), this.props.data[region]));
               d3.select(tooltip)
                 .style({
                   opacity: 1,
