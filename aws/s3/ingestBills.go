@@ -92,7 +92,11 @@ func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion
 		}
 		err = es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
 		if err != nil {
-			l.Info("No incomplete bills found for this bill repository.", err)
+			l.Error("Error while trying to remove incomplete reports.", map[string]interface{}{
+				"error": err,
+				"userId": aa.UserId,
+				"billRepository": br,
+			})
 		}
 		go func(ctx context.Context, aa aws.AwsAccount, br BillRepository) {
 			lim, err := UpdateReport(ctx, aa, br)
