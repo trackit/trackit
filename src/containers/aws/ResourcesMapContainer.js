@@ -10,7 +10,6 @@ import Actions from "../../actions";
 
 import {formatPrice} from '../../common/formatters';
 
-const Panel = Components.Misc.Panel;
 const Map = Components.AWS.Map.Map;
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 
@@ -64,13 +63,13 @@ const formatData = (costs) => {
   Object.keys(data).forEach((region) => {
     if (data[region].total) {
       const ratio = data[region].total / maxTotal;
-      data[region].opacity = (ratio < 0.25 ? 0.4 : (ratio < 0.5 ? 0.6 : (ratio < 0.75 ? 0.8 : 1)));
+      data[region].opacity = (ratio < 0.25 ? 0.5 : (ratio < 0.5 ? 0.7 : (ratio < 0.75 ? 0.9 : 1)));
     }
   });
   return data;
 };
 
-const regionDetails = (region, data, close) => {
+const regionDetails = (key, region, data, double, close) => {
   const zones = Object.keys(data.zones).map((zone, index) => (
     <div className="zone-item" key={index}>
       <div className="zone-name">
@@ -85,8 +84,9 @@ const regionDetails = (region, data, close) => {
       </div>
     </div>
   ));
+  const colWidth = (double ? "col-md-6" : "col-md-12");
   return (
-    <div className="region-details">
+    <div key={key} className={"region-details white-box " + colWidth}>
       <div className="header">
         <div className="close" onClick={close}>
           <i className="fa fa-times"/>
@@ -98,7 +98,7 @@ const regionDetails = (region, data, close) => {
       </div>
       <div className="region-info">
         <div>
-          <div className="col-md-3 col-md-offset-2 col-sm-4 p-t-15 p-b-15 br-sm br-md bb-xs">
+          <div className="col-md-4 col-sm-4 p-t-15 p-b-15 br-sm br-md bb-xs info">
             <ul className="in-col">
               <li>
                 <i className="fa fa-dollar fa-2x green-color"/>
@@ -113,7 +113,7 @@ const regionDetails = (region, data, close) => {
               total cost
             </h4>
           </div>
-          <div className="col-md-3 col-sm-4 p-t-15 p-b-15 br-md bb-xs">
+          <div className="col-md-4 col-sm-4 p-t-15 p-b-15 br-md bb-xs info">
             <ul className="in-col">
               <li>
                 <i className="fa fa-th-list fa-2x red-color"/>
@@ -128,7 +128,7 @@ const regionDetails = (region, data, close) => {
               products
             </h4>
           </div>
-          <div className="col-md-3 col-sm-4 p-t-15 p-b-15">
+          <div className="col-md-4 col-sm-4 p-t-15 p-b-15 info">
             <ul className="in-col">
               <li>
                 <i className="fa fa-globe fa-2x blue-color"/>
@@ -159,11 +159,10 @@ export class ResourcesMapContainer extends Component {
   constructor(props){
     super(props);
     this.state = {
-      selected: null,
+      selected: [],
       data: {}
     };
     this.selectRegion = this.selectRegion.bind(this);
-    this.unselectRegion = this.unselectRegion.bind(this);
   }
 
   componentWillMount() {
@@ -178,18 +177,28 @@ export class ResourcesMapContainer extends Component {
     if (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts)
       nextProps.getCosts(nextProps.dates.startDate, nextProps.dates.endDate);
     else {
-      this.setState({selected: null});
+      this.setState({selected: []});
       if (nextProps.costs.status && nextProps.costs.hasOwnProperty("values"))
         this.setState({data: formatData(nextProps.costs.values)});
     }
   }
 
-  selectRegion = (selected) => {
+  selectRegion = (newSelected) => {
+    const selected = this.state.selected;
+    if (selected.indexOf(newSelected) !== -1)
+      selected.splice(selected.indexOf(newSelected), 1);
+    else {
+      selected.push(newSelected);
+      while (selected.length > 2)
+        selected.shift() 
+    }
     this.setState({selected});
   };
 
-  unselectRegion = () => {
-    this.setState({selected: null});
+  unselectRegion = (region) => {
+    const selected = this.state.selected;
+    selected.splice(selected.indexOf(region), 1);
+    this.setState({selected});
   };
 
   render() {
@@ -204,17 +213,26 @@ export class ResourcesMapContainer extends Component {
     ) : null);
 
     const emptySelection = (
-      <div className="map-empty-selection">
-        <i className="fa fa-globe"/>
-        &nbsp;
-        Select a region to see more details
+      <div className="white-box">
+        <div className="map-empty-selection">
+          <i className="fa fa-globe"/>
+          &nbsp;
+          Select a region to see more details (You can select up to 2 regions)
+        </div>
       </div>
     );
 
-    return (
-      <Panel>
+    const selection = this.state.selected.map((item, index) => regionDetails(index, item, this.state.data[item], (this.state.selected.length === 2), this.unselectRegion.bind(this, item)));
+    const selectionDetails = (!this.state.selected.length ? emptySelection : (
+      <div className="row row-eq-height row-regions-details">
+        {selection}
+      </div>
+    ));
 
-        <div className="clearfix">
+    return (
+      <div className="container-fluid">
+
+        <div className="clearfix white-box">
           <div className="inline-block">
             <h3 className="white-box-title no-padding inline-block">
               <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
@@ -230,18 +248,13 @@ export class ResourcesMapContainer extends Component {
           </div>
         </div>
 
-        <div>
+        <div className="white-box">
           {loading || error || map}
         </div>
 
-        <div>
-          {!this.state.selected ?
-            emptySelection :
-            regionDetails(this.state.selected, this.state.data[this.state.selected], this.unselectRegion)
-          }
-        </div>
+        {selectionDetails}
 
-      </Panel>
+      </div>
     );
   }
 
