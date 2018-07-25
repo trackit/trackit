@@ -3,6 +3,60 @@ import * as d3 from 'd3';
 import Map from '../../../assets/aws_regions_map.svg';
 import PropTypes from "prop-types";
 
+const generateTooltip = (region, data) => {
+  const root = document.createElement("div");
+  root.classList.add("tooltip-content");
+
+  const header = document.createElement("div");
+  header.classList.add("tooltip-header");
+
+  const headerIcon = document.createElement("i");
+  headerIcon.classList.add("fa");
+  headerIcon.classList.add("fa-globe");
+
+  const headerRegion = document.createElement("div");
+  headerRegion.classList.add("tooltip-header-region");
+
+  const headerRegionAWS = document.createElement("div");
+  headerRegionAWS.classList.add("tooltip-header-region-aws");
+  headerRegionAWS.innerHTML = region;
+
+  const headerRegionPretty = document.createElement("div");
+  headerRegionPretty.classList.add("tooltip-header-region-pretty");
+  headerRegionPretty.innerHTML = data.name;
+
+  headerRegion.appendChild(headerRegionAWS);
+  headerRegion.appendChild(headerRegionPretty);
+
+  header.appendChild(headerIcon);
+  header.appendChild(headerRegion);
+
+  const cost = document.createElement("div");
+  cost.classList.add("tooltip-cost");
+
+  const costIcon = document.createElement("span");
+  costIcon.classList.add("tooltip-cost-icon");
+  costIcon.classList.add("dollar-sign");
+  costIcon.innerHTML = "$";
+
+  const costValue = document.createElement("div");
+  costValue.classList.add("tooltip-cost-value");
+  costValue.innerHTML = parseFloat(data.total.toFixed(2)).toLocaleString();
+
+  cost.appendChild(costIcon);
+  cost.appendChild(costValue);
+
+  const help = document.createElement("div");
+  help.classList.add("tooltip-help");
+  help.innerText = "Click for more details";
+
+  root.appendChild(header);
+  root.appendChild(cost);
+  root.appendChild(help);
+
+  return root;
+};
+
 class MapComponent extends Component {
 
   constructor(props){
@@ -27,7 +81,7 @@ class MapComponent extends Component {
   getNodes() {
     const node = this.node;
 
-    while (node.firstChild)
+    while (node && node.firstChild)
       node.removeChild(node.firstChild);
 
     let tooltip = d3.select("div.tooltip#tooltip_map")[0][0];
@@ -47,6 +101,9 @@ class MapComponent extends Component {
   createMap() {
     const {node, tooltip} = this.getNodes();
 
+    if (!node)
+      return;
+
     d3.xml(Map, "image/svg+xml").get((error, map) => {
       if (error)
         node.append(<div className="alert alert-warning" role="alert">Error while getting map ({error})</div>);
@@ -61,7 +118,7 @@ class MapComponent extends Component {
         node.appendChild(importedNode.cloneNode(true));
         Object.keys(this.props.data).forEach((region) => {
           const style = {
-            "fill": (this.props.data[region].total ? "#d9534f" : "#f1f1f1"),
+            "fill": (this.props.data[region].total ? "#4885ed" : "#F2F7FF"),
             "fill-opacity": (this.props.data[region].total ? this.props.data[region].opacity : 1),
             "cursor": "pointer",
             "pointer-events": "all",
@@ -70,11 +127,12 @@ class MapComponent extends Component {
           d3.selectAll("g#AWS-Regions")
             .select("#" + region)
             .on("mouseover", () => {
-              tooltip.innerHTML = region + "(" + this.props.data[region].name + ") : <span class='dollar-sign'>$</span>" + parseFloat(this.props.data[region].total.toFixed(2)).toLocaleString();
+              tooltip.innerHTML = null;
+              tooltip.appendChild(generateTooltip(region, this.props.data[region]));
               d3.select(tooltip)
                 .style({
                   opacity: 1,
-                  left: (d3.event.pageX + 20) + "px",
+                  left: (d3.event.pageX + 10) + "px",
                   top: (d3.event.pageY - 30) + "px"
                 });
             })
