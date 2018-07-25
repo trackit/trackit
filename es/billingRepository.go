@@ -28,6 +28,7 @@ func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	return err
 }
 
+// Remove incomplete bills of a specific bill repository (invoiceId == "" when incomplete)
 func CleanCurrentMonthBillByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
