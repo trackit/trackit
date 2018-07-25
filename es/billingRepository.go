@@ -24,7 +24,7 @@ func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("billRepositoryId", brId))
-	_, err := elastic.NewDeleteByQueryService(Client).Index(index).Query(query).Do(ctx)
+	_, err := elastic.NewDeleteByQueryService(Client).WaitForCompletion(false).Index(index).Query(query).Do(ctx)
 	return err
 }
 
