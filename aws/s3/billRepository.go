@@ -227,14 +227,15 @@ type postBillRepositoryBody struct {
 func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
-	err := isBillRepositoryValid(body)
-	if err == nil {
-		tx := a[db.Transaction].(*sql.Tx)
-		aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
-		return postBillRepositoryWithValidBody(r, tx, aa, body)
-	} else {
+	if err := isBillRepositoryValid(body); err != nil {
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
 	}
+	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
+		return http.StatusBadRequest, err
+	}
+	tx := a[db.Transaction].(*sql.Tx)
+	return postBillRepositoryWithValidBody(r, tx, aa, body)
 }
 
 func postBillRepositoryWithValidBody(
@@ -255,21 +256,21 @@ func postBillRepositoryWithValidBody(
 		})
 		return http.StatusInternalServerError, errors.New("failed to create bill repository")
 	}
-
 }
 
 func patchBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
-	err := isBillRepositoryValid(body)
-	if err == nil {
-		tx := a[db.Transaction].(*sql.Tx)
-		aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
-		brId := a[routes.BillPositoryQueryArg].(int)
-		return patchBillRepositoryWithValidBody(r, tx, aa, brId, body)
-	} else {
+	if err := isBillRepositoryValid(body); err != nil {
 		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
 	}
+	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
+	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
+		return http.StatusBadRequest, err
+	}
+	tx := a[db.Transaction].(*sql.Tx)
+	brId := a[routes.BillPositoryQueryArg].(int)
+	return patchBillRepositoryWithValidBody(r, tx, aa, brId, body)
 }
 
 func patchBillRepositoryWithValidBody(
@@ -342,6 +343,16 @@ func isPrefixValid(p string) error {
 	} else {
 		return nil
 	}
+}
+
+func isBillRepositoryAccessible(ctx context.Context, aa aws.AwsAccount, body postBillRepositoryBody) (error) {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	_, _, err := getServiceForRepository(ctx, aa, BillRepository{Bucket: body.Bucket, Prefix: body.Prefix})
+	if (err != nil) {
+		l.Warning("Trying to add a bad bill location.", err.Error())
+		return errors.New("Couldn't access to this bill location.")
+	}
+	return nil
 }
 
 func DeleteBillRepositoryById(brId int, tx *sql.Tx) error {
