@@ -37,7 +37,6 @@ func taskIngestDue(ctx context.Context) (err error) {
 	return
 }
 
-
 // updateBillRepositoriesFromConclusion updates bill repositories in the
 // database using the conclusion of an update task.
 func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
