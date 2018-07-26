@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 5,
+	"version": 6,
 	"mappings": {
 		"lineitem": {
 			"properties": {
@@ -78,6 +78,10 @@ const TemplateLineItem = `
 					"norms": false
 				},
 				"availabilityZone": {
+					"type": "keyword",
+					"norms": false
+				},
+				"region": {
 					"type": "keyword",
 					"norms": false
 				},
