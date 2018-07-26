@@ -99,6 +99,27 @@ class MapComponent extends Component {
   }
 
   createMap() {
+    const setupRegion = (region, style, mask=region) => {
+      d3.selectAll("g#AWS-Regions")
+        .select("#" + (mask === "" ? "no_region" : mask))
+        .on("mouseover", () => {
+          tooltip.innerHTML = null;
+          tooltip.appendChild(generateTooltip((region === "" ? "Global products" : region), this.props.data[region]));
+          d3.select(tooltip)
+            .style({
+              opacity: 1,
+              left: (d3.event.pageX + 10) + "px",
+              top: (d3.event.pageY - 30) + "px"
+            });
+        })
+        .on("mouseout", () => {
+          tooltip.innerHTML = null;
+          d3.select(tooltip)
+            .style({opacity: 0});
+        })
+        .on("click", this.selectRegion.bind(this, region))
+        .style(style);
+    };
     const {node, tooltip} = this.getNodes();
 
     if (!node)
@@ -124,25 +145,11 @@ class MapComponent extends Component {
             "pointer-events": "all",
             "stroke": "#777777"
           };
-          d3.selectAll("g#AWS-Regions")
-            .select("#" + region)
-            .on("mouseover", () => {
-              tooltip.innerHTML = null;
-              tooltip.appendChild(generateTooltip(region, this.props.data[region]));
-              d3.select(tooltip)
-                .style({
-                  opacity: 1,
-                  left: (d3.event.pageX + 10) + "px",
-                  top: (d3.event.pageY - 30) + "px"
-                });
-            })
-            .on("mouseout", () => {
-              tooltip.innerHTML = null;
-              d3.select(tooltip)
-                .style({opacity: 0});
-            })
-            .on("click", this.selectRegion.bind(this, region))
-            .style(style);
+          if (region === "") {
+            style["stroke"] = "none";
+            setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "no_region_toggle");
+          }
+          setupRegion(region, style);
         });
       }
     });
