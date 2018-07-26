@@ -30,7 +30,8 @@ const regions = {
   "us-east-1": "North Virginia",
   "us-east-2": "Ohio",
   "us-west-1": "North California",
-  "us-west-2": "Oregon"
+  "us-west-2": "Oregon",
+  "": "No specific region"
 };
 
 const formatData = (costs) => {
@@ -45,7 +46,7 @@ const formatData = (costs) => {
     };
     if (costs.hasOwnProperty("region"))
       Object.keys(costs.region).forEach((zone) => {
-        if (zone.startsWith(region)) {
+        if ((zone.startsWith(region) && region.length) || zone === region) {
           let total = 0;
           Object.keys(costs.region[zone].product).forEach((product) => {
             total += costs.region[zone].product[product];
@@ -93,7 +94,7 @@ const regionDetails = (key, region, data, double, close) => {
         </div>
       </div>
       <div className="region-name">
-        <h3>{region}</h3>
+        <h3>{(region === "" ? "Global Products" : region)}</h3>
         <h4>{regions[region]}</h4>
       </div>
       <div className="region-info">
