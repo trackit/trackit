@@ -66,8 +66,8 @@ func reportUpdateConclusionChanToSlice(rucc <-chan ReportUpdateConclusion, count
 	return
 }
 
-// UpdateDueReports finds all BillRepositories in need of an update, delete old incomplete reports and updates
-// them.
+// UpdateDueReports finds all BillRepositories in need of an update,
+// deletes old incomplete reports and updates them.
 func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion, error) {
 	var wg sync.WaitGroup
 	l := jsonlog.LoggerFromContextOrDefault(ctx)

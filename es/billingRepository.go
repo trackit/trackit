@@ -20,6 +20,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
+// CleanBillByBillRepositoryId removes every bills information of a specific bill repository
 func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
@@ -28,7 +29,7 @@ func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	return err
 }
 
-// Remove incomplete bills of a specific bill repository (invoiceId == "" when incomplete)
+// CleanCurrentMonthBillByBillRepositoryId removes incomplete bills of a specific bill repository (invoiceId == "" when incomplete)
 func CleanCurrentMonthBillByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
