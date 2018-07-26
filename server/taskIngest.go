@@ -75,7 +75,7 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	} else if latestManifest, err = s3.UpdateReport(ctx, aa, br); err != nil {
 		if billError, castok := err.(awserr.Error); castok {
 			br.Error = billError.Message()
-			_ := s3.UpdateBillRepositoryWithoutContext(br, db.Db)
+			s3.UpdateBillRepositoryWithoutContext(br, db.Db)
 		}
 	} else {
 		br.Error = ""
