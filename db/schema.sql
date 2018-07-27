@@ -200,7 +200,8 @@ CREATE TABLE aws_account_update_job (
 );
 
 ALTER TABLE aws_account ADD next_update DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE aws_account ADD grace_update DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
 
 CREATE VIEW aws_account_due_update AS
-	SELECT * FROM aws_account WHERE next_update <= NOW()
+	SELECT * FROM aws_account WHERE next_update <= NOW() AND grace_update <= NOW()
 ;
