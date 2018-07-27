@@ -70,7 +70,7 @@ func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx
 		logger.Warning("Authentication failure.", struct {
 			Email string `json:"user"`
 		}{user.Email})
-		return 403, errors.New("Authentication failure.")
+		return 403, errors.New("The username or password is incorrect. Try again.")
 	}
 }
 
