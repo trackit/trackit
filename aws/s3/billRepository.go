@@ -151,6 +151,13 @@ func UpdateBillRepository(br BillRepository, tx *sql.Tx) error {
 	return dbAwsBillRepository.UpdateUnsafe(tx)
 }
 
+// UpdateBillRepositoryWithoutContext updates a BillRepository in the database.
+// No checks are performed.
+func UpdateBillRepositoryWithoutContext(br BillRepository, db models.XODB) error {
+	dbAwsBillRepository := dbBillRepoFromBillRepo(br)
+	return dbAwsBillRepository.UpdateUnsafe(db)
+}
+
 // GetBillRepositoriesForAwsAccount retrieves from the database all the
 // BillRepositories for an AwsAccount.
 func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepository, error) {

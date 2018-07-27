@@ -50,27 +50,6 @@ func taskIngest(ctx context.Context) error {
 	}
 }
 
-// updateBillRepositoriesFromConclusion updates bill repositories in the
-// database using the conclusion of an update task.
-func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
-	for _, r := range ruccs {
-		if r.Error != nil {
-			if billError, castok := r.Error.(awserr.Error); castok {
-				r.BillRepository.Error = billError.Message()
-				if err := s3.UpdateBillRepository(r.BillRepository, tx); err != nil {
-					return err
-				}
-			}
-		} else {
-			r.BillRepository.Error = ""
-			if err := updateBillRepositoryForNextUpdate(ctx, tx, r.BillRepository, r.LastImportedManifest); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // ingestBillingDataForBillRepository ingests the billing data for a
 // BillRepository.
 func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (err error) {
@@ -78,6 +57,7 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	var aa aws.AwsAccount
 	var br s3.BillRepository
 	var updateId int64
+	var latestManifest time.Time
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -92,19 +72,23 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if br, err = s3.GetBillRepositoryForAwsAccountById(aa, brId, tx); err != nil {
 	} else if updateId, err = registerUpdate(db.Db, br); err != nil {
-	} else if latestManifest, err := s3.UpdateReport(ctx, aa, br); err != nil {
+	} else if latestManifest, err = s3.UpdateReport(ctx, aa, br); err != nil {
+		if billError, castok := err.(awserr.Error); castok {
+			br.Error = billError.Message()
+			s3.UpdateBillRepositoryWithoutContext(br, db.Db)
+		}
 	} else {
+		br.Error = ""
 		err = updateBillRepositoryForNextUpdate(ctx, tx, br, latestManifest)
-		updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	}
 	if err != nil {
-		updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 		logger.Error("Failed to ingest billing data.", map[string]interface{}{
 			"awsAccountId":     aaId,
 			"billRepositoryId": brId,
 			"error":            err.Error(),
 		})
 	}
+	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	return
 }
 

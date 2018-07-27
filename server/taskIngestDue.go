@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/trackit/jsonlog"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
@@ -34,4 +35,25 @@ func taskIngestDue(ctx context.Context) (err error) {
 		}
 	}
 	return
+}
+
+// updateBillRepositoriesFromConclusion updates bill repositories in the
+// database using the conclusion of an update task.
+func updateBillRepositoriesFromConclusion(ctx context.Context, tx *sql.Tx, ruccs []s3.ReportUpdateConclusion) error {
+	for _, r := range ruccs {
+		if r.Error != nil {
+			if billError, castok := r.Error.(awserr.Error); castok {
+				r.BillRepository.Error = billError.Message()
+				if err := s3.UpdateBillRepository(r.BillRepository, tx); err != nil {
+					return err
+				}
+			}
+		} else {
+			r.BillRepository.Error = ""
+			if err := updateBillRepositoryForNextUpdate(ctx, tx, r.BillRepository, r.LastImportedManifest); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
