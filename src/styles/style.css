@@ -17,6 +17,7 @@ body {
 .badge {
   background-color: #d6413b;
   color: white;
+  font-weight: 400;
 }
 
 .card-label {

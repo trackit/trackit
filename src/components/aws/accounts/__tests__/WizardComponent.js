@@ -377,11 +377,11 @@ describe('<StepThree />', () => {
     expect(form.length).toBe(1);
   });
 
-  it('renders 1 <Input /> component in <Form />', () => {
+  it('renders 2 <Input /> component in <Form />', () => {
     const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
     const form = wrapper.find(Form);
     const inputs = form.find(Input);
-    expect(inputs.length).toBe(1);
+    expect(inputs.length).toBe(2);
   });
 
   it('renders 1 <Button /> component in <Form />', () => {
