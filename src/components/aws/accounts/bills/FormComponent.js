@@ -10,7 +10,11 @@ import Button from 'react-validation/build/button';
 import Validations from '../../../../common/forms';
 import Popover from '../../../misc/Popover';
 import PropTypes from "prop-types";
+import Misc from '../../../misc';
+import Reports_first from '../../../../assets/report_step_1.png';
+import Reports_second from '../../../../assets/report_step_2.png';
 
+const Picture = Misc.Picture;
 const Validation = Validations.AWSAccount;
 
 // Form Component for new AWS Account
@@ -40,12 +44,7 @@ class FormComponent extends Component {
     e.preventDefault();
     this.closeDialog(e);
     const formValues = this.form.getValues();
-    const bucketValues = Validation.getS3BucketValues(formValues.bucket);
-    let bill = {
-      bucket: bucketValues[0],
-      prefix: bucketValues[1]
-    };
-    this.props.submit(bill);
+    this.props.submit(formValues);
   };
 
   render() {
@@ -59,6 +58,43 @@ class FormComponent extends Component {
       </div>
     ));
 
+    const tutorial = (
+      <div className="tutorial">
+
+        <ol>
+          <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a>.</li>
+          <li>Click <strong>Create bucket</strong> and input a name of your choice for your bucket. You can then complete the next wizard steps without changing the default values.</li>
+          <li>Then go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/billing/home#/reports">Billing Reports setup page</a> and click <strong>Create report</strong></li>
+          <li>
+            Choose a report name, select <strong>Hourly</strong> as the <strong>Time unit</strong> and Include <strong>Resources IDs</strong> (see screenshot). You can then click <strong>Next</strong>.
+            <br />
+            <Picture
+              src={Reports_first}
+              alt="Reports settings 1 tutorial"
+              button={<strong>( Click here to see screenshot )</strong>}
+            />
+          </li>
+          <li>
+            In <strong>S3 Bucket</strong> input the name of the bucket you created at <strong>Step 2</strong>, select <strong>GZIP</strong> as <strong>Compression</strong>, then Submit. You can then review your settings and Submit again.
+            <br />
+            <Picture
+              src={Reports_second}
+              alt="Reports settings 2 tutorial"
+              button={<strong>( Click here to see screenshot )</strong>}
+            />
+          </li>
+          <li>
+            You are almost done !
+            <br/>
+            Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
+            <br/>
+            <strong>That's it ! </strong><i className="fa fa-smile-o"/>
+          </li>
+        </ol>
+
+      </div>
+    );
+
     return (
       <div>
 
@@ -68,25 +104,15 @@ class FormComponent extends Component {
 
         <Dialog open={this.state.open} fullWidth>
 
-          <DialogTitle disableTypography><h1>{this.props.bill !== undefined ? "Edit this" : "Add a"} bill location</h1></DialogTitle>
+          <DialogTitle disableTypography><h1>
+            <i className="fa fa-shopping-basket red-color"/>
+            &nbsp;
+            {this.props.bill !== undefined ? "Edit this" : "Add a"} bill location
+          </h1></DialogTitle>
 
           <DialogContent>
 
-            <div>
-
-              <div className="tutorial">
-
-                <ol>
-                  <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills
-                    <br/>
-                    Example : <code>s3://my.bucket/bills</code>
-                  </li>
-                  <li>You will be able to add more buckets later.</li>
-                </ol>
-
-              </div>
-
-            </div>
+            {this.props.bill === undefined && tutorial}
 
             <Form ref={
               /* istanbul ignore next */
@@ -95,17 +121,33 @@ class FormComponent extends Component {
 
               <div className="form-group">
                 <div className="input-title">
-                  <label htmlFor="bucket">S3 Bucket</label>
+                  <label htmlFor="bucket">S3 Bucket name</label>
                   &nbsp;
-                  <Popover info popOver="Name of S3 bucket and path to bills"/>
+                  <Popover info popOver="Name of the S3 bucket you created"/>
                 </div>
                 <Input
                   name="bucket"
                   type="text"
                   className="form-control"
-                  placeholder="s3://<bucket-name>/<path>"
-                  value={(this.props.bill !== undefined ? `s3://${this.props.bill.bucket}/${this.props.bill.prefix}` : "")}
-                  validations={[Validation.required, Validation.s3BucketFormat]}
+                  placeholder="Bucket Name"
+                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
+                  validations={[Validation.required, Validation.s3BucketNameFormat]}
+                />
+              </div>
+
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">Report path prefix (optional)</label>
+                  &nbsp;
+                  <Popover info popOver="If you set a path prefix when creating your report"/>
+                </div>
+                <Input
+                  name="prefix"
+                  type="text"
+                  className="form-control"
+                  placeholder="Optional prefix"
+                  value={(this.props.bill !== undefined ? this.props.bill.prefix : "")}
+                  validations={[Validation.s3PrefixFormat]}
                 />
               </div>
 

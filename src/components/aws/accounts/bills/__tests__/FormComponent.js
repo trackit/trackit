@@ -47,10 +47,10 @@ describe('<FormComponent />', () => {
     expect(form.length).toBe(1);
   });
 
-  it('renders 1 <Input /> component', () => {
+  it('renders 2 <Input /> component', () => {
     const wrapper = shallow(<FormComponent {...props}/>);
     const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(1);
+    expect(inputs.length).toBe(2);
   });
 
   it('renders 1 <Button /> component', () => {
@@ -59,10 +59,10 @@ describe('<FormComponent />', () => {
     expect(button.length).toBe(1);
   });
 
-  it('renders 1 <Input /> component inside with bill data', () => {
+  it('renders 2 <Input /> component inside with bill data', () => {
     const wrapper = shallow(<FormComponent {...propsWithBill}/>);
     const inputs = wrapper.find(Input);
-    expect(inputs.length).toBe(1);
+    expect(inputs.length).toBe(2);
   });
 
   it('can submit info to update bill', () => {
