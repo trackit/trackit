@@ -17,6 +17,8 @@ import Spinner from 'react-spinkit';
 import Misc from '../../misc';
 import RoleCreation from '../../../assets/wizard-creation.png';
 import RoleARN from '../../../assets/wizard-rolearn.png';
+import Reports_first from '../../../assets/report_step_1.png';
+import Reports_second from '../../../assets/report_step_2.png';
 import '../../../styles/Wizard.css';
 
 const Popover = Misc.Popover;
@@ -219,16 +221,13 @@ StepTwo.propTypes = {
 
 export class StepThree extends Component {
 
+
   submit = (e) => {
     e.preventDefault();
     const formValues = this.form.getValues();
-    const bucketValues = Validation.getS3BucketValues(formValues.bucket);
-    let bill = {
-      bucket: bucketValues[0],
-      prefix: bucketValues[1]
-    };
-    this.props.submit(this.props.account.value.id, bill);
+    this.props.submit(this.props.account.value.id, formValues);
   };
+
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.bill.status && nextProps.bill.value && !nextProps.bill.hasOwnProperty("error")) {
@@ -238,65 +237,104 @@ export class StepThree extends Component {
 
   render() {
 
+
     const loading = (this.props.bill && !this.props.bill.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
 
     const error = (this.props.bill && this.props.bill.status && this.props.bill.error ? (
       <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
     ) : null);
 
+    const tutorial = (
+      <div className="tutorial">
+
+        <ol>
+          <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a>.</li>
+          <li>Click <strong>Create bucket</strong> and input a name of your choice for your bucket. You can then complete the next wizard steps without changing the default values.</li>
+          <li>Then go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/billing/home#/reports">Billing Reports setup page</a> and click <strong>Create report</strong></li>
+          <li>
+            Choose a report name, select <strong>Hourly</strong> as the <strong>Time unit</strong> and Include <strong>Resources IDs</strong> (see screenshot). You can then click <strong>Next</strong>.
+            <br />
+            <Picture
+              src={Reports_first}
+              alt="Reports settings 1 tutorial"
+              button={<strong>( Click here to see screenshot )</strong>}
+            />
+          </li>
+          <li>
+            In <strong>S3 Bucket</strong> input the name of the bucket you created at <strong>Step 2</strong>, select <strong>GZIP</strong> as <strong>Compression</strong>, then Submit. You can then review your settings and Submit again.
+            <br />
+            <Picture
+              src={Reports_second}
+              alt="Reports settings 2 tutorial"
+              button={<strong>( Click here to see screenshot )</strong>}
+            />
+          </li>
+          <li>
+            You are almost done !
+            <br/>
+            Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
+            <br/>
+            <strong>That's it ! </strong><i className="fa fa-smile-o"/>
+          </li>
+        </ol>
+
+      </div>
+    );
+
     return (
-      <div className="step step-three">
+      <div>
 
-        {loading || error}
+            {tutorial}
+            {loading || error}
 
-        <div className="tutorial">
+            <Form ref={
+              /* istanbul ignore next */
+              form => { this.form = form; }
+            } onSubmit={this.submit}>
 
-          <ol>
-            <li>Fill the form with the location of a <strong>S3 bucket</strong> that contains bills
-              <br/>
-              Example : <code>s3://my.bucket/bills</code>
-            </li>
-            <li>You will be able to add more buckets later.</li>
-          </ol>
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">S3 Bucket name</label>
+                  &nbsp;
+                  <Popover info popOver="Name of the S3 bucket you created"/>
+                </div>
+                <Input
+                  name="bucket"
+                  type="text"
+                  className="form-control"
+                  placeholder="Bucket Name"
+                  value={""}
+                  validations={[Validation.required, Validation.s3BucketNameFormat]}
+                />
+              </div>
 
-        </div>
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">Report path prefix (optional)</label>
+                  &nbsp;
+                  <Popover info popOver="If you set a path prefix when creating your report"/>
+                </div>
+                <Input
+                  name="prefix"
+                  type="text"
+                  className="form-control"
+                  placeholder="Optional prefix"
+                  value={""}
+                  validations={[Validation.s3PrefixFormat]}
+                />
+              </div>
 
-        <Form
-          ref={
-            /* istanbul ignore next */
-            form => { this.form = form; }
-          }
-          onSubmit={this.submit}
-        >
+              <div className="form-group clearfix">
+                <div className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</div>
+                <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{!this.props.bill || this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
+              </div>
 
-          <div className="form-group">
-            <div className="input-title">
-              <label htmlFor="bucket">S3 Bucket</label>
-              &nbsp;
-              <Popover info popOver="Name of S3 bucket and path to bills"/>
-            </div>
-            <div className="input-group">
-              <div className="input-group-addon">s3://</div>
-              <Input
-                name="bucket"
-                type="text"
-                className="form-control"
-                placeholder="<bucket-name>/<path>"
-                validations={[Validation.required, Validation.s3BucketFormat]}
-              />
-            </div>
-          </div>
-
-          <div className="form-group clearfix">
-            <div className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</div>
-            <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{!this.props.bill || this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
-          </div>
-
-        </Form>
+            </Form>
 
       </div>
     );
   }
+
 
 }
 

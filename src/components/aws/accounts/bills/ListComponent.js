@@ -51,7 +51,10 @@ export class Item extends Component {
         {this.getBillLocationBadge()}
         <ListItemText
           disableTypography
-          primary={`s3://${this.props.bill.bucket}/${this.props.bill.prefix}`}
+          primary={<span>
+            {this.props.bill.bucket}
+            {this.props.bill.prefix.length && <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>}
+          </span>}
         />
 
         <div className="actions">

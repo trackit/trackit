@@ -18,6 +18,25 @@ const s3BucketFormat = (value) => {
     return (<div className="alert alert-warning">{value} is not a valid S3 bucket.</div>);
 };
 
+const s3BucketNameFormat = (value) => {
+  //eslint-disable-next-line
+  const regex = /(?=^.{3,63}$)(?!^(\d+\.)+\d+$)(^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])$)/;
+  if (!value.match(regex)) {
+    return (<div className="alert alert-warning">{value} is not a valid S3 bucket name.</div>);
+  }
+};
+
+const s3PrefixFormat = value => {
+  if (!value.length) {
+    return;
+  }
+  //eslint-disable-next-line
+  const regex = /^[/a-zA-Z0-9_-]+$/;
+  if (!value.match(regex)) {
+    return (<div className="alert alert-warning">{value} is not a valid S3 prefix.</div>);
+  }
+}
+
 const getS3BucketValues = (value) => {
   // Capturing groups :
   // 1. S3 Bucket name
@@ -36,5 +55,7 @@ export default {
   roleArnFormat,
   getAccountIDFromRole,
   s3BucketFormat,
+  s3BucketNameFormat,
+  s3PrefixFormat,
   getS3BucketValues
 };
