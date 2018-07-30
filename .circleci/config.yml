@@ -23,7 +23,7 @@ jobs:
       - run:
           name: Testing
           command: npm run test
-  deploy:
+  deploy_prod:
     working_directory: ~/trackit2-client
     docker:
       - image: msolution/trackit2-builder-ui
@@ -48,15 +48,47 @@ jobs:
       - deploy:
           name: Deploying
           command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION
+  deploy_stg:
+    working_directory: ~/trackit2-client
+    docker:
+      - image: msolution/trackit2-builder-ui
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "package.json" }}
+          - v1-dependencies-
+      - run:
+          name: Installing NPM dependencies
+          command: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run:
+          environment:
+            CI: 'false'
+          name: Building
+          command: npm run build
+      - deploy:
+          name: Deploying
+          command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION_STG
 workflows:
   version: 2
   test-and-deploy:
     jobs:
       - test
-      - deploy:
+      - deploy_prod:
           requires:
             - test
           filters:
             branches:
               only:
                 - master
+      - deploy_stg:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - dev
