@@ -25,7 +25,7 @@ export class RenewContainer extends Component {
 
   submit = (email, password) => {
     const token = this.props.match.params.token;
-    const id = parseInt(this.props.match.params.id);
+    const id = parseInt(this.props.match.params.id, 10);
     this.props.renew(id, password, token);
   };
 
