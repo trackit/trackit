@@ -17,6 +17,7 @@ body {
 .badge {
   background-color: #d6413b;
   color: white;
+  font-weight: 400;
 }
 
 .card-label {
@@ -58,6 +59,10 @@ select {
 select,
 .table-toggle {
     margin: 0 10px;
+}
+
+.row-eq-height {
+    display: flex;
 }
 
 /* BORDERS */
@@ -322,11 +327,49 @@ h4.no-data {
 
 #tooltip_map {
     background: #FFFFFF;
-    border: 1px solid #666;
     border-radius: 5px;
     padding: 10px;
     font-size: 1em;
-    font-weight: 600;
+    font-family: 'Rubik', 'Open sans', sans-serif;
+    font-weight: 500;
+    box-shadow: 0 0 15px rgba(0, 0, 0, .5)!important;
+    border: 1px solid #cccccc;
+}
+
+.tooltip-header > *,
+.tooltip-cost > * {
+    display: inline-block;
+}
+
+.tooltip-header {
+    font-size: 1em;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #cccccc;
+}
+
+.tooltip-header i.fa.fa-globe {
+    color: #d9534f;
+    font-size: 2.5em;
+    margin-right: 10px;
+}
+
+.tooltip-cost {
+    padding: 10px 0;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+.tooltip-cost span {
+    margin-right: 10px;
+}
+
+.tooltip-help {
+    color: #aaaaaa;
+    font-weight: 400;
+    font-size: 0.9em;
+    padding: 0 10px;
+    font-style: italic;
+    text-align: center;
 }
 
 .map-empty-selection {
@@ -337,8 +380,26 @@ h4.no-data {
     color: #d9534f;
 }
 
+.row-regions-details {
+    margin: 0;
+}
+
+.region-details:first-child {
+    margin-left: 0 !important;
+    margin-right: 15px;
+}
+
+.region-details:last-child {
+    margin-left: 15px;
+    margin-right: 0;
+}
+
 .region-details .header {
   height: 10px;
+}
+
+.region-info .info {
+    text-align: center;
 }
 
 .region-name {
