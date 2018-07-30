@@ -230,11 +230,20 @@ export class StepThree extends Component {
 
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.bill.status && nextProps.bill.value)
-      nextProps.close();
+    if (nextProps.bill.status && nextProps.bill.value && !nextProps.bill.hasOwnProperty("error")) {
+        nextProps.close();
+    }
   }
 
   render() {
+
+
+    const loading = (this.props.bill && !this.props.bill.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
+
+    const error = (this.props.bill && this.props.bill.status && this.props.bill.error ? (
+      <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
+    ) : null);
+
     const tutorial = (
       <div className="tutorial">
 
@@ -272,16 +281,11 @@ export class StepThree extends Component {
       </div>
     );
 
-    const error = (this.props.bill && this.props.bill.hasOwnProperty("error") ? (
-      <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
-    ) : null);
-
-
     return (
       <div>
 
             {tutorial}
-            {error}
+            {loading || error}
 
             <Form ref={
               /* istanbul ignore next */

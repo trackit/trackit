@@ -53,11 +53,13 @@ export function* newAccountBillSaga({ accountID, bill }) {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.newAccountBill, accountID, bill, token);
-    if (res.success && res.hasOwnProperty("data"))
+    if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("id"))
       yield all([
         put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS, bucket: res.data}),
         put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
       ]);
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      throw Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -98,11 +100,13 @@ export function* editAccountBillSaga({ accountID, bill }) {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.editAccountBill, accountID, bill, token);
-    if (res.success && res.hasOwnProperty("data"))
+    if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("id"))
       yield all([
         put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
         put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
       ]);
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      throw Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {

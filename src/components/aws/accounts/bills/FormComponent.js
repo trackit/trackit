@@ -4,6 +4,7 @@ import Dialog, {
   DialogContent,
   DialogTitle,
 } from 'material-ui/Dialog';
+import Spinner from 'react-spinkit';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
@@ -33,19 +34,26 @@ class FormComponent extends Component {
   openDialog = (e) => {
     e.preventDefault();
     this.setState({open: true});
+    this.props.clear();
   };
 
   closeDialog = (e) => {
     e.preventDefault();
     this.setState({open: false});
+    this.props.clear();
   };
 
   submit = (e) => {
     e.preventDefault();
-    this.closeDialog(e);
     const formValues = this.form.getValues();
     this.props.submit(formValues);
   };
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.status && nextProps.status.status && nextProps.status.value && !nextProps.status.hasOwnProperty("error")) {
+      this.setState({open: false});
+    }
+  }
 
   render() {
     const button = (this.props.bill !== undefined ? (
@@ -57,6 +65,12 @@ class FormComponent extends Component {
         <i className="fa fa-plus" />&nbsp;Add
       </div>
     ));
+
+    const loading = (this.props.status && !this.props.status.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
+
+     const error = (this.props.status && this.props.status.status && this.props.status.hasOwnProperty("error") ? (
+         <div className="alert alert-warning" role="alert">{this.props.status.error.message}</div>
+     ) : null);
 
     const tutorial = (
       <div className="tutorial">
@@ -112,6 +126,7 @@ class FormComponent extends Component {
 
           <DialogContent>
 
+            {loading || error}
             {this.props.bill === undefined && tutorial}
 
             <Form ref={
@@ -182,7 +197,13 @@ FormComponent.propTypes = {
     bucket: PropTypes.string.isRequired,
     prefix: PropTypes.string.isRequired
   }),
-  submit: PropTypes.func.isRequired
+  status: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.object
+  }),
+  submit: PropTypes.func.isRequired,
+  clear: PropTypes.func.isRequired
 };
 
 
