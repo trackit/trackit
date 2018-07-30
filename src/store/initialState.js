@@ -11,10 +11,15 @@ export default {
         value: null
       },
       billCreation: {
-        status: true
+        status: true,
+        value: null
       },
       billsStatus: {
         status: false
+      },
+      billEdition: {
+        status: true,
+        value: null
       },
       external: null,
     },

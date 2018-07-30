@@ -397,8 +397,9 @@ describe("Account Bills Saga", () => {
   describe("New Account Bill", () => {
 
     const accountID = 42;
-    const bill = {bucket: "test"};
+    const bill = {id: 21, bucket: "test"};
     const validResponse = { success: true, data: bill };
+    const errorResponse = { success: true, data: {error: "Error"} };
     const invalidResponse = { success: true, bill };
     const noResponse = { success: false };
 
@@ -417,6 +418,23 @@ describe("Account Bills Saga", () => {
           put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS, bucket: bill }),
           put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with error in response data", () => {
+
+      let saga = newAccountBillSaga({accountID, bill});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.newAccountBill, accountID, bill, token));
+
+      expect(saga.next(errorResponse).value)
+        .toEqual(put({ type: Constants.AWS_NEW_ACCOUNT_BILL_ERROR, error: Error(errorResponse.data.error) }));
 
       expect(saga.next().done).toBe(true);
 
@@ -461,8 +479,9 @@ describe("Account Bills Saga", () => {
   describe("Edit Account Bill", () => {
 
     const accountID = 42;
-    const bill = {bucket: "test"};
+    const bill = {id: 21, bucket: "test"};
     const validResponse = { success: true, data: bill };
+    const errorResponse = { success: true, data: {error: "Error"} };
     const invalidResponse = { success: true, bill };
     const noResponse = { success: false };
 
@@ -481,6 +500,23 @@ describe("Account Bills Saga", () => {
           put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_SUCCESS }),
           put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
         ]));
+
+      expect(saga.next().done).toBe(true);
+
+    });
+
+    it("handles saga with error in response data", () => {
+
+      let saga = editAccountBillSaga({accountID, bill});
+
+      expect(saga.next().value)
+        .toEqual(getToken());
+
+      expect(saga.next(token).value)
+        .toEqual(call(API.AWS.Accounts.editAccountBill, accountID, bill, token));
+
+      expect(saga.next(errorResponse).value)
+        .toEqual(put({ type: Constants.AWS_EDIT_ACCOUNT_BILL_ERROR, error: Error(errorResponse.data.error) }));
 
       expect(saga.next().done).toBe(true);
 

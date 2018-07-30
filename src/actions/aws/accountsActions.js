@@ -38,6 +38,9 @@ export default {
     accountID,
     bill
   }),
+  clearEditAccountBill: () => ({
+    type: Constants.AWS_EDIT_ACCOUNT_BILL_CLEAR
+  }),
   deleteAccount: (accountID) => ({
     type: Constants.AWS_DELETE_ACCOUNT,
     accountID
