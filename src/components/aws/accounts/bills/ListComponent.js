@@ -44,6 +44,9 @@ export class Item extends Component {
   };
 
   render() {
+    const prefix = (this.props.bill.prefix.length) ? (
+      <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>
+    ) : (null);
 
     return (
       <ListItem divider>
@@ -53,7 +56,7 @@ export class Item extends Component {
           disableTypography
           primary={<span>
             {this.props.bill.bucket}
-            {this.props.bill.prefix.length && <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>}
+            {prefix}
           </span>}
         />
 
