@@ -410,7 +410,7 @@ describe('<StepThree />', () => {
     expect(spinner.length).toBe(0);
     wrapper = shallow(<StepThree {...propsWaiting}/>);
     spinner = wrapper.find(Spinner);
-    expect(spinner.length).toBe(1);
+    expect(spinner.length).toBe(2);
   });
 
   it('renders an alert if there is an error', () => {

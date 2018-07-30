@@ -7,7 +7,8 @@ import Button from 'react-validation/build/button';
 
 const props = {
   submit: jest.fn(),
-  account: 42
+  account: 42,
+  clear: jest.fn()
 };
 
 const propsWithBill = {
