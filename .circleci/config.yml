@@ -68,6 +68,7 @@ jobs:
       - run:
           environment:
             CI: 'false'
+            API_URL: $API_URL_STG
           name: Building
           command: npm run build
       - deploy:
