@@ -106,6 +106,7 @@ type LineItem struct {
 	UsageType          string            `csv:"lineItem/UsageType"           json:"usageType"`
 	Operation          string            `csv:"lineItem/Operation"           json:"operation"`
 	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"    json:"availabilityZone"`
+	Region             string            `csv:"product/region"               json:"region"`
 	ResourceId         string            `csv:"lineItem/ResourceId"          json:"resourceId"`
 	UsageAmount        string            `csv:"lineItem/UsageAmount"         json:"usageAmount"`
 	ServiceCode        string            `csv:"product/servicecode"          json:"serviceCode"`
@@ -407,7 +408,7 @@ func listBillsFromRepositoryPage(
 	count := 0
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
-			if  brr.LastImportedManifest.Before(*o.LastModified) {
+			if brr.LastImportedManifest.Before(*o.LastModified) {
 				count += 1
 				select {
 				case c <- BillKey{
