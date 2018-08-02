@@ -25,6 +25,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/rds"
+	"github.com/trackit/trackit-server/aws/ec2"
 	"github.com/trackit/trackit-server/db"
 )
 
@@ -64,10 +65,11 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
 		rdsErr := processAccountRDS(ctx, aa)
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr)
+		ec2Err := processAccountEC2(ctx, aa)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err)
 	}
 	if err != nil {
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil)
 		logger.Error("Failed to process account data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
@@ -88,9 +90,9 @@ func registerAccountProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	return res.LastInsertId()
 }
 
-func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr error) {
+func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr error, ec2Err error) {
 	updateNextUpdateAccount(db, aaId)
-	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr)
+	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr, ec2Err)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -116,13 +118,14 @@ func updateNextUpdateAccount(db *sql.DB, aaId int) error {
 	return err
 }
 
-func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr error) error {
+func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr error, ec2Err error) error {
 	const sqlstr = `UPDATE aws_account_update_job SET
 		completed=?,
 		jobError=?,
-    rdsError=?
+		rdsError=?,
+		ec2Error=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), updateId)
 	return err
 }
 
@@ -132,6 +135,19 @@ func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest RDS data.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountEC2 processes all the EC2 data for an AwsAccount
+func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
+	err := ec2.FetchInstancesStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest EC2 data.", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
 		})
