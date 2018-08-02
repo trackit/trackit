@@ -66,10 +66,11 @@ func reportUpdateConclusionChanToSlice(rucc <-chan ReportUpdateConclusion, count
 	return
 }
 
-// UpdateDueReports finds all BillRepositories in need of an update and updates
-// them.
+// UpdateDueReports finds all BillRepositories in need of an update,
+// deletes old incomplete reports and updates them.
 func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion, error) {
 	var wg sync.WaitGroup
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	aas := make(map[int]aws.AwsAccount)
 	brs, err := GetAwsBillRepositoriesWithDueUpdate(tx)
 	if err != nil {
@@ -88,6 +89,14 @@ func UpdateDueReports(ctx context.Context, tx *sql.Tx) ([]ReportUpdateConclusion
 				return nil, err
 			}
 			aas[br.AwsAccountId] = aa
+		}
+		err = es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
+		if err != nil {
+			l.Error("Error while trying to remove incomplete reports.", map[string]interface{}{
+				"error": err,
+				"userId": aa.UserId,
+				"billRepository": br,
+			})
 		}
 		go func(ctx context.Context, aa aws.AwsAccount, br BillRepository) {
 			lim, err := UpdateReport(ctx, aa, br)

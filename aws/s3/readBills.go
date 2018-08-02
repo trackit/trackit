@@ -206,13 +206,7 @@ func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadClos
 		defer reader.Close()
 		defer close(out)
 		csvDecoder := csv.NewDecoder(reader)
-		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		for r := range records(ctx, &csvDecoder) {
-			if r.InvoiceId == "" {
-				cancel()
-				logger.Info("Canceled non-final report import.", map[string]interface{}{"key": s, "manifest": m})
-				return
-			}
 			out <- r
 		}
 	}()
