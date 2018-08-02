@@ -181,11 +181,19 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 // manifestsStartingAfter returns a manifest predicate which is true for all
 // manifests starting after a given date.
 func manifestsModifiedAfter(t time.Time) ManifestPredicate {
-	return func(m manifest) bool {
-		if time.Time(m.LastModified).After(t) {
-			return true
+	return func(m manifest, oneMonthBefore bool) bool {
+		if (oneMonthBefore) {
+			if time.Time(m.LastModified).Add(time.Hour * 24 * 30).After(t) {
+				return true
+			} else {
+				return false
+			}
 		} else {
-			return false
+			if time.Time(m.LastModified).After(t) {
+				return true
+			} else {
+				return false
+			}
 		}
 	}
 }
