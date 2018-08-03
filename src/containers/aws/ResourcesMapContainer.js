@@ -230,6 +230,21 @@ export class ResourcesMapContainer extends Component {
       </div>
     ));
 
+    let badges;
+
+    if (this.props.costs && this.props.costs.status) {
+      badges = (
+        <Components.AWS.Accounts.StatusBadges
+          values={
+            this.props.costs ? (
+              this.props.costs.status ? this.props.costs.values : {}
+            ) : {}
+          }
+        />
+      );
+    }
+  
+
     return (
       <div className="container-fluid">
 
@@ -238,6 +253,7 @@ export class ResourcesMapContainer extends Component {
             <h3 className="white-box-title no-padding inline-block">
               <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
               Resources Map
+              {badges}
             </h3>
           </div>
           <div className="inline-block pull-right">

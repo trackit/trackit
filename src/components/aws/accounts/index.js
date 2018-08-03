@@ -5,6 +5,7 @@ import SingleAccountSelector from './ReportAccountSelectorComponent';
 import Bills from './bills';
 import Wizard from './WizardComponent';
 import SelectedIndicator from './SelectedIndicatorComponent';
+import StatusBadges from './StatusBadgesComponent';
 
 export default {
   Form,
@@ -13,5 +14,6 @@ export default {
   SingleAccountSelector,
   Bills,
   SelectedIndicator,
-  Wizard
+  Wizard,
+  StatusBadges
 };

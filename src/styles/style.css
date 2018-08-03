@@ -20,6 +20,14 @@ body {
   font-weight: 400;
 }
 
+.account-status-badge {
+    margin: 2px;
+}
+
+.account-status-badge i {
+    font-size: 12px !important;
+}
+
 .card-label {
   color: #808080;
   font-weight: 300;
@@ -47,6 +55,15 @@ body {
 
 .font-light {
   font-weight: 300 !important;
+}
+
+.popover {
+    border-radius: 0px;
+}
+
+.popover-title {
+    background-color: white;
+    color: black;
 }
 
 select {

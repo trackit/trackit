@@ -42,6 +42,21 @@ export class S3AnalyticsContainer extends Component {
       />
     ) : null);
 
+    let badges;
+
+    if (this.props.values && this.props.values.status) {
+      badges = (
+        <Components.AWS.Accounts.StatusBadges
+          values={
+            this.props.values ? (
+              this.props.values.status ? this.props.values.values : {}
+            ) : {}
+          }
+        />
+      );
+    }
+  
+
     return (
       <Panel>
 
@@ -49,6 +64,7 @@ export class S3AnalyticsContainer extends Component {
           <h3 className="white-box-title no-padding inline-block">
             <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
             AWS S3 Analytics
+            {badges}
           </h3>
           <div className="inline-block pull-right">
             {timerange}
