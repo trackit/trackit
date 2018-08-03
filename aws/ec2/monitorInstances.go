@@ -255,7 +255,7 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 	}
 	report := ReportInfo{
 		account,
-		time.Now(),
+		time.Now().UTC(),
 		make([]InstanceInfo, 0),
 	}
 	regions, err := fetchRegionsList(ctx, defaultSession)
@@ -263,7 +263,7 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceInfoChans := make([]<-chan InstanceInfo, 0, 15)
+	instanceInfoChans := make([]<-chan InstanceInfo, 0, len(regions))
 	for _, region := range regions {
 		instanceInfoChan := make(chan InstanceInfo)
 		go fetchInstancesList(ctx, creds, region, instanceInfoChan)
