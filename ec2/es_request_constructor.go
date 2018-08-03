@@ -17,8 +17,7 @@ package ec2
 
 import (
 	"gopkg.in/olivere/elastic.v5"
-	"time"
-)
+	)
 
 // queryMaxSize is the maximum size of an Elastic Search Query
 const queryMaxSize = 10000
@@ -30,13 +29,6 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 		accountListFormatted[i] = v
 	}
 	return elastic.NewTermsQuery("account", accountListFormatted...)
-}
-
-// createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
-// defined by durationBegin and durationEnd
-func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
-	return elastic.NewRangeQuery("reportDate").
-		From(durationBegin).To(durationEnd)
 }
 
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
@@ -51,13 +43,11 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchParams(accountList []string, durationBegin time.Time,
-	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchParams(accountList []string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
-	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
-	search := client.Search().Index(index).Size(queryMaxSize).Query(query)
+	search := client.Search().Index(index).Query(query).Sort("reportDate", false).Size(1)
 	return search
 }

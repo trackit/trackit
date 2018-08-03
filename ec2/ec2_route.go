@@ -18,9 +18,7 @@ import (
 	"net/http"
 	"context"
 	"fmt"
-	"time"
-
-	"github.com/trackit/jsonlog"
+		"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/ec2"
 	"github.com/trackit/trackit-server/db"
@@ -33,8 +31,6 @@ import (
 
 // esQueryParams will store the parsed query params
 type esQueryParams struct {
-	dateBegin         time.Time
-	dateEnd           time.Time
 	accountList       []string
 }
 
@@ -47,8 +43,6 @@ var ec2QueryArgs = []routes.QueryArg{
 		Type:        routes.QueryArgStringSlice{},
 		Optional:    true,
 	},
-	routes.DateBeginQueryArg,
-	routes.DateEndQueryArg,
 }
 
 func init() {
@@ -76,8 +70,6 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 	index := es.IndexNameForUser(user, ec2.IndexPrefixLineItem)
 	searchService := GetElasticSearchParams(
 		parsedParams.accountList,
-		parsedParams.dateBegin,
-		parsedParams.dateEnd,
 		es.Client,
 		index,
 	)
@@ -98,8 +90,6 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
 		accountList:       []string{},
-		dateBegin:         a[ec2QueryArgs[1]].(time.Time),
-		dateEnd:           a[ec2QueryArgs[2]].(time.Time),
 	}
 	if a[ec2QueryArgs[0]] != nil {
 		parsedParams.accountList = a[ec2QueryArgs[0]].([]string)

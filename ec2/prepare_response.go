@@ -25,7 +25,7 @@ import (
 )
 
 // parseESResult parses an *elastic.SearchResult according to it's resultType
-func parseESResult(ctx context.Context, res *elastic.SearchResult) ([]ec2.ReportInfo, error) {
+func parseESResult(ctx context.Context, res *elastic.SearchResult) (*ec2.ReportInfo, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	reports := make([]ec2.ReportInfo, 0)
 	for _, hit := range res.Hits.Hits {
@@ -37,14 +37,14 @@ func parseESResult(ctx context.Context, res *elastic.SearchResult) ([]ec2.Report
 		}
 		reports = append(reports, parsedDocument)
 	}
-	return reports, nil
+	return &reports[0], nil
 }
 
 // prepareResponse parses the results from elasticsearch and returns a list of EC2 reports with stats of each instances
 func prepareResponse(ctx context.Context, rawReport *elastic.SearchResult) (interface{}, error) {
-	reports, err := parseESResult(ctx, rawReport)
+	report, err := parseESResult(ctx, rawReport)
 	if err != nil {
 		return nil, err
 	}
-	return reports, nil
+	return report, nil
 }
