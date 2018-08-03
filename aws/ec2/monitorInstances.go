@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/trackit/jsonlog"
+
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/es"
@@ -43,21 +44,21 @@ type (
 	// ReportInfo represents the report with all the informations for EC2 instances.
 	// It will be imported in ElasticSearch thanks to the struct tags.
 	ReportInfo struct {
-		Account		string				`json:"account"`
-		ReportDate	time.Time			`json:"reportDate"`
-		Instances	[]InstanceInfo		`json:"instances"`
+		Account    string         `json:"account"`
+		ReportDate time.Time      `json:"reportDate"`
+		Instances  []InstanceInfo `json:"instances"`
 	}
 
 	// InstanceInfo represents all the informations of an EC2 instance.
 	// It will be imported in ElasticSearch thanks to the struct tags.
 	InstanceInfo struct {
-		Id			string					`json:"id"`
-		Region		string					`json:"region"`
-		CpuAverage	float64					`json:"cpuAverage"`
-		CpuPeak		float64					`json:"cpuPeak"`
-		KeyPair		string					`json:"keyPair"`
-		Type		string					`json:"type"`
-		Tags		map[TagName]TagValue	`json:"tags"`
+		Id         string               `json:"id"`
+		Region     string               `json:"region"`
+		CpuAverage float64              `json:"cpuAverage"`
+		CpuPeak    float64              `json:"cpuPeak"`
+		KeyPair    string               `json:"keyPair"`
+		Type       string               `json:"type"`
+		Tags       map[TagName]TagValue `json:"tags"`
 	}
 )
 
@@ -133,7 +134,7 @@ func getInstanceStats(ctx context.Context, instanceId string, sess *session.Sess
 		MetricName: aws.String("CPUUtilization"),
 		StartTime:  aws.Time(start),
 		EndTime:    aws.Time(end),
-		Period:     aws.Int64(int64(60 * 60 * 24) * 30), // Period of one hour expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 30), // Period of one hour expressed in seconds
 		Statistics: []*string{aws.String("Average"), aws.String("Maximum")},
 		Dimensions: dimensions,
 	})
@@ -201,12 +202,12 @@ func fetchRegionsList(ctx context.Context, sess *session.Session) ([]string, err
 func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, report ReportInfo) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EC2 instances for AWS account.", map[string]interface{}{
-		"awsAccount":     aa,
+		"awsAccount": aa,
 	})
 	client := es.Client
 	ji, err := json.Marshal(struct {
-		Account    string               `json:"account"`
-		ReportDate time.Time            `json:"reportDate"`
+		Account    string    `json:"account"`
+		ReportDate time.Time `json:"reportDate"`
 	}{
 		report.Account,
 		report.ReportDate,
@@ -252,10 +253,9 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 		logger.Error("Error when getting account id", err.Error())
 		return err
 	}
-	now := time.Now()
 	report := ReportInfo{
 		account,
-		time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, now.Location()),
+		time.Now(),
 		make([]InstanceInfo, 0),
 	}
 	regions, err := fetchRegionsList(ctx, defaultSession)

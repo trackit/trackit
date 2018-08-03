@@ -15,25 +15,24 @@
 package ec2
 
 import (
-	"net/http"
 	"context"
 	"fmt"
-
-	"gopkg.in/olivere/elastic.v5"
+	"net/http"
 
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/ec2"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/es"
 )
 
 // esQueryParams will store the parsed query params
 type esQueryParams struct {
-	account		string
+	account string
 }
 
 // ec2QueryArgs allows to get required queryArgs params
@@ -85,7 +84,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		account:	"",
+		account: "",
 	}
 	if a[ec2QueryArgs[0]] != nil {
 		parsedParams.account = a[ec2QueryArgs[0]].(string)

@@ -15,8 +15,8 @@
 package ec2
 
 import (
-	"time"
 	"context"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
