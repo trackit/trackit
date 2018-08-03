@@ -33,18 +33,12 @@ import (
 
 // esQueryParams will store the parsed query params
 type esQueryParams struct {
-	accountList       []string
+	account		string
 }
 
 // ec2QueryArgs allows to get required queryArgs params
 var ec2QueryArgs = []routes.QueryArg{
-	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
-	routes.QueryArg{
-		Name:        "accounts",
-		Description: "List of comma separated AWS accounts ids",
-		Type:        routes.QueryArgStringSlice{},
-		Optional:    true,
-	},
+	routes.AwsAccountQueryArg,
 }
 
 func init() {
@@ -69,9 +63,9 @@ func init() {
 // with empy data
 func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, user users.User) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, ec2.IndexPrefixLineItem)
+	index := es.IndexNameForUser(user, ec2.IndexPrefixEC2Report)
 	searchService := GetElasticSearchParams(
-		parsedParams.accountList,
+		parsedParams.account,
 		es.Client,
 		index,
 	)
@@ -91,12 +85,12 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		accountList:       []string{},
+		account:	"",
 	}
 	if a[ec2QueryArgs[0]] != nil {
-		parsedParams.accountList = a[ec2QueryArgs[0]].([]string)
+		parsedParams.account = a[ec2QueryArgs[0]].(string)
 	}
-	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
+	if err := aws.ValidateAwsAccounts([]string{parsedParams.account}); err != nil {
 		return http.StatusBadRequest, err
 	}
 	report, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)
