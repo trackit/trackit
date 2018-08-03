@@ -113,7 +113,7 @@ func getInstanceTag(tags []*ec2.Tag) map[TagName]TagValue {
 func getCurrentCheckedDay() (start time.Time, end time.Time) {
 	now := time.Now()
 	end = time.Date(now.Year(), now.Month(), now.Day()-1, 24, 0, 0, 0, now.Location())
-	start = time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, now.Location())
+	start = time.Date(now.Year(), now.Month(), now.Day()-31, 0, 0, 0, 0, now.Location())
 	return start, end
 }
 
@@ -133,7 +133,7 @@ func getInstanceStats(ctx context.Context, instanceId string, sess *session.Sess
 		MetricName: aws.String("CPUUtilization"),
 		StartTime:  aws.Time(start),
 		EndTime:    aws.Time(end),
-		Period:     aws.Int64(int64(60 * 60 * 24)), // Period of one hour expressed in seconds
+		Period:     aws.Int64(int64(60 * 60 * 24) * 30), // Period of one hour expressed in seconds
 		Statistics: []*string{aws.String("Average"), aws.String("Maximum")},
 		Dimensions: dimensions,
 	})
@@ -252,10 +252,10 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 		logger.Error("Error when getting account id", err.Error())
 		return err
 	}
-	start, _ := getCurrentCheckedDay()
+	now := time.Now()
 	report := ReportInfo{
 		account,
-		start,
+		time.Date(now.Year(), now.Month(), now.Day()-1, 0, 0, 0, 0, now.Location()),
 		make([]InstanceInfo, 0),
 	}
 	regions, err := fetchRegionsList(ctx, defaultSession)
