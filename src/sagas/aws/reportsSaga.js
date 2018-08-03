@@ -9,6 +9,10 @@ export function* getReportsSaga({ accountId }) {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Reports.getReports, token, accountId);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_GET_REPORTS_SUCCESS, reports: res.data, account: accountId });
     else

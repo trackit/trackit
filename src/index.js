@@ -54,6 +54,7 @@ ReactDOM.render((
             <Route path="/register" component={Containers.Auth.Register}/>
             <Route path="/forgot" component={Containers.Auth.Forgot}/>
             <Route path="/reset/:id/:token" component={Containers.Auth.Renew}/>
+            <Route path="*" component={IndexRedirect}/>
             <PrivateRoute path="/app" component={App} store={store}/>
           </div>
         </BrowserRouter>

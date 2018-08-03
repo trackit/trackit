@@ -22,6 +22,10 @@ export function* getDataSaga({ id, itemType, begin, end, filters }) {
       default:
         res = null;
     }
+    if (res && res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res && res.success && res.hasOwnProperty("data")) {
       if (res.data.hasOwnProperty("error"))
         throw Error(res.data.error);
