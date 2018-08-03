@@ -29,7 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/trackit/jsonlog"
-		taws "github.com/trackit/trackit-server/aws"
+	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/es"
 )
@@ -43,21 +43,21 @@ type (
 	// ReportInfo represents the report with all the informations for EC2 instances.
 	// It will be imported in ElasticSearch thanks to the struct tags.
 	ReportInfo struct {
-		Account    string               `json:"account"`
-		ReportDate time.Time            `json:"reportDate"`
-		Instances  []InstanceInfo		`json:"instances"`
+		Account		string				`json:"account"`
+		ReportDate	time.Time			`json:"reportDate"`
+		Instances	[]InstanceInfo		`json:"instances"`
 	}
 
 	// InstanceInfo represents all the informations of an EC2 instance.
 	// It will be imported in ElasticSearch thanks to the struct tags.
 	InstanceInfo struct {
-		Id         string               `json:"id"`
-		Region     string               `json:"region"`
-		CpuAverage float64              `json:"cpuAverage"`
-		CpuPeak    float64              `json:"cpuPeak"`
-		KeyPair    string               `json:"keyPair"`
-		Type       string               `json:"type"`
-		Tags       map[TagName]TagValue `json:"tags"`
+		Id			string					`json:"id"`
+		Region		string					`json:"region"`
+		CpuAverage	float64					`json:"cpuAverage"`
+		CpuPeak		float64					`json:"cpuPeak"`
+		KeyPair		string					`json:"keyPair"`
+		Type		string					`json:"type"`
+		Tags		map[TagName]TagValue	`json:"tags"`
 	}
 )
 
@@ -217,11 +217,11 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, report ReportI
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixLineItem)
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2Report)
 	if res, err := client.
 		Index().
 		Index(index).
-		Type(TypeLineItem).
+		Type(TypeEC2Report).
 		BodyJson(report).
 		Id(hash64).
 		Do(context.Background()); err != nil {

@@ -23,18 +23,18 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const TypeLineItem = "ec2-report"
-const IndexPrefixLineItem = "ec2-reports"
-const TemplateNameLineItem = "ec2-reports"
+const TypeEC2Report = "ec2-report"
+const IndexPrefixEC2Report = "ec2-reports"
+const TemplateNameEC2Report = "ec2-reports"
 
 // put the ElasticSearch index for *-ec2-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameLineItem).BodyString(TemplateLineItem).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(TemplateNameEC2Report).BodyString(TemplateLineItem).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index lineitems.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index EC2Report.", err)
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index lineitems.", res)
+		jsonlog.DefaultLogger.Info("Put ES index EC2Report.", res)
 		ctxCancel()
 	}
 }
@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
-	"version": 5,
+	"version": 1,
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -56,7 +56,7 @@ const TemplateLineItem = `
 					"type": "date"
 				},
 				"instances" : {
-					"type": "nested"
+					"type": "nested",
 					"properties": {
 						"id": {
 							"type": "keyword"
@@ -91,4 +91,3 @@ const TemplateLineItem = `
 	}
 }
 `
-

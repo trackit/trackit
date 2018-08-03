@@ -18,16 +18,18 @@ import (
 	"net/http"
 	"context"
 	"fmt"
-		"github.com/trackit/jsonlog"
+
+	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/ec2"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/es"
-
-	"gopkg.in/olivere/elastic.v5"
-	)
+)
 
 // esQueryParams will store the parsed query params
 type esQueryParams struct {

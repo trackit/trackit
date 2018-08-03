@@ -17,10 +17,7 @@ package ec2
 
 import (
 	"gopkg.in/olivere/elastic.v5"
-	)
-
-// queryMaxSize is the maximum size of an Elastic Search Query
-const queryMaxSize = 10000
+)
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
