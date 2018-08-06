@@ -68,9 +68,8 @@ jobs:
       - run:
           environment:
             CI: 'false'
-            API_URL: $API_URL_STG
           name: Building
-          command: npm run build
+          command: API_URL=$API_URL_STG npm run build
       - deploy:
           name: Deploying
           command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION_STG
@@ -92,4 +91,4 @@ workflows:
           filters:
             branches:
               only:
-                - dev
+                - staging
