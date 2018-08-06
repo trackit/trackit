@@ -31,10 +31,11 @@ import (
 	"github.com/trackit/trackit-server/config"
 	_ "github.com/trackit/trackit-server/costs"
 	_ "github.com/trackit/trackit-server/costs/diff"
+	_ "github.com/trackit/trackit-server/ec2"
 	"github.com/trackit/trackit-server/periodic"
+	_ "github.com/trackit/trackit-server/rds"
 	_ "github.com/trackit/trackit-server/reports"
 	"github.com/trackit/trackit-server/routes"
-	_ "github.com/trackit/trackit-server/ec2"
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/users"
 )
