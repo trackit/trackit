@@ -38,5 +38,24 @@ jobs:
           command: |
             set -xe
             docker build -t msolution/stg-trackit2-api docker/server/
+      - run:
+          name: Login to Docker Hub
+          command: |
+            set -e
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+      - run:
+          name: Push SQL Docker image
+          command: |
+            set -xe
+            docker tag msolution/stg-trackit2-sql msolution/stg-trackit2-sql:${CIRCLE_SHA1}
+            docker push msolution/stg-trackit2-sql
+            docker push msolution/stg-trackit2-sql:${CIRCLE_SHA1}
+      - run:
+          name: Push API Docker image
+          command: |
+            set -xe
+            docker tag msolution/stg-trackit2-api msolution/stg-trackit2-api:${CIRCLE_SHA1}
+            docker push msolution/stg-trackit2-api
+            docker push msolution/stg-trackit2-api:${CIRCLE_SHA1}
 
 # vim: set ts=2 sts=2 et:
