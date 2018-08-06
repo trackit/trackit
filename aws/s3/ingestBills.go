@@ -183,7 +183,7 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 func manifestsModifiedAfter(t time.Time) ManifestPredicate {
 	return func(m manifest, oneMonthBefore bool) bool {
 		if (oneMonthBefore) {
-			if time.Time(m.LastModified).Add(time.Hour * 24 * 30).After(t) {
+			if time.Time(m.LastModified).AddDate(0, 1, 0).After(t) {
 				return true
 			} else {
 				return false

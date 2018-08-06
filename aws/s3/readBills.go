@@ -406,7 +406,7 @@ func listBillsFromRepositoryPage(
 	count := 0
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
-			if brr.LastImportedManifest.Before((*o.LastModified).Add(time.Hour * 24 * 30)) {
+			if brr.LastImportedManifest.Before((*o.LastModified).AddDate(0, 1, 0)) {
 				count += 1
 				select {
 				case c <- BillKey{

@@ -34,6 +34,6 @@ func CleanCurrentMonthBillByBillRepositoryId(ctx context.Context, aaUId, brId in
 	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("billRepositoryId", brId), elastic.NewTermQuery("invoiceId", ""))
-	_, err := elastic.NewDeleteByQueryService(Client).Index(index).Query(query).Do(ctx)
+	_, err := elastic.NewDeleteByQueryService(Client).WaitForCompletion(false).Index(index).Query(query).Do(ctx)
 	return err
 }
