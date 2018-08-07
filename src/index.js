@@ -48,8 +48,9 @@ ReactDOM.render((
       <Provider store={store}>
         <BrowserRouter>
           <div>
-            <Route exact path="/" component={IndexRedirect}/>
+            <Route path="/" component={IndexRedirect} exact/>
             <Route path="/login" component={Containers.Auth.Login} exact/>
+            <Route path="/login/timeout" component={Containers.Auth.Login} exact/>
             <Route path="/login/:prefill" component={Containers.Auth.Login}/>
             <Route path="/register" component={Containers.Auth.Register}/>
             <Route path="/forgot" component={Containers.Auth.Forgot}/>

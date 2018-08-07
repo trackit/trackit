@@ -10,6 +10,10 @@ export function* getMapCostsSaga({ begin, end }) {
     const token = yield getToken();
     const accounts = yield getAWSAccounts();
     const res = yield call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res.success && res.hasOwnProperty("data")) {
       if (res.data.hasOwnProperty("error"))
         throw Error(res.data.error);

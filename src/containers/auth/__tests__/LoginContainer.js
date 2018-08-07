@@ -9,6 +9,9 @@ const Form = Components.Auth.Form;
 const props = {
   login: jest.fn(),
   clear: jest.fn(),
+  match: {
+    path: ""
+  }
 };
 
 const propsWithToken = {

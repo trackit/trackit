@@ -15,8 +15,11 @@ export class App extends Component {
 
   render() {
 
+    const redirectToLogin = () => <Redirect to="/login/timeout"/>;
     const redirectToSetup = () => <Redirect to={`${this.props.match.url}/setup/false`}/>;
     const hasAccounts = (this.props.accounts.status ? (this.props.accounts.hasOwnProperty("values") && this.props.accounts.values && this.props.accounts.values.length > 0 ): true);
+
+    const checkRedirections = (container) => (!this.props.token ? redirectToLogin : (hasAccounts ? container : redirectToSetup));
 
     return (
       <div>
@@ -24,27 +27,27 @@ export class App extends Component {
           <div className="app-container">
             <Route
               path={this.props.match.url} exact
-              component={hasAccounts ? Containers.Home : redirectToSetup}
+              component={checkRedirections(Containers.Home)}
             />
             <Route
               path={this.props.match.url + '/s3'}
-              component={hasAccounts ? Containers.AWS.S3Analytics : redirectToSetup}
+              component={checkRedirections(Containers.AWS.S3Analytics)}
             />
             <Route
               path={this.props.match.url + '/costbreakdown'}
-              component={hasAccounts ? Containers.AWS.CostBreakdown : redirectToSetup}
+              component={checkRedirections(Containers.AWS.CostBreakdown)}
             />
             <Route
               path={this.props.match.url + '/reports'}
-              component={hasAccounts ? Containers.AWS.Reports : redirectToSetup}
+              component={checkRedirections(Containers.AWS.Reports)}
             />
             <Route
               path={this.props.match.url + "/map"}
-              component={hasAccounts ? Containers.AWS.ResourcesMap : redirectToSetup}
+              component={checkRedirections(Containers.AWS.ResourcesMap)}
             />
             <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}
-              component={Containers.Setup.Main}
+              component={this.props.token ? Containers.Setup.Main : redirectToLogin}
             />
           </div>
         </Containers.Main>
@@ -71,12 +74,14 @@ App.propTypes = {
       })
     ),
   }),
-  getAccounts: PropTypes.func.isRequired
+  getAccounts: PropTypes.func.isRequired,
+  token: PropTypes.string
 };
 
 /* istanbul ignore next */
-const mapStateToProps = ({aws}) => ({
+const mapStateToProps = ({aws, auth}) => ({
   accounts: aws.accounts.all,
+  token: auth.token
 });
 
 /* istanbul ignore next */

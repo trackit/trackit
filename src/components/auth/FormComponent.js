@@ -163,6 +163,10 @@ export class FormComponent extends Component {
       </div>;
     }
 
+    const timeout = (this.props.timeout ? (
+      <div className="alert alert-warning">Your session expired. Please log in again.</div>
+    ) : null);
+
     return (
       <div className="login">
         <div className="row">
@@ -179,9 +183,8 @@ export class FormComponent extends Component {
               </h3>
 
               {error}
+              {timeout}
               {success}
-
-
 
               <Form
                 onSubmit={this.submit}>
@@ -230,11 +233,13 @@ FormComponent.propTypes = {
   registrationStatus: PropTypes.shape({
     status: PropTypes.bool,
     error: PropTypes.string
-  })
+  }),
+  timeout: PropTypes.bool
 };
 
 FormComponent.defaultProps = {
-  registration: false
+  registration: false,
+  timeout: false
 };
 
 export default withRouter(FormComponent);
