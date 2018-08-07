@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,6 +26,9 @@ import (
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
+	"github.com/aws/aws-sdk-go/service/marketplacemetering"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws"
 )
 
 const (
@@ -40,7 +43,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
+			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken"}},
 			routes.Documentation{
 				Summary:     "register a new user",
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
@@ -49,7 +52,7 @@ func init() {
 		http.MethodPatch: routes.H(patchUser).With(
 			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
+			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken"}},
 			routes.Documentation{
 				Summary:     "edit the current user",
 				Description: "Edit the current user, and responds with the user's data.",
@@ -94,13 +97,42 @@ func init() {
 type createUserRequestBody struct {
 	Email    string `json:"email"    req:"nonzero"`
 	Password string `json:"password" req:"nonzero"`
+	AwsToken string `json:"awsToken"`
+}
+
+//checkAwsTokenLegitimacy check if the AWS Token exist. It return the product code and
+//the customer identifier. If there is no Token, this function is not call.
+func checkAwsTokenLegitimacy(token string) (*marketplacemetering.ResolveCustomerOutput, error) {
+	var awsInput marketplacemetering.ResolveCustomerInput
+	mySession := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String(config.AwsRegion),
+	}))
+	svc := marketplacemetering.New(mySession)
+	awsInput.SetRegistrationToken(token)
+	result, err := svc.ResolveCustomer(&awsInput)
+	if err != nil {
+		fmt.Print(err.Error())
+	}
+	return result, err
 }
 
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	code, resp := createUserWithValidBody(request, body, tx)
+	var result *marketplacemetering.ResolveCustomerOutput
+	var err error
+	//Check legitimacy of the AWS Token and get User Registration Token
+	var awsCustomerConvert = ""
+	if body.AwsToken != "" {
+		result, err = checkAwsTokenLegitimacy(body.AwsToken)
+		if err != nil {
+			return 409, errors.New("AWS Token error")
+		}
+		awsCustomer := result.CustomerIdentifier
+		awsCustomerConvert = *awsCustomer
+	}
+	code, resp := createUserWithValidBody(request, body, tx, awsCustomerConvert)
 	// Add the default role to the new account. No error is returned in case of failure
 	// The billing repository is not processed instantly
 	if code == 200 && config.DefaultRole != "" && config.DefaultRoleName != "" &&
@@ -110,10 +142,10 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	return code, resp
 }
 
-func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx) (int, interface{}) {
+func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password)
+	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier)
 	if err == nil {
 		logger.Info("User created.", user)
 		return 200, user

@@ -43,10 +43,11 @@ type User struct {
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
 // error indicates a success.
-func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, password string) (User, error) {
+func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, password string, customerIdentifier string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
 		Email: email,
+		AwsCustomer: customerIdentifier,
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {

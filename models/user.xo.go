@@ -15,6 +15,7 @@ type User struct {
 	Auth         string         `json:"auth"`           // auth
 	NextExternal sql.NullString `json:"next_external"`  // next_external
 	ParentUserID sql.NullInt64  `json:"parent_user_id"` // parent_user_id
+	AwsCustomer  string 		`json:"aws_customer_identifier"` //AWS Customer identifier
 
 	// xo fields
 	_exists, _deleted bool
@@ -41,14 +42,14 @@ func (u *User) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.user (` +
-		`email, auth, next_external, parent_user_id` +
+		`email, auth, next_external, parent_user_id, aws_customer_identifier` +
 		`) VALUES (` +
-		`?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID)
-	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID)
+	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomer)
+	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomer)
 	if err != nil {
 		return err
 	}
