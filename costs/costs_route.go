@@ -35,13 +35,14 @@ import (
 // This will be used in parseCriterionQueryParams to validate the queryParam.
 // It does not take into account the 'tag:*' criterion as it is not fixed.
 var simpleCriterionMap = map[string]bool{
-	"year":    true,
-	"month":   true,
-	"week":    true,
-	"day":     true,
-	"account": true,
-	"product": true,
-	"region":  true,
+	"year":             true,
+	"month":            true,
+	"week":             true,
+	"day":              true,
+	"account":          true,
+	"product":          true,
+	"region":           true,
+	"availabilityzone": true,
 }
 
 // esQueryParams will store the parsed query params

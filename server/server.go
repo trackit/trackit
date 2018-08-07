@@ -26,12 +26,14 @@ import (
 	"github.com/trackit/jsonlog"
 
 	_ "github.com/trackit/trackit-server/aws"
-	_ "github.com/trackit/trackit-server/aws/s3"
 	_ "github.com/trackit/trackit-server/aws/routes"
+	_ "github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/config"
 	_ "github.com/trackit/trackit-server/costs"
 	_ "github.com/trackit/trackit-server/costs/diff"
+	_ "github.com/trackit/trackit-server/ec2"
 	"github.com/trackit/trackit-server/periodic"
+	_ "github.com/trackit/trackit-server/rds"
 	_ "github.com/trackit/trackit-server/reports"
 	"github.com/trackit/trackit-server/routes"
 	_ "github.com/trackit/trackit-server/s3/costs"
@@ -46,9 +48,10 @@ func init() {
 }
 
 var tasks = map[string]func(context.Context) error{
-	"server":     taskServer,
-	"ingest":     taskIngest,
-	"ingest-due": taskIngestDue,
+	"server":          taskServer,
+	"ingest":          taskIngest,
+	"ingest-due":      taskIngestDue,
+	"process-account": taskProcessAccount,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
