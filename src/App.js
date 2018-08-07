@@ -15,7 +15,7 @@ export class App extends Component {
 
   render() {
 
-    const redirectToLogin = () => <Redirect to={`${this.props.match.url}/login/timeout`}/>;
+    const redirectToLogin = () => <Redirect to="/login/timeout"/>;
     const redirectToSetup = () => <Redirect to={`${this.props.match.url}/setup/false`}/>;
     const hasAccounts = (this.props.accounts.status ? (this.props.accounts.hasOwnProperty("values") && this.props.accounts.values && this.props.accounts.values.length > 0 ): true);
 
