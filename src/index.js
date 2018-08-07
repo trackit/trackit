@@ -48,11 +48,13 @@ ReactDOM.render((
       <Provider store={store}>
         <BrowserRouter>
           <div>
-            <Route path="/" component={IndexRedirect} exact/>
+            <Route exact path="/" component={IndexRedirect}/>
             <Route path="/login" component={Containers.Auth.Login} exact/>
             <Route path="/login/timeout" component={Containers.Auth.Login} exact/>
-            <Route path="/login/:prefill" component={Containers.Auth.Login}/>
-            <Route path="/register" component={Containers.Auth.Register}/>
+            <Route path="/login/:prefill" component={Containers.Auth.Login} exact/>
+            <Route path="/login/aws/:awstoken" component={Containers.Auth.Login}/>
+            <Route path="/register" component={Containers.Auth.Register} exact/>
+            <Route path="/register/aws/:awstoken" component={Containers.Auth.Register}/>
             <Route path="/forgot" component={Containers.Auth.Forgot}/>
             <Route path="/reset/:id/:token" component={Containers.Auth.Renew}/>
             <PrivateRoute path="/app" component={App} store={store}/>

@@ -7,7 +7,10 @@ const Form = Components.Auth.Form;
 
 const props = {
   register: jest.fn(),
-  clear: jest.fn()
+  clear: jest.fn(),
+  match: {
+    params: {}
+  }
 };
 
 describe('<RegisterContainer />', () => {

@@ -7,5 +7,5 @@ export default {
   Login,
   Register,
   Forgot,
-  Renew
+  Renew,
 };

@@ -30,7 +30,8 @@ export class FormComponent extends Component {
 
   submit = (e) => {
     e.preventDefault();
-    this.props.submit(this.state.email, this.state.password);
+    const awsToken = (this.props.awsToken ? this.props.awsToken : null);
+    this.props.submit(this.state.email, this.state.password, awsToken);
   };
 
   handleInputChange(event) {
@@ -110,7 +111,7 @@ export class FormComponent extends Component {
         </div>
         <br />
         <Link
-          to="/login"
+          to={this.props.awsToken ? "/login/aws/" + this.props.awsToken : "/login"}
         >
           Already have an account ? Sign in here.
         </Link>
@@ -137,7 +138,7 @@ export class FormComponent extends Component {
         </div>
         <br />
         <Link
-          to="/register"
+          to={this.props.awsToken ? "/register/aws/" + this.props.awsToken : "/register"}
         >
           Don't have an account ? Register here.
         </Link>

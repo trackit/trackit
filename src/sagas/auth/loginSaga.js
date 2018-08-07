@@ -3,10 +3,10 @@ import { setToken, setUserMail } from '../../common/localStorage';
 import API from '../../api';
 import Constants from '../../constants';
 
-export default function* loginSaga({ username, password }) {
+export default function* loginSaga({ username, password, awsToken }) {
   try {
     yield put({ type: Constants.LOGIN_REQUEST_LOADING });
-    const res = yield call(API.Auth.login, username, password);
+    const res = yield call(API.Auth.login, username, password, awsToken);
     if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("token")) {
       setToken(res.data.token);
       setUserMail(res.data.user.email);
