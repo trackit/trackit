@@ -93,7 +93,7 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 	parsedParams := esQueryParams{
 		accountList:       []string{},
 		dateBegin:         a[anomalyQueryArgs[1]].(time.Time),
-		dateEnd:           a[anomalyQueryArgs[2]].(time.Time),
+		dateEnd:           a[anomalyQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 	}
 	if a[anomalyQueryArgs[0]] != nil {
 		parsedParams.accountList = a[anomalyQueryArgs[0]].([]string)
