@@ -38,6 +38,7 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/users"
+	_ "github.com/trackit/trackit-server/costs/tags"
 )
 
 var buildNumber string = "unknown-build"
