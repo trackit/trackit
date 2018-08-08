@@ -34,15 +34,16 @@ type aggregationBuilder func([]string) []paramAggrAndName
 // If a new param, that is only creating aggregations, needs to be added,
 // a functions with an aggregationBuilder prototype need to be added to the list below.
 var paramNameToFuncPtr = map[string]aggregationBuilder{
-	"product": createAggregationPerProduct,
-	"region":  createAggregationPerRegion,
-	"account": createAggregationPerAccount,
-	"tag":     createAggregationPerTag,
-	"cost":    createCostSumAggregation,
-	"day":     createAggregationPerDay,
-	"week":    createAggregationPerWeek,
-	"month":   createAggregationPerMonth,
-	"year":    createAggregationPerYear,
+	"product":          createAggregationPerProduct,
+	"availabilityzone": createAggregationPerAvailabilityZone,
+	"region":           createAggregationPerRegion,
+	"account":          createAggregationPerAccount,
+	"tag":              createAggregationPerTag,
+	"cost":             createCostSumAggregation,
+	"day":              createAggregationPerDay,
+	"week":             createAggregationPerWeek,
+	"month":            createAggregationPerMonth,
+	"year":             createAggregationPerYear,
 }
 
 // paramAggrAndName is a structure containing the name of the parameter and
@@ -85,14 +86,26 @@ func createAggregationPerProduct(_ []string) []paramAggrAndName {
 	}
 }
 
-// createAggregationPerRegion creates and returns a new []paramAggrAndName of size 1 which creates a
+// createAggregationPerAvailabilityZone creates and returns a new []paramAggrAndName of size 1 which creates a
 // bucket aggregation on the field 'availability_zone'
+func createAggregationPerAvailabilityZone(_ []string) []paramAggrAndName {
+	return []paramAggrAndName{
+		paramAggrAndName{
+			name: "by-availabilityzone",
+			aggr: elastic.NewTermsAggregation().
+				Field("availabilityZone").Size(aggregationMaxSize),
+		},
+	}
+}
+
+// createAggregationPerRegion creates and returns a new []paramAggrAndName of size 1 which creates a
+// bucket aggregation on the field 'region'
 func createAggregationPerRegion(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
 		paramAggrAndName{
 			name: "by-region",
 			aggr: elastic.NewTermsAggregation().
-				Field("availabilityZone").Size(aggregationMaxSize),
+				Field("region").Size(aggregationMaxSize),
 		},
 	}
 }
@@ -233,7 +246,8 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 //	that will create aggregations.
 //	Those can be :
 //		- "product" : It will create a TermsAggregation on the field 'product_name'
-//		- "region" : It will create a TermsAggregation on the field 'availability_zone'
+//		- "availabilityzone" : It will create a TermsAggregation on the field 'availability_zone'
+//		- "region" : It will create a TermsAggregation on the field 'region'
 //		- "account" : It will create a TermsAggregation on the field 'linked_account_id'
 //		- "tag:<TAG_KEY>" : It will create a FilterAggregation on the field 'tag.key',
 //		filtering on the value 'user:<TAG_KEY>'.

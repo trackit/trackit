@@ -20,7 +20,7 @@ package models
 func AwsBillRepositoriesWithDueUpdate(db XODB) ([]*AwsBillRepository, error) {
 	var err error
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update ` +
+		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE next_update <= NOW()`
 	XOLog(sqlstr)
@@ -33,7 +33,7 @@ func AwsBillRepositoriesWithDueUpdate(db XODB) ([]*AwsBillRepository, error) {
 		abr := AwsBillRepository{
 			_exists: true,
 		}
-		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate)
+		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error)
 		if err != nil {
 			return nil, err
 		}

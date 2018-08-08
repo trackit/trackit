@@ -33,6 +33,7 @@ import (
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/util/csv"
+	"github.com/trackit/trackit-server/es"
 )
 
 const (
@@ -106,6 +107,7 @@ type LineItem struct {
 	UsageType          string            `csv:"lineItem/UsageType"           json:"usageType"`
 	Operation          string            `csv:"lineItem/Operation"           json:"operation"`
 	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"    json:"availabilityZone"`
+	Region             string            `csv:"product/region"               json:"region"`
 	ResourceId         string            `csv:"lineItem/ResourceId"          json:"resourceId"`
 	UsageAmount        string            `csv:"lineItem/UsageAmount"         json:"usageAmount"`
 	ServiceCode        string            `csv:"product/servicecode"          json:"serviceCode"`
@@ -120,7 +122,7 @@ func (li LineItem) EsId() string {
 }
 
 type OnLineItem func(LineItem, bool)
-type ManifestPredicate func(manifest) bool
+type ManifestPredicate func(manifest, bool) bool
 
 // ReadBills reads all LineItems from new bills in a BillRepository, and runs
 // `oli` for each one.
@@ -135,7 +137,8 @@ func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli O
 	mck = getManifestKeys(ctx, mck)
 	mc := getManifests(ctx, s3svc, mck)
 	mc, lastManifestPromise := selectManifests(mp, mc)
-	importBills(ctx, s3svc, mc, oli)
+	es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
+	importBills(ctx, s3svc, mc, oli, mp)
 	return <-lastManifestPromise, nil
 }
 
@@ -149,7 +152,7 @@ func selectManifests(mp ManifestPredicate, mc <-chan manifest) (<-chan manifest,
 		defer close(lmOut)
 		var lm time.Time
 		for m := range mc {
-			if mp(m) {
+			if mp(m, true) {
 				out <- m
 				if m.LastModified.After(lm) {
 					lm = m.LastModified
@@ -163,14 +166,14 @@ func selectManifests(mp ManifestPredicate, mc <-chan manifest) (<-chan manifest,
 
 // importBills imports LineItems for bill files described in manifests sent to
 // the `manifests` channel.
-func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem) {
+func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, oli OnLineItem, mp ManifestPredicate) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	outs, out := mergecdLineItem()
 	for m := range manifests {
 		l.Debug("Will attempt ingesting bills.", m)
 		for _, s := range m.ReportKeys {
 			l.Debug("Will attempt ingesting bill part.", map[string]interface{}{"key": s, "manifest": m})
-			outs <- importBill(ctx, s3svc, s, m)
+			outs <- importBill(ctx, s3svc, s, m, mp)
 		}
 	}
 	close(outs)
@@ -181,7 +184,7 @@ func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, o
 }
 
 // importBill imports LineItems for a single bill file.
-func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan LineItem {
+func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
 	outs, out := mergecdLineItem()
 	go func() {
 		defer close(outs)
@@ -192,27 +195,23 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest) <-chan 
 			l.Error("Failed to read bill.", err.Error())
 		} else {
 			l.Debug("Reading bill.", map[string]interface{}{"key": s, "manifest": m})
-			outs <- readBill(ctx, cancel, reader, s, m)
+			outs <- readBill(ctx, cancel, reader, s, m, mp)
 		}
 	}()
 	return out
 }
 
 // readBill returns a channel of all LineItems in a single bill file.
-func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest) <-chan LineItem {
+func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {
 		defer reader.Close()
 		defer close(out)
 		csvDecoder := csv.NewDecoder(reader)
-		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		for r := range records(ctx, &csvDecoder) {
-			if r.InvoiceId == "" {
-				cancel()
-				logger.Info("Canceled non-final report import.", map[string]interface{}{"key": s, "manifest": m})
-				return
+			if (mp(m, false) || r.InvoiceId == "") {
+				out <- r
 			}
-			out <- r
 		}
 	}()
 	return out
@@ -407,7 +406,7 @@ func listBillsFromRepositoryPage(
 	count := 0
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
-			if  brr.LastImportedManifest.Before(*o.LastModified) {
+			if brr.LastImportedManifest.Before((*o.LastModified).AddDate(0, 1, 0)) {
 				count += 1
 				select {
 				case c <- BillKey{
