@@ -1,12 +1,11 @@
 import React from 'react';
 import { SelectorComponent, Item } from '../SelectorComponent';
 import { shallow } from 'enzyme';
-import List, {
-  ListItem,
-  ListItemText,
-} from 'material-ui/List';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import Spinner from 'react-spinkit';
-import Checkbox from 'material-ui/Checkbox';
+import Checkbox from '@material-ui/core/Checkbox';
 
 const account1 = {
   id: 42,

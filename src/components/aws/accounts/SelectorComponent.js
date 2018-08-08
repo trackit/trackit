@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import List, {
-  ListItem,
-  ListItemText,
-} from 'material-ui/List';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import Spinner from 'react-spinkit';
 import PropTypes from 'prop-types';
 import Actions from "../../../actions";
-import Checkbox from 'material-ui/Checkbox';
+import Checkbox from '@material-ui/core/Checkbox';
 
 export class Item extends Component {
 

@@ -1,14 +1,12 @@
 import React, {Component} from 'react';
 import PropTypes from "prop-types";
 import Validations from "../../../common/forms";
-import Dialog, {
-  DialogContent,
-  DialogTitle,
-} from 'material-ui/Dialog';
-import Stepper, {
-  Step,
-  StepButton
-} from 'material-ui/Stepper';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepButton from '@material-ui/core/StepButton';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';

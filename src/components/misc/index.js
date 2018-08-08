@@ -8,6 +8,7 @@ import DeleteConfirmation from './DeleteConfirmation';
 import Popover from './Popover';
 import Selector from './Selector';
 import Picture from './Picture';
+import SnackBar from './Snackbar';
 
 export default {
   Panel,
@@ -19,5 +20,6 @@ export default {
   DeleteConfirmation,
   Popover,
   Selector,
-  Picture
+  Picture,
+  SnackBar
 };

@@ -1,8 +1,7 @@
 import React from 'react';
 import Picture from '../Picture';
-import Dialog, {
-  DialogContent
-} from 'material-ui/Dialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
 import { shallow } from "enzyme";
 
 const button = <div id="button"/>;

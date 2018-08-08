@@ -1,8 +1,7 @@
 import React from 'react';
 import ListComponent, { Item } from '../ListComponent';
-import List, {
-  ListItem
-} from 'material-ui/List';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 import Spinner from 'react-spinkit';
 import { shallow } from 'enzyme';
 
