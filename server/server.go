@@ -31,6 +31,7 @@ import (
 	"github.com/trackit/trackit-server/config"
 	_ "github.com/trackit/trackit-server/costs"
 	_ "github.com/trackit/trackit-server/costs/diff"
+	_ "github.com/trackit/trackit-server/costs/anomalies"
 	"github.com/trackit/trackit-server/periodic"
 	_ "github.com/trackit/trackit-server/reports"
 	"github.com/trackit/trackit-server/routes"
