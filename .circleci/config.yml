@@ -53,7 +53,7 @@ jobs:
           command: aws configure set preview.cloudfront true
       - run:
           name: Invalid cache
-          command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths '/*'
+          command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --invalidation-batch "{ \"Paths\": { \"Quantity\": 1, \"Items\": [ \"/*\" ] }, \"CallerReference\": \"$(date +%s)\" }"
   deploy_stg:
     working_directory: ~/trackit2-client
     docker:
@@ -84,7 +84,7 @@ jobs:
           command: aws configure set preview.cloudfront true
       - run:
           name: Invalid cache
-          command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID_STG --paths '/*'
+          command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID_STG --invalidation-batch "{ \"Paths\": { \"Quantity\": 1, \"Items\": [ \"/*\" ] }, \"CallerReference\": \"$(date +%s)\" }"
 workflows:
   version: 2
   test-and-deploy:
