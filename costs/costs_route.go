@@ -144,7 +144,7 @@ func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	parsedParams := esQueryParams{
 		accountList:       []string{},
 		dateBegin:         a[costsQueryArgs[1]].(time.Time),
-		dateEnd:           a[costsQueryArgs[2]].(time.Time),
+		dateEnd:           a[costsQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 		aggregationParams: a[costsQueryArgs[3]].([]string),
 	}
 	if a[costsQueryArgs[0]] != nil {
