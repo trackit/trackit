@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 	"net/http"
+	"context"
 
 	"github.com/aws/aws-sdk-go/service/marketplacemetering"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -30,7 +31,6 @@ import (
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
-	"context"
 )
 
 const (
