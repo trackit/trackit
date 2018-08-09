@@ -49,6 +49,7 @@ func init() {
 	}.H().Register("/tags/keys")
 }
 
+// tagsValuesQueryArgs allows to get required queryArgs params for /tags/values endpoint
 var tagsValuesQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
@@ -61,6 +62,7 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 	},
 }
 
+// tagsValuesQueryParams will store the parsed query params for /tags/values endpoint
 type tagsValuesQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	DateBegin   time.Time `json:"begin"`
@@ -68,6 +70,7 @@ type tagsValuesQueryParams struct {
 	TagsKey     []string  `json:"key"`
 }
 
+// getTagsValues returns tags and their values (cost) based on the query params, in JSON format.
 func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := tagsValuesQueryParams{
@@ -85,18 +88,21 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	return getTagsValuesWithParsedParams(request.Context(), parsedParams, user)
 }
 
+// tagsKeysQueryArgs allows to get required queryArgs params for /tags/keys endpoint
 var tagsKeysQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
 }
 
+// tagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
 type tagsKeysQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	DateBegin   time.Time `json:"begin"`
 	DateEnd     time.Time `json:"end"`
 }
 
+// getTagsKeys returns the list of the tag keys based on the query params, in JSON format.
 func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := tagsKeysQueryParams{

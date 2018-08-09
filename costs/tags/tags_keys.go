@@ -28,6 +28,7 @@ import (
 )
 
 type (
+	// struct that allows to parse ES result
 	esTagsKeysResult struct {
 		Tags struct {
 			Buckets []struct {
@@ -36,9 +37,11 @@ type (
 		}
 	}
 
+	// result format of the endpoint
 	TagsKeys []string
 )
 
+// getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
 func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams, user users.User) (int, interface{}){
 	var typedDocument esTagsKeysResult
 	var response = TagsKeys{}
@@ -61,6 +64,12 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 	return http.StatusOK, response
 }
 
+// makeElasticSearchRequestForTagsKeys will make the actual request to the ElasticSearch
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empty data
 func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQueryParams, user users.User, client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := getTagsKeysQuery(params)
@@ -80,6 +89,7 @@ func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQue
 	return res, http.StatusOK, nil
 }
 
+// getTagsKeysQuery will generate a query for the ElasticSearch based on params
 func getTagsKeysQuery(params tagsKeysQueryParams) (*elastic.BoolQuery) {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
