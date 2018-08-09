@@ -48,6 +48,9 @@ jobs:
       - deploy:
           name: Deploying
           command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION
+      - invalid_cloudfront_cache:
+          name: Deploying
+          command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths '/*'
   deploy_stg:
     working_directory: ~/trackit2-client
     docker:
@@ -73,6 +76,9 @@ jobs:
       - deploy:
           name: Deploying
           command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION_STG
+      - invalid_cloudfront_cache:
+          name: Deploying
+          command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID_STG --paths '/*'
 workflows:
   version: 2
   test-and-deploy:
