@@ -49,7 +49,10 @@ jobs:
           name: Deploying
           command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION
       - run:
-          name: Deploying
+          name: Setup CloudFront
+          command: aws configure set preview.cloudfront true
+      - run:
+          name: Invalid cache
           command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --paths '/*'
   deploy_stg:
     working_directory: ~/trackit2-client
@@ -77,7 +80,10 @@ jobs:
           name: Deploying
           command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION_STG
       - run:
-          name: Deploying
+          name: Setup CloudFront
+          command: aws configure set preview.cloudfront true
+      - run:
+          name: Invalid cache
           command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID_STG --paths '/*'
 workflows:
   version: 2
