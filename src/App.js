@@ -1,16 +1,32 @@
 import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { Route } from 'react-router-dom';
 import Containers from './containers';
 import Actions from "./actions";
-
+import SnackBar from './components/misc/Snackbar';
 // Use named export for unconnected component (for tests)
 export class App extends Component {
 
   componentWillMount() {
     this.props.getAccounts();
+  }
+
+  accountHasError(item) {
+    if (item.billRepositories.length) {
+        let hasError = false;
+        for (let i = 0; i < item.billRepositories.length; i++) {
+            const element = item.billRepositories[i];
+            if (element.error.length) {
+                hasError = true;
+            }
+        }
+        return hasError;
+    }  
+    // No bill locations for account
+    return true;
   }
 
   render() {
@@ -21,9 +37,46 @@ export class App extends Component {
 
     const checkRedirections = (container) => (!this.props.token ? redirectToLogin : (hasAccounts ? container : redirectToSetup));
 
+    let accountAlert;
+    if (this.props.accounts && this.props.accounts.status && this.props.accounts.values) {
+      const accountsWithErrors = [];
+      for (let index = 0; index < this.props.accounts.values.length; index++) {
+        const element = this.props.accounts.values[index];
+        if (this.accountHasError(element)) {
+          accountsWithErrors.push(element.pretty);
+        }
+      }
+      if (accountsWithErrors.length) {
+        accountAlert = (
+          <SnackBar
+            variant="error"
+            action={
+              <Link
+                to="/app/setup"
+                key="link"
+                style={{ color: 'white', fontSize: '1.3em'}}
+              >
+                GO TO SETUP
+              </Link>
+            }
+            message={<span>
+              <strong>Error  </strong>
+              TrackIt found some errors in your setup : 
+              <br />
+              <br />
+              <ul>
+                {accountsWithErrors.map(item => <li className="m-t-10 m-b-10" key={item}><strong>{item}</strong> account is not setup properly</li>)}
+              </ul>
+            </span>}
+          />
+        );
+      }
+    }
+
     return (
       <div>
         <Containers.Main>
+          {accountAlert}
           <div className="app-container">
             <Route
               path={this.props.match.url} exact

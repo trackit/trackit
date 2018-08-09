@@ -1,10 +1,9 @@
 import React from 'react';
 import DialogComponent  from '../Dialog';
-import Dialog, {
-  DialogTitle,
-  DialogContent,
-  DialogActions
-} from 'material-ui/Dialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
 import { shallow } from "enzyme";
 
 const child = <div id="child"/>;

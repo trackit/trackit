@@ -1,4 +1,4 @@
-import red from 'material-ui/colors/red';
+import red from '@material-ui/core/colors/red';
 
 const settings = {
   /*typography: {
