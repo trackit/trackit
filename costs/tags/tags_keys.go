@@ -44,14 +44,14 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 	var response = TagsKeys{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	res, returnCode, err := makeElasticSearchRequestForTagsKeys(ctx, params, user, es.Client)
-	if (err != nil) {
+	if err != nil {
 		if returnCode == http.StatusOK {
 			return returnCode, response
 		}
 		return returnCode, errors.New("Internal server error")
 	}
 	err = json.Unmarshal(*res.Aggregations["tags"], &typedDocument.Tags)
-	if (err != nil) {
+	if err != nil {
 		l.Error("Error while unmarshaling", err)
 		return http.StatusInternalServerError, errors.New("Internal server error")
 	}
@@ -69,7 +69,7 @@ func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQue
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("tags", elastic.NewTermsAggregation().Script(script))
 	res, err := search.Do(ctx)
-	if (err != nil) {
+	if err != nil {
 		if elastic.IsNotFound(err) {
 			l.Warning("Query execution failed, ES index does not exists : " + index, err)
 			return nil, http.StatusOK, err
@@ -85,5 +85,7 @@ func getTagsKeysQuery(params tagsKeysQueryParams) (*elastic.BoolQuery) {
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(params.AccountList))
 	}
+	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
+		From(params.DateBegin).To(params.DateEnd))
 	return query
 }

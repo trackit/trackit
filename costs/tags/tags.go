@@ -31,8 +31,8 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(tagsValuesQueryArgs),
 			routes.Documentation{
-				Summary:     "get value for a tags's key",
-				Description: "take in query a time range, aws accounts and a tags's key to get tags and costs of the key",
+				Summary:     "get the tag values and their cost with a tag key",
+				Description: "get the tag values and their cost with a tag key for a specified time range and aws accounts",
 			},
 		),
 	}.H().Register("/tags/values")
@@ -42,8 +42,8 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(tagsKeysQueryArgs),
 			routes.Documentation{
-				Summary:     "get tags's keys list",
-				Description: "return the list of the tags's key for one, many are all aws accounts list",
+				Summary:     "get every tag keys",
+				Description: "get every tag keys for a specified time range and aws accounts",
 			},
 		),
 	}.H().Register("/tags/keys")
@@ -56,16 +56,16 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 	routes.QueryArg{
 		Name:        "key",
 		Description: "key of the tags to search",
-		Type:        routes.QueryArgString{},
+		Type:        routes.QueryArgStringSlice{},
 		Optional:    false,
 	},
 }
 
 type tagsValuesQueryParams struct {
+	AccountList []string  `json:"awsAccounts"`
 	DateBegin   time.Time `json:"begin"`
 	DateEnd     time.Time `json:"end"`
-	AccountList []string  `json:"awsAccounts"`
-	TagsKey     string    `json:"key"`
+	TagsKey     []string  `json:"key"`
 }
 
 func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{}) {
@@ -74,7 +74,7 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 		AccountList: []string{},
 		DateBegin:   a[tagsValuesQueryArgs[1]].(time.Time),
 		DateEnd:     a[tagsValuesQueryArgs[2]].(time.Time),
-		TagsKey:     a[tagsValuesQueryArgs[3]].(string),
+		TagsKey:     a[tagsValuesQueryArgs[3]].([]string),
 	}
 	if a[tagsValuesQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsValuesQueryArgs[0]].([]string)
@@ -87,16 +87,22 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 
 var tagsKeysQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
 }
 
 type tagsKeysQueryParams struct {
-	AccountList []string `json:"awsAccounts"`
+	AccountList []string  `json:"awsAccounts"`
+	DateBegin   time.Time `json:"begin"`
+	DateEnd     time.Time `json:"end"`
 }
 
 func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := tagsKeysQueryParams{
 		AccountList: []string{},
+		DateBegin:   a[tagsValuesQueryArgs[1]].(time.Time),
+		DateEnd:     a[tagsValuesQueryArgs[2]].(time.Time),
 	}
 	if a[tagsKeysQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsKeysQueryArgs[0]].([]string)

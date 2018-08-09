@@ -40,45 +40,54 @@ type (
 		}
 	}
 
-	TagsValue struct {
-		Key  string  `json:"key"`
+	TagValue struct {
+		Tag  string  `json:"tag"`
 		Cost float64 `json:"cost"`
 	}
 
-	TagsValues []TagsValue
+	TagsValues struct {
+		Key        string     `json:"key"`
+		TagsValues []TagValue `json:"values"`
+	}
+
+	TagsValuesResponse []TagsValues
 )
 
 func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams, user users.User) (int, interface{}){
-	var typedDocument esTagsValuesResult
-	var response = TagsValues{}
+	var response = TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, user, es.Client)
-	if (err != nil) {
-		if returnCode == http.StatusOK {
-			return returnCode, response
+	for i := range params.TagsKey {
+		var typedDocument esTagsValuesResult
+		res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, user, es.Client, i)
+		if err != nil {
+			if returnCode == http.StatusOK {
+				return returnCode, response
+			}
+			return returnCode, errors.New("Internal server error")
 		}
-		return returnCode, errors.New("Internal server error")
-	}
-	err = json.Unmarshal(*res.Aggregations["tags"], &typedDocument.Tags)
-	if (err != nil) {
-		l.Error("Error while unmarshaling", err)
-		return http.StatusInternalServerError, errors.New("Internal server error")
-	}
-	for _, tag := range typedDocument.Tags.Buckets {
-		response = append(response, TagsValue{tag.Key, tag.Cost.Value})
+		err = json.Unmarshal(*res.Aggregations["tags"], &typedDocument.Tags)
+		if err != nil {
+			l.Error("Error while unmarshaling", err)
+			return http.StatusInternalServerError, errors.New("Internal server error")
+		}
+		tagsValues := TagsValues{params.TagsKey[i], nil}
+		for _, tag := range typedDocument.Tags.Buckets {
+			tagsValues.TagsValues = append(tagsValues.TagsValues, TagValue{tag.Key, tag.Cost.Value})
+		}
+		response = append(response, tagsValues)
 	}
 	return http.StatusOK, response
 }
 
-func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams, user users.User, client *elastic.Client) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams, user users.User, client *elastic.Client, i int) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := getTagsValuesQuery(params)
 	index := es.IndexNameForUser(user, "lineitems")
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("tags", elastic.NewTermsAggregation().Field("tags." + params.TagsKey).
+	search.Aggregation("tags", elastic.NewTermsAggregation().Field("tags." + params.TagsKey[i]).
 		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
 	res, err := search.Do(ctx)
-	if (err != nil) {
+	if err != nil {
 		if elastic.IsNotFound(err) {
 			l.Warning("Query execution failed, ES index does not exists : " + index, err)
 			return nil, http.StatusOK, err
