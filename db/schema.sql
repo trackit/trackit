@@ -221,3 +221,4 @@ CREATE VIEW aws_account_due_update AS
 --   limitations under the License.
 
 ALTER TABLE aws_account_update_job ADD ec2Error VARCHAR(255) NOT NULL DEFAULT "";
+ALTER TABLE aws_bill_repository ADD grace_update DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
