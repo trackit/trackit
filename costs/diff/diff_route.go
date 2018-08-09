@@ -109,7 +109,7 @@ func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	parsedParams := esQueryParams{
 		accountList:       []string{},
 		dateBegin:         a[diffQueryArgs[1]].(time.Time),
-		dateEnd:           a[diffQueryArgs[2]].(time.Time),
+		dateEnd:           a[diffQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 		aggregationPeriod: a[diffQueryArgs[3]].(string),
 	}
 	if a[diffQueryArgs[0]] != nil {
