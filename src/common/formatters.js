@@ -33,6 +33,15 @@ export const formatDate = (moment, precision) => {
   }
 };
 
+const getTotalPieChart = (data) => {
+  let total = 0;
+  if (Array.isArray(data))
+    data.forEach((item) => {
+      total += item.value;
+    });
+  return total;
+};
+
 export const costBreakdown = {
   transformProductsBarChart: (data, filter, interval) => {
     if (filter === "all" && data.hasOwnProperty(interval))
@@ -66,14 +75,6 @@ export const costBreakdown = {
       key: id,
       value: data[filter][id]
     }));
-  },
-  getTotalPieChart: (data) => {
-    let total = 0;
-    if (Array.isArray(data))
-      data.forEach((item) => {
-        total += item.value;
-      });
-    return total;
   },
   transformCostDifferentiator: (data) => {
     let dates = [];
@@ -111,7 +112,8 @@ export const costBreakdown = {
       total[date] = {cost, variation};
     });
     return {dates, values, total};
-  }
+  },
+  getTotalPieChart
 };
 
 export const s3Analytics = {
@@ -142,12 +144,26 @@ export const s3Analytics = {
       value: data[bucket].RequestsCost
     }));
   },
-  getTotalPieChart: (data) => {
-    let total = 0;
-    if (Array.isArray(data))
-    data.forEach((item) => {
-      total += item.value;
+  getTotalPieChart
+};
+
+export const tags = {
+  transformProductsPieChart: (data) => {
+    if (!data)
+      return null;
+    return data.map((tag) => {
+      const products = {};
+      let value = 0;
+      tag.costs.forEach((product) => {
+        products[product.item] = product.cost;
+        value += product.cost;
+      });
+      return ({
+        key: tag.tag || "No tag",
+        value,
+        products
+      });
     });
-    return total;
-  }
+  },
+  getTotalPieChart
 };

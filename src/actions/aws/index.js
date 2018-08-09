@@ -4,6 +4,7 @@ import Costs from './costsActions';
 import Reports from './reportsActions';
 import Resources from './resourcesActions';
 import Map from './mapActions';
+import Tags from './tagsActions';
 
 export default {
   Accounts,
@@ -11,5 +12,6 @@ export default {
   Costs,
   Reports,
   Resources,
-  Map
+  Map,
+  Tags
 };

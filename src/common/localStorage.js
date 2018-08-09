@@ -82,3 +82,13 @@ export const setDashboard = (dates) => {
 export const getDashboard = () => {
   return JSON.parse(getValue('dashboard'));
 };
+
+/* Cost Breakdown charts */
+
+export const setTagsCharts = (charts) => {
+  setValue('tags_charts', JSON.stringify(charts));
+};
+
+export const getTagsCharts = () => {
+  return JSON.parse(getValue('tags_charts'));
+};

@@ -5,6 +5,7 @@ import s3 from './s3';
 import reports from './reports'
 import resources from './resources'
 import map from './map';
+import tags from './tags';
 
 export default combineReducers({
   accounts,
@@ -12,5 +13,6 @@ export default combineReducers({
   costs,
   reports,
   map,
-  resources
+  resources,
+  tags
 });

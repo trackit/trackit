@@ -49,6 +49,20 @@ export const getDashboard = () => {
   return select(getDashboardFromState);
 };
 
+const getTagsChartsFromState = (state) => {
+  let data = Object.assign({}, state.aws.tags);
+  const charts = {};
+  Object.keys(data.charts).forEach((id) => {charts[id] = ""});
+  data.charts = charts;
+  delete data.values;
+  delete data.keys;
+  return data;
+};
+
+export const getTagsCharts = () => {
+  return select(getTagsChartsFromState);
+};
+
 export const initialCostBreakdownCharts = () => {
   const id1 = UUID();
   const id2 = UUID();
@@ -120,4 +134,20 @@ export const initialDashboard = () => {
   filters[id6] = "requests";
   filters[id7] = "bandwidth";
   return { items, dates, intervals, filters };
+};
+
+export const initialTagsCharts = () => {
+  const id1 = UUID();
+  let charts = {};
+  charts[id1] = "";
+  let dates = {};
+  Object.keys(charts).forEach((id) => {
+    dates[id] = {
+      startDate: moment().subtract(1, 'month').startOf('month'),
+      endDate: moment().subtract(1, 'month').endOf('month')
+    };
+  });
+  let interval = {};
+  interval[id1] = "month";
+  return { charts, dates, interval };
 };
