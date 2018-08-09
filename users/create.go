@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"net/http"
 	
 	"github.com/trackit/jsonlog"
@@ -27,6 +28,8 @@ import (
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/mail"
+	"github.com/satori/go.uuid"
+
 )
 
 const (
@@ -145,6 +148,7 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	tx := a[db.Transaction].(*sql.Tx)
 	ctx := request.Context()
 	token := uuid.NewV1().String()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	tokenHash, err := getPasswordHash(token)
 	if err != nil {
 		logger.Error("Failed to create token hash.", err.Error())
