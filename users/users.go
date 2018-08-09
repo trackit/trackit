@@ -47,7 +47,7 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
 		Email: email,
-		AwsCustomer: customerIdentifier,
+		AwsCustomerIdentifier: customerIdentifier,
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {

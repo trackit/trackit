@@ -190,7 +190,7 @@ CREATE TABLE forgotten_password (
 CREATE TABLE aws_account_update_job (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	aws_account_id 				 INTEGER      NOT NULL,
+	aws_account_id         INTEGER      NOT NULL,
 	completed              TIMESTAMP    NOT NULL DEFAULT 0,
 	worker_id              VARCHAR(255) NOT NULL,
 	jobError               VARCHAR(255) NOT NULL DEFAULT "",
@@ -252,4 +252,4 @@ ALTER TABLE aws_bill_repository ADD grace_update DATETIME NOT NULL DEFAULT "1970
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE user ADD aws_customer_identifier varchar(255) NOT NULL;
+ALTER TABLE user ADD aws_customer_identifier varchar(255) NOT NULL DEFAULT "";

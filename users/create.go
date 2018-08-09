@@ -20,15 +20,17 @@ import (
 	"fmt"
 	"strings"
 	"net/http"
-	
+
+	"github.com/aws/aws-sdk-go/service/marketplacemetering"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
-	"github.com/aws/aws-sdk-go/service/marketplacemetering"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws"
+	"context"
 )
 
 const (
@@ -100,9 +102,9 @@ type createUserRequestBody struct {
 	AwsToken string `json:"awsToken"`
 }
 
-//checkAwsTokenLegitimacy check if the AWS Token exist. It return the product code and
+//checkAwsTokenLegitimacy checks if the AWS Token exists. It returns the product code and
 //the customer identifier. If there is no Token, this function is not call.
-func checkAwsTokenLegitimacy(token string) (*marketplacemetering.ResolveCustomerOutput, error) {
+func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
 	var awsInput marketplacemetering.ResolveCustomerInput
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(config.AwsRegion),
@@ -111,23 +113,25 @@ func checkAwsTokenLegitimacy(token string) (*marketplacemetering.ResolveCustomer
 	awsInput.SetRegistrationToken(token)
 	result, err := svc.ResolveCustomer(&awsInput)
 	if err != nil {
-		fmt.Print(err.Error())
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Error when checking the AWS token", err)
 	}
 	return result, err
 }
 
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
+	var result *marketplacemetering.ResolveCustomerOutput
+	var awsCustomerConvert = ""
+	ctx := request.Context()
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	var result *marketplacemetering.ResolveCustomerOutput
-	var err error
-	//Check legitimacy of the AWS Token and get User Registration Token
-	var awsCustomerConvert = ""
+	//Check legitimacy of the AWS Token and get user registration token
 	if body.AwsToken != "" {
-		result, err = checkAwsTokenLegitimacy(body.AwsToken)
+		var err error
+		result, err = checkAwsTokenLegitimacy(ctx, body.AwsToken)
 		if err != nil {
-			return 409, errors.New("AWS Token error")
+			return 409, errors.New("Fail to check the AWS token")
 		}
 		awsCustomer := result.CustomerIdentifier
 		awsCustomerConvert = *awsCustomer
