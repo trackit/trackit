@@ -17,6 +17,7 @@ type AwsBillRepository struct {
 	LastImportedManifest time.Time `json:"last_imported_manifest"` // last_imported_manifest
 	NextUpdate           time.Time `json:"next_update"`            // next_update
 	Error                string    `json:"error"`                  // error
+	GraceUpdate          time.Time `json:"grace_update"`           // grace_update
 
 	// xo fields
 	_exists, _deleted bool
@@ -43,14 +44,14 @@ func (abr *AwsBillRepository) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`aws_account_id, bucket, prefix, last_imported_manifest, next_update, error` +
+		`aws_account_id, bucket, prefix, last_imported_manifest, next_update, error, grace_update` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error)
-	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.GraceUpdate)
+	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.GraceUpdate)
 	if err != nil {
 		return err
 	}
@@ -84,12 +85,12 @@ func (abr *AwsBillRepository) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_bill_repository SET ` +
-		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_manifest = ?, next_update = ?, error = ?` +
+		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_manifest = ?, next_update = ?, error = ?, grace_update = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
-	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
+	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.GraceUpdate, abr.ID)
+	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.GraceUpdate, abr.ID)
 	return err
 }
 
@@ -147,7 +148,7 @@ func AwsBillRepositoryByID(db XODB, id int) (*AwsBillRepository, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error ` +
+		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error, grace_update ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE id = ?`
 
@@ -157,7 +158,7 @@ func AwsBillRepositoryByID(db XODB, id int) (*AwsBillRepository, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error)
+	err = db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error, &abr.GraceUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRep
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error ` +
+		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error, grace_update ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE aws_account_id = ?`
 
@@ -193,7 +194,7 @@ func AwsBillRepositoriesByAwsAccountID(db XODB, awsAccountID int) ([]*AwsBillRep
 		}
 
 		// scan
-		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error)
+		err = q.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error, &abr.GraceUpdate)
 		if err != nil {
 			return nil, err
 		}
