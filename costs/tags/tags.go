@@ -35,7 +35,7 @@ func init() {
 				Description: "get the tag values and their cost with a tag key for a specified time range and aws accounts",
 			},
 		),
-	}.H().Register("/tags/values")
+	}.H().Register("/costs/tags/values")
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getTagsKeys).With(
 			db.RequestTransaction{Db: db.Db},
@@ -46,7 +46,7 @@ func init() {
 				Description: "get every tag keys for a specified time range and aws accounts",
 			},
 		),
-	}.H().Register("/tags/keys")
+	}.H().Register("/costs/tags/keys")
 }
 
 // tagsValuesQueryArgs allows to get required queryArgs params for /tags/values endpoint
