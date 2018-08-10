@@ -42,15 +42,15 @@ export class Item extends Component {
     if (error || !this.props.account.billRepositories.length)
       return (
           <Popover
-            children={<i className="fa account-badge fa-times-circle"/>}
-            popOver={"Please check your bill locations"}
+            icon={<i className="fa account-badge fa-times-circle"/>}
+            tooltip={"Please check your bill locations"}
           />
       );
     else if (pending)
       return (
           <Popover
-            children={<i className="fa account-badge fa-clock-o"/>}
-            popOver={"Import in progress"}
+            icon={<i className="fa account-badge fa-clock-o"/>}
+            tooltip={"Import in progress"}
           />
       );
     return (<i className="fa account-badge fa-check-circle"/>);

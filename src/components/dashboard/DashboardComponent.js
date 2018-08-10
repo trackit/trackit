@@ -159,9 +159,9 @@ export class Header extends Component {
             </div>
             &nbsp;
             <div className="btn-group">
-              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}><Popover popOver="Add a Summary"><i className="fa fa-info-circle"></i></Popover></button>
-              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}><Popover popOver="Add a Bar chart"><i className="fa fa-bar-chart"></i></Popover></button>
-              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}><Popover popOver="Add a Pie Chart"><i className="fa fa-pie-chart"></i></Popover></button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}><Popover icon={<i className="fa fa-info-circle"/>} tooltip="Add a Summary"/></button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}><Popover icon={<i className="fa fa-bar-chart"/>} tooltip="Add a Bar chart"/></button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}><Popover icon={<i className="fa fa-pie-chart"/>} tooltip="Add a Pie Chart"/></button>
             </div>
           </div>
             &nbsp;
@@ -173,8 +173,8 @@ export class Header extends Component {
               </div>
               &nbsp;
               <div className="btn-group">
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}><Popover popOver="Add a Summary"><i className="fa fa-info-circle"></i></Popover></button>
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}><Popover popOver="Add a Pie Chart"><i className="fa fa-pie-chart"></i></Popover></button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}><Popover icon={<i className="fa fa-info-circle"/>} tooltip="Add a Summary"/></button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}><Popover icon={<i className="fa fa-pie-chart"/>} tooltip="Add a Pie Chart"/></button>
               </div>
             </div>
           </div>

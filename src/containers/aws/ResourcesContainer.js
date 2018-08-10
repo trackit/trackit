@@ -9,7 +9,6 @@ const Panel = Components.Misc.Panel;
 const AccountSelector = Components.AWS.Accounts.AccountSelector;
 const VMs = Components.AWS.Resources.VMs;
 const Databases = Components.AWS.Resources.Databases;
-const Storage = Components.AWS.Resources.Storage;
 
 export class ResourcesContainer extends Component {
   render() {
@@ -30,6 +29,7 @@ export class ResourcesContainer extends Component {
           </div>
         </div>
         <VMs/>
+        <Databases/>
       </Panel>
     );
   }

@@ -496,7 +496,7 @@ h4.no-data {
 }
 
 .resources i {
-    color: #d6413b;
+    color: #4885ed;
 }
 
 .resources .wrapper {
@@ -515,7 +515,8 @@ h4.no-data {
     color: #666;
     font-size: 1.2em;
     text-align: center;
-    border-bottom: 1px solid #666;
+    border-bottom: 1px solid #aaa;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .rt-th select {
@@ -535,13 +536,33 @@ h4.no-data {
     margin: 0;
 }
 
-.vms .rt-tr-group .rt-td:last-child {
+.dbs .rt-td i {
+    font-size: 1.5em;
     text-align: center;
+    width: 100%;
 }
 
 .rt-td .wrapper .popover-trigger i {
-    color: #d6413b;
+    color: #4885ed;
     font-size: 1.5em;
+}
+
+.rt-td .wrapper .popover-trigger i.red,
+.dbs .rt-td i.fa-times-circle {
+    color: #d6413b;
+}
+
+.rt-td .wrapper .popover-trigger i.orange {
+    color: #ff9800;
+}
+
+.rt-td .wrapper .popover-trigger i.green,
+.dbs .rt-td i.fa-check-circle {
+    color: #4caf50;
+}
+
+.rt-td .wrapper .popover-trigger i.grey {
+    color: #565656;
 }
 
 .rt-td .wrapper .popover-trigger i.disabled {

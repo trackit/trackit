@@ -5,13 +5,13 @@ import Actions from "../../../actions";
 import Spinner from "react-spinkit";
 import Moment from 'moment';
 import ReactTable from 'react-table';
-import Popover from 'material-ui/Popover';
+import Popover from '@material-ui/core/Popover';
 import {formatPercent, formatBytes} from '../../../common/formatters';
 import Misc from '../../misc';
 
 const Tooltip = Misc.Popover;
 
-class Tags extends Component {
+export class Tags extends Component {
 
   constructor(props) {
     super(props);
@@ -73,7 +73,7 @@ Tags.propTypes = {
   tags: PropTypes.object.isRequired
 };
 
-class VMsComponent extends Component {
+export class VMsComponent extends Component {
 
   componentWillMount() {
     if (this.props.account)
@@ -89,7 +89,7 @@ class VMsComponent extends Component {
 
   render() {
     const loading = (!this.props.data.status ? (<Spinner className="spinner" name='circle'/>) : null);
-    const error = (this.props.data.error ? ` (${this.props.data.error.message})` : null);
+    const error = (this.props.data.error ? (<div className="alert alert-warning" role="alert">Error while getting data ({this.props.data.error.message})</div>) : null);
 
     let reportDate = null;
     let instances = [];
@@ -102,6 +102,8 @@ class VMsComponent extends Component {
     const types = [];
     if (instances)
       instances.forEach((instance) => {
+        instance.ioRead.total = Object.keys(instance.ioRead).map((volume) => (instance.ioRead[volume])).reduce((a, b) => (a+b));
+        instance.ioWrite.total = Object.keys(instance.ioWrite).map((volume) => (instance.ioWrite[volume])).reduce((a, b) => (a+b));
         if (regions.indexOf(instance.region) === -1)
           regions.push(instance.region);
         if (types.indexOf(instance.type) === -1)
@@ -118,6 +120,45 @@ class VMsComponent extends Component {
         defaultFilterMethod={(filter, row) => String(row[filter.id]).toLowerCase().includes(filter.value)}
         columns={[
           {
+            accessor: 'state',
+            filterable: false,
+            maxWidth: 50,
+            Cell: row => {
+              let color;
+              switch (row.value) {
+                case "pending":
+                case "shutting-down":
+                  color = "orange";
+                  break;
+                case "running":
+                  color = "green";
+                  break;
+                case "terminated":
+                case "stopping":
+                case "stopped":
+                  color = "red";
+                  break;
+                default:
+                  color = "grey";
+              }
+              return (
+                <Tooltip
+                  placement="left"
+                  icon={(<i className={"fa fa-circle " + color}/>)}
+                  tooltip={row.value}
+                />);
+            }
+          },
+          {
+            Header: 'Tags',
+            accessor: 'tags',
+            maxWidth: 50,
+            filterable: false,
+            Cell: row => ((row.value && Object.keys(row.value).length) ?
+              (<Tags tags={row.value}/>) :
+              (<Tooltip placement="left" icon={<i className="fa fa-tag disabled"/>} tooltip="No tags"/>))
+          },
+          {
             Header: 'Name',
             id: 'name',
             accessor: row => (row.tags.hasOwnProperty("Name") ? row.tags.Name : ""),
@@ -129,10 +170,6 @@ class VMsComponent extends Component {
           {
             Header: 'ID',
             accessor: 'id',
-          },
-          {
-            Header: 'Key Pair',
-            accessor: 'keyPair'
           },
           {
             Header: 'Type',
@@ -244,13 +281,15 @@ class VMsComponent extends Component {
                 Header: 'Read',
                 accessor: 'ioRead',
                 filterable: false,
-                Cell: row => formatBytes(Object.keys(row.value).map((volume) => (row.value[volume])).reduce((a, b) => (a+b)))
+                sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
+                Cell: row => (row.value ? formatBytes(row.value.total) : null)
               },
               {
                 Header: 'Write',
                 accessor: 'ioWrite',
                 filterable: false,
-                Cell: row => formatBytes(Object.keys(row.value).map((volume) => (row.value[volume])).reduce((a, b) => (a+b)))
+                sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
+                Cell: row => (row.value ? formatBytes(row.value.total) : null)
               }
             ]
           },
@@ -272,13 +311,8 @@ class VMsComponent extends Component {
             ]
           },
           {
-            Header: 'Tags',
-            accessor: 'tags',
-            maxWidth: 50,
-            filterable: false,
-            Cell: row => ((row.value && Object.keys(row.value).length) ?
-              (<Tags tags={row.value}/>) :
-              (<Tooltip placement="left" icon={<i className="fa fa-tag disabled"/>} tooltip="No tags"/>))
+            Header: 'Key Pair',
+            accessor: 'keyPair'
           }
         ]}
         defaultSorted={[{
@@ -317,9 +351,14 @@ VMsComponent.propTypes = {
       instances: PropTypes.arrayOf(
         PropTypes.shape({
           id: PropTypes.string.isRequired,
+          state: PropTypes.string.isRequired,
           region: PropTypes.string.isRequired,
           cpuAverage: PropTypes.number.isRequired,
           cpuPeak: PropTypes.number.isRequired,
+          ioRead: PropTypes.object.isRequired,
+          ioWrite: PropTypes.object.isRequired,
+          networkIn: PropTypes.number.isRequired,
+          networkOut: PropTypes.number.isRequired,
           keyPair: PropTypes.string.isRequired,
           type: PropTypes.string.isRequired,
           tags: PropTypes.object.isRequired
