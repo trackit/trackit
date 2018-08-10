@@ -135,7 +135,7 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
 		dateBegin:   a[routes.DateBeginQueryArg].(time.Time),
-		dateEnd:     a[routes.DateEndQueryArg].(time.Time),
+		dateEnd:     a[routes.DateEndQueryArg].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 		accountList: []string{},
 	}
 	if a[awsAccountsQueryArg] != nil {
