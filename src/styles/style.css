@@ -489,3 +489,76 @@ h4.no-data {
     padding: 10px;
     padding-bottom: 0;
 }
+
+/* Resources */
+.resources h3.white-box-title {
+    margin-bottom: 10px;
+}
+
+.resources i {
+    color: #d6413b;
+}
+
+.resources .wrapper {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.resources .popover-trigger i {
+    color: #000000;
+    font-size: 0.75em;
+}
+
+.rt-th input {
+    border: none;
+    height: 100%;
+    color: #666;
+    font-size: 1.2em;
+    text-align: center;
+    border-bottom: 1px solid #666;
+}
+
+.rt-th select {
+    border: none;
+    margin: 0;
+    color: #666;
+}
+
+.cpu-stats,
+.cpu-stats .wrapper,
+.cpu-stats .wrapper .popover-trigger {
+    width: 100%;
+    height: 100%;
+}
+
+.cpu-stats .wrapper {
+    margin: 0;
+}
+
+.vms .rt-tr-group .rt-td:last-child {
+    text-align: center;
+}
+
+.rt-td .wrapper .popover-trigger i {
+    color: #d6413b;
+    font-size: 1.5em;
+}
+
+.rt-td .wrapper .popover-trigger i.disabled {
+    color: #cccccc;
+    font-size: 1.5em;
+}
+
+.tags-list {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.tags-item {
+    padding: 10px 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tags-item:last-child {
+    border-bottom: none;
+}

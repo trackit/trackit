@@ -1,11 +1,10 @@
 import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
-
-import Actions from "../../../actions";
+import Validation from '../../../common/forms/AWSAccountForm';
 import Selector from '../../misc/Selector';
 
-export class ReportAccountSelectorComponent extends Component {
+export class AccountSelectorComponent extends Component {
 
   render() {
     const listedAccounts = (this.props.accounts.values && this.props.accounts.values.length > 0 ? this.props.accounts.values : null);
@@ -14,7 +13,8 @@ export class ReportAccountSelectorComponent extends Component {
       return null;
     }
     listedAccounts.forEach((account) => {
-      availableAccounts[account.id] = account.pretty;
+      const key = (this.props.idFromARN ? Validation.getAccountIDFromRole(account.roleArn) : account.id);
+      availableAccounts[key] = account.pretty;
     });
     return(
       <Selector values={availableAccounts} selected={this.props.account} selectValue={this.props.selectAccount}/>
@@ -23,7 +23,7 @@ export class ReportAccountSelectorComponent extends Component {
 
 }
 
-ReportAccountSelectorComponent.propTypes = {
+AccountSelectorComponent.propTypes = {
   accounts: PropTypes.shape({
     status: PropTypes.bool.isRequired,
     error: PropTypes.instanceOf(Error),
@@ -43,19 +43,17 @@ ReportAccountSelectorComponent.propTypes = {
   }),
   account: PropTypes.string,
   selectAccount: PropTypes.func.isRequired,
+  idFromARN: PropTypes.bool
+};
+
+AccountSelectorComponent.defaultProps = {
+  idFromARN: false
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.all,
-  account: aws.reports.account,
 });
 
-/* istanbul ignore next */
-const mapDispatchToProps = (dispatch) => ({
-  selectAccount: (accountId) => {
-    dispatch(Actions.AWS.Reports.selectAccount(accountId));
-  }
-});
 
-export default connect(mapStateToProps, mapDispatchToProps)(ReportAccountSelectorComponent);
+export default connect(mapStateToProps)(AccountSelectorComponent);

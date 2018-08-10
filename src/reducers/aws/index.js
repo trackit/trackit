@@ -3,6 +3,7 @@ import accounts from './accounts';
 import costs from './costs';
 import s3 from './s3';
 import reports from './reports'
+import resources from './resources'
 import map from './map';
 
 export default combineReducers({
@@ -10,5 +11,6 @@ export default combineReducers({
   s3,
   costs,
   reports,
-  map
+  map,
+  resources
 });

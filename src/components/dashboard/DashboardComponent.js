@@ -133,7 +133,7 @@ export class Header extends Component {
             <div className="inline-block">
               <Popover
                 info
-                popOver="You can move/delete any element on this dashboard or add new ones using the buttons on the right"
+                tooltip="You can move/delete any element on this dashboard or add new ones using the buttons on the right"
                 triggerStyle={{ fontSize: '20px' }}
               />
             </div>

@@ -11,8 +11,10 @@ export const formatGigaBytes = (a,d = 2) => (formatBytes(a * Math.pow(1024,3), d
 
 export const formatPrice = (value, decimals = 2) => (<span><span className="dollar-sign">$</span>{parseFloat(value.toFixed(decimals)).toLocaleString()}</span>);
 
-export const formatPercent = (value, decimals = 2) => {
+export const formatPercent = (value, decimals = 2, style=true) => {
   const formattedValue = parseFloat(Math.abs(value).toFixed(decimals)).toLocaleString();
+  if (!style)
+    return (<span className="percent ">{formattedValue}<span className="percent-sign">%</span></span>);
   const color = (value > 0 ? "red-color" : (value < 0 ? "green-color" : ""));
   const bold = (Math.abs(value) >= 100 ? "percent-bold " : "");
   const sign = (value > 0 ? "+" : (value < 0 ? "-" : ""));

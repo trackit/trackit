@@ -4,10 +4,10 @@ import { OverlayTrigger } from 'react-bootstrap';
 import { shallow } from "enzyme";
 
 const child = <div id="child"/>;
-const popOver = <div id="popOver"/>;
+const tooltip = <div id="tooltip"/>;
 
 const defaultProps = {
-  popOver
+  tooltip
 };
 
 const propsWithChild = {

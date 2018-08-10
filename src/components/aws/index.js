@@ -2,6 +2,7 @@ import Accounts from './accounts';
 import S3Analytics from './s3Analytics';
 import CostBreakdown from './costBreakdown';
 import Reports from './reports';
+import Resources from './resources';
 import Map from './map';
 
 export default {
@@ -9,5 +10,6 @@ export default {
   S3Analytics,
   CostBreakdown,
   Reports,
-  Map
+  Map,
+  Resources
 };

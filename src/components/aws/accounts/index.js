@@ -1,7 +1,7 @@
 import Form from './FormComponent';
 import List from './ListComponent';
 import Selector from './SelectorComponent';
-import SingleAccountSelector from './ReportAccountSelectorComponent';
+import AccountSelector from './AccountSelectorComponent';
 import Bills from './bills';
 import Wizard from './WizardComponent';
 import SelectedIndicator from './SelectedIndicatorComponent';
@@ -11,7 +11,7 @@ export default {
   Form,
   List,
   Selector,
-  SingleAccountSelector,
+  AccountSelector,
   Bills,
   SelectedIndicator,
   Wizard,

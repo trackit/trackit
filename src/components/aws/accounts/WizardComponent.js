@@ -158,7 +158,7 @@ export class StepTwo extends Component {
             <div className="input-title">
               <label htmlFor="roleArn">Role ARN</label>
               &nbsp;
-              <Popover info popOver="Amazon Resource Name for your role ( See step 2 )"/>
+              <Popover info tooltip="Amazon Resource Name for your role ( See step 2 )"/>
             </div>
             <Input
               name="roleArn"
@@ -172,7 +172,7 @@ export class StepTwo extends Component {
             <div className="input-title">
               <label htmlFor="pretty">Name</label>
               &nbsp;
-              <Popover info popOver="Choose a pretty name"/>
+              <Popover info tooltip="Choose a pretty name"/>
             </div>
             <Input
               type="text"
@@ -219,13 +219,11 @@ StepTwo.propTypes = {
 
 export class StepThree extends Component {
 
-
   submit = (e) => {
     e.preventDefault();
     const formValues = this.form.getValues();
     this.props.submit(this.props.account.value.id, formValues);
   };
-
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.bill.status && nextProps.bill.value && !nextProps.bill.hasOwnProperty("error")) {
@@ -234,7 +232,6 @@ export class StepThree extends Component {
   }
 
   render() {
-
 
     const loading = (this.props.bill && !this.props.bill.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
 
@@ -282,10 +279,10 @@ export class StepThree extends Component {
     return (
       <div>
 
-            {tutorial}
-            {loading || error}
+        {tutorial}
+        {loading || error}
 
-            <Form ref={
+        <Form ref={
               /* istanbul ignore next */
               form => { this.form = form; }
             } onSubmit={this.submit}>
@@ -294,7 +291,7 @@ export class StepThree extends Component {
                 <div className="input-title">
                   <label htmlFor="bucket">S3 Bucket name</label>
                   &nbsp;
-                  <Popover info popOver="Name of the S3 bucket you created"/>
+                  <Popover info tooltip="Name of the S3 bucket you created"/>
                 </div>
                 <Input
                   name="bucket"
@@ -310,7 +307,7 @@ export class StepThree extends Component {
                 <div className="input-title">
                   <label htmlFor="bucket">Report path prefix (optional)</label>
                   &nbsp;
-                  <Popover info popOver="If you set a path prefix when creating your report"/>
+                  <Popover info tooltip="If you set a path prefix when creating your report"/>
                 </div>
                 <Input
                   name="prefix"
@@ -332,7 +329,6 @@ export class StepThree extends Component {
       </div>
     );
   }
-
 
 }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReportAccountSelectorComponent } from '../ReportAccountSelectorComponent';
+import { AccountSelectorComponent } from '../ReportAccountSelectorComponent';
 import { shallow } from 'enzyme';
 
 const account1 = {
@@ -45,11 +45,11 @@ describe('<ReportAccountSelectorComponent />', () => {
   });
 
   it('renders a <ReportAccountSelectorComponent /> component', () => {
-    const wrapper = shallow(<ReportAccountSelectorComponent {...propsWithAccounts}/>);
+    const wrapper = shallow(<AccountSelectorComponent {...propsWithAccounts}/>);
     expect(wrapper.length).toBe(1);
   });
   it('renders a <ReportAccountSelectorComponent /> component without accounts', () => {
-    const wrapper = shallow(<ReportAccountSelectorComponent {...props}/>);
+    const wrapper = shallow(<AccountSelectorComponent {...props}/>);
     expect(wrapper.get(0)).toBeNull();
   });
 });

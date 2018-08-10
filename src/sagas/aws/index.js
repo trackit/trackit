@@ -3,6 +3,7 @@ import * as AccountsSaga from './accountsSaga';
 import { getCostsSaga, saveChartsSaga, loadChartsSaga, initChartsSaga } from "./costsSaga";
 import { getS3DataSaga, saveS3DatesSaga, loadS3DatesSaga } from './s3Saga';
 import { getReportsSaga, clearReportsSaga, downloadReportSaga } from './reportsSaga';
+import { getEC2ReportSaga, getRDSReportSaga } from './resourcesSaga';
 import { getMapCostsSaga } from './mapSaga';
 import Constants from '../../constants';
 
@@ -97,7 +98,15 @@ export function* watchSelectReports() {
 }
 
 export function* watchDownloadReport() {
-  yield takeLatest(Constants.AWS_DOWNLOAD_REPORT_REQUESTED, downloadReportSaga)
+  yield takeLatest(Constants.AWS_DOWNLOAD_REPORT_REQUESTED, downloadReportSaga);
+}
+
+export function* watchGetEC2Report() {
+  yield takeLatest(Constants.AWS_RESOURCES_GET_EC2, getEC2ReportSaga);
+}
+
+export function* watchGetRDSReport() {
+  yield takeLatest(Constants.AWS_RESOURCES_GET_RDS, getRDSReportSaga);
 }
 
 export function* watchGetMapCosts() {
