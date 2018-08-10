@@ -139,10 +139,22 @@
 			"revisionTime": "2018-07-30T20:55:01Z"
 		},
 		{
-			"checksumSHA1": "GQuRJY72iGQrufDqIaB50zG27u0=",
+			"checksumSHA1": "1QmQ3FqV37w0Zi44qv8pA1GeR0A=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/ec2query",
 			"revision": "a08a6c147b2563ad10342b88932b78247f45446b",
 			"revisionTime": "2018-07-30T20:55:01Z"
+		},
+		{
+			"checksumSHA1": "CTsp/h3FbFg9QizH4bH1abLwljg=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
+			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
+			"revisionTime": "2018-08-09T22:26:03Z"
+		},
+		{
+			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
+			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
+			"revisionTime": "2018-08-09T22:26:03Z"
 		},
 		{
 			"checksumSHA1": "SBBVYdLcocjdPzMWgDuR8vcOfDQ=",
@@ -175,16 +187,22 @@
 			"revisionTime": "2018-07-30T20:55:01Z"
 		},
 		{
-			"checksumSHA1": "o+DFxugR5Cy/Wwlv7GSRRilTW4o=",
+			"checksumSHA1": "Rx8tIQPEmYZhy1zbRpDmMBmGfvg=",
 			"path": "github.com/aws/aws-sdk-go/service/cloudwatch",
 			"revision": "a08a6c147b2563ad10342b88932b78247f45446b",
 			"revisionTime": "2018-07-30T20:55:01Z"
 		},
 		{
-			"checksumSHA1": "pMtjc3LhJ0Dk46ePV6MCIS0nIPs=",
+			"checksumSHA1": "hGhUGbG0E3RrhhJpfKq6bKUebz4=",
 			"path": "github.com/aws/aws-sdk-go/service/ec2",
 			"revision": "a08a6c147b2563ad10342b88932b78247f45446b",
 			"revisionTime": "2018-07-30T20:55:01Z"
+		},
+		{
+			"checksumSHA1": "8QSH1/L45ne6v+XThe0w3queTQY=",
+			"path": "github.com/aws/aws-sdk-go/service/marketplacemetering",
+			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
+			"revisionTime": "2018-08-09T22:26:03Z"
 		},
 		{
 			"checksumSHA1": "Kv8hkh6CxOCAG73xohmft8z4I3g=",
