@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -64,11 +64,26 @@ const TemplateLineItem = `
 						"region": {
 							"type": "keyword"
 						},
+						"state": {
+							"type": "keyword"
+						},
 						"cpuAverage": {
 							"type": "double"
 						},
 						"cpuPeak": {
 							"type": "double"
+						},
+						"networkIn": {
+							"type": "double"
+						},
+						"networkOut": {
+							"type": "double"
+						},
+						"ioRead": {
+							"type": "nested"
+						},
+						"ioWrite": {
+							"type": "nested"
 						},
 						"keyPair": {
 							"type": "keyword"
