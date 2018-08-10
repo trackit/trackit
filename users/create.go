@@ -178,7 +178,7 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 		return 500, errors.New("Failed to create viewer password token")
 	}
 	mailSubject := "Your TrackIt viewer password"
-	mailBody := fmt.Sprintf("Please follow this link to create your password: https://re.trackit.io/reset/%d/%s.", viewerUser.Id, token)
+	mailBody := fmt.Sprintf("Please follow this link to create your password: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
 	err = mail.SendMail(viewerUser.Email, mailSubject, mailBody, request.Context())
 	if err != nil {
 		logger.Error("Failed to send viewer password email.", err.Error())
