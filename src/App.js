@@ -103,6 +103,10 @@ export class App extends Component {
               component={hasAccounts ? Containers.AWS.Resources : redirectToSetup}
             />
             <Route
+              path={this.props.match.url + '/resources'}
+              component={hasAccounts ? Containers.AWS.Resources : redirectToSetup}
+            />
+            <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}
               component={this.props.token ? Containers.Setup.Main : redirectToLogin}
             />

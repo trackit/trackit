@@ -76,15 +76,12 @@ Tags.propTypes = {
 export class VMsComponent extends Component {
 
   componentWillMount() {
-    if (this.props.account)
-      this.props.getData(this.props.account);
+    this.props.getData();
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.account)
-      nextProps.clear();
-    else if (nextProps.account !== this.props.account)
-      nextProps.getData(nextProps.account);
+    if (nextProps.accounts !== this.props.accounts)
+      nextProps.getData();
   }
 
   render() {
@@ -94,8 +91,11 @@ export class VMsComponent extends Component {
     let reportDate = null;
     let instances = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      reportDate = (<Tooltip info tooltip={"Report created " + Moment(this.props.data.value.reportDate).fromNow()}/>);
-      instances = this.props.data.value.instances;
+      const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
+      const oldestReport = Moment.min(reportsDates);
+      const newestReport = Moment.max(reportsDates);
+      reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd d MMM HH:mm") + " and " + newestReport.format("ddd d MMM HH:mm")}/>);
+      instances = this.props.data.value.map((account) => (account.instances)).flat();
     }
 
     const regions = [];
@@ -341,7 +341,7 @@ export class VMsComponent extends Component {
 }
 
 VMsComponent.propTypes = {
-  account: PropTypes.string,
+  accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
     status: PropTypes.bool.isRequired,
     error: PropTypes.instanceOf(Error),
@@ -372,14 +372,14 @@ VMsComponent.propTypes = {
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
-  account: aws.resources.account,
+  accounts: aws.accounts.selection,
   data: aws.resources.EC2
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getData: (accountId) => {
-    dispatch(Actions.AWS.Resources.get.EC2(accountId));
+  getData: () => {
+    dispatch(Actions.AWS.Resources.get.EC2());
   },
   clear: () => {
     dispatch(Actions.AWS.Resources.clear.EC2());
