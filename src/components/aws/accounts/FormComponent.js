@@ -51,6 +51,8 @@ class FormComponent extends Component {
       <div>
 
         <button className="btn btn-default" onClick={this.openDialog}>
+          {this.props.account !== undefined ? <i className="fa fa-edit"/> : <i className="fa fa-plus" />}
+          &nbsp;
           {this.props.account !== undefined ? "Edit" : "Add"}
         </button>
 

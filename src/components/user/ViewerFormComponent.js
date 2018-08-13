@@ -123,6 +123,8 @@ class ViewerFormComponent extends Component {
           className="btn btn-primary btn-block"
           type="submit"
         >
+          <i className="fa fa-plus"></i>
+          &nbsp;
           Add
         </Button>
       </DialogActions>
@@ -131,6 +133,8 @@ class ViewerFormComponent extends Component {
     return (
       <div>
         <button className="btn btn-default" onClick={this.openDialog(true)}>
+          <i className="fa fa-plus"></i>
+          &nbsp;
           Add
         </button>
         <Dialog

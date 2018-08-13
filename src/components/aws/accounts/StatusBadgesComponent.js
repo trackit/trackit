@@ -10,7 +10,7 @@ const greenClass = 'green-color';
 const orangeClass = 'orange-color';
 const redClass = 'red-color';
 
-const isObjectEmpty = (obj) => (Object.keys(obj).length === 0 && obj.constructor === Object);
+const isObjectEmpty = (obj) => (obj ? (Object.keys(obj).length === 0 && obj.constructor === Object): null) ;
 
 export class StatusBadgeComponent extends Component {
     constructor(props) {
@@ -90,7 +90,7 @@ export class StatusBadgeComponent extends Component {
 
     getItemBadge(item) {          
         return(
-            <span className="account-status-badge" key={item.pretty}>
+            <span className="account-status-badge" key={item.pretty} style={this.getItemWarningLevel(item) === 0 ? {display: 'none'} : {}}>
                 <OverlayTrigger
                 trigger={['hover', 'focus']}
                 placement="bottom"

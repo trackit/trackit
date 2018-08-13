@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 
 import Actions from "../../actions";
 import Components from '../../components';
-import s3square from '../../assets/s3-square.png';
 
 const Panel = Components.Misc.Panel;
 const SingleAccountSelector = Components.AWS.Accounts.SingleAccountSelector;
@@ -35,7 +34,8 @@ export class ReportsContainer extends Component {
           {downloadError}
           <div className="clearfix">
             <h3 className="white-box-title no-padding inline-block">
-              <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+              <i className="fa fa-list-ul"></i>
+              &nbsp;
               AWS Reports
             </h3>
             <div className="inline-block pull-right">

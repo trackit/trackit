@@ -5,6 +5,7 @@ import {s3Analytics} from '../../../common/formatters';
 import Spinner from 'react-spinkit';
 import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
+import ChartsColors from "../../../styles/ChartsColors";
 
 const transformStoragePieChart = s3Analytics.transformStoragePieChart;
 const transformBandwidthPieChart = s3Analytics.transformBandwidthPieChart;
@@ -54,12 +55,13 @@ export class PieChartComponent extends Component {
           type="pieChart"
           title={total}
           datum={datum}
+          color={ChartsColors}
           x={formatX}
           y={formatY}
           showLabels={false}
           showLegend={false}
           donut={true}
-          height={270}
+          height={240}
         />
       </div>
     )

@@ -11,7 +11,8 @@ import AWSAccounts from '../aws/accounts'
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
-import s3square from '../../assets/s3-square.png';
+import s3squareGrey from '../../assets/s3-square-grey.png';
+import s3squareLightGrey from '../../assets/s3-square-light-grey.png';
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 const Popover = Misc.Popover;
@@ -35,10 +36,10 @@ const defaultValues = {
 
 const itemsSize = {
   header: [6, 2],
-  cb_infos: [6,3],
+  cb_infos: [6,2],
   cb_pie: [3,6],
   cb_bar: [3,6],
-  s3_infos: [6,3],
+  s3_infos: [6,2],
   s3_chart: [2,6],
 };
 
@@ -77,7 +78,7 @@ const renderItem = (key, item, child, close=null) => {
     case "cb_bar":
       title = (
         <div className=" dashboard-item-icon">
-          <i className="menu-icon fa fa-area-chart red-color"/>
+          <i className="menu-icon fa fa-area-chart"/>
           &nbsp;
           Cost Breakdown
           {badges}
@@ -88,7 +89,7 @@ const renderItem = (key, item, child, close=null) => {
     case "s3_chart":
       title = (
         <div className=" dashboard-item-icon">
-          <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+          <img className="white-box-title-icon" src={s3squareLightGrey} alt="AWS square logo"/>
           &nbsp;
           S3 Analytics
           {badges}
@@ -105,10 +106,11 @@ const renderItem = (key, item, child, close=null) => {
   ) : null);
 
   return (
-    <div className="white-box dashboard-item" key={key} data-grid={layout}>
+    <div className="dashboard-item white-box" key={key} data-grid={layout}>
       {title}
       {closeButton}
       <div className="dashboard-item-content">
+        <div className="clearfix" />
         {child}
       </div>
     </div>
@@ -123,9 +125,17 @@ export class Header extends Component {
       <div>
         <div className="clearfix">
           <div className="inline-block">
-            <h3 className="white-box-title no-padding inline-block">Dashboard</h3>
+            <h3 className="white-box-title no-padding inline-block">
+              <i className="fa fa-tachometer"></i>
+              &nbsp;
+              Dashboard
+            </h3>
             <div className="inline-block">
-              <Popover info popOver="You can move/delete any element on this dashboard or add new ones using the buttons on the right"/>
+              <Popover
+                info
+                popOver="You can move/delete any element on this dashboard or add new ones using the buttons on the right"
+                triggerStyle={{ fontSize: '20px' }}
+              />
             </div>
           </div>
           <div className="inline-block pull-right">
@@ -135,7 +145,7 @@ export class Header extends Component {
               setDatesFunc={this.props.setDates}
             />
             &nbsp;
-            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}>Reset dashboard</button>
+            <button className="btn btn-danger inline-block dashboard-btn-group" onClick={this.props.reset}><i className="fa fa-eraser"></i>&nbsp;Reset dashboard</button>
           </div>
         </div>
         &nbsp;
@@ -143,28 +153,28 @@ export class Header extends Component {
           <div className="inline-block pull-right">
             <div className="inline-block dashboard-btn-group">
             <div className="inline-block dashboard-btn-group-title">
-              <i className="menu-icon fa fa-area-chart red-color"/>
+              <i className="menu-icon fa fa-area-chart grey-color"/>
               &nbsp;
-              Cost Breakdown
+              Cost Breakdown :
             </div>
             &nbsp;
             <div className="btn-group">
-              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}>Info</button>
-              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}>Bar Chart</button>
-              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}>Pie Chart</button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_infos");}}><Popover popOver="Add a Summary"><i className="fa fa-info-circle"></i></Popover></button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_bar");}}><Popover popOver="Add a Bar chart"><i className="fa fa-bar-chart"></i></Popover></button>
+              <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("cb_pie");}}><Popover popOver="Add a Pie Chart"><i className="fa fa-pie-chart"></i></Popover></button>
             </div>
           </div>
             &nbsp;
             <div className="inline-block dashboard-btn-group">
               <div className="inline-block dashboard-btn-group-title">
-                <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+                <img className="white-box-title-icon" src={s3squareGrey} alt="AWS square logo"/>
                 &nbsp;
-                S3 Analytics
+                S3 Analytics :
               </div>
               &nbsp;
               <div className="btn-group">
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}>Info</button>
-                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}>Chart</button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_infos");}}><Popover popOver="Add a Summary"><i className="fa fa-info-circle"></i></Popover></button>
+                <button className="btn btn-default inline-block" onClick={(e) => {e.preventDefault(); this.props.addItem("s3_chart");}}><Popover popOver="Add a Pie Chart"><i className="fa fa-pie-chart"></i></Popover></button>
               </div>
             </div>
           </div>

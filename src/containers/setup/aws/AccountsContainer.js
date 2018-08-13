@@ -4,7 +4,6 @@ import { connect } from 'react-redux';
 import Components from '../../../components';
 import Actions from "../../../actions";
 import PropTypes from "prop-types";
-import s3square from '../../../assets/s3-square.png';
 
 const List = Components.AWS.Accounts.List;
 const Wizard = Components.AWS.Accounts.Wizard;
@@ -47,7 +46,9 @@ export class AccountsContainer extends Component {
         <div>
 
           <h3 className="white-box-title no-padding inline-block">
-            <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+            {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
+            <i className="fa fa-amazon"></i>
+            &nbsp;
             AWS Accounts
           </h3>
 

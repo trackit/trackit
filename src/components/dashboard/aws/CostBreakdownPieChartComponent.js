@@ -19,8 +19,8 @@ class CostBreakdownPieChartComponent extends Component {
     return (
       <Chart
         type="pie"
-        legend={false}
-        height={350}
+        legend={true}
+        height={300}
         margin={false}
         id={this.props.id}
         accounts={this.props.accounts}

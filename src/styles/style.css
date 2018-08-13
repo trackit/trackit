@@ -2,7 +2,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Rubik', 'Open sans', sans-serif;
-    background: #edf1f5 !important;
+    background: #ecedf0 !important;
 }
 
 .dollar-sign,
@@ -31,6 +31,11 @@ body {
 .card-label {
   color: #808080;
   font-weight: 300;
+  font-size: 16px;
+}
+
+.card-icon {
+    font-size: 1.4em;
 }
 
 .in-col {
@@ -46,7 +51,7 @@ body {
 }
 
 .total-cell .dollar-sign {
-    color: #1e88e5;
+    color: #4885ed;
 }
 
 .font-light-medium {
@@ -68,9 +73,10 @@ body {
 
 select {
   height: 34px;
-  background: white;
-  border: 1px solid #4885ed;
   color: #4885ed;
+  background-color: #fff;
+  border-color: #f1f1f1;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 select,
@@ -110,7 +116,8 @@ button {
 .btn-default, .btn-default:focus, .btn-default:hover {
     color: #4885ed;
     background-color: #fff;
-    border-color: #4885ed;
+    border-color: #f1f1f1;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .btn-primary, .btn-primary:focus, .btn-primary:hover {
@@ -122,7 +129,9 @@ button {
 .btn-danger, .btn-danger:focus, .btn-danger:hover {
     color: #d9534f;
     background-color: #fff;
-    border-color: #d9534f
+    border-color: #f1f1f1;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+
 }
 
 .btn-left {
@@ -136,8 +145,6 @@ button {
 .no-click, .no-click:active, .no-click:focus, .no-click:hover, .no-click:active:focus, .no-click:active:hover {
     color: #4885ed;
     background-color: #fff;
-    border-color: #4885ed;
-    box-shadow: none;
 }
 
 /* COLORS */
@@ -167,11 +174,11 @@ button {
 }
 
 .blue-color {
-    color: #1e88e5;
+    color: #4885ed;
 }
 
 .blue-bg {
-    background-color: #1e88e5;
+    background-color: #4885ed;
 }
 
 .purple-color {
@@ -182,19 +189,33 @@ button {
     background-color: #9C27B0;
 }
 
+.grey-color {
+    color: #565656;
+}
+
+.grey-bg {
+    background-color: #565656;
+}
+
+
 
 /* WHITE BOX */
+.react-grid-item {
+    overflow-y: hidden;
+}
 
 .white-box {
-    background: #fff;
-    padding: 25px;
+    background: #fdfdfd;
+    padding: 15px;
     margin-bottom: 30px;
-    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .1);
+    border-radius: 5px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
 .white-box .white-box-title {
     margin: 0px;
     padding-bottom: 20px;
+    line-height: inherit;
 }
 
 .white-box.no-padding {
@@ -212,6 +233,10 @@ button {
     vertical-align: top;
     margin: 0px 7px;
     margin-top: 2px;
+}
+
+.white-box-title > i.fa {
+    color: #4885ed;
 }
 
 .form-control {
@@ -243,7 +268,7 @@ label {
 }
 
 .ReactTable .-pagination .-btn {
-    color: #1e88e5;
+    color: #4885ed;
 }
 
 
@@ -270,6 +295,17 @@ label {
 }
 
 /* S3 Analytics */
+.s3-card {
+    width: 20%;
+    float: left;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.nvd3.nv-pie .nv-pie-title {
+    fill: #4885ed !important;
+}
+
 .s3analytics.piechart h2 {
     text-transform: capitalize;
     text-align: center;
@@ -307,6 +343,11 @@ label {
     margin: 5px;
     float: left;
     color: #bbb;
+    font-size: 15px;
+}
+
+.dashboard-item-icon > i.fa {
+    font-size: 17px;
 }
 
 h4.no-data {
@@ -316,14 +357,17 @@ h4.no-data {
 
 .dashboard-item-content .popover-trigger {
     margin: 0 10px;
-    font-size: 20px;
+    font-size: inherit;
 }
 
 /* Cost Breakdown */
 
-.cost-breakdown-chart-icon {
-    font-size: 20px;
-    font-weight: 200;
+.cb-card {
+    width: 30%;
+    float: left;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 /* Resources Map */

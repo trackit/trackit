@@ -95,6 +95,8 @@ class StatusComponent extends Component {
       <div>
 
         <button className="btn btn-default" onClick={this.openDialog}>
+          <i className="fa fa-heartbeat"/>
+          &nbsp;
           Status
         </button>
 

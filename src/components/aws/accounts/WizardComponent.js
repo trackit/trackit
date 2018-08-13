@@ -418,7 +418,7 @@ class Wizard extends Component {
     return(
       <div className="account-wizard">
 
-        <button className="btn btn-default" onClick={this.openDialog}>Add</button>
+        <button className="btn btn-default" onClick={this.openDialog}><i className="fa fa-plus"></i>&nbsp;Add</button>
 
         <Dialog open={this.state.open} fullWidth>
 

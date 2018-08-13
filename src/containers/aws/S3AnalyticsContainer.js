@@ -7,8 +7,6 @@ import Actions from '../../actions';
 
 import Components from '../../components';
 
-import s3square from '../../assets/s3-square.png';
-
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const S3Analytics = Components.AWS.S3Analytics;
 const Panel = Components.Misc.Panel;
@@ -62,7 +60,9 @@ export class S3AnalyticsContainer extends Component {
 
         <div className="clearfix">
           <h3 className="white-box-title no-padding inline-block">
-            <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+            {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
+            <i className="fa fa-hdd-o"></i>
+            &nbsp;
             AWS S3 Analytics
             {badges}
           </h3>

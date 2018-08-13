@@ -150,7 +150,7 @@ export class ListComponent extends Component {
 
     return (
       <Dialog
-        buttonName="Bills locations"
+        buttonName={<span><i className="fa fa-map-marker"/> Bills location</span>}
         title="Bills locations"
         secondActionName="Close"
         onOpen={this.getBills}

@@ -46,25 +46,10 @@ class InfosComponent extends Component {
     /* istanbul ignore next */
     return (
       <div>
-        <div className={"col-md-2 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs" + (this.props.offset ? " col-md-offset-1" : "")}>
+        <div className="s3-card">
           <ul className="in-col">
-            <li>
-              <i className="fa fa-shopping-bag fa-2x green-color"/>
-            </li>
-            <li>
-              <h3 className="no-margin no-padding font-light">
-                {totals.buckets}
-              </h3>
-            </li>
-          </ul>
-          <h4 className="card-label p-l-10 m-b-0">
-            total buckets
-          </h4>
-        </div>
-        <div className="col-md-2 col-sm-6 p-t-15 p-b-15 br-md bb-xs">
-          <ul className="in-col">
-            <li>
-              <i className="fa fa-database fa-2x red-color"/>
+            <li className="hidden-sm hidden-xs">
+              <i className="fa fa-database card-icon blue-color"/>
             </li>
             <li>
               <h3 className="no-margin no-padding font-light">
@@ -76,10 +61,25 @@ class InfosComponent extends Component {
             total size
           </h4>
         </div>
-        <div className="col-md-2 col-sm-4 p-t-15 p-b-15 bb-xs br-sm br-md">
+        <div className="s3-card">
           <ul className="in-col">
+            <li className="hidden-sm hidden-xs">
+              <i className="fa fa-shopping-bag card-icon blue-color"/>
+            </li>
             <li>
-              <i className="fa fa-globe fa-2x blue-color"/>
+              <h3 className="no-margin no-padding font-light">
+                {totals.buckets}
+              </h3>
+            </li>
+          </ul>
+          <h4 className="card-label p-l-10 m-b-0">
+            total buckets
+          </h4>
+        </div>
+        <div className="s3-card">
+          <ul className="in-col">
+            <li className="hidden-sm hidden-xs">
+              <i className="fa fa-globe card-icon blue-color"/>
             </li>
             <li>
               <h3 className="no-margin no-padding font-light">
@@ -88,13 +88,13 @@ class InfosComponent extends Component {
             </li>
           </ul>
           <h4 className="card-label p-l-10 m-b-0">
-            bandwidth total cost
+            bandwidth cost
           </h4>
         </div>
-        <div className="col-md-2 col-sm-4 p-t-15 p-b-15 bb-xs br-sm">
+        <div className="s3-card">
           <ul className="in-col">
-            <li>
-              <i className="fa fa-hdd-o fa-2x orange-color"/>
+            <li className="hidden-sm hidden-xs">
+              <i className="fa fa-hdd-o card-icon blue-color"/>
             </li>
             <li>
               <h3 className="no-margin no-padding font-light">
@@ -103,13 +103,13 @@ class InfosComponent extends Component {
             </li>
           </ul>
           <h4 className="card-label p-l-10 m-b-0">
-            storage total cost
+            storage cost
           </h4>
         </div>
-        <div className="col-md-2 col-sm-4 p-t-15 p-b-15">
+        <div className="s3-card">
           <ul className="in-col">
-            <li>
-              <i className="fa fa-exchange fa-2x purple-color"/>
+            <li className="hidden-sm hidden-xs">
+              <i className="fa fa-exchange card-icon blue-color"/>
             </li>
             <li>
               <h3 className="no-margin no-padding font-light">
@@ -118,7 +118,7 @@ class InfosComponent extends Component {
             </li>
           </ul>
           <h4 className="card-label p-l-10 m-b-0">
-            requests total cost
+            requests cost
           </h4>
         </div>
         <span className="clearfix"></span>
@@ -130,11 +130,9 @@ class InfosComponent extends Component {
 
 InfosComponent.propTypes = {
   data: PropTypes.object,
-  offset: PropTypes.bool
 };
 
 InfosComponent.defaultProps = {
-  offset: true
 };
 
 export default InfosComponent;

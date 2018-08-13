@@ -95,7 +95,7 @@ class DialogComponent extends Component {
 
 DialogComponent.propTypes = {
   buttonType: PropTypes.string,
-  buttonName: PropTypes.string.isRequired,
+  buttonName: PropTypes.node.isRequired,
   title: PropTypes.string,
   titleChildren: PropTypes.node,
   actionName: PropTypes.string,

@@ -7,7 +7,7 @@ class DeleteConfirmation extends Component {
   render() {
     return(
       <Dialog
-        buttonName="Delete"
+        buttonName={<span><i className="fa fa-times"/>&nbsp;Delete</span>}
         buttonType="danger"
         title={"Are you sure to want to delete " + (this.props.entity || "this") + " ?"}
         actionName="Confirm"
