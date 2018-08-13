@@ -105,8 +105,8 @@ jobs:
           command: |
             set -xe
             docker tag msolution/trackit2-sql msolution/trackit2-sql:${CIRCLE_SHA1}
-            docker push msolution/stg-trackit2-sql
-            docker push msolution/stg-trackit2-sql:${CIRCLE_SHA1}
+            docker push msolution/trackit2-sql
+            docker push msolution/trackit2-sql:${CIRCLE_SHA1}
       - run:
           name: Push API Docker image
           command: |
