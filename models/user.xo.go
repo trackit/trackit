@@ -10,11 +10,12 @@ import (
 
 // User represents a row from 'trackit.user'.
 type User struct {
-	ID           int            `json:"id"`             // id
-	Email        string         `json:"email"`          // email
-	Auth         string         `json:"auth"`           // auth
-	NextExternal sql.NullString `json:"next_external"`  // next_external
-	ParentUserID sql.NullInt64  `json:"parent_user_id"` // parent_user_id
+	ID                    int            `json:"id"`                      // id
+	Email                 string         `json:"email"`                   // email
+	Auth                  string         `json:"auth"`                    // auth
+	NextExternal          sql.NullString `json:"next_external"`           // next_external
+	ParentUserID          sql.NullInt64  `json:"parent_user_id"`          // parent_user_id
+	AwsCustomerIdentifier string         `json:"aws_customer_identifier"` // aws_customer_identifier
 
 	// xo fields
 	_exists, _deleted bool
@@ -41,14 +42,14 @@ func (u *User) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.user (` +
-		`email, auth, next_external, parent_user_id` +
+		`email, auth, next_external, parent_user_id, aws_customer_identifier` +
 		`) VALUES (` +
-		`?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID)
-	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID)
+	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier)
+	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier)
 	if err != nil {
 		return err
 	}
@@ -82,12 +83,12 @@ func (u *User) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.user SET ` +
-		`email = ?, auth = ?, next_external = ?, parent_user_id = ?` +
+		`email = ?, auth = ?, next_external = ?, parent_user_id = ?, aws_customer_identifier = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.ID)
-	_, err = db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.ID)
+	XOLog(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.ID)
+	_, err = db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.ID)
 	return err
 }
 
@@ -145,7 +146,7 @@ func UsersByParentUserID(db XODB, parentUserID sql.NullInt64) ([]*User, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external, parent_user_id ` +
+		`id, email, auth, next_external, parent_user_id, aws_customer_identifier ` +
 		`FROM trackit.user ` +
 		`WHERE parent_user_id = ?`
 
@@ -165,7 +166,7 @@ func UsersByParentUserID(db XODB, parentUserID sql.NullInt64) ([]*User, error) {
 		}
 
 		// scan
-		err = q.Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID)
+		err = q.Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier)
 		if err != nil {
 			return nil, err
 		}
@@ -184,7 +185,7 @@ func UserByEmail(db XODB, email string) (*User, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external, parent_user_id ` +
+		`id, email, auth, next_external, parent_user_id, aws_customer_identifier ` +
 		`FROM trackit.user ` +
 		`WHERE email = ?`
 
@@ -194,7 +195,7 @@ func UserByEmail(db XODB, email string) (*User, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, email).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID)
+	err = db.QueryRow(sqlstr, email).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +211,7 @@ func UserByID(db XODB, id int) (*User, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external, parent_user_id ` +
+		`id, email, auth, next_external, parent_user_id, aws_customer_identifier ` +
 		`FROM trackit.user ` +
 		`WHERE id = ?`
 
@@ -220,7 +221,7 @@ func UserByID(db XODB, id int) (*User, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID)
+	err = db.QueryRow(sqlstr, id).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier)
 	if err != nil {
 		return nil, err
 	}

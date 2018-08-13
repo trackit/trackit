@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -19,13 +19,22 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"net/http"
-	
+	"context"
+
+	"github.com/aws/aws-sdk-go/service/marketplacemetering"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/mail"
+	"github.com/satori/go.uuid"
+
 )
 
 const (
@@ -40,7 +49,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
+			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken"}},
 			routes.Documentation{
 				Summary:     "register a new user",
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
@@ -49,7 +58,7 @@ func init() {
 		http.MethodPatch: routes.H(patchUser).With(
 			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd"}},
+			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken"}},
 			routes.Documentation{
 				Summary:     "edit the current user",
 				Description: "Edit the current user, and responds with the user's data.",
@@ -94,13 +103,44 @@ func init() {
 type createUserRequestBody struct {
 	Email    string `json:"email"    req:"nonzero"`
 	Password string `json:"password" req:"nonzero"`
+	AwsToken string `json:"awsToken"`
+}
+
+//checkAwsTokenLegitimacy checks if the AWS Token exists. It returns the product code and
+//the customer identifier. If there is no Token, this function is not call.
+func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
+	var awsInput marketplacemetering.ResolveCustomerInput
+	mySession := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String(config.AwsRegion),
+	}))
+	svc := marketplacemetering.New(mySession)
+	awsInput.SetRegistrationToken(token)
+	result, err := svc.ResolveCustomer(&awsInput)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Error when checking the AWS token", err)
+	}
+	return result, err
 }
 
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
+	var result *marketplacemetering.ResolveCustomerOutput
+	var awsCustomerConvert = ""
+	ctx := request.Context()
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	code, resp := createUserWithValidBody(request, body, tx)
+	//Check legitimacy of the AWS Token and get user registration token
+	if body.AwsToken != "" {
+		var err error
+		result, err = checkAwsTokenLegitimacy(ctx, body.AwsToken)
+		if err != nil {
+			return 409, errors.New("Fail to check the AWS token")
+		}
+		awsCustomer := result.CustomerIdentifier
+		awsCustomerConvert = *awsCustomer
+	}
+	code, resp := createUserWithValidBody(request, body, tx, awsCustomerConvert)
 	// Add the default role to the new account. No error is returned in case of failure
 	// The billing repository is not processed instantly
 	if code == 200 && config.DefaultRole != "" && config.DefaultRoleName != "" &&
@@ -110,10 +150,10 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	return code, resp
 }
 
-func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx) (int, interface{}) {
+func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password)
+	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier)
 	if err == nil {
 		logger.Info("User created.", user)
 		return 200, user
@@ -143,6 +183,13 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	currentUser := a[AuthenticatedUser].(User)
 	tx := a[db.Transaction].(*sql.Tx)
 	ctx := request.Context()
+	token := uuid.NewV1().String()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	tokenHash, err := getPasswordHash(token)
+	if err != nil {
+		logger.Error("Failed to create token hash.", err.Error())
+		return 500, errors.New("Failed to create token hash")
+	}
 	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
 	if err != nil {
 		errSplit := strings.Split(err.Error(), ":")
@@ -155,6 +202,23 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	response := createViewerUserResponseBody{
 		User:     viewerUser,
 		Password: viewerUserPassword,
+	}
+	dbForgottenPassword := models.ForgottenPassword{
+		UserID:  viewerUser.Id,
+		Token:   tokenHash,
+		Created: time.Now(),
+	}
+	err = dbForgottenPassword.Insert(tx)
+	if err != nil {
+		logger.Error("Failed to insert viewer password token in database.", err.Error())
+		return 500, errors.New("Failed to create viewer password token")
+	}
+	mailSubject := "Your TrackIt viewer password"
+	mailBody := fmt.Sprintf("Please follow this link to create your password: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
+	err = mail.SendMail(viewerUser.Email, mailSubject, mailBody, request.Context())
+	if err != nil {
+		logger.Error("Failed to send viewer password email.", err.Error())
+		return 500, errors.New("Failed to send viewer password email")
 	}
 	return http.StatusOK, response
 }
