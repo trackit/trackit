@@ -7,62 +7,6 @@ jobs:
     branches:
       only:
         - stg
-    steps:
-      - checkout
-      - run:
-          name: Get dependencies with govendor
-          command: |
-            set -xe
-            govendor sync -v
-      - run:
-          name: Build portable binary
-          command: |
-            set -xe
-            cd server/
-            ./buildstatic.sh
-      - setup_remote_docker
-      - run:
-          name: Copy SQL schema
-          command: |
-            set -xe
-            pushd scripts
-            ./copy_schema.sh
-            popd
-      - run:
-          name: Build SQL Docker image
-          command: |
-            set -xe
-            docker build -t msolution/stg-trackit2-sql docker/sql/
-      - run:
-          name: Build API Docker image
-          command: |
-            set -xe
-            docker build -t msolution/stg-trackit2-api docker/server/
-      - run:
-          name: Login to Docker Hub
-          command: |
-            set -e
-            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
-      - run:
-          name: Push SQL Docker image
-          command: |
-            set -xe
-            docker tag msolution/stg-trackit2-sql msolution/stg-trackit2-sql:${CIRCLE_SHA1}
-            docker push msolution/stg-trackit2-sql
-            docker push msolution/stg-trackit2-sql:${CIRCLE_SHA1}
-      - run:
-          name: Push API Docker image
-          command: |
-            set -xe
-            docker tag msolution/stg-trackit2-api msolution/stg-trackit2-api:${CIRCLE_SHA1}
-            docker push msolution/stg-trackit2-api
-            docker push msolution/stg-trackit2-api:${CIRCLE_SHA1}
-  build_master:
-    working_directory: /go/src/github.com/trackit/trackit-server
-    docker:
-      - image: msolution/trackit2-circleci
-    branches:
-      only:
         - master
     steps:
       - checkout
@@ -89,12 +33,22 @@ jobs:
           name: Build SQL Docker image
           command: |
             set -xe
-            docker build -t msolution/trackit2-sql docker/sql/
+            CONTAINER_NAME=msolution/stg-trackit2-sql
+            if [ "$CIRCLE_BRANCH" == "master" ];
+            then
+              CONTAINER_NAME=msolution/trackit2-sql
+            fi
+            docker build -t $CONTAINER_NAME docker/sql/
       - run:
           name: Build API Docker image
           command: |
             set -xe
-            docker build -t msolution/trackit2-api docker/server/
+            CONTAINER_NAME=msolution/stg-trackit2-api
+            if [ "$CIRCLE_BRANCH" == "master" ];
+            then
+              CONTAINER_NAME=msolution/trackit2-api
+            fi
+            docker build -t $CONTAINER_NAME docker/server/
       - run:
           name: Login to Docker Hub
           command: |
@@ -104,15 +58,25 @@ jobs:
           name: Push SQL Docker image
           command: |
             set -xe
-            docker tag msolution/trackit2-sql msolution/trackit2-sql:${CIRCLE_SHA1}
-            docker push msolution/trackit2-sql
-            docker push msolution/trackit2-sql:${CIRCLE_SHA1}
+            CONTAINER_NAME=msolution/stg-trackit2-sql
+            if [ "$CIRCLE_BRANCH" == "master" ];
+            then
+              CONTAINER_NAME=msolution/trackit2-sql
+            fi
+            docker tag $CONTAINER_NAME $CONTAINER_NAME:${CIRCLE_SHA1}
+            docker push $CONTAINER_NAME
+            docker push $CONTAINER_NAME:${CIRCLE_SHA1}
       - run:
           name: Push API Docker image
           command: |
             set -xe
-            docker tag msolution/trackit2-api msolution/trackit2-api:${CIRCLE_SHA1}
-            docker push msolution/trackit2-api
-            docker push msolution/trackit2-api:${CIRCLE_SHA1}
+            CONTAINER_NAME=msolution/stg-trackit2-api
+            if [ "$CIRCLE_BRANCH" == "master" ];
+            then
+              CONTAINER_NAME=msolution/trackit2-api
+            fi
+            docker tag $CONTAINER_NAME $CONTAINER_NAME:${CIRCLE_SHA1}
+            docker push $CONTAINER_NAME
+            docker push $CONTAINER_NAME:${CIRCLE_SHA1}
 
 # vim: set ts=2 sts=2 et:
