@@ -71,25 +71,12 @@ func init() {
 				Summary:     "get the s3 costs data",
 				Description: "Responds with cost data based on the queryparams passed to it",
 			},
-			routes.QueryArgs{awsAccountsQueryArg},
+			routes.QueryArgs{routes.AwsAccountsOptionalQueryArg},
 			routes.QueryArgs{routes.DateBeginQueryArg},
 			routes.QueryArgs{routes.DateEndQueryArg},
 		),
 	}.H().Register("/s3/costs")
 }
-
-var (
-	// awsAccountsQueryArg allows to get the AWS Account IDs in the URL
-	// Parameters with routes.QueryArgs. These AWS Account IDs will be a
-	// slice of Uint stored in the routes.Arguments map with itself for key.
-	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
-	awsAccountsQueryArg = routes.QueryArg{
-		Name:        "aas",
-		Type:        routes.QueryArgStringSlice{},
-		Description: "The IDs for many AWS account.",
-		Optional:    true,
-	}
-)
 
 // makeElasticSearchRequest prepares and run the request to retrieve usage and cost
 // informations related to the queryDataType
@@ -138,8 +125,8 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 		dateEnd:     a[routes.DateEndQueryArg].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 		accountList: []string{},
 	}
-	if a[awsAccountsQueryArg] != nil {
-		parsedParams.accountList = a[awsAccountsQueryArg].([]string)
+	if a[routes.AwsAccountsOptionalQueryArg] != nil {
+		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	var err error
 	var returnCode int
