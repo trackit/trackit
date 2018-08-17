@@ -81,7 +81,7 @@ export class Header extends Component {
               'Last Month': [Moment().subtract(1, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
               'Last 2 Month': [Moment().subtract(2, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
               'Last 3 Month': [Moment().subtract(3, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
-              'Last 6 Month': [Moment().subtract(3, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
+              'Last 6 Month': [Moment().subtract(6, 'month').startOf('month'), Moment().subtract(1, 'month').endOf('month')],
               'Last 12 Months': [Moment().subtract(1, 'year').startOf('month'), Moment().subtract(1, 'months').endOf('month')],
               'This Year': [Moment().startOf('year'), Moment()],
               'Last Year': [Moment().subtract(1, 'year').startOf('year'), Moment().subtract(1, 'year').endOf('year')]
