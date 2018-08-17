@@ -21,30 +21,45 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws/ec2"
 )
 
-// parseESResult parses an *elastic.SearchResult according to it's resultType
-func parseESResult(ctx context.Context, res *elastic.SearchResult) (*ec2.ReportInfo, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	reports := make([]ec2.ReportInfo, 0)
-	for _, hit := range res.Hits.Hits {
-		var parsedDocument ec2.ReportInfo
-		err := json.Unmarshal(*hit.Source, &parsedDocument)
-		if err != nil {
-			logger.Error("Failed to parse elasticsearch document.", err.Error())
-			return nil, err
+type bucket = map[string]interface{}
+
+// parseBuckets iterates through all the buckets to retrieve the top hits
+func parseBuckets(reports []interface{}, parsedTopReports bucket) []interface{} {
+	buckets := parsedTopReports["buckets"].([]interface{})
+	for _, bucketTmp := range buckets {
+		bucketData := bucketTmp.(bucket)
+		bucketTopHits := bucketData["top_reports_hits"].(bucket)
+		topHitsHits := bucketTopHits["hits"].(bucket)
+		hitsList := topHitsHits["hits"].([]interface{})
+		if len(hitsList) > 0 {
+			topHit := hitsList[0].(bucket)
+			reports = append(reports, topHit["_source"])
 		}
-		reports = append(reports, parsedDocument)
 	}
-	return &reports[0], nil
+	return reports
 }
 
-// prepareResponse parses the results from elasticsearch and returns a list of EC2 reports with stats of each instances
-func prepareResponse(ctx context.Context, rawReport *elastic.SearchResult) (interface{}, error) {
-	report, err := parseESResult(ctx, rawReport)
+// parseESResult parses an *elastic.SearchResult according to it's resultType
+func parseESResult(ctx context.Context, res *elastic.SearchResult) ([]interface{}, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	reports := make([]interface{}, 0)
+	var parsedTopReports bucket
+	err := json.Unmarshal(*res.Aggregations["top_reports"], &parsedTopReports)
+	if err != nil {
+		logger.Error("Failed to parse elasticsearch document.", err.Error())
+		return reports, err
+	}
+	reports = parseBuckets(reports, parsedTopReports)
+	return reports, nil
+}
+
+// prepareResponse parses the results from elasticsearch and returns the RDS report
+func prepareResponse(ctx context.Context, res *elastic.SearchResult) (interface{}, error) {
+	reports, err := parseESResult(ctx, res)
 	if err != nil {
 		return nil, err
 	}
-	return report, nil
+	return reports, nil
 }

@@ -20,10 +20,12 @@ import (
 )
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilter(account string) *elastic.TermsQuery {
-	accountFormatted := make([]interface{}, 1)
-	accountFormatted[0] = account
-	return elastic.NewTermsQuery("account", accountFormatted...)
+func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
+	accountListFormatted := make([]interface{}, len(accountList))
+	for i, v := range accountList {
+		accountListFormatted[i] = v
+	}
+	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
@@ -33,14 +35,18 @@ func createQueryAccountFilter(account string) *elastic.TermsQuery {
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on wich to execute the query. In this context the default value
-//	should be "awsdetailedlineitems"
+//	should be "ec2-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchParams(account string, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchParams(accountList []string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	query = query.Filter(createQueryAccountFilter(account))
-	search := client.Search().Index(index).Query(query).Sort("reportDate", false).Size(1)
+	if len(accountList) > 0 {
+		query = query.Filter(createQueryAccountFilter(accountList))
+	}
+	search := client.Search().Index(index).Size(0).Query(query)
+	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
+		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
 	return search
 }
