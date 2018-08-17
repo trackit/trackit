@@ -55,13 +55,7 @@ type esQueryParams struct {
 
 // costQueryArgs allows to get required queryArgs params
 var costsQueryArgs = []routes.QueryArg{
-	// TODO (BREAKING CHANGE): replace by routes.AwsAccountsOptionalQueryArg
-	routes.QueryArg{
-		Name:        "accounts",
-		Description: "List of comma separated AWS accounts ids",
-		Type:        routes.QueryArgStringSlice{},
-		Optional:    true,
-	},
+	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
 	routes.QueryArg{

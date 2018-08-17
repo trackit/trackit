@@ -18,10 +18,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws"
 )
 
 // AwsAccountIdsOptionalQueryArg allows to get the AWS Account IDs in the URL
@@ -48,38 +48,38 @@ func init() {
 				routes.AwsAccountIdsOptionalQueryArg,
 				DetailedOptionalQueryArg,
 			},
-	),
+		),
 		http.MethodPost: routes.H(postAwsAccount).With(
-		users.RequireAuthenticatedUser{users.ViewerCannot},
-		routes.RequestContentType{"application/json"},
-		routes.RequestBody{postAwsAccountRequestBody{
-		RoleArn:  "arn:aws:iam::123456789012:role/example",
-		External: "LlzrwHeiM-SGKRLPgaGbeucx_CJC@QBl,_vOEF@o",
-		Pretty:   "My AWS account",
-	}},
-		routes.Documentation{
-		Summary:     "add an aws account",
-		Description: "Adds an AWS account to the user's list of accounts, validating it before succeeding.",
-	},
-	),
+			users.RequireAuthenticatedUser{users.ViewerCannot},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{postAwsAccountRequestBody{
+				RoleArn:  "arn:aws:iam::123456789012:role/example",
+				External: "LlzrwHeiM-SGKRLPgaGbeucx_CJC@QBl,_vOEF@o",
+				Pretty:   "My AWS account",
+			}},
+			routes.Documentation{
+				Summary:     "add an aws account",
+				Description: "Adds an AWS account to the user's list of accounts, validating it before succeeding.",
+			},
+		),
 		http.MethodPatch: routes.H(patchAwsAccount).With(
-		users.RequireAuthenticatedUser{users.ViewerCannot},
-		routes.RequestContentType{"application/json"},
-		routes.QueryArgs{routes.AwsAccountIdQueryArg},
-		routes.Documentation{
-		Summary:     "edit an aws account",
-		Description: "Edits an AWS account from the user's list of accounts.",
-	},
-	),
+			users.RequireAuthenticatedUser{users.ViewerCannot},
+			routes.RequestContentType{"application/json"},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
+			routes.Documentation{
+				Summary:     "edit an aws account",
+				Description: "Edits an AWS account from the user's list of accounts.",
+			},
+		),
 		http.MethodDelete: routes.H(deleteAwsAccount).With(
-		users.RequireAuthenticatedUser{users.ViewerCannot},
-		routes.QueryArgs{routes.AwsAccountIdQueryArg},
-		aws.RequireAwsAccountId{},
-		routes.Documentation{
-		Summary:     "delete an aws account",
-		Description: "Delete the aws account passed in the query args.",
-	},
-	),
+			users.RequireAuthenticatedUser{users.ViewerCannot},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
+			aws.RequireAwsAccountId{},
+			routes.Documentation{
+				Summary:     "delete an aws account",
+				Description: "Delete the aws account passed in the query args.",
+			},
+		),
 	}.H().With(
 		db.RequestTransaction{db.Db},
 		routes.Documentation{
