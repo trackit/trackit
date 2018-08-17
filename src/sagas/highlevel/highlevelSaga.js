@@ -36,10 +36,10 @@ export function* getEventsSaga({ begin, end }) {
       yield put({type: Constants.LOGOUT_REQUEST});
       return;
     }
-    if (
-      res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error")
-    )
+    if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.HIGHLEVEL_EVENTS_SUCCESS, events: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      throw Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
