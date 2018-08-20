@@ -49,7 +49,7 @@ describe('Formatters', () => {
     const zeroValue = "0 Bytes";
 
     it('should return formatted value', () => {
-      expect(formatBytes(validInput)).toBe(validInput + " Bytes");
+      expect(formatBytes(validInput)).toBe(validInput + "Bytes");
     });
 
     it('should return zero value', () => {
@@ -64,7 +64,7 @@ describe('Formatters', () => {
     const zeroValue = "0 Bytes";
 
     it('should return formatted value', () => {
-      expect(formatGigaBytes(validInput)).toBe(validInput + " GB");
+      expect(formatGigaBytes(validInput)).toBe(validInput + "GB");
     });
 
     it('should return zero value', () => {
