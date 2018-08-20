@@ -101,10 +101,10 @@ class MapComponent extends Component {
   createMap() {
     const setupRegion = (region, style, mask=region) => {
       d3.selectAll("g#AWS-Regions")
-        .select("#" + (mask === "" ? "no_region" : mask))
+        .select("#" + mask)
         .on("mouseover", () => {
           tooltip.innerHTML = null;
-          tooltip.appendChild(generateTooltip((region === "" ? "Global products" : region), this.props.data[region]));
+          tooltip.appendChild(generateTooltip((region === "global" ? "Global products" : region), this.props.data[region]));
           d3.select(tooltip)
             .style({
               opacity: 1,
@@ -145,9 +145,9 @@ class MapComponent extends Component {
             "pointer-events": "all",
             "stroke": "#777777"
           };
-          if (region === "") {
+          if (region === "global") {
             style["stroke"] = "none";
-            setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "no_region_toggle");
+            setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "global_toggle");
           }
           setupRegion(region, style);
         });
