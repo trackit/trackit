@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import Components from '../../components';
 
 import Spinner from 'react-spinkit';
-import s3square from '../../assets/s3-square.png';
 import PropTypes from "prop-types";
 import Actions from "../../actions";
 
@@ -102,7 +101,7 @@ const regionDetails = (key, region, data, double, close) => {
           <div className="col-md-4 col-sm-4 p-t-15 p-b-15 br-sm br-md bb-xs info">
             <ul className="in-col">
               <li>
-                <i className="fa fa-dollar fa-2x green-color"/>
+                <i className="fa fa-credit-card fa-2x blue-color"/>
               </li>
               <li>
                 <h3 className="no-margin no-padding font-light">
@@ -117,7 +116,7 @@ const regionDetails = (key, region, data, double, close) => {
           <div className="col-md-4 col-sm-4 p-t-15 p-b-15 br-md bb-xs info">
             <ul className="in-col">
               <li>
-                <i className="fa fa-th-list fa-2x red-color"/>
+                <i className="fa fa-th-list fa-2x blue-color"/>
               </li>
               <li>
                 <h3 className="no-margin no-padding font-light">
@@ -216,7 +215,7 @@ export class ResourcesMapContainer extends Component {
     const emptySelection = (
       <div className="white-box">
         <div className="map-empty-selection">
-          <i className="fa fa-globe"/>
+          <i className="fa fa-map-o"/>
           &nbsp;
           Select a region to see more details (You can select up to 2 regions)
         </div>
@@ -230,14 +229,32 @@ export class ResourcesMapContainer extends Component {
       </div>
     ));
 
+    let badges;
+
+    if (this.props.costs && this.props.costs.status) {
+      badges = (
+        <Components.AWS.Accounts.StatusBadges
+          values={
+            this.props.costs ? (
+              this.props.costs.status ? this.props.costs.values : {}
+            ) : {}
+          }
+        />
+      );
+    }
+  
+
     return (
       <div className="container-fluid">
 
         <div className="clearfix white-box">
           <div className="inline-block">
             <h3 className="white-box-title no-padding inline-block">
-              <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+              {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
+              <i className="fa fa-globe"></i>
+              &nbsp;
               Resources Map
+              {badges}
             </h3>
           </div>
           <div className="inline-block pull-right">

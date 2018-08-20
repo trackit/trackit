@@ -4,13 +4,11 @@ import WizardComponent, {
   StepTwo,
   StepThree
 } from '../WizardComponent';
-import Dialog, {
-  DialogContent
-} from 'material-ui/Dialog';
-import Stepper, {
-  Step,
-  StepButton
-} from 'material-ui/Stepper';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContent from '@material-ui/core/DialogContent';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepButton from '@material-ui/core/StepButton';
 import Spinner from 'react-spinkit';
 import Misc from '../../../misc';
 import { shallow } from 'enzyme';
@@ -410,7 +408,7 @@ describe('<StepThree />', () => {
     expect(spinner.length).toBe(0);
     wrapper = shallow(<StepThree {...propsWaiting}/>);
     spinner = wrapper.find(Spinner);
-    expect(spinner.length).toBe(1);
+    expect(spinner.length).toBe(2);
   });
 
   it('renders an alert if there is an error', () => {

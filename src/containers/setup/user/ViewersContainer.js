@@ -38,7 +38,8 @@ class ViewersContainer extends Component {
       <Panel>
         <div>
           <h3 className="white-box-title no-padding inline-block">
-            <i className="fa fa-users white-box-title-icon" aria-hidden="true"/>
+            <i className="fa fa-users" aria-hidden="true"/>
+            &nbsp;
             Read-only users
           </h3>
           <div className="inline-block pull-right">

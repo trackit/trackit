@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from 'material-ui/Dialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
@@ -52,6 +51,8 @@ class FormComponent extends Component {
       <div>
 
         <button className="btn btn-default" onClick={this.openDialog}>
+          {this.props.account !== undefined ? <i className="fa fa-edit"/> : <i className="fa fa-plus" />}
+          &nbsp;
           {this.props.account !== undefined ? "Edit" : "Add"}
         </button>
 

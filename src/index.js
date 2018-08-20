@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux';
 import registerServiceWorker from './registerServiceWorker';
-import { MuiThemeProvider, createMuiTheme } from 'material-ui/styles';
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { BrowserRouter, Route } from 'react-router-dom'
 
 import Theme from './common/Theme';
@@ -48,8 +48,9 @@ ReactDOM.render((
       <Provider store={store}>
         <BrowserRouter>
           <div>
-            <Route exact path="/" component={IndexRedirect}/>
+            <Route path="/" component={IndexRedirect} exact/>
             <Route path="/login" component={Containers.Auth.Login} exact/>
+            <Route path="/login/timeout" component={Containers.Auth.Login} exact/>
             <Route path="/login/:prefill" component={Containers.Auth.Login}/>
             <Route path="/register" component={Containers.Auth.Register}/>
             <Route path="/forgot" component={Containers.Auth.Forgot}/>

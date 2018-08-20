@@ -5,6 +5,7 @@ import ReactTable from 'react-table';
 import {costBreakdown, formatPrice} from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
+import ChartsColors from "../../../styles/ChartsColors";
 
 const transformProductsPieChart = costBreakdown.transformProductsPieChart;
 const getTotalPieChart = costBreakdown.getTotalPieChart;
@@ -67,6 +68,7 @@ class PieChartComponent extends Component {
           type="pieChart"
           title={total}
           datum={datum}
+          color={ChartsColors}
           margin={this.props.margin ? margin : null}
           x={formatX}
           y={formatY}

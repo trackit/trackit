@@ -26,6 +26,7 @@ export class LoginContainer extends Component {
       submit={this.props.login}
       loginStatus={this.props.loginStatus}
       registrationStatus={this.props.registrationStatus}
+      timeout={(this.props.match.path.endsWith("timeout"))}
       />);
   }
 

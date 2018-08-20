@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import UUID from 'uuid/v4';
 import Components from '../../components';
 import Actions from '../../actions';
-import s3square from '../../assets/s3-square.png';
 
 const Panel = Components.Misc.Panel;
 const Chart = Components.AWS.CostBreakdown.Chart;
@@ -109,8 +108,10 @@ export class CostBreakdownContainer extends Component {
   render() {
     const header = (
       <div className="clearfix">
-        <h3 className="white-box-title no-padding inline-block">
-          <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/>
+        <h3 className="white-box-title no-padding p-l-15 inline-block">
+          {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
+          <i className="fa fa-pie-chart"/>
+          &nbsp; 
           Cost Breakdown
         </h3>
         <div className="inline-block pull-right">
@@ -138,7 +139,11 @@ export class CostBreakdownContainer extends Component {
             Add a cost table
           </button>
           &nbsp;
-          <button className="btn btn-danger inline-block" onClick={this.resetCharts}>Reset charts</button>
+          <button className="btn btn-danger inline-block" onClick={this.resetCharts}>
+            <i className="fa fa-eraser"></i>
+            &nbsp;
+            Reset charts
+          </button>
         </div>
       </div>
     );

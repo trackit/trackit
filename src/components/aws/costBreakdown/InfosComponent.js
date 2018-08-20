@@ -62,8 +62,8 @@ class InfosComponent extends Component {
 
   render() {
     const icon = (this.props.icon ? (
-      <div className="cost-breakdown-chart-icon">
-        <i className="menu-icon red-color fa fa-list"/>
+      <div className="dashboard-item-icon">
+        <i className="fa fa-list"/>
         &nbsp;
         Summary
       </div>
@@ -96,10 +96,10 @@ class InfosComponent extends Component {
     if (totals && !noData) {
       values = (
         <div>
-          <div className="col-md-3 col-md-offset-2 col-sm-4 p-t-15 p-b-15 br-sm br-md bb-xs">
+          <div className="cb-card">
             <ul className="in-col">
               <li>
-                <i className="fa fa-dollar fa-2x green-color"/>
+                <i className="fa fa-credit-card card-icon blue-color"/>
               </li>
               <li>
                 <h3 className="no-margin no-padding font-light">
@@ -111,10 +111,10 @@ class InfosComponent extends Component {
               total cost
             </h4>
           </div>
-          <div className="col-md-3 col-sm-4 p-t-15 p-b-15 br-md bb-xs">
+          <div className="cb-card">
             <ul className="in-col">
               <li>
-                <i className="fa fa-th-list fa-2x red-color"/>
+                <i className="fa fa-th-list card-icon blue-color"/>
               </li>
               <li>
                 <h3 className="no-margin no-padding font-light">
@@ -126,10 +126,10 @@ class InfosComponent extends Component {
               services
             </h4>
           </div>
-          <div className="col-md-3 col-sm-4 p-t-15 p-b-15">
+          <div className="cb-card">
             <ul className="in-col">
               <li>
-                <i className="fa fa-globe fa-2x blue-color"/>
+                <i className="fa fa-globe card-icon blue-color"/>
               </li>
               <li>
                 <h3 className="no-margin no-padding font-light">
@@ -146,22 +146,26 @@ class InfosComponent extends Component {
       );
     }
 
+    const metaBloc = (
+      <div className="clearfix">
+      <div className="inline-block pull-left">
+        {icon}
+        {loading}
+        {error}
+      </div>
+      <div className="inline-block pull-right">
+        <div className="inline-block">
+          {timerange}
+        </div>
+        &nbsp;
+        {close}
+      </div>
+    </div>
+    );
+
     return (
       <div>
-        <div className="clearfix">
-          <div className="inline-block pull-left">
-            {icon}
-            {loading}
-            {error}
-          </div>
-          <div className="inline-block pull-right">
-            <div className="inline-block">
-              {timerange}
-            </div>
-            &nbsp;
-            {close}
-          </div>
-        </div>
+        {(icon || loading || error || timerange || close) && metaBloc}
         {noData}
         {values}
       </div>

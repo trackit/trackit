@@ -1,14 +1,12 @@
 import React, {Component} from 'react';
 import PropTypes from "prop-types";
 import Validations from "../../../common/forms";
-import Dialog, {
-  DialogContent,
-  DialogTitle,
-} from 'material-ui/Dialog';
-import Stepper, {
-  Step,
-  StepButton
-} from 'material-ui/Stepper';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import Stepper from '@material-ui/core/Stepper';
+import Step from '@material-ui/core/Step';
+import StepButton from '@material-ui/core/StepButton';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
 import Button from 'react-validation/build/button';
@@ -230,11 +228,20 @@ export class StepThree extends Component {
 
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.bill.status && nextProps.bill.value)
-      nextProps.close();
+    if (nextProps.bill.status && nextProps.bill.value && !nextProps.bill.hasOwnProperty("error")) {
+        nextProps.close();
+    }
   }
 
   render() {
+
+
+    const loading = (this.props.bill && !this.props.bill.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
+
+    const error = (this.props.bill && this.props.bill.status && this.props.bill.error ? (
+      <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
+    ) : null);
+
     const tutorial = (
       <div className="tutorial">
 
@@ -272,16 +279,11 @@ export class StepThree extends Component {
       </div>
     );
 
-    const error = (this.props.bill && this.props.bill.hasOwnProperty("error") ? (
-      <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
-    ) : null);
-
-
     return (
       <div>
 
             {tutorial}
-            {error}
+            {loading || error}
 
             <Form ref={
               /* istanbul ignore next */
@@ -416,7 +418,7 @@ class Wizard extends Component {
     return(
       <div className="account-wizard">
 
-        <button className="btn btn-default" onClick={this.openDialog}>Add</button>
+        <button className="btn btn-default" onClick={this.openDialog}><i className="fa fa-plus"></i>&nbsp;Add</button>
 
         <Dialog open={this.state.open} fullWidth>
 

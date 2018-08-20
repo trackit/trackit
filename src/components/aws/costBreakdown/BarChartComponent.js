@@ -4,6 +4,7 @@ import * as d3 from 'd3';
 import NVD3Chart from 'react-nvd3';
 import { costBreakdown } from '../../../common/formatters';
 import 'nvd3/build/nv.d3.min.css';
+import ChartsColors from "../../../styles/ChartsColors";
 
 const transformProductsBarChart = costBreakdown.transformProductsBarChart;
 
@@ -37,7 +38,8 @@ const formatX = (d) => {
 const formatY = (d) => (d[1]);
 
 const margin = {
-  right: 100
+  right: 10,
+  left: 70,
 };
 
 class BarChartComponent extends Component {
@@ -58,11 +60,12 @@ class BarChartComponent extends Component {
           id="barChart"
           type="multiBarChart"
           datum={datum}
+          color={ChartsColors}
           context={context}
           xAxis={xAxis}
           yAxis={yAxis}
           margin={this.props.margin ? margin : null}
-          rightAlignYAxis={true}
+          rightAlignYAxis={false}
           clipEdge={false}
           showControls={true}
           showLegend={this.props.legend}

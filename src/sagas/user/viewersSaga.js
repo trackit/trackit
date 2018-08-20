@@ -7,6 +7,10 @@ export function* getViewersSaga() {
   try {
     const token = yield getToken();
     const res = yield call(API.User.Viewers.list, token);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res.success && res.hasOwnProperty('data'))
       yield put({ type: Constants.USER_GET_VIEWERS_SUCCESS, viewers: res.data });
     else
@@ -20,6 +24,10 @@ export function* newViewerSaga({ email }) {
   try {
     const token = yield getToken();
     const res = yield call(API.User.Viewers.create, email, token);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res.success && res.hasOwnProperty('data') && res.data.hasOwnProperty('error'))
       throw Error(res.data.error);
     else if (res.success && res.hasOwnProperty('data'))

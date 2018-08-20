@@ -25,13 +25,18 @@ export class SelectedIndicator extends Component {
         fontSize: '14px',
         fontWeight: '500',
       },
+      noBackgroundVersion : {
+        fontSize: '14px',
+        fontWeight: '500',
+        backgroundColor: 'inherit',
+      },
       icon: {
         fontSize: '16px',
       }
     };
 
     return(
-      <span className="badge" style={styles.biggerBadge}>
+      <span className="badge" style={this.props.longVersion ? styles.noBackgroundVersion : styles.biggerBadge}>
         {this.props.icon && <span><i className="fa fa-amazon" style={styles.icon}/>&nbsp;&nbsp;</span>}
         {this.getText()}
       </span>

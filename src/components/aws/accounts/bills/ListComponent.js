@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import List, {
-  ListItem,
-  ListItemText,
-} from 'material-ui/List';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
 import Spinner from 'react-spinkit';
 import Misc from '../../../misc';
 import PropTypes from 'prop-types';
@@ -44,6 +43,9 @@ export class Item extends Component {
   };
 
   render() {
+    const prefix = (this.props.bill.prefix.length) ? (
+      <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>
+    ) : (null);
 
     return (
       <ListItem divider>
@@ -53,7 +55,7 @@ export class Item extends Component {
           disableTypography
           primary={<span>
             {this.props.bill.bucket}
-            {this.props.bill.prefix.length && <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>}
+            {prefix}
           </span>}
         />
 
@@ -64,6 +66,8 @@ export class Item extends Component {
               account={this.props.account}
               bill={this.props.bill}
               submit={this.editBill}
+              status={this.props.editionStatus}
+              clear={this.props.clearEdition}
             />
           </div>
           &nbsp;
@@ -86,7 +90,13 @@ Item.propTypes = {
     bucket: PropTypes.string.isRequired,
     prefix: PropTypes.string.isRequired
   }),
+  editionStatus: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.object
+  }),
   editBill: PropTypes.func.isRequired,
+  clearEdition: PropTypes.func.isRequired,
   deleteBill: PropTypes.func.isRequired
 };
 
@@ -125,6 +135,8 @@ export class ListComponent extends Component {
           bill={bill}
           account={this.props.account}
           editBill={this.props.editBill}
+          editionStatus={this.props.billEdition}
+          clearEdition={this.props.clearBillEdit}
           deleteBill={this.props.deleteBill}/>
       ))
     ) : null);
@@ -132,11 +144,13 @@ export class ListComponent extends Component {
     const form = (<Form
       account={this.props.account}
       submit={this.newBill}
+      status={this.props.billCreation}
+      clear={this.props.clearNewBill}
     />);
 
     return (
       <Dialog
-        buttonName="Bills locations"
+        buttonName={<span><i className="fa fa-map-marker"/> Bills location</span>}
         title="Bills locations"
         secondActionName="Close"
         onOpen={this.getBills}
@@ -169,16 +183,30 @@ ListComponent.propTypes = {
       })
     )
   }),
+  billEdition: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.object
+  }),
+  billCreation: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.object
+  }),
   getBills: PropTypes.func.isRequired,
   newBill: PropTypes.func.isRequired,
   editBill: PropTypes.func.isRequired,
   deleteBill: PropTypes.func.isRequired,
-  clearBills: PropTypes.func.isRequired
+  clearBills: PropTypes.func.isRequired,
+  clearNewBill: PropTypes.func.isRequired,
+  clearBillEdit: PropTypes.func.isRequired
 };
 
 /* istanbul ignore next */
 const mapStateToProps = (state) => ({
-  bills: state.aws.accounts.bills
+  bills: state.aws.accounts.bills,
+  billCreation: state.aws.accounts.billCreation,
+  billEdition: state.aws.accounts.billEdition
 });
 
 /* istanbul ignore next */
@@ -197,6 +225,12 @@ const mapDispatchToProps = (dispatch) => ({
   },
   clearBills: () => {
     dispatch(Actions.AWS.Accounts.clearAccountBills());
+  },
+  clearNewBill: () => {
+    dispatch(Actions.AWS.Accounts.clearNewAccountBill());
+  },
+  clearBillEdit: () => {
+    dispatch(Actions.AWS.Accounts.clearEditAccountBill());
   }
 });
 

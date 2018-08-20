@@ -18,6 +18,10 @@ export function* getCostsSaga({ id, begin, end, filters, chartType }) {
       res = yield call(API.AWS.Costs.getCostDiff, token, begin, end, filters, accounts);
     else
       res = {success: false};
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res.success && res.hasOwnProperty("data")) {
       if (res.data.hasOwnProperty("error"))
         throw Error(res.data.error);

@@ -1,12 +1,11 @@
 import React, { Component } from 'react';
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from 'material-ui/Dialog';
-import List, {
-  ListItem
-} from 'material-ui/List';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
+
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 import Moment from 'moment';
 import Spinner from 'react-spinkit';
 import PropTypes from "prop-types";
@@ -96,6 +95,8 @@ class StatusComponent extends Component {
       <div>
 
         <button className="btn btn-default" onClick={this.openDialog}>
+          <i className="fa fa-heartbeat"/>
+          &nbsp;
           Status
         </button>
 

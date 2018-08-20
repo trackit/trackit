@@ -6,6 +6,7 @@ import bills from './billsReducer';
 import creation from './creationReducer';
 import billCreation from './billCreationReducer';
 import billsStatus from './billsStatusReducer';
+import billEdition from './billEditionReducer';
 
 export default combineReducers({
   all,
@@ -14,5 +15,6 @@ export default combineReducers({
   bills,
   creation,
   billCreation,
-  billsStatus
+  billsStatus,
+  billEdition
 });

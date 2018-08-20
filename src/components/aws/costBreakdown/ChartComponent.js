@@ -4,6 +4,7 @@ import Spinner from 'react-spinkit';
 import BarChart from './BarChartComponent';
 import PieChart from './PieChartComponent';
 import DifferentiatorChart from './DifferentiatorChartComponent';
+import AWSAccounts from '../../aws/accounts';
 import Misc from '../../misc';
 import Moment from "moment/moment";
 
@@ -104,30 +105,48 @@ export class Header extends Component {
   getIcon() {
     if (!this.props.icon)
       return null;
+
+    let badges;
+
+    if (this.props.values && this.props.values.status) {
+      badges = (
+        <AWSAccounts.StatusBadges
+          values={
+            this.props.values ? (
+              this.props.values.status ? this.props.values.values : {}
+            ) : {}
+          }
+        />
+      );
+    }
+
     switch (this.props.type) {
       case "pie":
         return (
-          <div className="cost-breakdown-chart-icon">
-            <i className="menu-icon red-color fa fa-pie-chart"/>
+          <div className="dashboard-item-icon">
+            <i className="menu-icon fa fa-pie-chart"/>
             &nbsp;
             Pie Chart
+            {badges}
           </div>
         );
       case "diff":
         return (
-          <div className="cost-breakdown-chart-icon">
-            <i className="menu-icon red-color fa fa-table"/>
+          <div className="dashboard-item-icon">
+            <i className="menu-icon fa fa-table"/>
             &nbsp;
             Cost Table
+            {badges}
           </div>
         );
       case "bar":
       default:
         return (
-          <div className="cost-breakdown-chart-icon">
-            <i className="menu-icon red-color fa fa-bar-chart"/>
+          <div className="dashboard-item-icon">
+            <i className="menu-icon fa fa-bar-chart"/>
             &nbsp;
             Bar Chart
+            {badges}
           </div>
         );
     }
@@ -137,7 +156,7 @@ export class Header extends Component {
     const loading = (!this.props.values || !this.props.values.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
 
     const close = (this.props.close ? (
-      <button className="btn btn-danger" onClick={this.close}>Remove this chart</button>
+      <button className="btn btn-danger" onClick={this.close}><i className="fa fa-times"></i></button>
     ) : null);
 
     const error = (this.props.values && this.props.values.status && this.props.values.hasOwnProperty("error") ? (
@@ -281,7 +300,7 @@ class Chart extends Component {
             values={this.props.values.values}
             interval={this.props.interval}
             filter={this.props.filter}
-            legend={this.props.legend}
+            legend={false}
             height={this.props.height}
             margin={this.props.margin}
           />);

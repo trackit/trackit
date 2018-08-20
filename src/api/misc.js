@@ -1,5 +1,11 @@
 import Config from '../config';
 
+const handleResponse = (response) => {
+  if (response.status === 401)
+    throw response.statusText;
+  return response.json();
+};
+
 export const call = (route, method, body=null, token=null) => {
   let headers = {
     'Content-Type': 'application/json',
@@ -11,9 +17,10 @@ export const call = (route, method, body=null, token=null) => {
     method,
     headers,
     body: (body !== null ? JSON.stringify(body) : null)
-  }).then(data => (data.json()))
+  }).then(handleResponse)
     .then(response => ({success: true, data: response }))
-    .then(error => ({success: false, ...error}));
+    .then(error => ({success: false, ...error}))
+    .catch(error => ({success: null, error}));
 };
 
 export const download = (route, method='GET', body=null, token=null, contentType='text/csv') => {

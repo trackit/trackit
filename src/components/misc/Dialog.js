@@ -1,9 +1,8 @@
 import React, {Component} from 'react';
-import Dialog, {
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-} from 'material-ui/Dialog';
+import Dialog from '@material-ui/core/Dialog';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogActions from '@material-ui/core/DialogActions';
 import PropTypes from "prop-types";
 
 class DialogComponent extends Component {
@@ -96,7 +95,7 @@ class DialogComponent extends Component {
 
 DialogComponent.propTypes = {
   buttonType: PropTypes.string,
-  buttonName: PropTypes.string.isRequired,
+  buttonName: PropTypes.node.isRequired,
   title: PropTypes.string,
   titleChildren: PropTypes.node,
   actionName: PropTypes.string,

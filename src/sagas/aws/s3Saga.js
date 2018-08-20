@@ -10,6 +10,10 @@ export function* getS3DataSaga({ begin, end }) {
     const token = yield getToken();
     const accounts = yield getAWSAccounts();
     const res = yield call(API.AWS.S3.getData, token, begin, end, accounts);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_GET_S3_DATA_SUCCESS, data: res.data });
     else

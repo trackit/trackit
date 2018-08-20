@@ -26,7 +26,7 @@ class Popover extends Component {
 
   render() {
     const trigger = (this.props.info ? (
-      <i className="fa fa-info-circle"/>
+      <i className="fa fa-info-circle" style={this.props.triggerStyle}/>
     ) : this.props.children);
 
     const tooltip = (<Tooltip className="popover-tooltip" id="tooltip">{this.props.popOver}</Tooltip>);
@@ -44,7 +44,8 @@ class Popover extends Component {
 Popover.propTypes = {
   children: PropTypes.node,
   info: PropTypes.bool,
-  popOver: PropTypes.node.isRequired
+  popOver: PropTypes.node.isRequired,
+  triggerStyle: PropTypes.object,
 };
 
 Popover.defaultProps = {
