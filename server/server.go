@@ -54,6 +54,7 @@ var tasks = map[string]func(context.Context) error{
 	"ingest":          taskIngest,
 	"ingest-due":      taskIngestDue,
 	"process-account": taskProcessAccount,
+	"check-user-entitlement": taskCheckEntitlement,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when

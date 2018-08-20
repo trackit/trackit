@@ -39,6 +39,7 @@ type User struct {
 	Email        string `json:"email"`
 	NextExternal string `json:"-"`
 	ParentId     *int   `json:"parentId,omitempty"`
+	AwsCustomerEntitlement	bool	`json:aws_customer_entitlement`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
@@ -229,6 +230,7 @@ func userFromDbUser(dbUser models.User) User {
 	u := User{
 		Id:    dbUser.ID,
 		Email: dbUser.Email,
+		AwsCustomerEntitlement: dbUser.AwsCustomerEntitlement,
 	}
 	if dbUser.NextExternal.Valid {
 		u.NextExternal = dbUser.NextExternal.String
