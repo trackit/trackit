@@ -489,3 +489,97 @@ h4.no-data {
     padding: 10px;
     padding-bottom: 0;
 }
+
+/* Resources */
+.resources h3.white-box-title {
+    margin-bottom: 10px;
+}
+
+.resources i {
+    color: #4885ed;
+}
+
+.resources .wrapper {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.resources .popover-trigger i {
+    color: #000000;
+    font-size: 0.75em;
+}
+
+.rt-th input {
+    border: none;
+    height: 100%;
+    color: #666;
+    font-size: 1.2em;
+    text-align: center;
+    border-bottom: 1px solid #aaa;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.rt-th select {
+    border: none;
+    margin: 0;
+    color: #666;
+}
+
+.cpu-stats,
+.cpu-stats .wrapper,
+.cpu-stats .wrapper .popover-trigger {
+    width: 100%;
+    height: 100%;
+}
+
+.cpu-stats .wrapper {
+    margin: 0;
+}
+
+.dbs .rt-td i {
+    font-size: 1.5em;
+    text-align: center;
+    width: 100%;
+}
+
+.rt-td .wrapper .popover-trigger i {
+    color: #4885ed;
+    font-size: 1.5em;
+}
+
+.rt-td .wrapper .popover-trigger i.red,
+.dbs .rt-td i.fa-times-circle {
+    color: #d6413b;
+}
+
+.rt-td .wrapper .popover-trigger i.orange {
+    color: #ff9800;
+}
+
+.rt-td .wrapper .popover-trigger i.green,
+.dbs .rt-td i.fa-check-circle {
+    color: #4caf50;
+}
+
+.rt-td .wrapper .popover-trigger i.grey {
+    color: #565656;
+}
+
+.rt-td .wrapper .popover-trigger i.disabled {
+    color: #cccccc;
+    font-size: 1.5em;
+}
+
+.tags-list {
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.tags-item {
+    padding: 10px 5px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tags-item:last-child {
+    border-bottom: none;
+}

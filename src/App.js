@@ -15,7 +15,7 @@ export class App extends Component {
   }
 
   accountHasError(item) {
-    if (item.billRepositories.length) {
+    if (item.billRepositories && item.billRepositories.length) {
         let hasError = false;
         for (let i = 0; i < item.billRepositories.length; i++) {
             const element = item.billRepositories[i];
@@ -24,7 +24,7 @@ export class App extends Component {
             }
         }
         return hasError;
-    }  
+    }
     // No bill locations for account
     return true;
   }
@@ -33,7 +33,7 @@ export class App extends Component {
 
     const redirectToLogin = () => <Redirect to="/login/timeout"/>;
     const redirectToSetup = () => <Redirect to={`${this.props.match.url}/setup/false`}/>;
-    const hasAccounts = (this.props.accounts.status ? (this.props.accounts.hasOwnProperty("values") && this.props.accounts.values && this.props.accounts.values.length > 0 ): true);
+    const hasAccounts = (this.props.accounts.status && this.props.accounts.hasOwnProperty("values") && this.props.accounts.values ? this.props.accounts.values.length > 0 : true);
 
     const checkRedirections = (container) => (!this.props.token ? redirectToLogin : (hasAccounts ? container : redirectToSetup));
 
@@ -97,6 +97,10 @@ export class App extends Component {
             <Route
               path={this.props.match.url + "/map"}
               component={checkRedirections(Containers.AWS.ResourcesMap)}
+            />
+            <Route
+              path={this.props.match.url + '/resources'}
+              component={hasAccounts ? Containers.AWS.Resources : redirectToSetup}
             />
             <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}

@@ -137,7 +137,7 @@ class FormComponent extends Component {
                 <div className="input-title">
                   <label htmlFor="bucket">S3 Bucket name</label>
                   &nbsp;
-                  <Popover info popOver="Name of the S3 bucket you created"/>
+                  <Popover info tooltip="Name of the S3 bucket you created"/>
                 </div>
                 <Input
                   name="bucket"
@@ -153,7 +153,7 @@ class FormComponent extends Component {
                 <div className="input-title">
                   <label htmlFor="bucket">Report path prefix (optional)</label>
                   &nbsp;
-                  <Popover info popOver="If you set a path prefix when creating your report"/>
+                  <Popover info tooltip="If you set a path prefix when creating your report"/>
                 </div>
                 <Input
                   name="prefix"

@@ -31,7 +31,7 @@ describe('<App />', () => {
   it('renders <Route /> components', () => {
     const wrapper = shallow(<App {...props} />);
     const route = wrapper.find(Route);
-    expect(route.length).toBe(6);
+    expect(route.length).toBe(7);
   });
 
 });

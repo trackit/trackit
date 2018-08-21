@@ -27,13 +27,17 @@ class Popover extends Component {
   render() {
     const trigger = (this.props.info ? (
       <i className="fa fa-info-circle" style={this.props.triggerStyle}/>
-    ) : this.props.children);
+    ) : this.props.icon);
 
-    const tooltip = (<Tooltip className="popover-tooltip" id="tooltip">{this.props.popOver}</Tooltip>);
+    let child = null;
+    if (this.props.children)
+      child = this.props.children;
+    else if (this.props.tooltip)
+      child = (<Tooltip className="popover-tooltip" id="tooltip">{this.props.tooltip}</Tooltip>);
 
     return (
       <div className="wrapper">
-        <OverlayTrigger placement="right" overlay={tooltip}>
+        <OverlayTrigger placement={this.props.placement} overlay={child}>
           <div className="popover-trigger">{trigger}</div>
         </OverlayTrigger>
       </div>
@@ -42,14 +46,19 @@ class Popover extends Component {
 }
 
 Popover.propTypes = {
-  children: PropTypes.node,
+  icon: PropTypes.node,
   info: PropTypes.bool,
-  popOver: PropTypes.node.isRequired,
+  children: PropTypes.node,
+  tooltip: PropTypes.node,
+  placement: PropTypes.oneOf(["top", "bottom", "left", "right"]),
   triggerStyle: PropTypes.object,
 };
 
 Popover.defaultProps = {
-  info: false
+  info: false,
+  children: null,
+  tooltip: null,
+  placement: "right"
 };
 
 export default Popover;

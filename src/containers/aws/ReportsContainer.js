@@ -6,7 +6,7 @@ import Actions from "../../actions";
 import Components from '../../components';
 
 const Panel = Components.Misc.Panel;
-const SingleAccountSelector = Components.AWS.Accounts.SingleAccountSelector;
+const AccountSelector = Components.AWS.Accounts.AccountSelector;
 const ReportsBrowser = Components.AWS.Reports.Browser;
 
 // S3AnalyticsContainer Component
@@ -40,7 +40,10 @@ export class ReportsContainer extends Component {
             </h3>
             <div className="inline-block pull-right">
               Selected account :
-              <SingleAccountSelector/>
+              <AccountSelector
+                account={this.props.account}
+                selectAccount={this.props.selectAccount}
+              />
             </div>
           </div>
 

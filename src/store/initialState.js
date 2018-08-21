@@ -54,6 +54,17 @@ export default {
         values: []
       }
     },
+    resources: {
+      account: '',
+      EC2: {
+        status: true,
+        value: null
+      },
+      RDS: {
+        status: true,
+        value: null
+      }
+    },
   },
   gcp: {},
   user: {
