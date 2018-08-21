@@ -30,7 +30,7 @@ const regions = {
   "us-east-2": "Ohio",
   "us-west-1": "North California",
   "us-west-2": "Oregon",
-  "": "No specific region"
+  "global": "No specific region"
 };
 
 const formatData = (costs) => {
@@ -305,13 +305,13 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(Actions.AWS.Map.clearCosts());
   },
   setDates: (startDate, endDate) => {
-    dispatch(Actions.AWS.Map.setDates(startDate, endDate))
+    dispatch(Actions.AWS.Map.setDates(startDate, endDate));
   },
   resetDates: () => {
-    dispatch(Actions.AWS.Map.resetDates())
+    dispatch(Actions.AWS.Map.resetDates());
   },
   clearDates: () => {
-    dispatch(Actions.AWS.Map.clearDates())
+    dispatch(Actions.AWS.Map.clearDates());
   },
 });
 
