@@ -26,6 +26,7 @@ import (
 	"github.com/trackit/trackit-server/awsSession"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/users"
+	"regexp"
 )
 
 // AwsAccount represents a client's AWS account.
@@ -78,7 +79,7 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	if err == nil {
 		awsAccounts := make([]AwsAccount, len(dbAwsAccounts))
 		for i := range dbAwsAccounts {
-			awsAccounts[i] = awsAccountFromDbAwsAccount(*dbAwsAccounts[i])
+			awsAccounts[i] = AwsAccountFromDbAwsAccount(*dbAwsAccounts[i])
 		}
 		return awsAccounts, nil
 	}
@@ -91,7 +92,7 @@ func GetAwsAccountWithId(aaid int, tx *sql.Tx) (AwsAccount, error) {
 	if dbaa, err := models.AwsAccountByID(tx, aaid); err != nil {
 		return aa, err
 	} else {
-		aa = awsAccountFromDbAwsAccount(*dbaa)
+		aa = AwsAccountFromDbAwsAccount(*dbaa)
 		return aa, nil
 	}
 }
@@ -147,10 +148,20 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 	return err
 }
 
-// awsAccountFromDbAwsAccount constructs an aws.AwsAccount from a
+// GetAwsAccountIdentity returns the AWS identity of an AWS Account.
+func (a *AwsAccount) GetAwsAccountIdentity() (identity string, err error) {
+	if reg, err := regexp.Compile("^arn:aws:iam::([0-9]{12}):.*$"); err != nil {
+		return "", err
+	} else {
+		identity = reg.FindStringSubmatch(a.RoleArn)[1]
+	}
+	return
+}
+
+// AwsAccountFromDbAwsAccount constructs an aws.AwsAccount from a
 // models.AwsAccount. The distinction exists to decouple database access from
 // the logic of the server.
-func awsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
+func AwsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 	return AwsAccount{
 		Id:       dbAwsAccount.ID,
 		UserId:   dbAwsAccount.UserID,
