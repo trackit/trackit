@@ -15,25 +15,25 @@
 package routes
 
 var (
-	// AwsAccountIdsOptionalQueryArg allows to get the AWS Account IDs in the URL
-	// Parameters with routes.RequiredQueryArgs. This AWS Account IDs will be a
+	// AwsAccountIdsOptionalQueryArg allows to get the DB ids for AWS Accounts
+	// in the URL parameters with routes.RequiredQueryArgs. These IDs will be a
 	// slice of Uint stored in the routes.Arguments map with itself for key.
 	// AwsAccountIdsOptionalQueryArg is optional and will not panic if no query
 	// argument is found.
 	AwsAccountIdsOptionalQueryArg = QueryArg{
-		Name:        "aa",
+		Name:        "account-ids",
 		Type:        QueryArgIntSlice{},
-		Description: "The IDs for many AWS account.",
+		Description: "Comma separated DB IDs for many AWS account.",
 		Optional:    true,
 	}
 
-	// AwsAccountIdQueryArg allows to get the AWS Account ID in the URL Parameters
+	// AwsAccountIdQueryArg allows to get the DB id for an AWS Account in the URL Parameters
 	// with routes.RequiredQueryArgs. This AWS Account ID will be an Uint stored
 	// in the routes.Arguments map with itself for key.
 	AwsAccountIdQueryArg = QueryArg{
-		Name:        "aa",
+		Name:        "account-id",
 		Type:        QueryArgInt{},
-		Description: "The ID for an AWS account.",
+		Description: "The DB ID for an AWS account.",
 	}
 
 	// AwsAccountsOptionalQueryArg allows to get the AWS Accounts in the URL
@@ -42,9 +42,9 @@ var (
 	// AwsAccountsOptionalQueryArg is optional and will not panic if no query
 	// argument is found.
 	AwsAccountsOptionalQueryArg = QueryArg{
-		Name:        "aa",
+		Name:        "accounts",
 		Type:        QueryArgStringSlice{},
-		Description: "The IDs for many AWS account.",
+		Description: "Comma separated AWS account IDs.",
 		Optional:    true,
 	}
 
@@ -52,9 +52,9 @@ var (
 	// with routes.RequiredQueryArgs. This AWS Account will be a String stored
 	// in the routes.Arguments map with itself for key.
 	AwsAccountQueryArg = QueryArg{
-		Name:        "aa",
+		Name:        "account",
 		Type:        QueryArgString{},
-		Description: "The ID for an AWS account.",
+		Description: "AWS account ID.",
 	}
 
 	// BillPositoryQueryArg allows to get the bill repository ID in the URL Parameters
@@ -63,7 +63,7 @@ var (
 	BillPositoryQueryArg = QueryArg{
 		Name:        "br",
 		Type:        QueryArgInt{},
-		Description: "The ID for an AWS account.",
+		Description: "The ID for a bill repository.",
 	}
 
 	// DateBeginQueryArg allows to get the iso8601 begin date in the URL

@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 	"net/http"
 	"context"
 
@@ -31,6 +32,9 @@ import (
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/mail"
+	"github.com/satori/go.uuid"
+
 )
 
 const (
@@ -179,6 +183,13 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	currentUser := a[AuthenticatedUser].(User)
 	tx := a[db.Transaction].(*sql.Tx)
 	ctx := request.Context()
+	token := uuid.NewV1().String()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	tokenHash, err := getPasswordHash(token)
+	if err != nil {
+		logger.Error("Failed to create token hash.", err.Error())
+		return 500, errors.New("Failed to create token hash")
+	}
 	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
 	if err != nil {
 		errSplit := strings.Split(err.Error(), ":")
@@ -191,6 +202,23 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	response := createViewerUserResponseBody{
 		User:     viewerUser,
 		Password: viewerUserPassword,
+	}
+	dbForgottenPassword := models.ForgottenPassword{
+		UserID:  viewerUser.Id,
+		Token:   tokenHash,
+		Created: time.Now(),
+	}
+	err = dbForgottenPassword.Insert(tx)
+	if err != nil {
+		logger.Error("Failed to insert viewer password token in database.", err.Error())
+		return 500, errors.New("Failed to create viewer password token")
+	}
+	mailSubject := "Your TrackIt viewer password"
+	mailBody := fmt.Sprintf("Please follow this link to create your password: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
+	err = mail.SendMail(viewerUser.Email, mailSubject, mailBody, request.Context())
+	if err != nil {
+		logger.Error("Failed to send viewer password email.", err.Error())
+		return 500, errors.New("Failed to send viewer password email")
 	}
 	return http.StatusOK, response
 }
