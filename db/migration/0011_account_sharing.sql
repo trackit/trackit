@@ -14,10 +14,10 @@
 
 CREATE TABLE account_sharing (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
-	account_id             INTEGER      NOT NULL COMMENT 'Invite account id',
-	owner_id               INTEGER      NOT NULL COMMENT 'user id of the Owner of the account',
-	user_id                INTEGER      NOT NULL COMMENT 'id of the invited user',
-	user_permission        TINYINT(2)   NOT NULL DEFAULT 0 COMMENT '0 : admin, 1 : standard, 2 : read-only',
-	account_status         TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '0 : user has never loged in (pending status), 1 : user has logged once',
+	account_id             INTEGER      NOT NULL,
+	owner_id               INTEGER      NOT NULL,
+	user_id                INTEGER      NOT NULL,
+	user_permission        TINYINT(2)   NOT NULL DEFAULT 0,
+	account_status         TINYINT(1)   NOT NULL DEFAULT 0,
 	CONSTRAINT PRIMARY KEY (id)
 );
