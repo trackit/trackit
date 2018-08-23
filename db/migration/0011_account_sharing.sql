@@ -12,15 +12,12 @@
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-CREATE TABLE shared_account (
+CREATE TABLE account_sharing (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	account_id             INTEGER      NOT NULL,
 	owner_id               INTEGER      NOT NULL,
 	user_id                INTEGER      NOT NULL,
 	user_permission        TINYINT(2)   NOT NULL DEFAULT 0,
 	account_status         TINYINT(1)   NOT NULL DEFAULT 0,
-	CONSTRAINT PRIMARY KEY (id),
-  CONSTRAINT foreign_aws_account FOREIGN KEY (account_id) REFERENCES aws_account(id) ON DELETE CASCADE,
-  CONSTRAINT foreign_owner_id FOREIGN KEY (owner_id) REFERENCES user(id) ON DELETE CASCADE,
-  CONSTRAINT foreign_user_id FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+	CONSTRAINT PRIMARY KEY (id)
 );
