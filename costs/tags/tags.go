@@ -15,13 +15,15 @@
 package tags
 
 import (
-	"time"
+	"database/sql"
 	"net/http"
+	"time"
 
-	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws"
 )
 
 func init() {
@@ -65,6 +67,7 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 // tagsValuesQueryParams will store the parsed query params for /tags/values endpoint
 type tagsValuesQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
+	IndexList   []string  `json:"indexes"`
 	DateBegin   time.Time `json:"begin"`
 	DateEnd     time.Time `json:"end"`
 	TagsKey     []string  `json:"key"`
@@ -82,10 +85,14 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	if a[tagsValuesQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsValuesQueryArgs[0]].([]string)
 	}
-	if err := aws.ValidateAwsAccounts(parsedParams.AccountList); err != nil {
-		return http.StatusBadRequest, err
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
 	}
-	return getTagsValuesWithParsedParams(request.Context(), parsedParams, user)
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	return getTagsValuesWithParsedParams(request.Context(), parsedParams)
 }
 
 // tagsKeysQueryArgs allows to get required queryArgs params for /tags/keys endpoint
@@ -98,6 +105,7 @@ var tagsKeysQueryArgs = []routes.QueryArg{
 // tagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
 type tagsKeysQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
+	IndexList   []string  `json:"indexes"`
 	DateBegin   time.Time `json:"begin"`
 	DateEnd     time.Time `json:"end"`
 }
@@ -107,14 +115,19 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := tagsKeysQueryParams{
 		AccountList: []string{},
+		IndexList:   []string{},
 		DateBegin:   a[tagsValuesQueryArgs[1]].(time.Time),
 		DateEnd:     a[tagsValuesQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 	}
 	if a[tagsKeysQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsKeysQueryArgs[0]].([]string)
 	}
-	if err := aws.ValidateAwsAccounts(parsedParams.AccountList); err != nil {
-		return http.StatusBadRequest, err
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
 	}
-	return getTagsKeysWithParsedParams(request.Context(), parsedParams, user)
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	return getTagsKeysWithParsedParams(request.Context(), parsedParams)
 }
