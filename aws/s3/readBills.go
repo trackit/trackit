@@ -114,7 +114,12 @@ type LineItem struct {
 	CurrencyCode       string            `csv:"lineItem/CurrencyCode"        json:"currencyCode"`
 	UnblendedCost      string            `csv:"lineItem/UnblendedCost"       json:"unblendedCost"`
 	Any                map[string]string `csv:",any"                         json:"-"`
-	Tags               map[string]string `csv:"-"                            json:"tags,omitempty"`
+	Tags               []LineItemTags    `csv:"-"                            json:"tags,omitempty"`
+}
+
+type LineItemTags struct {
+	Key string `json:"key"`
+	Tag string `json:"tag"`
 }
 
 func (li LineItem) EsId() string {
