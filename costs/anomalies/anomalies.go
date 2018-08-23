@@ -41,21 +41,21 @@ type (
 		}
 	}
 
-	// costAnomaly represents a half-day and contains
+	// CostAnomaly represents a half-day and contains
 	// the date of beginning, the average cost for the 12h,
 	// the value of the upper band and an abnormal value
 	// representing if the half-day is tagged as abnormal,
 	// which is an alert.
-	costAnomaly struct {
+	CostAnomaly struct {
 		Date      string  `json:"date"`
 		Cost      float64 `json:"cost"`
 		UpperBand float64 `json:"upper_band"`
 		Abnormal  bool    `json:"abnormal"`
 	}
 
-	// productsCostAnomalies is used as http response.
-	// Keys are products and values are a slice of costAnomaly.
-	productsCostAnomalies map[string][]costAnomaly
+	// ProductsCostAnomalies is used as http response.
+	// Keys are products and values are a slice of CostAnomaly.
+	ProductsCostAnomalies map[string][]CostAnomaly
 )
 
 // const values used by the Bollinger Bands algorithm.
@@ -85,8 +85,8 @@ const (
 	minOccurrence = 2
 )
 
-// sum adds every element of a costAnomaly slice.
-func sum(costAnomalies []costAnomaly) float64 {
+// sum adds every element of a CostAnomaly slice.
+func sum(costAnomalies []CostAnomaly) float64 {
 	var sum float64
 	for _, a := range costAnomalies {
 		sum += a.Cost
@@ -94,13 +94,13 @@ func sum(costAnomalies []costAnomaly) float64 {
 	return sum
 }
 
-// average calculates the average of a costAnomaly slice.
-func average(costAnomalies []costAnomaly) float64 {
+// average calculates the average of a CostAnomaly slice.
+func average(costAnomalies []CostAnomaly) float64 {
 	return sum(costAnomalies) / float64(len(costAnomalies))
 }
 
 // sigma calculates the sigma in the standard deviation formula.
-func sigma(costAnomalies []costAnomaly, avg float64) float64 {
+func sigma(costAnomalies []CostAnomaly, avg float64) float64 {
 	var sigma float64
 	for _, a := range costAnomalies {
 		sigma += math.Pow(a.Cost-avg, 2)
@@ -118,7 +118,7 @@ func deviation(sigma float64, period int) float64 {
 // clearDisturbances clears the fake alerts.
 // Alerts are considered as fake when the next half-days are not an alert.
 // Alerts below the minCost are removed.
-func clearDisturbances(costAnomalies []costAnomaly) []costAnomaly {
+func clearDisturbances(costAnomalies []CostAnomaly) []CostAnomaly {
 	for index := range costAnomalies {
 		for j := 1; j < minOccurrence; j++ {
 			if index+j >= len(costAnomalies) || costAnomalies[index+j].Abnormal == false {
@@ -135,7 +135,7 @@ func clearDisturbances(costAnomalies []costAnomaly) []costAnomaly {
 // analyseAnomalies calculates anomalies with Bollinger Bands algorithm and
 // the const above. It consists in generating an upper band, which, if
 // exceeded, make an alert.
-func analyseAnomalies(c productsCostAnomalies) productsCostAnomalies {
+func analyseAnomalies(c ProductsCostAnomalies) ProductsCostAnomalies {
 	for key, costAnomalies := range c {
 		for index := range costAnomalies {
 			if index > 0 {
@@ -156,14 +156,14 @@ func analyseAnomalies(c productsCostAnomalies) productsCostAnomalies {
 	return c
 }
 
-// parseAnomalies transforms the esTypedResult in a productsCostAnomalies
+// parseAnomalies transforms the esTypedResult in a ProductsCostAnomalies
 // empty of alerts. It calls analyseAnomalies then to fill the alerts.
-func parseAnomalies(typedDocument esTypedResult) productsCostAnomalies {
-	c := productsCostAnomalies{}
+func parseAnomalies(typedDocument esTypedResult) ProductsCostAnomalies {
+	c := ProductsCostAnomalies{}
 	for _, product := range typedDocument.Products.Buckets {
-		costAnomalies := make([]costAnomaly, 0, len(product.Dates.Buckets))
+		costAnomalies := make([]CostAnomaly, 0, len(product.Dates.Buckets))
 		for _, date := range product.Dates.Buckets {
-			costAnomalies = append(costAnomalies, costAnomaly{
+			costAnomalies = append(costAnomalies, CostAnomaly{
 				date.Key,
 				date.Cost.Value,
 				0,
@@ -178,13 +178,13 @@ func parseAnomalies(typedDocument esTypedResult) productsCostAnomalies {
 // prepareAnomalyData calls ElasticSearch and stores
 // the result in a esTypedResult type. It calls parseAnomalies
 // then.
-func prepareAnomalyData(ctx context.Context, sr *elastic.SearchResult) (productsCostAnomalies, error) {
+func prepareAnomalyData(ctx context.Context, sr *elastic.SearchResult) (ProductsCostAnomalies, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTypedResult
 	err := json.Unmarshal(*sr.Aggregations["products"], &typedDocument.Products)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return productsCostAnomalies{}, err
+		return ProductsCostAnomalies{}, err
 	}
 	return parseAnomalies(typedDocument), nil
 }
