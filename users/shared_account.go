@@ -79,25 +79,20 @@ func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string) (
 
 func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, userId int) (res bool, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbSharedAccounts, err := models.SharedAccountsByUserID(db, userId)
-	fmt.Print("--- TABLE : ")
-	fmt.Print(dbSharedAccounts)
-	fmt.Print(err)
-	if err == sql.ErrNoRows {
-		return false, nil
-	} else if err != nil {
-		logger.Error("Error getting shared account from database.", err.Error())
-		return false, err
-	} else {
-		for _, key := range dbSharedAccounts {
-			fmt.Print("--- CHECK EXISTING ACCOUNT : ")
-			fmt.Print(key.AccountID)
-			if key.AccountID == accountId {
-				return true, nil
-			}
+	const sqlstr = `SELECT account_id, user_id FROM shared_account WHERE user_id = ?`
+	res, err := db.Query(sqlstr, userId)
+	defer res.Close()
+	if err != nil {
+		return "", err
+	}
+	var token string
+	for res.Next() {
+		err := res.Scan(&token)
+		if err != nil {
+			return "", err
 		}
 	}
-	return false,nil
+	return token, nil
 }
 
 // addAccountToGuest adds an entry in shared_account table with element that enable a user
