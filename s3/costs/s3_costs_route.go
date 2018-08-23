@@ -16,11 +16,14 @@ package costs
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
@@ -33,6 +36,7 @@ type esQueryParams struct {
 	dateBegin   time.Time
 	dateEnd     time.Time
 	accountList []string
+	indexList   []string
 }
 
 // esFilter represents an elasticsearch filter
@@ -86,9 +90,9 @@ func init() {
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empy data
 func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
-	user users.User, queryDataType string) (*elastic.SearchResult, int, error) {
+	queryDataType string) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, "lineitems")
+	index := strings.Join(parsedParams.indexList, ",")
 
 	esFilters, ok := queryDataTypeToEsFilters[queryDataType]
 	if ok == false {
@@ -130,6 +134,13 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 	}
 	var err error
 	var returnCode int
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
+	}
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
 	var components = [...]struct {
 		k  string
 		sr *elastic.SearchResult
@@ -140,7 +151,7 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 		{"bandwidthOut", nil},
 	}
 	for idx, cpn := range components {
-		cpn.sr, returnCode, err = makeElasticSearchRequest(request.Context(), parsedParams, user, cpn.k)
+		cpn.sr, returnCode, err = makeElasticSearchRequest(request.Context(), parsedParams, cpn.k)
 		if err != nil {
 			return returnCode, err
 		}
