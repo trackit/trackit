@@ -1,7 +1,7 @@
 import React from 'react';
 import WizardComponent, {
-  StepOne,
-  StepTwo,
+  StepRoleCreation,
+  StepNameARN,
   StepThree
 } from '../WizardComponent';
 import Dialog from '@material-ui/core/Dialog';
@@ -124,16 +124,16 @@ describe('<WizardComponent />', () => {
     expect(children.length).toBe(1);
   });
 
-  it('renders three <Step /> components', () => {
+  it('renders four <Step /> components', () => {
     const wrapper = shallow(<WizardComponent {...props}/>);
     const children = wrapper.find(Step);
-    expect(children.length).toBe(3);
+    expect(children.length).toBe(4);
   });
 
-  it('renders three <StepButton /> components', () => {
+  it('renders four <StepButton /> components', () => {
     const wrapper = shallow(<WizardComponent {...props}/>);
     const children = wrapper.find(StepButton);
-    expect(children.length).toBe(3);
+    expect(children.length).toBe(4);
   });
 
   it('can go to next and previous step', () => {
@@ -147,7 +147,7 @@ describe('<WizardComponent />', () => {
 
 });
 
-describe('<StepOne />', () => {
+describe('<StepRoleCreation />', () => {
 
   const props = {
     external,
@@ -159,45 +159,38 @@ describe('<StepOne />', () => {
     jest.resetAllMocks();
   });
 
-  it('renders a <StepOne /> component', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
+  it('renders a <StepRoleCreation /> component', () => {
+    const wrapper = shallow(<StepRoleCreation {...props}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <div /> component for tutorial', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
+    const wrapper = shallow(<StepRoleCreation {...props}/>);
     const children = wrapper.find("div.tutorial");
     expect(children.length).toBe(1);
   });
 
   it('renders a <Picture /> component in <div /> tutorial', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
+    const wrapper = shallow(<StepRoleCreation {...props}/>);
     const picture = wrapper.find(Picture);
     expect(picture.length).toBe(1);
   });
 
   it('renders a <Form /> component', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
+    const wrapper = shallow(<StepRoleCreation {...props}/>);
     const form = wrapper.find(Form);
     expect(form.length).toBe(1);
   });
 
   it('renders 1 <Button /> component in <Form />', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
+    const wrapper = shallow(<StepRoleCreation {...props}/>);
     const form = wrapper.find(Form);
     const button = form.find(Button);
     expect(button.length).toBe(1);
   });
 
-  it('renders 1 <button /> component in <Form />', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
-    const form = wrapper.find(Form);
-    const button = form.find("button");
-    expect(button.length).toBe(1);
-  });
-
   it('can submit', () => {
-    const wrapper = shallow(<StepOne {...props}/>);
+    const wrapper = shallow(<StepRoleCreation {...props}/>);
     expect(props.next).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault() {} });
     expect(props.next).toHaveBeenCalled();
@@ -205,7 +198,7 @@ describe('<StepOne />', () => {
 
 });
 
-describe('<StepTwo />', () => {
+describe('<StepNameARN />', () => {
 
   const props = {
     account: accountEmpty,
@@ -235,67 +228,67 @@ describe('<StepTwo />', () => {
     jest.resetAllMocks();
   });
 
-  it('renders a <StepTwo /> component', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+  it('renders a <StepNameARN /> component', () => {
+    const wrapper = shallow(<StepNameARN {...props}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <div /> component for tutorial', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const children = wrapper.find("div.tutorial");
     expect(children.length).toBe(1);
   });
 
   it('renders a <Picture /> component in <div /> tutorial', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const picture = wrapper.find(Picture);
     expect(picture.length).toBe(1);
   });
 
   it('renders a <Form /> component', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const form = wrapper.find(Form);
     expect(form.length).toBe(1);
   });
 
   it('renders 2 <Input /> components in <Form />', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const form = wrapper.find(Form);
     const inputs = form.find(Input);
     expect(inputs.length).toBe(2);
   });
 
   it('renders 1 <Button /> component in <Form />', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const form = wrapper.find(Form);
     const button = form.find(Button);
     expect(button.length).toBe(1);
   });
 
   it('renders 2 <button /> components in <Form />', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const form = wrapper.find(Form);
     const button = form.find("div.btn");
     expect(button.length).toBe(2);
   });
 
   it('renders a <Spinner /> component if waiting for response', () => {
-    let wrapper = shallow(<StepTwo {...props}/>);
+    let wrapper = shallow(<StepNameARN {...props}/>);
     let spinner = wrapper.find(Spinner);
     expect(spinner.length).toBe(0);
-    wrapper = shallow(<StepTwo {...propsWaiting}/>);
+    wrapper = shallow(<StepNameARN {...propsWaiting}/>);
     spinner = wrapper.find(Spinner);
     expect(spinner.length).toBe(1);
   });
 
   it('renders an alert if there is an error', () => {
-    const wrapper = shallow(<StepTwo {...propsError}/>);
+    const wrapper = shallow(<StepNameARN {...propsError}/>);
     const error = wrapper.find("div.alert");
     expect(error.length).toBe(1);
   });
 
   it('can submit', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
+    const wrapper = shallow(<StepNameARN {...props}/>);
     const instance = wrapper.instance();
     instance.form = {
       getValues: () => ({
@@ -306,137 +299,6 @@ describe('<StepTwo />', () => {
     expect(props.submit).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault() {} });
     expect(props.submit).toHaveBeenCalled();
-  });
-
-  it('can go to next page when data is available', () => {
-    const wrapper = shallow(<StepTwo {...props}/>);
-    expect(props.next).not.toHaveBeenCalled();
-    wrapper.instance().componentWillReceiveProps(propsWaiting);
-    expect(props.next).not.toHaveBeenCalled();
-    wrapper.instance().componentWillReceiveProps(propsDone);
-    expect(props.next).toHaveBeenCalled();
-  });
-
-});
-
-describe('<StepThree />', () => {
-
-  const props = {
-    account,
-    external,
-    submit: jest.fn(),
-    close: jest.fn()
-  };
-
-  const propsWithoutBill = {
-    ...props,
-    bill: null
-  };
-
-  const propsWithoutAccount = {
-    ...props,
-    account: null,
-    bill
-  };
-
-  const propsWaiting = {
-    ...props,
-    bill: billWaiting
-  };
-
-  const propsDone = {
-    ...props,
-    bill
-  };
-
-  const propsError = {
-    ...props,
-    bill: billError
-  };
-
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
-  it('renders a <StepThree /> component', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    expect(wrapper.length).toBe(1);
-  });
-
-  it('renders a <div /> component for tutorial', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    const children = wrapper.find("div.tutorial");
-    expect(children.length).toBe(1);
-  });
-
-  it('renders a <Form /> component', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    const form = wrapper.find(Form);
-    expect(form.length).toBe(1);
-  });
-
-  it('renders 2 <Input /> component in <Form />', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    const form = wrapper.find(Form);
-    const inputs = form.find(Input);
-    expect(inputs.length).toBe(2);
-  });
-
-  it('renders 1 <Button /> component in <Form />', () => {
-    let wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    let form = wrapper.find(Form);
-    let button = form.find(Button);
-    expect(button.length).toBe(1);
-    expect(button.prop("disabled")).toBe(true);
-    wrapper = shallow(<StepThree {...propsWaiting}/>);
-    form = wrapper.find(Form);
-    button = form.find(Button);
-    expect(button.length).toBe(1);
-    expect(button.prop("disabled")).toBe(false);
-  });
-
-  it('renders 1 <button /> component in <Form />', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    const form = wrapper.find(Form);
-    const button = form.find("div.btn");
-    expect(button.length).toBe(1);
-  });
-
-  it('renders a <Spinner /> component if waiting for response', () => {
-    let wrapper = shallow(<StepThree {...propsWithoutAccount}/>);
-    let spinner = wrapper.find(Spinner);
-    expect(spinner.length).toBe(0);
-    wrapper = shallow(<StepThree {...propsWaiting}/>);
-    spinner = wrapper.find(Spinner);
-    expect(spinner.length).toBe(2);
-  });
-
-  it('renders an alert if there is an error', () => {
-    const wrapper = shallow(<StepThree {...propsError}/>);
-    const error = wrapper.find("div.alert");
-    expect(error.length).toBe(1);
-  });
-
-  it('can submit', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutBill}/>);
-    const instance = wrapper.instance();
-    instance.form = {
-      getValues: () => ({
-        bucket: "s3://account/path/to/bills"
-      })
-    };
-    expect(props.submit).not.toHaveBeenCalled();
-    wrapper.instance().submit({ preventDefault() {} });
-    expect(props.submit).toHaveBeenCalled();
-  });
-
-  it('can go to next page when data is available', () => {
-    const wrapper = shallow(<StepThree {...propsWithoutBill}/>);
-    expect(props.close).not.toHaveBeenCalled();
-    wrapper.instance().componentWillReceiveProps(propsWaiting);
-    expect(props.close).not.toHaveBeenCalled();
-    wrapper.instance().componentWillReceiveProps(propsDone);
-    expect(props.close).toHaveBeenCalled();
   });
 
 });

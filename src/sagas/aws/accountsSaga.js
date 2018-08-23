@@ -38,7 +38,7 @@ export function* getAccountBillsSaga({ accountID }) {
   }
 }
 
-export function* newAccountSaga({ account }) {
+export function* newAccountSaga({ account, bill }) {
   try {
     const token = yield getToken();
     const res = yield call(API.AWS.Accounts.newAccount, account, token);
@@ -48,12 +48,14 @@ export function* newAccountSaga({ account }) {
     }
     if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       throw Error(res.data.error);
-    else if (res.success && res.hasOwnProperty("data"))
+    else if (res.success && res.hasOwnProperty("data")) {
       yield all([
         put({ type: Constants.AWS_NEW_ACCOUNT_SUCCESS, account: res.data }),
         put({ type: Constants.AWS_NEW_EXTERNAL }),
-        put({ type: Constants.AWS_GET_ACCOUNTS })
+        put({ type: Constants.AWS_GET_ACCOUNTS }),
+        put({ type : Constants.AWS_NEW_ACCOUNT_BILL, accountID: res.data.id, bill})
       ]);
+    }
     else
       throw Error("Error with request");
   } catch (error) {
@@ -72,7 +74,8 @@ export function* newAccountBillSaga({ accountID, bill }) {
     if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("id"))
       yield all([
         put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS, bucket: res.data}),
-        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID }),
+        put({ type: Constants.AWS_GET_ACCOUNTS }),
       ]);
     else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       throw Error(res.data.error);
@@ -173,7 +176,8 @@ export function* deleteAccountBillSaga({ accountID, billID }) {
     if (res.success && res.hasOwnProperty("data"))
       yield all([
         put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
-        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+        put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID }),
+        put({ type: Constants.AWS_GET_ACCOUNTS }),
       ]);
     else
       throw Error("Error with request");
