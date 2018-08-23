@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"regexp"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 
@@ -26,7 +27,6 @@ import (
 	"github.com/trackit/trackit-server/awsSession"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/users"
-	"regexp"
 )
 
 // AwsAccount represents a client's AWS account.

@@ -17,15 +17,17 @@ package main
 import (
 	"context"
 	"database/sql"
-	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/costs/anomalies"
-	"time"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/mail"
 	"fmt"
+	"time"
+
+	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/costs/anomalies"
+	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/mail"
+	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/users"
 )
 
 // taskAnomaliesDetection processes an AwsAccount to email
@@ -45,8 +47,8 @@ func sendAnomalyEmail(user users.User, awsAccount aws.AwsAccount, product string
 		AwsAccountID: awsAccount.Id,
 		Product:      product,
 	}
-	var subject = fmt.Sprintf("TrackIt detected an abnormal peak in your %s cost on your account %s!", product, awsAccount.Pretty)
-	var body = fmt.Sprintf(`
+	subject := fmt.Sprintf("TrackIt detected an abnormal peak in your %s cost on your account %s!", product, awsAccount.Pretty)
+	body := fmt.Sprintf(`
 TrackIt detected an abnormal peak in your spendings!
 
 		Which account? %s
@@ -57,8 +59,8 @@ TrackIt detected an abnormal peak in your spendings!
 See more on our website http://re.trackit.io/
 
 this email is originally intended for %s.
-`, awsAccount.Pretty, product, an.Cost, an.Cost / an.UpperBand * 100, date.String(), ea.Recipient)
-	var recipient = "team@trackit.io" // replace by ea.Recipient.
+`, awsAccount.Pretty, product, an.Cost, an.Cost/an.UpperBand*100, date.String(), ea.Recipient)
+	recipient := "team@trackit.io" // replace by ea.Recipient.
 	if err := mail.SendMail(recipient, subject, body, ctx); err != nil {
 		logger.Error("Error when sending mail", err)
 		return err

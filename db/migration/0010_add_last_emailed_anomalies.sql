@@ -13,11 +13,11 @@
 --   limitations under the License.
 
 CREATE TABLE emailed_anomaly (
-	id                     INTEGER      NOT NULL AUTO_INCREMENT,
-	aws_account_id 				 INTEGER      NOT NULL,
-	product                VARCHAR(255) NOT NULL,
-	recipient              VARCHAR(255) NOT NULL,
-	date                   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	id             INTEGER      NOT NULL AUTO_INCREMENT,
+	aws_account_id INTEGER      NOT NULL,
+	product        VARCHAR(255) NOT NULL,
+	recipient      VARCHAR(255) NOT NULL,
+	date           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 );
