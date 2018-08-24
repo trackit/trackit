@@ -85,7 +85,7 @@ export class Item extends Component {
             </div>
             &nbsp;
             <div className="inline-block">
-              <DeleteConfirmation entity="account" confirm={this.deleteBill}/>
+              <DeleteConfirmation entity={`this bill location`} confirm={this.deleteBill}/>
             </div>
 
           </div>
