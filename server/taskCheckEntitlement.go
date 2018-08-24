@@ -29,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/trackit/trackit-server/config"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 // taskCheckEntitlement check the user Entitlement for AWS Marketplace users
@@ -61,7 +62,7 @@ func taskCheckEntitlement(ctx context.Context) error {
 	return nil
 }
 
-func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement){
+func getUserEntitlement(ctx context.Context, customerIdentifier string) (*GetEntitlementsOutput, error){
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(config.AwsRegion),
 	}))
@@ -74,13 +75,17 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 	awsInput.SetFilter(filter)
 	result, err := svc.GetEntitlements(&awsInput)
 	if err != nil {
+		aerr, ok := err.(awserr.Error)
+		if !ok {
+			return nil, errors.New("AWS error cast failed")
+		}
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Error when checking the AWS token", result)
-		return nil
+		logger.Error("Error when checking the AWS token", aerr.Message())
+		return nil, nil
 	}
 	fmt.Print("AWS Customer Entitlement Result : ")
-	fmt.Print(result)
-	return nil
+	fmt.Print(result.Entitlements)
+	return result, nil
 }
 
 func getCustomerIdentifier(db *sql.DB, ctx context.Context, userId int) (string, error) {
