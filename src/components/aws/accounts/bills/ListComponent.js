@@ -20,6 +20,7 @@ export class Item extends Component {
     this.editBill = this.editBill.bind(this);
     this.deleteBill = this.deleteBill.bind(this);
     this.getBillLocationBadge = this.getBillLocationBadge.bind(this);
+    this.getInformationBanner = this.getInformationBanner.bind(this);
   }
 
   editBill = (body) => {
@@ -33,13 +34,24 @@ export class Item extends Component {
 
   getBillLocationBadge = () => {
     if (this.props.bill.error !== "")
-      return (
-          <Popover
-            children={<i className="fa account-badge fa-times-circle"/>}
-            popOver={this.props.bill.error}
-          />
-      );
+      return (<i className="fa account-badge fa-times-circle"/>);
     return (<i className="fa account-badge fa-check-circle"/>);
+  };
+
+  getInformationBanner = () => {
+    if (this.props.bill.error)
+      return (
+        <ListItem divider>
+
+          <div className={"alert alert-danger account-badge-information-banner"}>
+            <ListItemText
+              disableTypography
+              primary={"Oops, we couldn't import data: " + this.props.bill.error}
+            />
+          </div>
+
+        </ListItem>
+      );
   };
 
   render() {
@@ -48,36 +60,40 @@ export class Item extends Component {
     ) : (null);
 
     return (
-      <ListItem divider>
+      <div>
+        <ListItem divider={this.props.bill.error === ""}>
 
-        {this.getBillLocationBadge()}
-        <ListItemText
-          disableTypography
-          primary={<span>
-            {this.props.bill.bucket}
-            {prefix}
-          </span>}
-        />
+          {this.getBillLocationBadge()}
+          <ListItemText
+            disableTypography
+            primary={<span>
+              {this.props.bill.bucket}
+              {prefix}
+            </span>}
+          />
 
-        <div className="actions">
+          <div className="actions">
 
-          <div className="inline-block">
-            <Form
-              account={this.props.account}
-              bill={this.props.bill}
-              submit={this.editBill}
-              status={this.props.editionStatus}
-              clear={this.props.clearEdition}
-            />
+            <div className="inline-block">
+              <Form
+                account={this.props.account}
+                bill={this.props.bill}
+                submit={this.editBill}
+                status={this.props.editionStatus}
+                clear={this.props.clearEdition}
+              />
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <DeleteConfirmation entity="account" confirm={this.deleteBill}/>
+            </div>
+
           </div>
-          &nbsp;
-          <div className="inline-block">
-            <DeleteConfirmation entity="account" confirm={this.deleteBill}/>
-          </div>
 
-        </div>
+        </ListItem>
 
-      </ListItem>
+        {this.getInformationBanner()}
+      </div>
     );
   }
 

@@ -17,7 +17,10 @@ export class Item extends Component {
     super(props);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
+    this.hasError = this.hasError.bind(this);
+    this.hasNextPending = this.hasNextPending.bind(this);
     this.getAccountBadge = this.getAccountBadge.bind(this);
+    this.getInformationBanner = this.getInformationBanner.bind(this);
   }
 
   editAccount = (body) => {
@@ -30,37 +33,59 @@ export class Item extends Component {
     this.props.accountActions.delete(this.props.account.id);
   };
 
-  getAccountBadge = () => {
-    let error = false;
-    let pending = false;
+  hasError = () => {
+    let result = !this.props.account.billRepositories.length;
     this.props.account.billRepositories.forEach((billRepository) => {
       if (billRepository.error !== "")
-        error = true;
-      if (billRepository.nextPending)
-        pending = true;
+        result = true;
     });
-    if (error || !this.props.account.billRepositories.length)
-      return (
-          <Popover
-            icon={<i className="fa account-badge fa-times-circle"/>}
-            tooltip={"Please check your bill locations"}
-          />
-      );
-    else if (pending)
-      return (
-          <Popover
-            icon={<i className="fa account-badge fa-clock-o"/>}
-            tooltip={"Import in progress"}
-          />
-      );
+    return result;
+  };
+
+  hasNextPending = () => {
+    let result = false;
+    this.props.account.billRepositories.forEach((billRepository) => {
+      if (billRepository.nextPending)
+        result = true;
+    });
+    return result;
+  };
+
+  getAccountBadge = () => {
+    if (this.hasError())
+      return (<i className="fa account-badge fa-times-circle"/>);
+    else if (this.hasNextPending())
+      return (<i className="fa account-badge fa-clock-o"/>);
     return (<i className="fa account-badge fa-check-circle"/>);
+  };
+
+  getInformationBanner = () => {
+    let generateBanner = (alertLevel, text) => {
+      return (
+        <ListItem divider>
+
+          <div className={"alert alert-"+alertLevel+" account-badge-information-banner"}>
+            <ListItemText
+              disableTypography
+              primary={text}
+            />
+          </div>
+
+        </ListItem>
+      );
+    };
+
+    if (this.hasError())
+      return generateBanner("danger", "Import failed, please check your bills location.");
+    else if (this.hasNextPending())
+      return generateBanner("warning", "Import may take 2-3 minutes, please wait.");
   };
 
   render() {
     return (
       <div>
 
-        <ListItem divider>
+        <ListItem divider={!(this.hasError() || this.hasNextPending())}>
 
           {this.getAccountBadge()}
           <ListItemText
@@ -89,6 +114,8 @@ export class Item extends Component {
           </div>
 
         </ListItem>
+
+        {this.getInformationBanner()}
 
       </div>
     );
