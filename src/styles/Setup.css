@@ -21,6 +21,21 @@ ul.viewers-list > li:last-child {
 	display: inherit;
 }
 
+.account {
+	display: block;
+}
+
+.account-info {
+	width: 100%;
+	display: flex;
+}
+
+.account-badge-information-banner {
+	margin-top: 10px;
+	padding: 10px;
+	font-size: 1.1em;
+}
+
 .input-title {
 	display: flex;
 }

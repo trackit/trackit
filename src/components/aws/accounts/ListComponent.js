@@ -60,62 +60,52 @@ export class Item extends Component {
   };
 
   getInformationBanner = () => {
-    let generateBanner = (alertLevel, text) => {
-      return (
-        <ListItem divider>
-
-          <div className={"alert alert-"+alertLevel+" account-badge-information-banner"}>
-            <ListItemText
-              disableTypography
-              primary={text}
-            />
-          </div>
-
-        </ListItem>
-      );
-    };
-
     if (this.hasError())
-      return generateBanner("danger", "Import failed, please check your bills location.");
+      return (<div className={"alert alert-danger account-badge-information-banner"}>Import failed, please check your bills location.</div>);
     else if (this.hasNextPending())
-      return generateBanner("warning", "Import may take 2-3 minutes, please wait.");
+      return (<div className={"alert alert-warning account-badge-information-banner"}>Import may take 2-3 minutes, please wait.</div>);
   };
 
   render() {
     return (
       <div>
 
-        <ListItem divider={!(this.hasError() || this.hasNextPending())}>
+        <ListItem divider={!(this.hasError() || this.hasNextPending())} className="account">
 
-          {this.getAccountBadge()}
-          <ListItemText
-            disableTypography
-            className="account-name"
-            primary={this.props.account.pretty || this.props.account.roleArn}
-          />
+          <div className="account-info">
 
-          <div className="actions">
+            {this.getAccountBadge()}
 
-            <div className="inline-block">
-              <Bills.List account={this.props.account.id} />
-            </div>
-            &nbsp;
-            <div className="inline-block">
-              <Form
-                account={this.props.account}
-                submit={this.editAccount}
-              />
-            </div>
-            &nbsp;
-            <div className="inline-block">
-              <DeleteConfirmation entity="account" confirm={this.deleteAccount}/>
+            <ListItemText
+              disableTypography
+              className="account-name"
+              primary={this.props.account.pretty || this.props.account.roleArn}
+            />
+
+            <div className="actions">
+
+              <div className="inline-block">
+                <Bills.List account={this.props.account.id} />
+              </div>
+              &nbsp;
+              <div className="inline-block">
+                <Form
+                  account={this.props.account}
+                  submit={this.editAccount}
+                />
+              </div>
+              &nbsp;
+              <div className="inline-block">
+                <DeleteConfirmation entity="account" confirm={this.deleteAccount}/>
+              </div>
+
             </div>
 
           </div>
 
-        </ListItem>
+          {this.getInformationBanner()}
 
-        {this.getInformationBanner()}
+        </ListItem>
 
       </div>
     );
