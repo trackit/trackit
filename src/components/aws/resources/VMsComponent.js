@@ -95,7 +95,7 @@ export class VMsComponent extends Component {
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
       reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd d MMM HH:mm") + " and " + newestReport.format("ddd d MMM HH:mm")}/>);
-      instances = this.props.data.value.map((account) => (account.instances)).flat();
+      instances = [].concat.apply([], this.props.data.value.map((account) => (account.instances)));
     }
 
     const regions = [];
