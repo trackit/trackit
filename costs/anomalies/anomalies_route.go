@@ -30,11 +30,11 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
-// esQueryParams will store the parsed query params
-type esQueryParams struct {
-	dateBegin         time.Time
-	dateEnd           time.Time
-	accountList       []string
+// AnomalyEsQueryParams will store the parsed query params
+type AnomalyEsQueryParams struct {
+	DateBegin   time.Time
+	DateEnd     time.Time
+	AccountList []string
 }
 
 // anomalyQueryArgs allows to get required queryArgs params
@@ -64,13 +64,13 @@ func init() {
 // the user (e.g if the index does not exists because it was not yet indexed) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, user users.User) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryParams, user users.User) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUser(user, "lineitems")
 	searchService := GetElasticSearchParams(
-		parsedParams.accountList,
-		parsedParams.dateBegin,
-		parsedParams.dateEnd,
+		parsedParams.AccountList,
+		parsedParams.DateBegin,
+		parsedParams.DateEnd,
 		"12h",
 		es.Client,
 		index,
@@ -87,31 +87,40 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 	return res, http.StatusOK, nil
 }
 
-// getAnomaliesData returns the cost anomalies based on the query params, in JSON format.
+// getAnomaliesData checks the request and returns AnomaliesData.
 func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := esQueryParams{
-		accountList:       []string{},
-		dateBegin:         a[anomalyQueryArgs[1]].(time.Time),
-		dateEnd:           a[anomalyQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
+	parsedParams := AnomalyEsQueryParams{
+		AccountList: []string{},
+		DateBegin:   a[anomalyQueryArgs[1]].(time.Time),
+		DateEnd:     a[anomalyQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 	}
 	if a[anomalyQueryArgs[0]] != nil {
-		parsedParams.accountList = a[anomalyQueryArgs[0]].([]string)
+		parsedParams.AccountList = a[anomalyQueryArgs[0]].([]string)
 	}
-	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
+	if err := aws.ValidateAwsAccounts(parsedParams.AccountList); err != nil {
 		return http.StatusBadRequest, err
 	}
-	sr, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)
+	res, returnCode, err := GetAnomaliesData(request.Context(), parsedParams, user)
 	if err != nil {
 		if returnCode == http.StatusOK {
 			return returnCode, nil
 		} else {
-			return returnCode, err
+			return http.StatusInternalServerError, err
 		}
 	}
-	res, err := prepareAnomalyData(request.Context(), sr)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
 	return http.StatusOK, res
+}
+
+// GetAnomaliesData returns the cost anomalies based on the query params, in JSON format.
+func GetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams, user users.User) (ProductsCostAnomalies, int, error) {
+	sr, returnCode, err := makeElasticSearchRequest(ctx, params, user)
+	if err != nil {
+		return ProductsCostAnomalies{}, returnCode, err
+	}
+	res, err := prepareAnomalyData(ctx, sr)
+	if err != nil {
+		return ProductsCostAnomalies{}, 0, err
+	}
+	return res, 0, nil
 }
