@@ -276,6 +276,7 @@ CREATE TABLE emailed_anomaly (
 	date           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+);
 
 --   Copyright 2018 MSolution.IO
 --
@@ -302,5 +303,4 @@ CREATE TABLE shared_account (
   CONSTRAINT foreign_aws_account FOREIGN KEY (account_id) REFERENCES aws_account(id) ON DELETE CASCADE,
   CONSTRAINT foreign_owner_id FOREIGN KEY (owner_id) REFERENCES user(id) ON DELETE CASCADE,
   CONSTRAINT foreign_user_id FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
-
 );
