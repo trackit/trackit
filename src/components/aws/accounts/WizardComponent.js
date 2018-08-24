@@ -13,6 +13,7 @@ import Button from 'react-validation/build/button';
 import {CopyToClipboard} from 'react-copy-to-clipboard';
 import Spinner from 'react-spinkit';
 import Misc from '../../misc';
+import BucketForm from './bills/FormComponent';
 import RoleCreation from '../../../assets/wizard-creation.png';
 import RoleARN from '../../../assets/wizard-rolearn.png';
 import Reports_first from '../../../assets/report_step_1.png';
@@ -23,7 +24,7 @@ const Popover = Misc.Popover;
 const Picture = Misc.Picture;
 const Validation = Validations.AWSAccount;
 
-export class StepOne extends Component {
+export class StepRoleCreation extends Component {
 
   submit = (e) => {
     e.preventDefault();
@@ -42,9 +43,7 @@ export class StepOne extends Component {
           <div className="tutorial">
 
             <ol>
-              <li>Go to your <strong>AWS Console</strong></li>
-              <li>In <strong>Services</strong> panel, select <strong>IAM</strong></li>
-              <li>Choose <strong>Role</strong> on the left side menu</li>
+              <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/iam/home#/roles">AWS Console IAM Roles page</a>.</li>
               <li>Click on <strong>Create Role</strong></li>
               <li>
                 <div>
@@ -74,14 +73,17 @@ export class StepOne extends Component {
                 </div>
                 <hr/>
               </li>
-              <li>Select <strong>ReadOnlyAccess</strong> policy</li>
+              <li>Select the policy you created in previous step</li>
               <li>Set a name for this new role and validate</li>
             </ol>
 
           </div>
 
           <div className="form-group clearfix">
-            <button className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</button>
+            <div className="btn-group col-md-5" role="group">
+              <div className="btn btn-default btn-left" onClick={this.props.close}>Cancel</div>
+              <div className="btn btn-default btn-left" onClick={this.props.back}>Previous</div>
+            </div>
             <Button className="btn btn-primary col-md-5 btn-right" type="submit">Next</Button>
           </div>
 
@@ -93,16 +95,17 @@ export class StepOne extends Component {
 
 }
 
-StepOne.propTypes = {
+StepRoleCreation.propTypes = {
   external: PropTypes.shape({
     external: PropTypes.string.isRequired,
     accountId: PropTypes.string.isRequired,
   }),
   next: PropTypes.func.isRequired,
+  back: PropTypes.func.isRequired,
   close: PropTypes.func.isRequired
 };
 
-export class StepTwo extends Component {
+export class StepNameARN extends Component {
 
   submit = (e) => {
     e.preventDefault();
@@ -115,11 +118,6 @@ export class StepTwo extends Component {
     this.props.submit(account);
   };
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.account.status && nextProps.account.value && !nextProps.account.hasOwnProperty("error"))
-      nextProps.next();
-  }
-
   render() {
     const error = (this.props.account && this.props.account.status && this.props.account.hasOwnProperty("error")) ? (
       <div className="alert alert-warning" role="alert">{this.props.account.error.message}</div>
@@ -131,7 +129,7 @@ export class StepTwo extends Component {
         <div className="tutorial">
 
           <ol>
-            <li>In <strong>Role</strong> list, select the role you created in previous step</li>
+            <li>In <strong>Roles list</strong> on <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/iam/home#/roles">AWS Console IAM Roles page</a>, select the role you created in previous step</li>
             <li>
               <div>
                 Copy the Role ARN in <strong>role summary</strong> to the form below.
@@ -197,7 +195,7 @@ export class StepTwo extends Component {
 
 }
 
-StepTwo.propTypes = {
+StepNameARN.propTypes = {
   external: PropTypes.shape({
     external: PropTypes.string.isRequired,
     accountId: PropTypes.string.isRequired,
@@ -214,30 +212,19 @@ StepTwo.propTypes = {
   submit: PropTypes.func.isRequired,
   next: PropTypes.func.isRequired,
   back: PropTypes.func.isRequired,
-  close: PropTypes.func.isRequired
+  close: PropTypes.func.isRequired,
 };
 
-export class StepThree extends Component {
+export class StepBucket extends Component {
 
   submit = (e) => {
     e.preventDefault();
     const formValues = this.form.getValues();
-    this.props.submit(this.props.account.value.id, formValues);
+    this.props.submit(formValues);
+    this.props.next();
   };
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.bill.status && nextProps.bill.value && !nextProps.bill.hasOwnProperty("error")) {
-        nextProps.close();
-    }
-  }
-
   render() {
-
-    const loading = (this.props.bill && !this.props.bill.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
-
-    const error = (this.props.bill && this.props.bill.status && this.props.bill.error ? (
-      <div className="alert alert-warning" role="alert">{this.props.bill.error.message}</div>
-    ) : null);
 
     const tutorial = (
       <div className="tutorial">
@@ -265,11 +252,7 @@ export class StepThree extends Component {
             />
           </li>
           <li>
-            You are almost done !
-            <br/>
             Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
-            <br/>
-            <strong>That's it ! </strong><i className="fa fa-smile-o"/>
           </li>
         </ol>
 
@@ -280,7 +263,6 @@ export class StepThree extends Component {
       <div>
 
         {tutorial}
-        {loading || error}
 
         <Form ref={
               /* istanbul ignore next */
@@ -321,18 +303,16 @@ export class StepThree extends Component {
 
               <div className="form-group clearfix">
                 <div className="btn btn-default col-md-5 btn-left" onClick={this.props.close}>Cancel</div>
-                <Button className="btn btn-primary col-md-5 btn-right" type="submit" disabled={!this.props.account}>{!this.props.bill || this.props.bill.status ? "Done" : <Spinner className="spinner" name='circle' color="white"/>}</Button>
+                <Button className="btn btn-primary col-md-5 btn-right" type="submit">Next</Button>
               </div>
-
             </Form>
-
       </div>
     );
   }
 
 }
 
-StepThree.propTypes = {
+StepBucket.propTypes = {
   external: PropTypes.shape({
     external: PropTypes.string.isRequired,
     accountId: PropTypes.string.isRequired,
@@ -354,18 +334,145 @@ StepThree.propTypes = {
   close: PropTypes.func.isRequired
 };
 
+export class StepPolicy extends Component {
+  getPolicy() {
+    const bucketString = this.props.bucketPrefix.length ? `${this.props.bucketName}/${this.props.bucketPrefix}` : this.props.bucketName;
+
+    return(
+      `{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "s3:GetObject",
+                "Resource": "arn:aws:s3:::${bucketString}/*"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket"
+                ],
+                "Resource": "arn:aws:s3:::${bucketString}"
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "sts:GetCallerIdentity",
+                    "rds:DescribeDBInstances",
+                    "cloudwatch:GetMetricStatistics",
+                    "ec2:DescribeRegions",
+                    "ec2:DescribeInstances"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }`
+    );
+  }
+
+  render() {
+    return (
+      <div>
+        <div className="tutorial">
+          <ol>
+            <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/iam/home#/policies">AWS Console IAM Policies page</a>.</li>
+            <li>Click <strong>Create Policy</strong></li>
+            <li>Select the <strong>JSON</strong> tab</li>
+            <li>
+              Paste the following into the JSON Editor:
+              <CopyToClipboard text={this.getPolicy()}>
+                    <div className="badge">
+                      <i className="fa fa-clipboard" aria-hidden="true"/>
+                    </div>
+              </CopyToClipboard>
+              <pre style={{ height: '180px', marginTop: '10px' }}>
+                {this.getPolicy()}
+              </pre>
+              <div className="alert alert-info">
+                <i className="fa fa-info-circle"></i>
+                &nbsp;
+                With this policy you only gives TrackIt access to the data it needs to be functional. We won't be able to access any of your sensitive data.
+              </div>
+            </li>
+            <li>Click <strong>Review Policy</strong> to submit</li>
+            <li>Give your policy a name and click <strong>Create policy</strong></li>
+          </ol>
+        </div>
+        <div className="form-group clearfix">
+          <div className="btn-group col-md-5" role="group">
+            <div className="btn btn-default btn-left" onClick={this.props.close}>Cancel</div>
+            <div className="btn btn-default btn-left" onClick={this.props.back}>Previous</div>
+          </div>
+          <button className="btn btn-primary col-md-5 btn-right" onClick={this.props.next}>Next</button>
+        </div>
+
+      </div>
+    );
+  }
+}
+
+StepPolicy.propTypes = {
+  bucketName: PropTypes.string.isRequired,
+  bucketPrefix: PropTypes.string.isRequired,
+  next: PropTypes.func.isRequired,
+  back: PropTypes.func.isRequired,
+  close: PropTypes.func.isRequired
+}
+
 class Wizard extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
       open: false,
-      activeStep: 0
+      activeStep: 0,
+      bucket: '',
+      prefix: '',
+      billEditMode: false,
     };
     this.nextStep = this.nextStep.bind(this);
     this.previousStep = this.previousStep.bind(this);
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
+    this.setBucketValues = this.setBucketValues.bind(this);
+    this.submit = this.submit.bind(this);
+    this.submitBucket = this.submitBucket.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    // Everything went well
+    if (
+      (nextProps.account.status && nextProps.account.value && !nextProps.account.hasOwnProperty("error"))
+      && (nextProps.bill.status && nextProps.bill.value && !nextProps.bill.hasOwnProperty("error"))
+    ) {
+      this.closeDialog();
+    }
+    // Account was created successfully but not bill
+    else if (
+      (nextProps.account.status && nextProps.account.value && !nextProps.account.hasOwnProperty("error"))
+      && (nextProps.bill.status && nextProps.bill.hasOwnProperty("error"))
+    ) {
+      this.setState({ billEditMode : true });
+    }
+
+  }
+
+  setBucketValues(values) {
+    const { bucket, prefix } = values;
+    this.setState({ bucket, prefix });
+  }
+
+  submit(account) {
+    const bucket = {
+      bucket: this.state.bucket,
+      prefix: this.state.prefix,
+    }
+    this.props.submitAccount(account, bucket);
+  }
+
+  submitBucket(bucket) {
+    this.props.submitBucket(this.props.account.value.id, bucket);
   }
 
   nextStep = () => {
@@ -388,7 +495,7 @@ class Wizard extends Component {
   closeDialog = (e=null) => {
     if (e)
       e.preventDefault();
-    this.setState({open: false, activeStep: 0});
+    this.setState({open: false, activeStep: 0, bucket: '', prefix: '', billEditMode: false });
     this.props.clearAccount();
     this.props.clearBucket();
   };
@@ -397,19 +504,67 @@ class Wizard extends Component {
 
     let steps = [
       {
+        title: "Create a billing bucket",
+        label: "Billing bucket",
+        component: <StepBucket account={this.props.account} bill={this.props.bill} next={this.nextStep} submit={this.setBucketValues} close={this.closeDialog}/>
+      },
+      {
+        title: "Create a policy",
+        label: "Policy creation",
+        component: <StepPolicy bucketName={this.state.bucket} bucketPrefix={this.state.prefix} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
+      },
+      {
         title: "Create a role",
         label: "Role creation",
-        component: <StepOne external={this.props.external} next={this.nextStep} close={this.closeDialog}/>
-      },{
+        component: <StepRoleCreation external={this.props.external} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
+      },
+      {
         title: "Add your role",
-        label: "Name",
-        component: <StepTwo external={this.props.external} account={this.props.account} submit={this.props.submitAccount} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
-      },{
-        title: "Add a bill repository",
-        label: "Bill repository",
-        component: <StepThree account={this.props.account} bill={this.props.bill} submit={this.props.submitBucket} close={this.closeDialog}/>
-      }
+        label: "Role ARN & Name",
+        component: <StepNameARN external={this.props.external} account={this.props.account} submit={this.submit} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
+      },
     ];
+
+    const stepper = (
+      <div>
+        <div>
+          {steps[this.state.activeStep].component}
+        </div>
+
+        <Stepper nonLinear activeStep={this.state.activeStep} className="account-wizard-stepper">
+          {steps.map((step, index) => (
+              <Step key={index}>
+                <StepButton
+                  className={"account-wizard-stepper-item " + (this.state.activeStep > index ? "completed" : (this.state.activeStep === index ? "current" : "")) }
+                  completed={this.state.activeStep > index}
+                >
+                  {step.label}
+                </StepButton>
+              </Step>
+            ))}
+        </Stepper>
+      </div>
+    );
+
+    let billEditMode;
+    if (this.props.account && this.props.account.value && this.props.account.value.id) {
+      billEditMode = (
+        <div>
+          <div className="alert alert-warning">
+            Your account was created successfully but we could not access the billing bucket you specified.
+            Please click on the <strong>Add a bill location</strong> button below and try to set it up again. Thank you !
+          </div>
+          <BucketForm
+            account={this.props.account.value && this.props.account.value.id}
+            submit={this.submitBucket}
+            status={this.props.bill}
+            clear={this.props.clearBucket}
+          />
+          <hr />
+          <button className="btn btn-default" onClick={this.closeDialog}>Close</button>
+        </div>
+      );  
+    }
 
     return(
       <div className="account-wizard">
@@ -421,24 +576,7 @@ class Wizard extends Component {
           <DialogTitle disableTypography><h1>Add an AWS account : {steps[this.state.activeStep].title}</h1></DialogTitle>
 
           <DialogContent>
-
-            <div>
-              {steps[this.state.activeStep].component}
-            </div>
-
-            <Stepper nonLinear activeStep={this.state.activeStep} className="account-wizard-stepper">
-              {steps.map((step, index) => (
-                  <Step key={index}>
-                    <StepButton
-                      className={"account-wizard-stepper-item " + (this.state.activeStep > index ? "completed" : (this.state.activeStep === index ? "current" : "")) }
-                      completed={this.state.activeStep > index}
-                    >
-                      {step.label}
-                    </StepButton>
-                  </Step>
-                ))}
-            </Stepper>
-
+            {this.state.billEditMode ? billEditMode : stepper}
           </DialogContent>
 
         </Dialog>
@@ -468,8 +606,8 @@ Wizard.propTypes = {
     error: PropTypes.instanceOf(Error)
   }),
   submitAccount: PropTypes.func.isRequired,
-  clearAccount: PropTypes.func.isRequired,
   submitBucket: PropTypes.func.isRequired,
+  clearAccount: PropTypes.func.isRequired,
   clearBucket: PropTypes.func.isRequired,
 };
 

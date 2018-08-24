@@ -68,6 +68,7 @@ export class Item extends Component {
               submit={this.editBill}
               status={this.props.editionStatus}
               clear={this.props.clearEdition}
+              bills={this.props.bills}
             />
           </div>
           &nbsp;
@@ -146,6 +147,7 @@ export class ListComponent extends Component {
       submit={this.newBill}
       status={this.props.billCreation}
       clear={this.props.clearNewBill}
+      bills={this.props.bills}
     />);
 
     return (
