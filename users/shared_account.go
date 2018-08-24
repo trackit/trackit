@@ -81,6 +81,7 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, user
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccounts, err := models.SharedAccountsByUserID(db, userId)
 	fmt.Print("--- TABLE : ")
+	fmt.Print(userId)
 	fmt.Print(dbSharedAccounts)
 	fmt.Print(err)
 	if err == sql.ErrNoRows {
@@ -103,10 +104,10 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, user
 // addAccountToGuest adds an entry in shared_account table with element that enable a user
 // to share an access to all or part of his account
 func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int, ownerId int) (err error) {
-	//TODO : Check if user already have an access to the account if so, abort and return 200, already sharing with this user
+	//TODO : Check if user already have an access to the account if so, return 200, already sharing with this user
 	fmt.Print("--- GUEST ID : ")
 	fmt.Print(guestId)
-	isAlreadyShared, err := checkSharedAccount(ctx, db, guestId, accountId)
+	isAlreadyShared, err := checkSharedAccount(ctx, db, accountId, guestId)
 	_ = isAlreadyShared
 	if err != nil {
 		return err
