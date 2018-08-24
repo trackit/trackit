@@ -6,6 +6,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Spinner from 'react-spinkit';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 import Button from 'react-validation/build/button';
 import Validations from '../../../../common/forms';
 import Popover from '../../../misc/Popover';
@@ -23,36 +24,107 @@ class FormComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: false
+      open: false,
+      step: 0,
+      bucket : (this.props.bill !== undefined ? this.props.bill.bucket : ""),
+      prefix : (this.props.bill !== undefined ? this.props.bill.prefix : "")
     };
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
     this.submit = this.submit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
   }
 
   openDialog = (e) => {
     e.preventDefault();
-    this.setState({open: true});
+    this.setState({
+      open: true,
+      bucket : (this.props.bill !== undefined ? this.props.bill.bucket : ""),
+      prefix : (this.props.bill !== undefined ? this.props.bill.prefix : "")
+    });
     this.props.clear();
   };
 
   closeDialog = (e) => {
     e.preventDefault();
-    this.setState({open: false});
+    this.setState({open: false, step: 0});
     this.props.clear();
   };
 
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
   submit = (e) => {
     e.preventDefault();
-    const formValues = this.form.getValues();
-    this.props.submit(formValues);
+    if (!this.state.step) {
+      this.setState({ step : 1 })
+    } else {
+      const formValues = this.form.getValues();
+      this.props.submit(formValues);  
+    }
   };
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.status && nextProps.status.status && nextProps.status.value && !nextProps.status.hasOwnProperty("error")) {
-      this.setState({open: false});
+      this.setState({open: false, step: 0});
     }
   }
+
+  getPolicy(bucket, prefix) {
+    // const bucketString = this.props.bucketPrefix.length ? `${this.props.bucketName}/${this.props.bucketPrefix}` : this.props.bucketName;
+      const bills = [];
+      if (this.props.bills && this.props.bills.status && this.props.bills.values && this.props.bills.values.length) {
+        for (let i = 0; i < this.props.bills.values.length; i++) {
+          const element = this.props.bills.values[i];
+          const bucketString = element.prefix.length ? `${element.bucket}/${element.prefix}` : element.bucket;
+          bills.push(
+            `arn:aws:s3:::${bucketString}`
+          );
+        }
+      }
+      const newBucketString = prefix.length ? `${bucket}/${prefix}` : bucket;
+      bills.push(`arn:aws:s3:::${newBucketString}`);
+
+      const base = {
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Action: "s3:GetObject",
+                Resource: bills
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket"
+                ],
+                Resource: bills
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "sts:GetCallerIdentity",
+                    "rds:DescribeDBInstances",
+                    "cloudwatch:GetMetricStatistics",
+                    "ec2:DescribeRegions",
+                    "ec2:DescribeInstances"
+                ],
+                Resource: "*"
+            }
+        ]
+    }
+    return(JSON.stringify(base, null, 2));
+
+  }
+
 
   render() {
     const button = (this.props.bill !== undefined ? (
@@ -97,14 +169,33 @@ class FormComponent extends Component {
             />
           </li>
           <li>
-            You are almost done !
-            <br/>
             Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
-            <br/>
-            <strong>That's it ! </strong><i className="fa fa-smile-o"/>
           </li>
         </ol>
 
+      </div>
+    );
+
+    const tutorialEditPolicy = (
+      <div className="tutorial">
+        <div className="alert alert-info">
+          Please note that if you used our generated AWS Policy you will have to update it when adding or editing a bill location.
+          <br/>
+          <br/>
+          To do that, go to your <a href="https://console.aws.amazon.com/iam/home#/policies">AWS Policies List</a>, select TrackIt policy and Edit it.
+          Paste the following policy into the JSON Editor and submit.
+        </div>
+        <h5>
+          Updated policy
+          <CopyToClipboard text={this.getPolicy(this.state.bucket, this.state.prefix)}>
+            <div className="badge">
+              <i className="fa fa-clipboard" aria-hidden="true"/>
+            </div>
+          </CopyToClipboard>
+        </h5>
+        <pre style={{ height: '180px', marginTop: '10px' }}>
+          {this.getPolicy(this.state.bucket, this.state.prefix)}
+        </pre>
       </div>
     );
 
@@ -128,7 +219,7 @@ class FormComponent extends Component {
           <DialogContent>
 
             {loading || error}
-            {this.props.bill === undefined && tutorial}
+            {this.props.bill === undefined && this.state.step === 0 && tutorial}
 
             <Form ref={
               /* istanbul ignore next */
@@ -146,7 +237,8 @@ class FormComponent extends Component {
                   type="text"
                   className="form-control"
                   placeholder="Bucket Name"
-                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
+                  value={this.state.bucket}
+                  onChange={this.handleInputChange}
                   validations={[Validation.required, Validation.s3BucketNameFormat]}
                 />
               </div>
@@ -162,10 +254,13 @@ class FormComponent extends Component {
                   type="text"
                   className="form-control"
                   placeholder="Optional prefix"
-                  value={(this.props.bill !== undefined ? this.props.bill.prefix : "")}
+                  value={this.state.prefix}
+                  onChange={this.handleInputChange}
                   validations={[Validation.s3PrefixFormat]}
                 />
               </div>
+
+              {this.state.step === 1 && tutorialEditPolicy}
 
               <DialogActions>
 
@@ -204,7 +299,18 @@ FormComponent.propTypes = {
     value: PropTypes.object
   }),
   submit: PropTypes.func.isRequired,
-  clear: PropTypes.func.isRequired
+  clear: PropTypes.func.isRequired,
+  bills: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        error: PropTypes.string.isRequired,
+        bucket: PropTypes.string.isRequired,
+        prefix: PropTypes.string.isRequired
+      })
+    )
+  }),
 };
 
 
