@@ -29,7 +29,6 @@ import (
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/mail"
-	"github.com/trackit/trackit-server/config"
 )
 
 // inviteUserRequest is the expected request body for the invite user route handler.
@@ -156,13 +155,6 @@ func resetPasswordGenerator(ctx context.Context, tx *sql.Tx, newUserId int) (dbF
 
 // sendMailNotification sends an email to user how has been invited to access a AWS account on trackit.io
 func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, userNew bool, newUserId int) (err error) {
-	//TODO : Needs to be removed before merging. This is for tests purpose ONLY ----
-	config.SmtpAddress = "email-smtp.us-west-2.amazonaws.com"
-	config.SmtpPort = "587"
-	config.SmtpUser = "AKIAJUT3EB3EH2V6SX5A"
-	config.SmtpPassword = "Ahk+AhVhVnjb/gtKVAugFjJZQt9qvWQTGAvJy19kwmyU"
-	config.SmtpSender = "team@trackit.io"
-	//TODO : ---- Ends of TODO
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
