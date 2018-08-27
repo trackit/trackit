@@ -115,11 +115,11 @@ func createAccountForGuest(ctx context.Context, db *sql.Tx, userMail string, acc
 	if err == nil {
 		err = addAccountToGuest(ctx, db, accountId, permissionLevel, usr.Id, user.Id)
 		if err != nil {
-			logger.Error("Error occured while adding account to an newly created user.", err)
+			logger.Error("Error occured while adding account to an newly created user.", err.Error())
 			return 0, err
 		}
 	} else {
-		logger.Error("Error occured while creating an automatic new account.", err)
+		logger.Error("Error occured while creating an automatic new account.", err.Error())
 		return 0, err
 	}
 	return usr.Id,nil
