@@ -268,7 +268,6 @@ ALTER TABLE user ADD aws_customer_identifier varchar(255) NOT NULL DEFAULT "";
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-
 CREATE TABLE emailed_anomaly (
 	id             INTEGER      NOT NULL AUTO_INCREMENT,
 	aws_account_id INTEGER      NOT NULL,
