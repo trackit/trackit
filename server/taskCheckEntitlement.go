@@ -20,16 +20,16 @@ import (
 	"errors"
 	"flag"
 	"strconv"
-	"github.com/trackit/jsonlog"
+	"time"
 
-	"github.com/trackit/trackit-server/db"
-	//"github.com/aws/aws-sdk-go/service/marketplacemetering"
+	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/service/marketplaceentitlementservice"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/trackit/trackit-server/config"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+
+	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/config"
 )
 
 // taskCheckEntitlement checks the user Entitlement for AWS Marketplace users
@@ -50,20 +50,17 @@ func taskCheckEntitlement(ctx context.Context) error {
 		} else if cuId == "" {
 			return nil
 		} else {
-			res, err := getUserEntitlement(ctx, cuId)
-			fmt.Print("This is entitlement : ")
-			fmt.Print(res)
-			_ = err
-			//if res["Entitlement"] == "Ok" {
-			//	updateCustomerEntitlement(db.Db, ctx, userId, 0)
-			//} else {
-			//	updateCustomerEntitlement(db.Db, ctx, userId, 1)
-			//}
+			err = checkUserEntitlement(ctx, cuId, userId)
+			if err != nil {
+				logger.Error("Error occured while checking user entitlement", err)
+				return err
+			}
 		}
 	}
 	return nil
 }
 
+// getUserEntitlement calls getEntitlements function to retrieve specific user entitlement from AWS marketplace.
 func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement, error){
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(config.AwsRegion),
@@ -83,11 +80,39 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 		}
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Error when checking the AWS token", aerr.Message())
-		return nil, nil
+		return nil, err
 	}
 	return result.Entitlements, nil
 }
 
+// checUserEntitlement enables entitlement to be checked.
+func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) {
+	var expirationDate *time.Time
+	res, err := getUserEntitlement(ctx, cuId)
+	if err != nil {
+		return err
+	}
+	for _, key := range res {
+		expirationDate = key.ExpirationDate
+	}
+	err = checkExpirationDate(expirationDate, ctx, db.Db, userId)
+	return err
+}
+
+// checkExpirationDate compares expiration date given by AWS to current time.
+// According to result, an update is pushed to db.
+func checkExpirationDate(expirationDate *time.Time, ctx context.Context, db *sql.DB, userId int) (error) {
+	var err error
+	currentTime := time.Now().Local()
+	if expirationDate.String() > currentTime.String() {
+		err = updateCustomerEntitlement(db, ctx, userId, 0)
+	} else {
+		err = updateCustomerEntitlement(db, ctx, userId, 1)
+	}
+	return err
+}
+
+// getCustomerIdentifier retreive AWS customer identifier from user Id.
 func getCustomerIdentifier(db *sql.DB, ctx context.Context, userId int) (string, error) {
 	const sqlstr = `SELECT aws_customer_identifier FROM user WHERE id = ?`
 	res, err := db.Query(sqlstr, userId)
@@ -105,78 +130,9 @@ func getCustomerIdentifier(db *sql.DB, ctx context.Context, userId int) (string,
 	return token, nil
 }
 
+// updateCustomerEntitlement updates aws customer entitlement according to entitlement value.
 func updateCustomerEntitlement(db *sql.DB, ctx context.Context, userId int, entitlementValue int) (error) {
-	const sqlstr = `UPDATE user SET
-		aws_customer_entitlement=?,
-	WHERE id=?`
-		var err error = nil
-		//if err != nil {
-		//	errorValue = err.Error()
-		//}
-		_, err = db.Exec(sqlstr, entitlementValue, userId)
-		return err
+	const sqlstr = `UPDATE user SET aws_customer_entitlement=? WHERE id=?`
+	_, err := db.Exec(sqlstr, entitlementValue, userId)
+	return err
 }
-
-//func checkUserEntitlement(ctx context.Context, amId int, cuId string) {
-//	var entitlementInput marketplaceentitlementservice.GetEntitlementsInput
-//	mySession := session.Must(session.NewSession(&aws.Config{
-//		Region: aws.String(config.AwsRegion),
-//	}))
-//	svc := marketplaceentitlementservice.New(mySession)
-//	entitlementInput.SetProductCode("f2k4zzzgvihcmlgrf4qlyo4sr")
-//	entitlementInput.SetFilter(map["CUSTOMER_IDENTIFIER"][cuId])
-//}
-//
-//func EntitlementUpdate(db *sql.DB, br s3.BillRepository) (int64, error) {
-//	const sqlstr = `INSERT INTO user(
-//		aws_entitlement
-//	) VALUES (?)`
-//	res, err := db.Exec(sqlstr, br.Id, backendId)
-//	if err != nil {
-//		return 0, err
-//	}
-//	return res.LastInsertId()
-//}
-//
-//func updateCompletion(ctx context.Context, aaId, brId int, db *sql.DB, updateId int64, err error) {
-//	rErr := registerUpdateCompletion(db, updateId, err)
-//	if rErr != nil {
-//		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-//		logger.Error("Failed to register ingestion completion.", map[string]interface{}{
-//			"awsAccountId":     aaId,
-//			"billRepositoryId": brId,
-//			"error":            rErr.Error(),
-//			"updateId":         updateId,
-//		})
-//	}
-//}
-//
-//func registerUpdateCompletion(db *sql.DB, updateId int64, err error) error {
-//	const sqlstr = `UPDATE aws_bill_update_job SET
-//		completed=?,
-//		error=?
-//	WHERE id=?`
-//	var errorValue string
-//	var now = time.Now()
-//	if err != nil {
-//		errorValue = err.Error()
-//	}
-//	_, err = db.Exec(sqlstr, now, errorValue, updateId)
-//	return err
-//}
-//
-//const (
-//	UpdateIntervalMinutes = 6 * 60
-//	UpdateIntervalWindow  = 2 * 60
-//)
-//
-//// updateBillRepositoryForNextUpdate plans the next update for a
-//// BillRepository.
-//func updateBillRepositoryForNextUpdate(ctx context.Context, tx *sql.Tx, br s3.BillRepository, latestManifest time.Time) error {
-//	if latestManifest.After(br.LastImportedManifest) {
-//		br.LastImportedManifest = latestManifest
-//	}
-//	updateDeltaMinutes := time.Duration(UpdateIntervalMinutes-UpdateIntervalWindow/2+rand.Int63n(UpdateIntervalWindow)) * time.Minute
-//	br.NextUpdate = time.Now().Add(updateDeltaMinutes)
-//	return s3.UpdateBillRepository(br, tx)
-//}
