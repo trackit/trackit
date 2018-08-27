@@ -31,7 +31,7 @@ export class DatabasesComponent extends Component {
       const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
-      reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd d MMM HH:mm") + " and " + newestReport.format("ddd d MMM HH:mm")}/>);
+      reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd D MMM HH:mm") + " and " + newestReport.format("ddd D MMM HH:mm")}/>);
       instances = [].concat.apply([], this.props.data.value.map((account) => (account.instances)));
     }
 
