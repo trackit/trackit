@@ -110,19 +110,21 @@ const TemplateLineItem = `
 				},
 				"usageEndDate": {
 					"type": "date"
-				}
-			},
-			"dynamic_templates": [
-				{
-					"tags": {
-						"match_mapping_type": "string",
-						"path_match": "tags.*",
-						"mapping": {
-							"type": "keyword"
+				},
+				"tags": {
+					"type": "nested",
+					"properties": {
+						"key": {
+							"type": "keyword",
+							"norms": false
+						},
+						"tag": {
+							"type": "keyword",
+							"norms": false
 						}
 					}
 				}
-			],
+			},
 			"_all": {
 				"enabled": false
 			},
