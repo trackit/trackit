@@ -26,6 +26,7 @@ import (
 	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/es"
 
+	"fmt"
 )
 
 type (
@@ -78,6 +79,7 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		}
 		return returnCode, errors.New("Internal server error")
 	}
+	fmt.Printf("%s\n", *res.Aggregations["data"])
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
@@ -110,11 +112,11 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	index := es.IndexNameForUser(user, "lineitems")
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data",    elastic.NewNestedAggregation().Path("tags").
-		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key")).
-		SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag")).
-		SubAggregation("rev",     elastic.NewReverseNestedAggregation()).
-		SubAggregation("product", elastic.NewTermsAggregation().Field("productKey")).
-		SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))
+		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key").
+		SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag").
+		SubAggregation("rev",     elastic.NewReverseNestedAggregation().
+		SubAggregation("product", elastic.NewTermsAggregation().Field("productCode").
+		SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))))))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
