@@ -15,13 +15,14 @@ class DifferentiatorChartComponent extends Component {
   };
 
   /* istanbul ignore next */
-  generateColumns(dates) {
+  generateColumns(dates, total) {
     return dates.map((date, index) => {
       let columns = [{
         Header: 'Cost',
         id: date + '.cost',
         accessor: row => row[date].cost,
-        Cell: row => (<span className="cost-cell">{formatPrice(row.value)}</span>)
+        Cell: row => (<span className="cost-cell">{formatPrice(row.value)}</span>),
+        Footer: (<strong>{formatPrice(total[date].cost)}</strong>)
       }];
       if (index > 0)
         columns.push({
@@ -29,6 +30,7 @@ class DifferentiatorChartComponent extends Component {
           id: date + '.variation',
           accessor: row => row[date].variation,
           Cell: row => (<span className="percentvariation-cell">{formatPercent(row.value)}</span>),
+          Footer: (<strong>{formatPercent(total[date].variation)}</strong>),
           sortMethod: (a, b) => (Math.abs(a) > Math.abs(b) ? 1 : -1)
         });
       return ({
@@ -44,7 +46,7 @@ class DifferentiatorChartComponent extends Component {
     if (!datum)
       return (<h4 className="no-data">No data available for this timerange</h4>);
 
-    const dates = this.generateColumns(datum.dates);
+    const dates = this.generateColumns(datum.dates, datum.total);
 
     /* istanbul ignore next */
     return (
@@ -57,7 +59,8 @@ class DifferentiatorChartComponent extends Component {
             {
               Header: 'Name',
               accessor: 'key',
-              Cell: row => (<strong>{row.value}</strong>)
+              Cell: row => (<strong>{row.value}</strong>),
+              Footer: (<strong>Total</strong>)
             },
             ...dates
           ]}
