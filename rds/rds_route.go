@@ -30,28 +30,46 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
+// esQueryParams will store the parsed query params
+type esQueryParams struct {
+	accountList []string
+}
+
+// rdsQueryArgs allows to get required queryArgs params
+var rdsQueryArgs = []routes.QueryArg{
+	routes.AwsAccountsOptionalQueryArg,
+}
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getRDSReport).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(rdsQueryArgs),
 			routes.Documentation{
 				Summary:     "get the latest RDS report",
 				Description: "Responds with the latest RDS report for the account specified in the request",
 			},
-			routes.QueryArgs{routes.AwsAccountQueryArg},
 		),
 	}.H().Register("/rds")
 }
 
-func makeElasticSearchRequest(ctx context.Context, account string, user users.User) (*elastic.SearchResult, int, error) {
+// makeElasticSearchRequest prepares and run the request to retrieve the latest reports
+// based on the esQueryParams
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empy data
+func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, user users.User) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUser(user, rds.IndexPrefixRDSReport)
-	accountFormatted := make([]interface{}, 1)
-	accountFormatted[0] = account
-	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermsQuery("account", accountFormatted...))
-	res, err := es.Client.Search().Index(index).Query(query).Sort("reportDate", false).Size(1).Do(ctx)
+	searchService := GetElasticSearchParams(
+		parsedParams.accountList,
+		es.Client,
+		index,
+	)
+	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
 			l.Warning("Query execution failed, ES index does not exists : "+index, err)
@@ -60,24 +78,28 @@ func makeElasticSearchRequest(ctx context.Context, account string, user users.Us
 		l.Error("Query execution failed : "+err.Error(), nil)
 		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
 	}
-	if len(res.Hits.Hits) == 0 {
-		return nil, http.StatusNotFound, fmt.Errorf("no report found")
-	}
 	return res, http.StatusOK, nil
 }
 
+// getRDSReport returns the list of rds reports based on the query params, in JSON format.
 func getRDSReport(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	account := ""
-	if a[routes.AwsAccountQueryArg] != nil {
-		account = a[routes.AwsAccountQueryArg].(string)
+	parsedParams := esQueryParams{
+		accountList: []string{},
 	}
-	if err := aws.ValidateAwsAccounts([]string{account}); err != nil {
+	if a[rdsQueryArgs[0]] != nil {
+		parsedParams.accountList = a[rdsQueryArgs[0]].([]string)
+	}
+	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
 		return http.StatusBadRequest, err
 	}
-	searchResult, returnCode, err := makeElasticSearchRequest(request.Context(), account, user)
+	searchResult, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)
 	if err != nil {
 		return returnCode, err
 	}
-	return http.StatusOK, (*searchResult.Hits.Hits[0]).Source
+	res, err := prepareResponse(request.Context(), searchResult)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, res
 }

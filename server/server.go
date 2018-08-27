@@ -54,6 +54,7 @@ var tasks = map[string]func(context.Context) error{
 	"ingest":          taskIngest,
 	"ingest-due":      taskIngestDue,
 	"process-account": taskProcessAccount,
+	"anomalies-detection": taskAnomaliesDetection,
 	"check-user-entitlement": taskCheckEntitlement,
 }
 

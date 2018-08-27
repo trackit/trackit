@@ -60,7 +60,7 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 			logger.Error("Failed to create user.", err.Error())
 		}
 	}
-	return userFromDbUser(dbUser), err
+	return UserFromDbUser(dbUser), err
 }
 
 // CreateUserWithParent creates a viewer user with an email and a parent. A nil
@@ -91,7 +91,7 @@ func CreateUserWithParent(ctx context.Context, db models.XODB, email string, par
 		logger.Error("Failed to insert viewer user in database.", err.Error())
 		return user, "", err
 	}
-	user = userFromDbUser(dbUser)
+	user = UserFromDbUser(dbUser)
 	return user, string(passHuman[:]), nil
 }
 
@@ -104,7 +104,7 @@ func GetUsersByParent(ctx context.Context, db models.XODB, parent User) ([]User,
 	}
 	res := make([]User, len(dbUsers))
 	for i := range dbUsers {
-		res[i] = userFromDbUser(*dbUsers[i])
+		res[i] = UserFromDbUser(*dbUsers[i])
 	}
 	return res, nil
 }
@@ -134,7 +134,7 @@ func UpdateUserWithPassword(ctx context.Context, tx *sql.Tx, dbUser *models.User
 			logger.Error("Failed to update user.", err.Error())
 		}
 	}
-	return userFromDbUser(*dbUser), err
+	return UserFromDbUser(*dbUser), err
 }
 
 func (u User) UpdateNextExternal(ctx context.Context, db models.XODB) error {
@@ -189,7 +189,7 @@ func GetUserWithId(db models.XODB, id int) (User, error) {
 		user := User{}
 		return user, err
 	} else {
-		user := userFromDbUser(*dbUser)
+		user := UserFromDbUser(*dbUser)
 		return user, nil
 	}
 }
@@ -205,7 +205,7 @@ func GetUserWithEmail(ctx context.Context, db models.XODB, email string) (User, 
 		logger.Error("Error getting user from database.", err.Error())
 		return User{}, err
 	} else {
-		return userFromDbUser(*dbUser), nil
+		return UserFromDbUser(*dbUser), nil
 	}
 }
 
@@ -221,12 +221,12 @@ func GetUserWithEmailAndPassword(ctx context.Context, db models.XODB, email stri
 		return User{}, err
 	} else {
 		err = passwordMatchesHash(password, dbUser.Auth)
-		return userFromDbUser(*dbUser), err
+		return UserFromDbUser(*dbUser), err
 	}
 }
 
-// userFromDbUser builds a users.User from a models.User.
-func userFromDbUser(dbUser models.User) User {
+// UserFromDbUser builds a users.User from a models.User.
+func UserFromDbUser(dbUser models.User) User {
 	u := User{
 		Id:    dbUser.ID,
 		Email: dbUser.Email,
