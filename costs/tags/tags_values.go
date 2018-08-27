@@ -26,7 +26,6 @@ import (
 	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/es"
 
-	"fmt"
 )
 
 type (
@@ -79,7 +78,6 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		}
 		return returnCode, errors.New("Internal server error")
 	}
-	fmt.Printf("%s\n", *res.Aggregations["data"])
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
