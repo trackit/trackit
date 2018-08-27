@@ -1,8 +1,5 @@
 import React, { Component } from 'react';
-import { connect } from 'react-redux';
-import PropTypes from 'prop-types';
 import Components from '../../components';
-import Actions from '../../actions';
 import s3square from '../../assets/s3-square.png';
 
 const Panel = Components.Misc.Panel;

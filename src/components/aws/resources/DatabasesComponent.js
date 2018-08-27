@@ -162,12 +162,20 @@ export class DatabasesComponent extends Component {
 DatabasesComponent.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
-    dbInstanceIdentifier: PropTypes.string.isRequired,
-    dbInstanceClass: PropTypes.string.isRequired,
-    availabilityZone: PropTypes.string.isRequired,
-    engine: PropTypes.string.isRequired,
-    multiAZ: PropTypes.string.isRequired,
-    allocatedStorage: PropTypes.number.isRequired
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.arrayOf(PropTypes.shape({
+      account: PropTypes.string.isRequired,
+      reportDate: PropTypes.string.isRequired,
+      instances: PropTypes.arrayOf(PropTypes.shape({
+        dbInstanceIdentifier: PropTypes.string.isRequired,
+        dbInstanceClass: PropTypes.string.isRequired,
+        availabilityZone: PropTypes.string.isRequired,
+        engine: PropTypes.string.isRequired,
+        multiAZ: PropTypes.bool.isRequired,
+        allocatedStorage: PropTypes.number.isRequired
+      }))
+    }))
   }),
   getData: PropTypes.func.isRequired,
   clear: PropTypes.func.isRequired,

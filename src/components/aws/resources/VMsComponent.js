@@ -345,7 +345,7 @@ VMsComponent.propTypes = {
   data: PropTypes.shape({
     status: PropTypes.bool.isRequired,
     error: PropTypes.instanceOf(Error),
-    value: PropTypes.shape({
+    value: PropTypes.arrayOf(PropTypes.shape({
       account: PropTypes.string.isRequired,
       reportDate: PropTypes.string.isRequired,
       instances: PropTypes.arrayOf(
@@ -364,7 +364,7 @@ VMsComponent.propTypes = {
           tags: PropTypes.object.isRequired
         })
       )
-    })
+    }))
   }),
   getData: PropTypes.func.isRequired,
   clear: PropTypes.func.isRequired,
