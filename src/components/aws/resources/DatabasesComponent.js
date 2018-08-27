@@ -13,15 +13,12 @@ const Tooltip = Misc.Popover;
 export class DatabasesComponent extends Component {
 
   componentWillMount() {
-    if (this.props.account)
-      this.props.getData(this.props.account);
+    this.props.getData();
   }
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.account)
-      nextProps.clear();
-    else if (nextProps.account !== this.props.account)
-      nextProps.getData(nextProps.account);
+    if (nextProps.accounts !== this.props.accounts)
+      nextProps.getData();
   }
 
   render() {
@@ -31,8 +28,11 @@ export class DatabasesComponent extends Component {
     let reportDate = null;
     let instances = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      reportDate = (<Tooltip info tooltip={"Report created " + Moment(this.props.data.value.reportDate).fromNow()}/>);
-      instances = this.props.data.value.instances;
+      const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
+      const oldestReport = Moment.min(reportsDates);
+      const newestReport = Moment.max(reportsDates);
+      reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd d MMM HH:mm") + " and " + newestReport.format("ddd d MMM HH:mm")}/>);
+      instances = [].concat.apply([], this.props.data.value.map((account) => (account.instances)));
     }
 
     const availabilityZones = [];
@@ -160,14 +160,22 @@ export class DatabasesComponent extends Component {
 }
 
 DatabasesComponent.propTypes = {
-  account: PropTypes.string,
+  accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
-    dbInstanceIdentifier: PropTypes.string.isRequired,
-    dbInstanceClass: PropTypes.string.isRequired,
-    availabilityZone: PropTypes.string.isRequired,
-    engine: PropTypes.string.isRequired,
-    multiAZ: PropTypes.string.isRequired,
-    allocatedStorage: PropTypes.number.isRequired
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    value: PropTypes.arrayOf(PropTypes.shape({
+      account: PropTypes.string.isRequired,
+      reportDate: PropTypes.string.isRequired,
+      instances: PropTypes.arrayOf(PropTypes.shape({
+        dbInstanceIdentifier: PropTypes.string.isRequired,
+        dbInstanceClass: PropTypes.string.isRequired,
+        availabilityZone: PropTypes.string.isRequired,
+        engine: PropTypes.string.isRequired,
+        multiAZ: PropTypes.bool.isRequired,
+        allocatedStorage: PropTypes.number.isRequired
+      }))
+    }))
   }),
   getData: PropTypes.func.isRequired,
   clear: PropTypes.func.isRequired,
@@ -175,7 +183,7 @@ DatabasesComponent.propTypes = {
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
-  account: aws.resources.account,
+  accounts: aws.accounts.selection,
   data: aws.resources.RDS
 });
 
