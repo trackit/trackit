@@ -97,7 +97,20 @@ export const costBreakdown = {
         ...itemValues
       };
     });
-    return {dates, values};
+    let previous = null;
+    const total = {
+      key: "Total"
+    };
+    dates.forEach((date) => {
+      let cost = 0;
+      values.forEach((value) => {
+        cost += (value.hasOwnProperty(date) ? value[date].cost : 0);
+      });
+      const variation = (previous != null && previous !== 0 ? (cost - previous) / previous * 100 : 0);
+      previous = cost;
+      total[date] = {cost, variation};
+    });
+    return {dates, values, total};
   }
 };
 
