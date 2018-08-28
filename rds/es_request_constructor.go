@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 // Package costs gets billing information from an ElasticSearch.
-package ec2
+package rds
 
 import (
 	"gopkg.in/olivere/elastic.v5"
@@ -35,7 +35,7 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on wich to execute the query. In this context the default value
-//	should be "ec2-reports"
+//	should be "rds-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
