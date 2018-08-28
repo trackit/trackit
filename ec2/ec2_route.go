@@ -32,12 +32,12 @@ import (
 
 // esQueryParams will store the parsed query params
 type esQueryParams struct {
-	account string
+	accountList []string
 }
 
 // ec2QueryArgs allows to get required queryArgs params
 var ec2QueryArgs = []routes.QueryArg{
-	routes.AwsAccountQueryArg,
+	routes.AwsAccountsOptionalQueryArg,
 }
 
 func init() {
@@ -54,7 +54,8 @@ func init() {
 	}.H().Register("/ec2")
 }
 
-// makeElasticSearchRequestAndParseIt will make the actual request to the ElasticSearch parse the results and return them
+// makeElasticSearchRequest prepares and run the request to retrieve the latest reports
+// based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
@@ -64,7 +65,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUser(user, ec2.IndexPrefixEC2Report)
 	searchService := GetElasticSearchParams(
-		parsedParams.account,
+		parsedParams.accountList,
 		es.Client,
 		index,
 	)
@@ -80,23 +81,23 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams, u
 	return res, http.StatusOK, nil
 }
 
-// getEc2Instances returns the list of EC2 instances based on the query params, in JSON format.
+// getEc2Instances returns the list of EC2 reports based on the query params, in JSON format.
 func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
-		account: "",
+		accountList: []string{},
 	}
 	if a[ec2QueryArgs[0]] != nil {
-		parsedParams.account = a[ec2QueryArgs[0]].(string)
+		parsedParams.accountList = a[ec2QueryArgs[0]].([]string)
 	}
-	if err := aws.ValidateAwsAccounts([]string{parsedParams.account}); err != nil {
+	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
 		return http.StatusBadRequest, err
 	}
-	report, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)
+	searchResult, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, user)
 	if err != nil {
 		return returnCode, err
 	}
-	res, err := prepareResponse(request.Context(), report)
+	res, err := prepareResponse(request.Context(), searchResult)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
