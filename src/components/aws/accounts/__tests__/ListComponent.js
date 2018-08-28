@@ -41,6 +41,21 @@ const accountWithBills = {
   ],
 };
 
+const accountWithRightBills = {
+  id: 42,
+  userId: 42,
+  roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
+  pretty: "Name",
+  billRepositories: [
+    {
+      error: "",
+      nextPending: false,
+      bucket: "billing-bucket",
+      prefix: "prefix"
+    },
+  ],
+};
+
 describe('<ListComponent />', () => {
 
   const props = {
@@ -109,6 +124,16 @@ describe('<Item />', () => {
 
   const props = {
     ...actionsProps,
+    account: accountWithRightBills
+  };
+
+  const propsWithErrorInBills = {
+    ...actionsProps,
+    account: accountWithBills
+  };
+
+  const propsWithoutBills = {
+    ...props,
     account: accountWithoutBills
   };
 
@@ -125,6 +150,15 @@ describe('<Item />', () => {
     const wrapper = shallow(<Item {...props}/>);
     const item = wrapper.find(ListItem);
     expect(item.length).toBe(1);
+  });
+
+  it('renders two <ListItem/> component with one for error message ', () => {
+    const wrapper = shallow(<Item {...propsWithoutBills}/>);
+    const item = wrapper.find(ListItem);
+    expect(item.length).toBe(2);
+    const wrapperBis = shallow(<Item {...propsWithErrorInBills}/>);
+    const itemBis = wrapper.find(ListItem);
+    expect(itemBis.length).toBe(2);
   });
 
   it('can edit item', () => {
