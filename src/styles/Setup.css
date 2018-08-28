@@ -70,3 +70,21 @@ i.white-box-title-icon {
 .account-badge.fa-check-circle {
 	color: #88cc22;
 }
+
+.account-badge-information-banner {
+	width: 100%;
+	margin-top: 10px;
+	padding: 10px;
+	font-size: 1.1em;
+}
+
+.account-alert,
+.bill-alert {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+.account-alert .alert,
+.bill-alert .alert {
+	margin: 0 0 10px;
+}

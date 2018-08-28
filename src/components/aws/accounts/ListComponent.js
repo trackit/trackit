@@ -9,7 +9,6 @@ import Form from './FormComponent';
 import Bills from './bills';
 
 const DeleteConfirmation = Misc.DeleteConfirmation;
-const Popover = Misc.Popover;
 
 export class Item extends Component {
 
@@ -17,7 +16,10 @@ export class Item extends Component {
     super(props);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
+    this.hasError = this.hasError.bind(this);
+    this.hasNextPending = this.hasNextPending.bind(this);
     this.getAccountBadge = this.getAccountBadge.bind(this);
+    this.getInformationBanner = this.getInformationBanner.bind(this);
   }
 
   editAccount = (body) => {
@@ -30,39 +32,49 @@ export class Item extends Component {
     this.props.accountActions.delete(this.props.account.id);
   };
 
-  getAccountBadge = () => {
-    let error = false;
-    let pending = false;
+  hasError = () => {
+    let result = !this.props.account.billRepositories.length;
     this.props.account.billRepositories.forEach((billRepository) => {
       if (billRepository.error !== "")
-        error = true;
-      if (billRepository.nextPending)
-        pending = true;
+        result = true;
     });
-    if (error || !this.props.account.billRepositories.length)
-      return (
-          <Popover
-            icon={<i className="fa account-badge fa-times-circle"/>}
-            tooltip={"Please check your bill locations"}
-          />
-      );
-    else if (pending)
-      return (
-          <Popover
-            icon={<i className="fa account-badge fa-clock-o"/>}
-            tooltip={"Import in progress"}
-          />
-      );
+    return result;
+  };
+
+  hasNextPending = () => {
+    let result = false;
+    this.props.account.billRepositories.forEach((billRepository) => {
+      if (billRepository.nextPending)
+        result = true;
+    });
+    return result;
+  };
+
+  getAccountBadge = () => {
+    if (this.hasError())
+      return (<i className="fa account-badge fa-times-circle"/>);
+    else if (this.hasNextPending())
+      return (<i className="fa account-badge fa-clock-o"/>);
     return (<i className="fa account-badge fa-check-circle"/>);
   };
 
+  getInformationBanner = () => {
+    if (this.hasError())
+      return (<ListItem divider className="account-alert"><div className="alert alert-danger account-badge-information-banner">Import failed, please check your bills locations.</div></ListItem>);
+    else if (this.hasNextPending())
+      return (<ListItem divider className="account-alert"><div className="alert alert-warning account-badge-information-banner">Import may take 2-3 minutes, please wait.</div></ListItem>);
+    return null;
+  };
+
   render() {
+    const infoBanner = this.getInformationBanner();
     return (
       <div>
 
-        <ListItem divider>
+        <ListItem divider={(infoBanner === null)} className="account-item">
 
           {this.getAccountBadge()}
+
           <ListItemText
             disableTypography
             className="account-name"
@@ -89,6 +101,8 @@ export class Item extends Component {
           </div>
 
         </ListItem>
+
+        {infoBanner}
 
       </div>
     );

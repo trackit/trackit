@@ -11,7 +11,6 @@ import Actions from "../../../../actions";
 
 const Dialog = Misc.Dialog;
 const DeleteConfirmation = Misc.DeleteConfirmation;
-const Popover = Misc.Popover;
 
 export class Item extends Component {
 
@@ -20,6 +19,7 @@ export class Item extends Component {
     this.editBill = this.editBill.bind(this);
     this.deleteBill = this.deleteBill.bind(this);
     this.getBillLocationBadge = this.getBillLocationBadge.bind(this);
+    this.getInformationBanner = this.getInformationBanner.bind(this);
   }
 
   editBill = (body) => {
@@ -33,13 +33,14 @@ export class Item extends Component {
 
   getBillLocationBadge = () => {
     if (this.props.bill.error !== "")
-      return (
-          <Popover
-            children={<i className="fa account-badge fa-times-circle"/>}
-            popOver={this.props.bill.error}
-          />
-      );
+      return (<i className="fa account-badge fa-times-circle"/>);
     return (<i className="fa account-badge fa-check-circle"/>);
+  };
+
+  getInformationBanner = () => {
+    if (this.props.bill.error)
+      return (<ListItem divider className="bill-alert"><div className="alert alert-danger account-badge-information-banner">{"Oops, we couldn't import data: " + this.props.bill.error}</div></ListItem>);
+    return null;
   };
 
   render() {
@@ -47,38 +48,45 @@ export class Item extends Component {
       <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>
     ) : (null);
 
+    const infoBanner = this.getInformationBanner();
+
     return (
-      <ListItem divider>
+      <div>
 
-        {this.getBillLocationBadge()}
-        <ListItemText
-          disableTypography
-          primary={<span>
-            {this.props.bill.bucket}
-            {prefix}
-          </span>}
-        />
+        <ListItem divider={(infoBanner === null)} className="bill-item">
 
-        <div className="actions">
+          {this.getBillLocationBadge()}
+          <ListItemText
+            disableTypography
+            primary={<span>
+                {this.props.bill.bucket}
+                {prefix}
+              </span>}
+          />
 
-          <div className="inline-block">
-            <Form
-              account={this.props.account}
-              bill={this.props.bill}
-              submit={this.editBill}
-              status={this.props.editionStatus}
-              clear={this.props.clearEdition}
-              bills={this.props.bills}
-            />
+          <div className="actions">
+
+            <div className="inline-block">
+              <Form
+                account={this.props.account}
+                bill={this.props.bill}
+                submit={this.editBill}
+                status={this.props.editionStatus}
+                clear={this.props.clearEdition}
+                bills={this.props.bills}
+              />
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <DeleteConfirmation entity={`this bill location`} confirm={this.deleteBill}/>
+            </div>
           </div>
-          &nbsp;
-          <div className="inline-block">
-            <DeleteConfirmation entity={`this bill location`} confirm={this.deleteBill}/>
-          </div>
 
-        </div>
+        </ListItem>
 
-      </ListItem>
+        {infoBanner}
+
+      </div>
     );
   }
 
@@ -108,7 +116,7 @@ export class ListComponent extends Component {
     super(props);
     this.getBills = this.getBills.bind(this);
     this.clearBills = this.clearBills.bind(this);
-	  this.newBill = this.newBill.bind(this);
+    this.newBill = this.newBill.bind(this);
   }
 
   getBills() {
@@ -120,7 +128,7 @@ export class ListComponent extends Component {
   }
 
   newBill = (body) => {
-	  this.props.newBill(this.props.account, body);
+    this.props.newBill(this.props.account, body);
   };
 
   render() {
