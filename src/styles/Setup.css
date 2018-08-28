@@ -25,15 +25,10 @@ ul.viewers-list > li:last-child {
 	display: block;
 }
 
-.account-info {
+.account-info,
+.bill-info {
 	width: 100%;
 	display: flex;
-}
-
-.account-badge-information-banner {
-	margin-top: 10px;
-	padding: 10px;
-	font-size: 1.1em;
 }
 
 .input-title {
@@ -88,4 +83,12 @@ i.white-box-title-icon {
 
 .account-badge-information-banner {
 	width: 100%;
+	margin-top: 10px;
+	padding: 10px;
+	font-size: 1.1em;
+}
+
+.account-item,
+.bill-item {
+	display: block !important;
 }

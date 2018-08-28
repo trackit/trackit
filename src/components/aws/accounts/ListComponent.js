@@ -9,7 +9,6 @@ import Form from './FormComponent';
 import Bills from './bills';
 
 const DeleteConfirmation = Misc.DeleteConfirmation;
-const Popover = Misc.Popover;
 
 export class Item extends Component {
 
@@ -61,7 +60,7 @@ export class Item extends Component {
 
   getInformationBanner = () => {
     if (this.hasError())
-      return (<div className={"alert alert-danger account-badge-information-banner"}>Import failed, please check your bills location.</div>);
+      return (<div className={"alert alert-danger account-badge-information-banner"}>Import failed, please check your bills locations.</div>);
     else if (this.hasNextPending())
       return (<div className={"alert alert-warning account-badge-information-banner"}>Import may take 2-3 minutes, please wait.</div>);
   };
@@ -70,7 +69,7 @@ export class Item extends Component {
     return (
       <div>
 
-        <ListItem divider={!(this.hasError() || this.hasNextPending())} className="account">
+        <ListItem divider className="account-item">
 
           <div className="account-info">
 
