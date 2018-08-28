@@ -101,9 +101,7 @@ export const costBreakdown = {
     const total = {
       key: "Total"
     };
-    console.log(values);
     dates.forEach((date) => {
-      console.log(date);
       let cost = 0;
       values.forEach((value) => {
         cost += (value.hasOwnProperty(date) ? value[date].cost : 0);
