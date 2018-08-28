@@ -72,6 +72,7 @@ describe('<FormComponent />', () => {
     instance.form = form;
     expect(props.submit).not.toHaveBeenCalled();
     wrapper.instance().submit({ preventDefault(){} });
+    wrapper.instance().submit({ preventDefault(){} });
     expect(props.submit).toHaveBeenCalled();
   });
 

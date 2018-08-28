@@ -178,8 +178,8 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(Actions.AWS.Accounts.getAccounts())
   },
   accountActions: {
-    new: (account) => {
-      dispatch(Actions.AWS.Accounts.newAccount(account))
+    new: (account, bill) => {
+      dispatch(Actions.AWS.Accounts.newAccount(account, bill))
     },
     clearNew: () => {
       dispatch(Actions.AWS.Accounts.clearNewAccount());

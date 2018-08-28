@@ -4,14 +4,13 @@ import { OverlayTrigger } from 'react-bootstrap';
 import { shallow } from "enzyme";
 
 const child = <div id="child"/>;
-const popOver = <div id="popOver"/>;
+const tooltip = <div id="tooltip"/>;
 
 const defaultProps = {
-  popOver
+  tooltip
 };
 
 const propsWithChild = {
-  ...defaultProps,
   children: child
 };
 
@@ -35,8 +34,8 @@ describe('<Popover />', () => {
 
   it('renders child component', () => {
     const wrapper = shallow(<Popover {...propsWithChild}/>);
-    const children = wrapper.find('div#child');
-    expect(children.length).toBe(1);
+    const overlay = wrapper.find(OverlayTrigger);
+    expect(overlay.props().overlay).toBe(propsWithChild.children);
   });
 
   it('renders info icon component', () => {

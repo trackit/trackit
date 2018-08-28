@@ -78,14 +78,15 @@ describe("Accounts Saga", () => {
 
   describe("New Account", () => {
 
-    const account = {roleArn: "roleArn"};
+    const account = {roleArn: "roleArn", id: 42};
+    const bill = { bucket: "test", prefix: ""};
     const validResponse = { success: true, data: account };
     const invalidResponse = { success: true, account };
     const noResponse = { success: false };
 
     it("handles saga with valid data", () => {
 
-      let saga = newAccountSaga({account});
+      let saga = newAccountSaga({account, bill});
 
       expect(saga.next().value)
         .toEqual(getToken());
@@ -97,7 +98,8 @@ describe("Accounts Saga", () => {
         .toEqual(all([
           put({ type: Constants.AWS_NEW_ACCOUNT_SUCCESS, account }),
           put({ type: Constants.AWS_NEW_EXTERNAL }),
-          put({ type: Constants.AWS_GET_ACCOUNTS })
+          put({ type: Constants.AWS_GET_ACCOUNTS }),
+          put({ type : Constants.AWS_NEW_ACCOUNT_BILL, accountID: 42, bill})
         ]));
 
       expect(saga.next().done).toBe(true);
@@ -416,7 +418,8 @@ describe("Account Bills Saga", () => {
       expect(saga.next(validResponse).value)
         .toEqual(all([
           put({ type: Constants.AWS_NEW_ACCOUNT_BILL_SUCCESS, bucket: bill }),
-          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID }),
+          put({ type: Constants.AWS_GET_ACCOUNTS }),
         ]));
 
       expect(saga.next().done).toBe(true);
@@ -579,7 +582,8 @@ describe("Account Bills Saga", () => {
       expect(saga.next(validResponse).value)
         .toEqual(all([
           put({ type: Constants.AWS_DELETE_ACCOUNT_BILL_SUCCESS }),
-          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID })
+          put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID }),
+          put({ type: Constants.AWS_GET_ACCOUNTS }),
         ]));
 
       expect(saga.next().done).toBe(true);

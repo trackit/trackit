@@ -71,7 +71,7 @@ class FormComponent extends Component {
                 <div className="input-title">
                   <label htmlFor="roleArn">Role ARN</label>
                   &nbsp;
-                  <Popover info popOver="Amazon Resource Name for your role"/>
+                  <Popover info tooltip="Amazon Resource Name for your role"/>
                 </div>
                 <Input
                   name="roleArn"
@@ -86,7 +86,7 @@ class FormComponent extends Component {
                 <div className="input-title">
                   <label htmlFor="pretty">Name</label>
                   &nbsp;
-                  <Popover info popOver="Choose a pretty name"/>
+                  <Popover info tooltip="Choose a pretty name"/>
                 </div>
                 <Input
                   type="text"

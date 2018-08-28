@@ -300,7 +300,7 @@ class Chart extends Component {
             values={this.props.values.values}
             interval={this.props.interval}
             filter={this.props.filter}
-            legend={false}
+            legend={this.props.legend}
             height={this.props.height}
             margin={this.props.margin}
           />);
