@@ -36,6 +36,7 @@ type AwsAccount struct {
 	Pretty   string `json:"pretty"`
 	RoleArn  string `json:"roleArn"`
 	External string `json:"-"`
+	Payer    bool   `json:"payer"`
 }
 
 const (
@@ -168,5 +169,6 @@ func AwsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 		Pretty:   dbAwsAccount.Pretty,
 		RoleArn:  dbAwsAccount.RoleArn,
 		External: dbAwsAccount.External,
+		Payer:    dbAwsAccount.Payer,
 	}
 }
