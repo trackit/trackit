@@ -6,6 +6,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import Spinner from 'react-spinkit';
 import Form from 'react-validation/build/form';
 import Input from 'react-validation/build/input';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
 import Button from 'react-validation/build/button';
 import Validations from '../../../../common/forms';
 import Popover from '../../../misc/Popover';
@@ -23,36 +24,143 @@ class FormComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: false
+      open: false,
+      step: 0,
+      bucket : (this.props.bill !== undefined ? this.props.bill.bucket : ""),
+      prefix : (this.props.bill !== undefined ? this.props.bill.prefix : "")
     };
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
     this.submit = this.submit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
   }
 
   openDialog = (e) => {
     e.preventDefault();
-    this.setState({open: true});
+    this.setState({
+      open: true,
+      bucket : (this.props.bill !== undefined ? this.props.bill.bucket : ""),
+      prefix : (this.props.bill !== undefined ? this.props.bill.prefix : "")
+    });
     this.props.clear();
   };
 
   closeDialog = (e) => {
     e.preventDefault();
-    this.setState({open: false});
+    this.setState({open: false, step: 0});
     this.props.clear();
   };
 
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
   submit = (e) => {
     e.preventDefault();
-    const formValues = this.form.getValues();
-    this.props.submit(formValues);
+    if (!this.state.step) {
+      this.setState({ step : 1 })
+    } else {
+      const formValues = this.form.getValues();
+      this.props.submit(formValues);  
+    }
   };
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.status && nextProps.status.status && nextProps.status.value && !nextProps.status.hasOwnProperty("error")) {
-      this.setState({open: false});
+      this.setState({open: false, step: 0});
     }
   }
+
+  getBucketPolicy() {
+    const bucketString = this.state.prefix.length ? `${this.state.bucket}/${this.state.prefix}` : this.state.bucket;
+
+    return(
+      `{
+        "Version": "2008-10-17",
+        "Id": "PolicyAccessTrackitBucket",
+        "Statement": [
+          {
+            "Sid": "Stmt1",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::386209384616:root"
+            },
+            "Action": [
+              "s3:GetBucketAcl",
+              "s3:GetBucketPolicy"
+            ],
+            "Resource": "arn:aws:s3:::${bucketString}"
+          },
+          {
+            "Sid": "Stmt2",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::386209384616:root"
+            },
+            "Action": [
+              "s3:PutObject"
+            ],
+            "Resource": "arn:aws:s3:::${bucketString}/*"
+          }
+        ]
+      }`
+    );
+  }
+
+
+  getPolicy(bucket, prefix) {
+      const bills = [];
+      if (this.props.bills && this.props.bills.status && this.props.bills.values && this.props.bills.values.length) {
+        for (let i = 0; i < this.props.bills.values.length; i++) {
+          const element = this.props.bills.values[i];
+          const bucketString = element.prefix.length ? `${element.bucket}/${element.prefix}` : element.bucket;
+          bills.push(
+            `arn:aws:s3:::${bucketString}`
+          );
+        }
+      }
+      const newBucketString = prefix.length ? `${bucket}/${prefix}` : bucket;
+      bills.push(`arn:aws:s3:::${newBucketString}`);
+
+      const base = {
+        Version: "2012-10-17",
+        Statement: [
+            {
+                Effect: "Allow",
+                Action: "s3:GetObject",
+                Resource: bills
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket"
+                ],
+                Resource: bills
+            },
+            {
+                Effect: "Allow",
+                Action: [
+                    "sts:GetCallerIdentity",
+                    "rds:DescribeDBInstances",
+                    "cloudwatch:GetMetricStatistics",
+                    "ec2:DescribeRegions",
+                    "ec2:DescribeInstances"
+                ],
+                Resource: "*"
+            }
+        ]
+    }
+    return(JSON.stringify(base, null, 2));
+
+  }
+
 
   render() {
     const button = (this.props.bill !== undefined ? (
@@ -77,6 +185,55 @@ class FormComponent extends Component {
         <ol>
           <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a>.</li>
           <li>Click <strong>Create bucket</strong> and input a name of your choice for your bucket. You can then complete the next wizard steps without changing the default values.</li>
+          <li>
+            Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
+            <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">S3 Bucket name</label>
+                  &nbsp;
+                  <Popover info tooltip="Name of the S3 bucket you created"/>
+                </div>
+                <Input
+                  name="bucket"
+                  type="text"
+                  className="form-control"
+                  placeholder="Bucket Name"
+                  value={this.state.bucket}
+                  onChange={this.handleInputChange}
+                  validations={[Validation.required, Validation.s3BucketNameFormat]}
+                />
+              </div>
+
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">Report path prefix (optional)</label>
+                  &nbsp;
+                  <Popover info tooltip="If you set a path prefix when creating your report"/>
+                </div>
+                <Input
+                  name="prefix"
+                  type="text"
+                  className="form-control"
+                  placeholder="Optional prefix"
+                  value={this.state.prefix}
+                  onChange={this.handleInputChange}
+                  validations={[Validation.s3PrefixFormat]}
+                />
+              </div>
+          </li>
+          <li>Still on your  <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a> click on the name of the bucket you just created.</li>
+          <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
+          <li>
+            Paste the following into the Bucket policy Editor and <strong>Save</strong>:
+            <CopyToClipboard text={this.getBucketPolicy()}>
+                  <div className="badge">
+                    <i className="fa fa-clipboard" aria-hidden="true"/>
+                  </div>
+            </CopyToClipboard>
+            <pre style={{ height: '85px', marginTop: '10px' }}>
+              {this.getBucketPolicy()}
+            </pre>
+          </li>
           <li>Then go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/billing/home#/reports">Billing Reports setup page</a> and click <strong>Create report</strong></li>
           <li>
             Choose a report name, select <strong>Hourly</strong> as the <strong>Time unit</strong> and Include <strong>Resources IDs</strong> (see screenshot). You can then click <strong>Next</strong>.
@@ -96,15 +253,31 @@ class FormComponent extends Component {
               button={<strong>( Click here to see screenshot )</strong>}
             />
           </li>
-          <li>
-            You are almost done !
-            <br/>
-            Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
-            <br/>
-            <strong>That's it ! </strong><i className="fa fa-smile-o"/>
-          </li>
         </ol>
 
+      </div>
+    );
+
+    const tutorialEditPolicy = (
+      <div className="tutorial">
+        <div className="alert alert-info">
+          Please note that if you used our generated AWS Policy you will have to update it when adding or editing a bill location.
+          <br/>
+          <br/>
+          To do that, go to your <a href="https://console.aws.amazon.com/iam/home#/policies">AWS Policies List</a>, select TrackIt policy and Edit it.
+          Paste the following policy into the JSON Editor and submit.
+        </div>
+        <h5>
+          Updated policy
+          <CopyToClipboard text={this.getPolicy(this.state.bucket, this.state.prefix)}>
+            <div className="badge">
+              <i className="fa fa-clipboard" aria-hidden="true"/>
+            </div>
+          </CopyToClipboard>
+        </h5>
+        <pre style={{ height: '180px', marginTop: '10px' }}>
+          {this.getPolicy(this.state.bucket, this.state.prefix)}
+        </pre>
       </div>
     );
 
@@ -112,7 +285,9 @@ class FormComponent extends Component {
       <div>
 
         <button className="btn btn-default" onClick={this.openDialog}>
-          {this.props.bill !== undefined ? "Edit" : "Add"}
+          {this.props.bill !== undefined ? <i className="fa fa-edit"/> : <i className="fa fa-plus"/>}
+          &nbsp;
+          {this.props.bill !== undefined ? "Edit" : "Add a bill location"}
         </button>
 
         <Dialog open={this.state.open} fullWidth>
@@ -126,44 +301,50 @@ class FormComponent extends Component {
           <DialogContent>
 
             {loading || error}
-            {this.props.bill === undefined && tutorial}
 
             <Form ref={
               /* istanbul ignore next */
               form => { this.form = form; }
             } onSubmit={this.submit}>
-
-              <div className="form-group">
-                <div className="input-title">
-                  <label htmlFor="bucket">S3 Bucket name</label>
-                  &nbsp;
-                  <Popover info tooltip="Name of the S3 bucket you created"/>
+              {this.props.bill === undefined && this.state.step === 0 && tutorial}
+              {this.props.bill !== undefined &&
+                <div>
+                  <div className="form-group">
+                    <div className="input-title">
+                      <label htmlFor="bucket">S3 Bucket name</label>
+                      &nbsp;
+                      <Popover info tooltip="Name of the S3 bucket you created"/>
+                    </div>
+                    <Input
+                      name="bucket"
+                      type="text"
+                      className="form-control"
+                      placeholder="Bucket Name"
+                      value={this.state.bucket}
+                      onChange={this.handleInputChange}
+                      validations={[Validation.required, Validation.s3BucketNameFormat]}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <div className="input-title">
+                      <label htmlFor="bucket">Report path prefix (optional)</label>
+                      &nbsp;
+                      <Popover info tooltip="If you set a path prefix when creating your report"/>
+                    </div>
+                    <Input
+                      name="prefix"
+                      type="text"
+                      className="form-control"
+                      placeholder="Optional prefix"
+                      value={this.state.prefix}
+                      onChange={this.handleInputChange}
+                      validations={[Validation.s3PrefixFormat]}
+                    />
+                  </div>
                 </div>
-                <Input
-                  name="bucket"
-                  type="text"
-                  className="form-control"
-                  placeholder="Bucket Name"
-                  value={(this.props.bill !== undefined ? this.props.bill.bucket : "")}
-                  validations={[Validation.required, Validation.s3BucketNameFormat]}
-                />
-              </div>
+              }
 
-              <div className="form-group">
-                <div className="input-title">
-                  <label htmlFor="bucket">Report path prefix (optional)</label>
-                  &nbsp;
-                  <Popover info tooltip="If you set a path prefix when creating your report"/>
-                </div>
-                <Input
-                  name="prefix"
-                  type="text"
-                  className="form-control"
-                  placeholder="Optional prefix"
-                  value={(this.props.bill !== undefined ? this.props.bill.prefix : "")}
-                  validations={[Validation.s3PrefixFormat]}
-                />
-              </div>
+              {this.state.step === 1 && tutorialEditPolicy}
 
               <DialogActions>
 
@@ -202,7 +383,18 @@ FormComponent.propTypes = {
     value: PropTypes.object
   }),
   submit: PropTypes.func.isRequired,
-  clear: PropTypes.func.isRequired
+  clear: PropTypes.func.isRequired,
+  bills: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        error: PropTypes.string.isRequired,
+        bucket: PropTypes.string.isRequired,
+        prefix: PropTypes.string.isRequired
+      })
+    )
+  }),
 };
 
 

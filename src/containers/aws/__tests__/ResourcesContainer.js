@@ -3,7 +3,6 @@ import { ResourcesContainer } from '../ResourcesContainer';
 import { shallow } from 'enzyme';
 import Components from "../../../components";
 
-const AccountSelector = Components.AWS.Accounts.AccountSelector;
 const Panel = Components.Misc.Panel;
 const VMs = Components.AWS.Resources.VMs;
 const Databases = Components.AWS.Resources.Databases;
@@ -24,12 +23,6 @@ describe('<ResourcesContainer />', () => {
     const wrapper = shallow(<ResourcesContainer {...props}/>);
     const panel = wrapper.find(Panel);
     expect(panel.length).toBe(1);
-  });
-
-  it('renders an <AccountSelector /> component', () => {
-    const wrapper = shallow(<ResourcesContainer {...props}/>);
-    const selector = wrapper.find(AccountSelector);
-    expect(selector.length).toBe(1);
   });
 
   it('renders an <VMs /> component', () => {

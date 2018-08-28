@@ -60,7 +60,7 @@ export class Item extends Component {
             disableTypography
             primary={<span>
                 {this.props.bill.bucket}
-              {prefix}
+                {prefix}
               </span>}
           />
 
@@ -73,13 +73,13 @@ export class Item extends Component {
                 submit={this.editBill}
                 status={this.props.editionStatus}
                 clear={this.props.clearEdition}
+                bills={this.props.bills}
               />
             </div>
             &nbsp;
             <div className="inline-block">
               <DeleteConfirmation entity={`this bill location`} confirm={this.deleteBill}/>
             </div>
-
           </div>
 
         </ListItem>
@@ -155,6 +155,7 @@ export class ListComponent extends Component {
       submit={this.newBill}
       status={this.props.billCreation}
       clear={this.props.clearNewBill}
+      bills={this.props.bills}
     />);
 
     return (

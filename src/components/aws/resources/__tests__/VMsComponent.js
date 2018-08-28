@@ -10,40 +10,41 @@ const Tooltip = Misc.Popover;
 
 const props = {
   getData: jest.fn(),
-  clear: jest.fn(),
-  account: '420'
+  clear: jest.fn()
 };
 
 const propsWithData = {
   ...props,
   data: {
     status: true,
-    value: {
-      account: '420',
-      reportDate: Moment().toISOString(),
-      instances: [
-        {
-          id: '42',
-          state: 'running',
-          region: 'us-west-1',
-          cpuAverage: 42,
-          cpuPeak: 42,
-          ioRead: {
-            internal: 42
-          },
-          ioWrite: {
-            internal: 42
-          },
-          networkIn: 42,
-          networkOut: 42,
-          keyPair: 'key',
-          type: 'type',
-          tags: {
-            Name: 'name'
+    value: [
+      {
+        account: '420',
+        reportDate: Moment().toISOString(),
+        instances: [
+          {
+            id: '42',
+            state: 'running',
+            region: 'us-west-1',
+            cpuAverage: 42,
+            cpuPeak: 42,
+            ioRead: {
+              internal: 42
+            },
+            ioWrite: {
+              internal: 42
+            },
+            networkIn: 42,
+            networkOut: 42,
+            keyPair: 'key',
+            type: 'type',
+            tags: {
+              Name: 'name'
+            }
           }
-        }
-      ]
-    }
+        ]
+      }
+    ]
   }
 };
 
