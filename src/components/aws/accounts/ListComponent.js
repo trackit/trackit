@@ -60,51 +60,49 @@ export class Item extends Component {
 
   getInformationBanner = () => {
     if (this.hasError())
-      return (<div className={"alert alert-danger account-badge-information-banner"}>Import failed, please check your bills locations.</div>);
+      return (<ListItem divider className="account-alert"><div className="alert alert-danger account-badge-information-banner">Import failed, please check your bills locations.</div></ListItem>);
     else if (this.hasNextPending())
-      return (<div className={"alert alert-warning account-badge-information-banner"}>Import may take 2-3 minutes, please wait.</div>);
+      return (<ListItem divider className="account-alert"><div className="alert alert-warning account-badge-information-banner">Import may take 2-3 minutes, please wait.</div></ListItem>);
+    return null;
   };
 
   render() {
+    const infoBanner = this.getInformationBanner();
     return (
       <div>
 
-        <ListItem divider className="account-item">
+        <ListItem divider={(infoBanner === null)} className="account-item">
 
-          <div className="account-info">
+          {this.getAccountBadge()}
 
-            {this.getAccountBadge()}
+          <ListItemText
+            disableTypography
+            className="account-name"
+            primary={this.props.account.pretty || this.props.account.roleArn}
+          />
 
-            <ListItemText
-              disableTypography
-              className="account-name"
-              primary={this.props.account.pretty || this.props.account.roleArn}
-            />
+          <div className="actions">
 
-            <div className="actions">
-
-              <div className="inline-block">
-                <Bills.List account={this.props.account.id} />
-              </div>
-              &nbsp;
-              <div className="inline-block">
-                <Form
-                  account={this.props.account}
-                  submit={this.editAccount}
-                />
-              </div>
-              &nbsp;
-              <div className="inline-block">
-                <DeleteConfirmation entity="account" confirm={this.deleteAccount}/>
-              </div>
-
+            <div className="inline-block">
+              <Bills.List account={this.props.account.id} />
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <Form
+                account={this.props.account}
+                submit={this.editAccount}
+              />
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <DeleteConfirmation entity="account" confirm={this.deleteAccount}/>
             </div>
 
           </div>
 
-          {this.getInformationBanner()}
-
         </ListItem>
+
+        {infoBanner}
 
       </div>
     );

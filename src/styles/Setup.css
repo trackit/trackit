@@ -21,16 +21,6 @@ ul.viewers-list > li:last-child {
 	display: inherit;
 }
 
-.account {
-	display: block;
-}
-
-.account-info,
-.bill-info {
-	width: 100%;
-	display: flex;
-}
-
 .input-title {
 	display: flex;
 }
@@ -88,7 +78,13 @@ i.white-box-title-icon {
 	font-size: 1.1em;
 }
 
-.account-item,
-.bill-item {
-	display: block !important;
+.account-alert,
+.bill-alert {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+
+.account-alert .alert,
+.bill-alert .alert {
+	margin: 0 0 10px;
 }

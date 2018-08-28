@@ -39,7 +39,8 @@ export class Item extends Component {
 
   getInformationBanner = () => {
     if (this.props.bill.error)
-      return (<div className={"alert alert-danger account-badge-information-banner"}>{"Oops, we couldn't import data: " + this.props.bill.error}</div>);
+      return (<ListItem divider className="bill-alert"><div className="alert alert-danger account-badge-information-banner">{"Oops, we couldn't import data: " + this.props.bill.error}</div></ListItem>);
+    return null;
   };
 
   render() {
@@ -47,45 +48,43 @@ export class Item extends Component {
       <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>
     ) : (null);
 
+    const infoBanner = this.getInformationBanner();
+
     return (
       <div>
 
-        <ListItem divider className="bill-item">
+        <ListItem divider={(infoBanner === null)} className="bill-item">
 
-          <div className="bill-info">
-
-            {this.getBillLocationBadge()}
-            <ListItemText
-              disableTypography
-              primary={<span>
+          {this.getBillLocationBadge()}
+          <ListItemText
+            disableTypography
+            primary={<span>
                 {this.props.bill.bucket}
-                {prefix}
+              {prefix}
               </span>}
-            />
+          />
 
-            <div className="actions">
+          <div className="actions">
 
-              <div className="inline-block">
-                <Form
-                  account={this.props.account}
-                  bill={this.props.bill}
-                  submit={this.editBill}
-                  status={this.props.editionStatus}
-                  clear={this.props.clearEdition}
-                />
-              </div>
-              &nbsp;
-              <div className="inline-block">
-                <DeleteConfirmation entity={`this bill location`} confirm={this.deleteBill}/>
-              </div>
-
+            <div className="inline-block">
+              <Form
+                account={this.props.account}
+                bill={this.props.bill}
+                submit={this.editBill}
+                status={this.props.editionStatus}
+                clear={this.props.clearEdition}
+              />
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <DeleteConfirmation entity={`this bill location`} confirm={this.deleteBill}/>
             </div>
 
           </div>
 
-          {this.getInformationBanner()}
-
         </ListItem>
+
+        {infoBanner}
 
       </div>
     );
@@ -117,7 +116,7 @@ export class ListComponent extends Component {
     super(props);
     this.getBills = this.getBills.bind(this);
     this.clearBills = this.clearBills.bind(this);
-	  this.newBill = this.newBill.bind(this);
+    this.newBill = this.newBill.bind(this);
   }
 
   getBills() {
@@ -129,7 +128,7 @@ export class ListComponent extends Component {
   }
 
   newBill = (body) => {
-	  this.props.newBill(this.props.account, body);
+    this.props.newBill(this.props.account, body);
   };
 
   render() {
