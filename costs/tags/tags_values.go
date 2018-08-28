@@ -45,7 +45,7 @@ type (
 										Value float64 `json:"value"`
 									} `json:"cost"`
 								} `json:"buckets"`
-							} `json:"product"`
+							} `json:"filter"`
 						} `json:"rev"`
 					} `json:"buckets"`
 				} `json:"tags"`
@@ -55,8 +55,8 @@ type (
 
 	// contain a product and his cost
 	TagValue struct {
-		Product string  `json:"product"`
-		Cost    float64 `json:"cost"`
+		Item string  `json:"item"`
+		Cost float64 `json:"cost"`
 	}
 
 	// contain a tag and the list of products associated
@@ -92,7 +92,9 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 			}
 			values = append(values, TagsValues{tag.Tag, costs})
 		}
-		response[key.Key] = values
+		if len(params.TagsKeys) == 0 || arrayContainsString(params.TagsKeys, key.Key) {
+			response[key.Key] = values
+		}
 	}
 	return http.StatusOK, response
 }
@@ -106,6 +108,7 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams,
 	user users.User, client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
 	index := es.IndexNameForUser(user, "lineitems")
 	search := client.Search().Index(index).Size(0).Query(query)
@@ -113,7 +116,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key").
 		SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag").
 		SubAggregation("rev",     elastic.NewReverseNestedAggregation().
-		SubAggregation("product", elastic.NewTermsAggregation().Field("productCode").
+		SubAggregation("filter",  elastic.NewTermsAggregation().Field(filter).
 		SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))))))
 	res, err := search.Do(ctx)
 	if err != nil {
@@ -145,4 +148,30 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 		accountListFormatted[i] = v
 	}
 	return elastic.NewTermsQuery("usageAccountId", accountListFormatted...)
+}
+
+// getTagsValuesFilter returns a string of the field to filter
+func getTagsValuesFilter(filter string) (string) {
+	switch filter {
+	case "product":
+		return "productCode"
+	case "region":
+		return "region"
+	case "account":
+		return "usageAccountId"
+	case "availabilityzone":
+		return "availabilityZone"
+	default:
+		return "error"
+	}
+}
+
+// arrayContainsString returns true if a string is present in an array of string
+func arrayContainsString(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
