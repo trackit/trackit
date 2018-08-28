@@ -77,8 +77,44 @@ class FormComponent extends Component {
     }
   }
 
+  getBucketPolicy() {
+    const bucketString = this.state.prefix.length ? `${this.state.bucket}/${this.state.prefix}` : this.state.bucket;
+
+    return(
+      `{
+        "Version": "2008-10-17",
+        "Id": "PolicyAccessTrackitBucket",
+        "Statement": [
+          {
+            "Sid": "Stmt1",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::386209384616:root"
+            },
+            "Action": [
+              "s3:GetBucketAcl",
+              "s3:GetBucketPolicy"
+            ],
+            "Resource": "arn:aws:s3:::${bucketString}"
+          },
+          {
+            "Sid": "Stmt2",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": "arn:aws:iam::386209384616:root"
+            },
+            "Action": [
+              "s3:PutObject"
+            ],
+            "Resource": "arn:aws:s3:::${bucketString}/*"
+          }
+        ]
+      }`
+    );
+  }
+
+
   getPolicy(bucket, prefix) {
-    // const bucketString = this.props.bucketPrefix.length ? `${this.props.bucketName}/${this.props.bucketPrefix}` : this.props.bucketName;
       const bills = [];
       if (this.props.bills && this.props.bills.status && this.props.bills.values && this.props.bills.values.length) {
         for (let i = 0; i < this.props.bills.values.length; i++) {
@@ -149,6 +185,55 @@ class FormComponent extends Component {
         <ol>
           <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a>.</li>
           <li>Click <strong>Create bucket</strong> and input a name of your choice for your bucket. You can then complete the next wizard steps without changing the default values.</li>
+          <li>
+            Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
+            <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">S3 Bucket name</label>
+                  &nbsp;
+                  <Popover info tooltip="Name of the S3 bucket you created"/>
+                </div>
+                <Input
+                  name="bucket"
+                  type="text"
+                  className="form-control"
+                  placeholder="Bucket Name"
+                  value={this.state.bucket}
+                  onChange={this.handleInputChange}
+                  validations={[Validation.required, Validation.s3BucketNameFormat]}
+                />
+              </div>
+
+              <div className="form-group">
+                <div className="input-title">
+                  <label htmlFor="bucket">Report path prefix (optional)</label>
+                  &nbsp;
+                  <Popover info tooltip="If you set a path prefix when creating your report"/>
+                </div>
+                <Input
+                  name="prefix"
+                  type="text"
+                  className="form-control"
+                  placeholder="Optional prefix"
+                  value={this.state.prefix}
+                  onChange={this.handleInputChange}
+                  validations={[Validation.s3PrefixFormat]}
+                />
+              </div>
+          </li>
+          <li>Still on your  <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a> click on the name of the bucket you just created.</li>
+          <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
+          <li>
+            Paste the following into the Bucket policy Editor and <strong>Save</strong>:
+            <CopyToClipboard text={this.getBucketPolicy()}>
+                  <div className="badge">
+                    <i className="fa fa-clipboard" aria-hidden="true"/>
+                  </div>
+            </CopyToClipboard>
+            <pre style={{ height: '85px', marginTop: '10px' }}>
+              {this.getBucketPolicy()}
+            </pre>
+          </li>
           <li>Then go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/billing/home#/reports">Billing Reports setup page</a> and click <strong>Create report</strong></li>
           <li>
             Choose a report name, select <strong>Hourly</strong> as the <strong>Time unit</strong> and Include <strong>Resources IDs</strong> (see screenshot). You can then click <strong>Next</strong>.
@@ -167,9 +252,6 @@ class FormComponent extends Component {
               alt="Reports settings 2 tutorial"
               button={<strong>( Click here to see screenshot )</strong>}
             />
-          </li>
-          <li>
-            Please fill the name of the bucket you created at <strong>Step 2</strong> in the Form below. <i className="fa fa-arrow-down"/>
           </li>
         </ol>
 
@@ -219,46 +301,48 @@ class FormComponent extends Component {
           <DialogContent>
 
             {loading || error}
-            {this.props.bill === undefined && this.state.step === 0 && tutorial}
 
             <Form ref={
               /* istanbul ignore next */
               form => { this.form = form; }
             } onSubmit={this.submit}>
-
-              <div className="form-group">
-                <div className="input-title">
-                  <label htmlFor="bucket">S3 Bucket name</label>
-                  &nbsp;
-                  <Popover info tooltip="Name of the S3 bucket you created"/>
+              {this.props.bill === undefined && this.state.step === 0 && tutorial}
+              {this.props.bill !== undefined &&
+                <div>
+                  <div className="form-group">
+                    <div className="input-title">
+                      <label htmlFor="bucket">S3 Bucket name</label>
+                      &nbsp;
+                      <Popover info tooltip="Name of the S3 bucket you created"/>
+                    </div>
+                    <Input
+                      name="bucket"
+                      type="text"
+                      className="form-control"
+                      placeholder="Bucket Name"
+                      value={this.state.bucket}
+                      onChange={this.handleInputChange}
+                      validations={[Validation.required, Validation.s3BucketNameFormat]}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <div className="input-title">
+                      <label htmlFor="bucket">Report path prefix (optional)</label>
+                      &nbsp;
+                      <Popover info tooltip="If you set a path prefix when creating your report"/>
+                    </div>
+                    <Input
+                      name="prefix"
+                      type="text"
+                      className="form-control"
+                      placeholder="Optional prefix"
+                      value={this.state.prefix}
+                      onChange={this.handleInputChange}
+                      validations={[Validation.s3PrefixFormat]}
+                    />
+                  </div>
                 </div>
-                <Input
-                  name="bucket"
-                  type="text"
-                  className="form-control"
-                  placeholder="Bucket Name"
-                  value={this.state.bucket}
-                  onChange={this.handleInputChange}
-                  validations={[Validation.required, Validation.s3BucketNameFormat]}
-                />
-              </div>
-
-              <div className="form-group">
-                <div className="input-title">
-                  <label htmlFor="bucket">Report path prefix (optional)</label>
-                  &nbsp;
-                  <Popover info tooltip="If you set a path prefix when creating your report"/>
-                </div>
-                <Input
-                  name="prefix"
-                  type="text"
-                  className="form-control"
-                  placeholder="Optional prefix"
-                  value={this.state.prefix}
-                  onChange={this.handleInputChange}
-                  validations={[Validation.s3PrefixFormat]}
-                />
-              </div>
+              }
 
               {this.state.step === 1 && tutorialEditPolicy}
 
