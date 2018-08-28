@@ -357,7 +357,18 @@ describe('Formatters', () => {
           }, {
             key: "product2",
             date1: {cost: 21, variation: 2.1}
-          }]
+          }],
+          total: {
+            key: "Total",
+            date1: {
+              cost: 42 + 21,
+              variation: 0
+            },
+            date2: {
+              cost: 84,
+              variation: (84 - 42 - 21) / (42 + 21) * 100
+            }
+          }
         };
         expect(transformCostDifferentiator(data)).toEqual(output);
       });
@@ -389,7 +400,18 @@ describe('Formatters', () => {
           }, {
             key: "product2",
             date1: {cost: 21, variation: 2.1}
-          }]
+          }],
+          total: {
+            key: "Total",
+            date1: {
+              cost: 21,
+              variation: 0
+            },
+            date2: {
+              cost: 0,
+              variation: (0 - 21) / 21 * 100
+            }
+          }
         };
         expect(transformCostDifferentiator(data)).toEqual(output);
       });
