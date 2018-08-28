@@ -228,8 +228,8 @@ func GetUserWithEmailAndPassword(ctx context.Context, db models.XODB, email stri
 // UserFromDbUser builds a users.User from a models.User.
 func UserFromDbUser(dbUser models.User) User {
 	u := User{
-		Id:    dbUser.ID,
-		Email: dbUser.Email,
+		Id:                     dbUser.ID,
+		Email:                  dbUser.Email,
 		AwsCustomerEntitlement: dbUser.AwsCustomerEntitlement,
 	}
 	if dbUser.NextExternal.Valid {

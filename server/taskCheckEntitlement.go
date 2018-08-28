@@ -30,6 +30,7 @@ import (
 
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/models"
 )
 
 // taskCheckEntitlement checks the user Entitlement for AWS Marketplace users
@@ -44,13 +45,13 @@ func taskCheckEntitlement(ctx context.Context) error {
 	} else if userId, err := strconv.Atoi(args[0]); err != nil {
 		return err
 	} else {
-		cuId, error := getCustomerIdentifier(db.Db, ctx, userId)
+		customer, error := models.UserByID(db.Db, userId)
 		if error != nil {
 			return error
-		} else if cuId == "" {
+		} else if customer.AwsCustomerIdentifier == "" {
 			return nil
 		} else {
-			err = checkUserEntitlement(ctx, cuId, userId)
+			err = checkUserEntitlement(ctx, customer.AwsCustomerIdentifier, userId)
 			if err != nil {
 				logger.Error("Error occured while checking user entitlement", err)
 				return err
@@ -70,7 +71,7 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 	var filter = make(map[string][]*string)
 	filter["CUSTOMER_IDENTIFIER"] = make([]*string, 0)
 	filter["CUSTOMER_IDENTIFIER"] = append(filter["CUSTOMER_IDENTIFIER"], &customerIdentifier)
-	awsInput.SetProductCode("f2k4zzzgvihcmlgrf4qlyo4sr")
+	awsInput.SetProductCode(config.MarketPlaceProductCode)
 	awsInput.SetFilter(filter)
 	result, err := svc.GetEntitlements(&awsInput)
 	if err != nil {
@@ -104,30 +105,12 @@ func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) 
 func checkExpirationDate(expirationDate *time.Time, ctx context.Context, db *sql.DB, userId int) (error) {
 	var err error
 	currentTime := time.Now().Local()
-	if expirationDate.String() > currentTime.String() {
+	if expirationDate .After(currentTime) {
 		err = updateCustomerEntitlement(db, ctx, userId, 0)
 	} else {
 		err = updateCustomerEntitlement(db, ctx, userId, 1)
 	}
 	return err
-}
-
-// getCustomerIdentifier retreive AWS customer identifier from user Id.
-func getCustomerIdentifier(db *sql.DB, ctx context.Context, userId int) (string, error) {
-	const sqlstr = `SELECT aws_customer_identifier FROM user WHERE id = ?`
-	res, err := db.Query(sqlstr, userId)
-	defer res.Close()
-	if err != nil {
-		return "", err
-	}
-	var token string
-	for res.Next() {
-		err := res.Scan(&token)
-		if err != nil {
-			return "", err
-		}
-	}
-	return token, nil
 }
 
 // updateCustomerEntitlement updates aws customer entitlement according to entitlement value.
