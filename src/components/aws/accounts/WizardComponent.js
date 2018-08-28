@@ -306,23 +306,6 @@ export class StepBucket extends Component {
                   validations={[Validation.required, Validation.s3BucketNameFormat]}
                 />
               </div>
-
-              <div className="form-group">
-                <div className="input-title">
-                  <label htmlFor="bucket">Report path prefix (optional)</label>
-                  &nbsp;
-                  <Popover info tooltip="If you set a path prefix when creating your report"/>
-                </div>
-                <Input
-                  name="bucketPrefix"
-                  type="text"
-                  className="form-control"
-                  placeholder="Optional prefix"
-                  value={this.state.bucketPrefix}
-                  onChange={this.handleInputChange}
-                  validations={[Validation.s3PrefixFormat]}
-                />
-              </div>
           </li>
           <li>Still on your  <a rel="noopener noreferrer" target="_blank" href="https://s3.console.aws.amazon.com/s3/home">AWS Console S3 page</a> click on the name of the bucket you just created.</li>
           <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
