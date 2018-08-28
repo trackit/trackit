@@ -29,28 +29,32 @@ import (
 )
 
 type (
-	// struct that allows to parse ES result
+	// structs that allows to parse ES result
 	esTagsValuesResult struct {
 		Keys struct {
 			Buckets []struct {
 				Key string `json:"key"`
-				Tags struct {
-					Buckets []struct {
-						Tag string `json:"key"`
-						Rev struct {
-							CostPerProduct struct {
-								Buckets []struct {
-									Product string `json:"key"`
-									Cost struct {
-										Value float64 `json:"value"`
-									} `json:"cost"`
-								} `json:"buckets"`
-							} `json:"filter"`
-						} `json:"rev"`
-					} `json:"buckets"`
-				} `json:"tags"`
+				Tags esTagsResult `json:"tags"`
 			} `json:"buckets"`
 		} `json:"keys"`
+	}
+
+	esTagsResult struct {
+		Buckets []struct {
+			Tag string `json:"key"`
+			Rev struct {
+				Filter esFilterResult `json:"filter"`
+			} `json:"rev"`
+		} `json:"buckets"`
+	}
+
+	esFilterResult struct {
+		Buckets []struct {
+			Product string `json:"key"`
+			Cost struct {
+				Value float64 `json:"value"`
+			} `json:"cost"`
+		} `json:"buckets"`
 	}
 
 	// contain a product and his cost
@@ -64,11 +68,14 @@ type (
 		Tag   string     `json:"tag"`
 		Costs []TagValue `json:"costs"`
 	}
+
+	// response format of the endpoint
+	TagsValuesResponse map[string][]TagsValues
 )
 
 // getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
 func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams, user users.User) (int, interface{}) {
-	response := make(map[string][]TagsValues)
+	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTagsValuesResult
 	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, user, es.Client)
@@ -87,7 +94,7 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		var values []TagsValues
 		for _, tag := range key.Tags.Buckets {
 			var costs []TagValue
-			for _, cost := range tag.Rev.CostPerProduct.Buckets {
+			for _, cost := range tag.Rev.Filter.Buckets {
 				costs = append(costs, TagValue{cost.Product, cost.Cost.Value})
 			}
 			values = append(values, TagsValues{tag.Tag, costs})
@@ -152,18 +159,18 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 
 // getTagsValuesFilter returns a string of the field to filter
 func getTagsValuesFilter(filter string) (string) {
-	switch filter {
-	case "product":
-		return "productCode"
-	case "region":
-		return "region"
-	case "account":
-		return "usageAccountId"
-	case "availabilityzone":
-		return "availabilityZone"
-	default:
-		return "error"
+	var filters = map[string]string{
+		"product":          "productCode",
+		"region":           "region",
+		"account":          "usageAccountId",
+		"availabilityzone": "availabilityZone",
 	}
+	for i := range filters {
+		if i == filter {
+			return filters[i]
+		}
+	}
+	return "error"
 }
 
 // arrayContainsString returns true if a string is present in an array of string
