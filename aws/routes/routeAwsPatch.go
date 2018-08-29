@@ -31,6 +31,7 @@ import (
 // patchAwsAccount request handler.
 type patchAwsAccountRequestBody struct {
 	Pretty string `json:"pretty"`
+	Payer  bool   `json:"payer"`
 }
 
 var (
@@ -60,6 +61,7 @@ func patchAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, 
 	awsAccount, err := aws.GetAwsAccountWithIdFromUser(user, id, tx)
 	if err == nil {
 		awsAccount.Pretty = body.Pretty
+		awsAccount.Payer = body.Payer
 		if err := awsAccount.UpdatePrettyAwsAccount(ctx, tx); err != nil {
 			logger.Error("failed to update AWS Account", err)
 			return 500, errFailUpdateAccount
