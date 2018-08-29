@@ -71,7 +71,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryPa
 		parsedParams.AccountList,
 		parsedParams.DateBegin,
 		parsedParams.DateEnd,
-		"12h",
+		"day",
 		es.Client,
 		index,
 	)
