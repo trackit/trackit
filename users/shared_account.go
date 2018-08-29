@@ -33,9 +33,16 @@ import (
 
 // inviteUserRequest is the expected request body for the invite user route handler.
 type inviteUserRequest struct {
-	Email              string `json:"email" req:"nonzero"`
-	AccountId          int `json:"accountId"`
-	PermissionLevel    int `json:"permissionLevel"`
+	Email           string `json:"email" req:"nonzero"`
+	AccountId       int    `json:"accountId"`
+	PermissionLevel int    `json:"permissionLevel"`
+}
+
+type sharedAccount struct {
+	AccountId int
+	userId int
+	UserPermission int
+	AccountStatus int
 }
 
 func init() {
@@ -99,21 +106,23 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, user
 
 // addAccountToGuest adds an entry in shared_account table allowing a user
 // to share an access to all or part of his account
-func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int, ownerId int) (error) {
-	const sqlstr = `INSERT INTO shared_account(
-			account_id, owner_id, user_id, user_permission, account_status
-		) VALUES (?, ?, ?, ?, ?)`
-	_, err := db.Exec(sqlstr, accountId, ownerId, guestId, permissionLevel, 0)
+func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int) (error) {
+	dbSharedAccount := models.SharedAccount{
+		AccountID:  accountId,
+		UserID:   guestId,
+		UserPermission: permissionLevel,
+	}
+	err := dbSharedAccount.Insert(db)
 	return err
 }
 
 // createAccountForGuest creates an account for invited user who do not already own an account
-func createAccountForGuest(ctx context.Context, db *sql.Tx, userMail string, accountId int, permissionLevel int, user User) (int, error) {
+func createAccountForGuest(ctx context.Context, db *sql.Tx, userMail string, accountId int, permissionLevel int) (int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	tempPassword := uuid.NewV1().String()
 	usr, err := CreateUserWithPassword(ctx, db, userMail, tempPassword, "")
 	if err == nil {
-		err = addAccountToGuest(ctx, db, accountId, permissionLevel, usr.Id, user.Id)
+		err = addAccountToGuest(ctx, db, accountId, permissionLevel, usr.Id)
 		if err != nil {
 			logger.Error("Error occured while adding account to an newly created user.", err.Error())
 			return 0, err
@@ -188,7 +197,7 @@ func inviteUserWithValidBody(request *http.Request, body inviteUserRequest, tx *
 			} else if isAlreadyShared {
 				return 200, errors.New("You are already sharing this account with this user.")
 			}
-			err = addAccountToGuest(request.Context(), tx, body.AccountId, body.PermissionLevel, guestId, user.Id)
+			err = addAccountToGuest(request.Context(), tx, body.AccountId, body.PermissionLevel, guestId)
 			if err == nil {
 				err = sendMailNotification(request.Context(), tx, body.Email,true, 0)
 				if err != nil {
@@ -201,7 +210,7 @@ func inviteUserWithValidBody(request *http.Request, body inviteUserRequest, tx *
 				return 403, errors.New("An error occured while inviting a user. Please, try again.")
 			}
 		} else {
-			newUserId, err := createAccountForGuest(request.Context(), tx, body.Email, body.AccountId, body.PermissionLevel, user)
+			newUserId, err := createAccountForGuest(request.Context(), tx, body.Email, body.AccountId, body.PermissionLevel)
 			if err == nil {
 				err = sendMailNotification(request.Context(), tx, body.Email,false, newUserId)
 				if err != nil {

@@ -11,9 +11,8 @@ import (
 type SharedAccount struct {
 	ID             int  `json:"id"`              // id
 	AccountID      int  `json:"account_id"`      // account_id
-	OwnerID        int  `json:"owner_id"`        // owner_id
 	UserID         int  `json:"user_id"`         // user_id
-	UserPermission int8 `json:"user_permission"` // user_permission
+	UserPermission int  `json:"user_permission"` // user_permission
 	AccountStatus  bool `json:"account_status"`  // account_status
 
 	// xo fields
@@ -41,14 +40,14 @@ func (sa *SharedAccount) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.shared_account (` +
-		`account_id, owner_id, user_id, user_permission, account_status` +
+		`account_id, user_id, user_permission, account_status` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, sa.AccountID, sa.OwnerID, sa.UserID, sa.UserPermission, sa.AccountStatus)
-	res, err := db.Exec(sqlstr, sa.AccountID, sa.OwnerID, sa.UserID, sa.UserPermission, sa.AccountStatus)
+	XOLog(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus)
+	res, err := db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus)
 	if err != nil {
 		return err
 	}
@@ -82,12 +81,12 @@ func (sa *SharedAccount) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.shared_account SET ` +
-		`account_id = ?, owner_id = ?, user_id = ?, user_permission = ?, account_status = ?` +
+		`account_id = ?, user_id = ?, user_permission = ?, account_status = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, sa.AccountID, sa.OwnerID, sa.UserID, sa.UserPermission, sa.AccountStatus, sa.ID)
-	_, err = db.Exec(sqlstr, sa.AccountID, sa.OwnerID, sa.UserID, sa.UserPermission, sa.AccountStatus, sa.ID)
+	XOLog(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus, sa.ID)
+	_, err = db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus, sa.ID)
 	return err
 }
 
@@ -137,17 +136,10 @@ func (sa *SharedAccount) AwsAccount(db XODB) (*AwsAccount, error) {
 	return AwsAccountByID(db, sa.AccountID)
 }
 
-// UserByOwnerID returns the User associated with the SharedAccount's OwnerID (owner_id).
+// User returns the User associated with the SharedAccount's UserID (user_id).
 //
 // Generated from foreign key 'shared_account_ibfk_2'.
-func (sa *SharedAccount) UserByOwnerID(db XODB) (*User, error) {
-	return UserByID(db, sa.OwnerID)
-}
-
-// UserByUserID returns the User associated with the SharedAccount's UserID (user_id).
-//
-// Generated from foreign key 'shared_account_ibfk_3'.
-func (sa *SharedAccount) UserByUserID(db XODB) (*User, error) {
+func (sa *SharedAccount) User(db XODB) (*User, error) {
 	return UserByID(db, sa.UserID)
 }
 
@@ -159,7 +151,7 @@ func SharedAccountsByAccountID(db XODB, accountID int) ([]*SharedAccount, error)
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, account_id, owner_id, user_id, user_permission, account_status ` +
+		`id, account_id, user_id, user_permission, account_status ` +
 		`FROM trackit.shared_account ` +
 		`WHERE account_id = ?`
 
@@ -179,46 +171,7 @@ func SharedAccountsByAccountID(db XODB, accountID int) ([]*SharedAccount, error)
 		}
 
 		// scan
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.OwnerID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, &sa)
-	}
-
-	return res, nil
-}
-
-// SharedAccountsByOwnerID retrieves a row from 'trackit.shared_account' as a SharedAccount.
-//
-// Generated from index 'foreign_owner_id'.
-func SharedAccountsByOwnerID(db XODB, ownerID int) ([]*SharedAccount, error) {
-	var err error
-
-	// sql query
-	const sqlstr = `SELECT ` +
-		`id, account_id, owner_id, user_id, user_permission, account_status ` +
-		`FROM trackit.shared_account ` +
-		`WHERE owner_id = ?`
-
-	// run query
-	XOLog(sqlstr, ownerID)
-	q, err := db.Query(sqlstr, ownerID)
-	if err != nil {
-		return nil, err
-	}
-	defer q.Close()
-
-	// load results
-	res := []*SharedAccount{}
-	for q.Next() {
-		sa := SharedAccount{
-			_exists: true,
-		}
-
-		// scan
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.OwnerID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
+		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
 		if err != nil {
 			return nil, err
 		}
@@ -237,7 +190,7 @@ func SharedAccountsByUserID(db XODB, userID int) ([]*SharedAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, account_id, owner_id, user_id, user_permission, account_status ` +
+		`id, account_id, user_id, user_permission, account_status ` +
 		`FROM trackit.shared_account ` +
 		`WHERE user_id = ?`
 
@@ -257,7 +210,7 @@ func SharedAccountsByUserID(db XODB, userID int) ([]*SharedAccount, error) {
 		}
 
 		// scan
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.OwnerID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
+		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
 		if err != nil {
 			return nil, err
 		}
@@ -276,7 +229,7 @@ func SharedAccountByID(db XODB, id int) (*SharedAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, account_id, owner_id, user_id, user_permission, account_status ` +
+		`id, account_id, user_id, user_permission, account_status ` +
 		`FROM trackit.shared_account ` +
 		`WHERE id = ?`
 
@@ -286,7 +239,7 @@ func SharedAccountByID(db XODB, id int) (*SharedAccount, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&sa.ID, &sa.AccountID, &sa.OwnerID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
+	err = db.QueryRow(sqlstr, id).Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
 	if err != nil {
 		return nil, err
 	}
