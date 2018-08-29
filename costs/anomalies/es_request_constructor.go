@@ -15,6 +15,7 @@
 package anomalies
 
 import (
+	"fmt"
 	"time"
 
 	"gopkg.in/olivere/elastic.v5"
@@ -33,8 +34,11 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 }
 
 // createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
-// defined by durationBegin and durationEnd
+// defined by durationBegin and durationEnd.
+// durationBegin is reduced by period. This offset is deleted later.
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
+	periodDuration, _ := time.ParseDuration(fmt.Sprintf("%dh", period*24))
+	durationBegin = durationBegin.Add(-periodDuration)
 	return elastic.NewRangeQuery("usageStartDate").
 		From(durationBegin).To(durationEnd)
 }

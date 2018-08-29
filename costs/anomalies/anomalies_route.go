@@ -112,6 +112,24 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 	return http.StatusOK, res
 }
 
+// deleteOffset deletes the offset set in createQueryTimeRange.
+func deleteOffset(c ProductsCostAnomalies, dateBegin time.Time) {
+	for k, costAnomalies := range c {
+		var toDelete []int
+		for i, an := range costAnomalies {
+			fmt.Println(an.Date)
+			if d, err := time.Parse("2006-01-02T15:04:05.000Z", an.Date); err == nil {
+				if dateBegin.After(d) && !dateBegin.Equal(d) {
+					toDelete = append(toDelete, i)
+				}
+			}
+		}
+		for n, i := range toDelete {
+			c[k] = append(c[k][:i-n], c[k][i-n+1:]...)
+		}
+	}
+}
+
 // GetAnomaliesData returns the cost anomalies based on the query params, in JSON format.
 func GetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams, user users.User) (ProductsCostAnomalies, int, error) {
 	sr, returnCode, err := makeElasticSearchRequest(ctx, params, user)
@@ -122,5 +140,6 @@ func GetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams, user use
 	if err != nil {
 		return ProductsCostAnomalies{}, 0, err
 	}
+	deleteOffset(res, params.DateBegin)
 	return res, 0, nil
 }
