@@ -117,7 +117,6 @@ func deleteOffset(c ProductsCostAnomalies, dateBegin time.Time) {
 	for k, costAnomalies := range c {
 		var toDelete []int
 		for i, an := range costAnomalies {
-			fmt.Println(an.Date)
 			if d, err := time.Parse("2006-01-02T15:04:05.000Z", an.Date); err == nil {
 				if dateBegin.After(d) && !dateBegin.Equal(d) {
 					toDelete = append(toDelete, i)
