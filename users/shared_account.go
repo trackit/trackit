@@ -39,10 +39,10 @@ type inviteUserRequest struct {
 }
 
 type sharedAccount struct {
-	AccountId int
-	userId int
-	UserPermission int
-	AccountStatus int
+	AccountId       int
+	userId          int
+	UserPermission  int
+	SharingAccepted int
 }
 
 func init() {
