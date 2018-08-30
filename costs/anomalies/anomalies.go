@@ -77,8 +77,8 @@ const (
 
 	// minCostPercent is set to 4%.
 	// If an anomaly is detected, the cost has to be
-	// higher than 4% of the total bill.
-	minCostPercent = 0.04
+	// higher than 2% of the total bill.
+	minCostPercent = 0.02
 )
 
 // sum adds every element of a CostAnomaly slice.
@@ -116,7 +116,7 @@ func deviation(sigma float64, period int) float64 {
 func clearDisturbances(costAnomalies []CostAnomaly, totalCostAnomalies map[string]float64) []CostAnomaly {
 	for index := range costAnomalies {
 		date := costAnomalies[index].Date
-		if costAnomalies[index].Cost < totalCostAnomalies[date]*minCostPercent {
+		if costAnomalies[index].Cost-costAnomalies[index].UpperBand < totalCostAnomalies[date]*minCostPercent {
 			costAnomalies[index].Abnormal = false
 		}
 	}
