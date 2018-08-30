@@ -106,6 +106,10 @@ export class App extends Component {
               path={this.props.match.url + "/setup/:hasAccounts*"}
               component={this.props.token ? Containers.Setup.Main : redirectToLogin}
             />
+            <Route
+              path={this.props.match.url + "/events"}
+              component={checkRedirections(Containers.Events)}
+            />
           </div>
         </Containers.Main>
       </div>

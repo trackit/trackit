@@ -66,6 +66,13 @@ export default {
       }
     },
   },
+  events: {
+    dates: {
+      startDate: moment().subtract(30, 'days'),
+      endDate : moment(),
+    },
+    values: {}
+  },
   gcp: {},
   user: {
     viewers: {
