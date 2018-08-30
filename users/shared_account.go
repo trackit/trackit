@@ -45,6 +45,12 @@ type sharedAccount struct {
 	SharingAccepted int
 }
 
+var (
+	ErrorInviteNewUser = errors.New("An error occured while inviting a new user. Please, try again.")
+	ErrorInviteUser = errors.New("An error occured while inviting a user. Please, try again.")
+	ErrorAlreadyShared = errors.New("You are already sharing this account with this user.")
+)
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(inviteUser).With(
@@ -193,21 +199,21 @@ func inviteUserWithValidBody(request *http.Request, body inviteUserRequest, tx *
 		if result {
 			isAlreadyShared, err := checkSharedAccount(request.Context(), tx, body.AccountId, guestId)
 			if err != nil {
-				return 403, errors.New("An error occured while inviting a user. Please try again.")
+				return 403, ErrorInviteUser
 			} else if isAlreadyShared {
-				return 200, errors.New("You are already sharing this account with this user.")
+				return 200, ErrorAlreadyShared
 			}
 			err = addAccountToGuest(request.Context(), tx, body.AccountId, body.PermissionLevel, guestId)
 			if err == nil {
 				err = sendMailNotification(request.Context(), tx, body.Email,true, 0)
 				if err != nil {
 					logger.Error("Error occured while sending an email to an existing user.", err.Error())
-					return 403, errors.New("An error occured while inviting a user. Please, try again.")
+					return 403, ErrorInviteUser
 				}
 				return 200, nil
 			} else {
 				logger.Error("Error occured while adding account to an existing user.", err.Error())
-				return 403, errors.New("An error occured while inviting a user. Please, try again.")
+				return 403, ErrorInviteUser
 			}
 		} else {
 			newUserId, err := createAccountForGuest(request.Context(), tx, body.Email, body.AccountId, body.PermissionLevel)
@@ -215,16 +221,16 @@ func inviteUserWithValidBody(request *http.Request, body inviteUserRequest, tx *
 				err = sendMailNotification(request.Context(), tx, body.Email,false, newUserId)
 				if err != nil {
 					logger.Error("Error occured while sending an email to a new user.", err.Error())
-					return 403, errors.New("An error occured while inviting a new user. Please, try again.")
+					return 403, ErrorInviteNewUser
 				}
 				return 200, nil
 			} else {
 				logger.Error("Error occured while creating new account for a guest.", err.Error())
-				return 403, errors.New("An error occured while inviting a new user. Please, try again.")
+				return 403, ErrorInviteNewUser
 			}
 		}
 	} else {
 		logger.Error("Error occured while checking if user already exist.", err.Error())
-		return 403, errors.New("An error occured while inviting a new user. Please, try again.")
+		return 403, ErrorInviteNewUser
 	}
 }
