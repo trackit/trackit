@@ -77,8 +77,8 @@ const (
 
 	// minCostPercent is set to 4%.
 	// If an anomaly is detected, the cost has to be
-	// higher than 2% of the total bill.
-	minCostPercent = 0.02
+	// higher than 1.3% of the total bill.
+	minCostPercent = 0.013
 )
 
 // sum adds every element of a CostAnomaly slice.
