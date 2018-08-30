@@ -17,6 +17,7 @@ type AwsAccount struct {
 	External    string    `json:"external"`     // external
 	NextUpdate  time.Time `json:"next_update"`  // next_update
 	GraceUpdate time.Time `json:"grace_update"` // grace_update
+	Payer       bool      `json:"payer"`        // payer
 
 	// xo fields
 	_exists, _deleted bool
@@ -43,14 +44,14 @@ func (aa *AwsAccount) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_account (` +
-		`user_id, pretty, role_arn, external, next_update, grace_update` +
+		`user_id, pretty, role_arn, external, next_update, grace_update, payer` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate)
-	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate)
+	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate, aa.Payer)
+	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate, aa.Payer)
 	if err != nil {
 		return err
 	}
@@ -84,12 +85,12 @@ func (aa *AwsAccount) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_account SET ` +
-		`user_id = ?, pretty = ?, role_arn = ?, external = ?, next_update = ?, grace_update = ?` +
+		`user_id = ?, pretty = ?, role_arn = ?, external = ?, next_update = ?, grace_update = ?, payer = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate, aa.ID)
-	_, err = db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate, aa.ID)
+	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate, aa.Payer, aa.ID)
+	_, err = db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.GraceUpdate, aa.Payer, aa.ID)
 	return err
 }
 
@@ -147,7 +148,7 @@ func AwsAccountByID(db XODB, id int) (*AwsAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update, grace_update ` +
+		`id, user_id, pretty, role_arn, external, next_update, grace_update, payer ` +
 		`FROM trackit.aws_account ` +
 		`WHERE id = ?`
 
@@ -157,7 +158,7 @@ func AwsAccountByID(db XODB, id int) (*AwsAccount, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.GraceUpdate)
+	err = db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.GraceUpdate, &aa.Payer)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func AwsAccountsByUserID(db XODB, userID int) ([]*AwsAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update, grace_update ` +
+		`id, user_id, pretty, role_arn, external, next_update, grace_update, payer ` +
 		`FROM trackit.aws_account ` +
 		`WHERE user_id = ?`
 
@@ -193,7 +194,7 @@ func AwsAccountsByUserID(db XODB, userID int) ([]*AwsAccount, error) {
 		}
 
 		// scan
-		err = q.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.GraceUpdate)
+		err = q.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.GraceUpdate, &aa.Payer)
 		if err != nil {
 			return nil, err
 		}
