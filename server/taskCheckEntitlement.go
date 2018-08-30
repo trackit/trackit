@@ -45,10 +45,12 @@ func taskCheckEntitlement(ctx context.Context) error {
 	} else if userId, err := strconv.Atoi(args[0]); err != nil {
 		return err
 	} else {
-		customer, error := models.UserByID(db.Db, userId)
-		if error != nil {
-			return error
+		customer, err := models.UserByID(db.Db, userId)
+		if err != nil {
+			logger.Error("Error while getting cursomer infos", err)
+			return err
 		} else if customer.AwsCustomerIdentifier == "" {
+			logger.Info("No AWS customer identifier", err)
 			return nil
 		} else {
 			err = checkUserEntitlement(ctx, customer.AwsCustomerIdentifier, userId)
@@ -69,8 +71,7 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 	svc := marketplaceentitlementservice.New(mySession)
 	var awsInput marketplaceentitlementservice.GetEntitlementsInput
 	var filter = make(map[string][]*string)
-	filter["CUSTOMER_IDENTIFIER"] = make([]*string, 0)
-	filter["CUSTOMER_IDENTIFIER"] = append(filter["CUSTOMER_IDENTIFIER"], &customerIdentifier)
+	filter["CUSTOMER_IDENTIFIER"] = []*string{aws.String(customerIdentifier)}
 	awsInput.SetProductCode(config.MarketPlaceProductCode)
 	awsInput.SetFilter(filter)
 	result, err := svc.GetEntitlements(&awsInput)
@@ -86,7 +87,7 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 	return result.Entitlements, nil
 }
 
-// checUserEntitlement enables entitlement to be checked.
+// checkUserEntitlement enables entitlement to be checked.
 func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) {
 	var expirationDate *time.Time
 	res, err := getUserEntitlement(ctx, cuId)
@@ -104,18 +105,22 @@ func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) 
 // According to result, an update is pushed to db.
 func checkExpirationDate(expirationDate *time.Time, ctx context.Context, db *sql.DB, userId int) (error) {
 	var err error
-	currentTime := time.Now().Local()
-	if expirationDate .After(currentTime) {
-		err = updateCustomerEntitlement(db, ctx, userId, 0)
+	currentTime := time.Now()
+	if expirationDate.After(currentTime) {
+		err = updateCustomerEntitlement(db, ctx, userId, true)
 	} else {
-		err = updateCustomerEntitlement(db, ctx, userId, 1)
+		err = updateCustomerEntitlement(db, ctx, userId, false)
 	}
 	return err
 }
 
 // updateCustomerEntitlement updates aws customer entitlement according to entitlement value.
-func updateCustomerEntitlement(db *sql.DB, ctx context.Context, userId int, entitlementValue int) (error) {
-	const sqlstr = `UPDATE user SET aws_customer_entitlement=? WHERE id=?`
-	_, err := db.Exec(sqlstr, entitlementValue, userId)
+func updateCustomerEntitlement(db *sql.DB, ctx context.Context, userId int, entitlementValue bool) (error) {
+	dbUser, err := models.UserByID(db, userId)
+	if err != nil {
+		return err
+	}
+	dbUser.AwsCustomerEntitlement = entitlementValue
+	err = dbUser.Update(db)
 	return err
 }

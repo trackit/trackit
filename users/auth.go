@@ -99,7 +99,7 @@ func testToken(tx *sql.Tx, tokenString string) (User, error) {
 			if areClaimsValid(*claims) {
 				userId := claims.Subject
 				user, err = GetUserWithId(tx, userId)
-				if user.AwsCustomerEntitlement {
+				if !user.AwsCustomerEntitlement {
 					err = ErrMarketplaceInvalidToken
 				}
 			} else {
