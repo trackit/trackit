@@ -308,4 +308,4 @@ ALTER TABLE aws_account ADD payer BOOL NOT NULL DEFAULT "1";
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE user ADD aws_customer_entitlement tinyint(1) NOT NULL DEFAULT 0;
+ALTER TABLE user ADD aws_customer_entitlement bool NOT NULL DEFAULT 0;
