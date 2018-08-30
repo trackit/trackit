@@ -36,6 +36,7 @@ type AwsAccount struct {
 	Pretty   string `json:"pretty"`
 	RoleArn  string `json:"roleArn"`
 	External string `json:"-"`
+	Payer    bool   `json:"payer"`
 }
 
 const (
@@ -120,6 +121,7 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 		RoleArn:  a.RoleArn,
 		Pretty:   a.Pretty,
 		External: a.External,
+		Payer:    a.Payer,
 	}
 	err := dbAwsAccount.Insert(db)
 	if err == nil {
@@ -140,6 +142,7 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 		logger.Error("Failed to get AWS account in database.", err.Error())
 	} else {
 		dbAwsAccount.Pretty = a.Pretty
+		dbAwsAccount.Payer = a.Payer
 		err := dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
@@ -168,5 +171,6 @@ func AwsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 		Pretty:   dbAwsAccount.Pretty,
 		RoleArn:  dbAwsAccount.RoleArn,
 		External: dbAwsAccount.External,
+		Payer:    dbAwsAccount.Payer,
 	}
 }
