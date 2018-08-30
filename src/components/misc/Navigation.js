@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import { connect } from 'react-redux';
 import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import Actions from '../../actions';
 import NavbarHeader from './NavbarHeader';
 import AccountSelector from '../aws/accounts/SelectorComponent';
 import SelectedIndicator from '../aws/accounts/SelectedIndicatorComponent';
@@ -21,6 +22,10 @@ export class Navigation extends Component {
     this.closeUserMenu = this.closeUserMenu.bind(this);
   }
 
+  componentDidMount() {
+    this.props.getData(this.props.eventsDates.startDate, this.props.eventsDates.endDate);
+  }
+
   toggleUserMenu() {
     this.setState({ userMenuExpanded: !this.state.userMenuExpanded });
   }
@@ -29,6 +34,32 @@ export class Navigation extends Component {
     e.preventDefault();
     this.setState({ userMenuExpanded: false });
   };
+
+  getAbnormals(data) {
+    const res = [];
+    for (let i = 0; i < data.length; i++) {
+      const element = data[i];
+      if (element.abnormal) {
+        res.push(element);
+      }
+    }
+    return res.length ? res : null;
+  }
+
+
+  getEventsNumber(data) {
+    let res = 0;
+    for (var key in data) {
+      if (data.hasOwnProperty(key)) {
+          const dataSet = data[key];
+          const abnormals = this.getAbnormals(dataSet);
+          if (abnormals) {
+            res += abnormals.length;
+          }
+      }
+    }
+    return res;
+  }
 
   render() {
 
@@ -40,6 +71,12 @@ export class Navigation extends Component {
         </div>
       );
     }
+
+    let eventsBadge;
+    if (this.props.events && this.props.events.status && this.props.events.values) {
+      eventsBadge = <span className="menu-badge">{this.getEventsNumber(this.props.events.values)}</span>;
+    }
+
 
     return(
       <div className="navigation">
@@ -84,6 +121,15 @@ export class Navigation extends Component {
               <NavLink to='/app/costbreakdown' activeClassName="active">
                 <i className="menu-icon fa fa-area-chart"/>
                 <span className="hide-menu">Cost Breakdown</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to='/app/events' activeClassName="active">
+                <div className="menu-icon inline-block">
+                <i className="menu-icon fa fa-exclamation-triangle"/>
+                {eventsBadge}
+                </div>
+                <span className="hide-menu">Events</span>
               </NavLink>
             </li>
             <li>
@@ -140,12 +186,24 @@ export class Navigation extends Component {
 }
 
 Navigation.propTypes = {
-  mail: PropTypes.string
+  mail: PropTypes.string,
+  eventsDates: PropTypes.object.isRequired,
+  events: PropTypes.object.isRequired,
 };
 
 /* istanbul ignore next */
 const mapStateToProps = (state) => ({
-  mail: state.auth.mail
+  mail: state.auth.mail,
+  events: state.events.values,
+  eventsDates: state.events.dates,
 });
 
-export default withRouter(connect(mapStateToProps)(Navigation));
+/* istanbul ignore next */
+const mapDispatchToProps = (dispatch) => ({
+  getData: (begin, end) => {
+    dispatch(Actions.Events.getData(begin, end));
+  },
+});
+
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Navigation));

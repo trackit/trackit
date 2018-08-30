@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Components from '../components';
@@ -20,8 +21,21 @@ class EventsContainer extends Component {
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
+  getAbnormals(data) {
+    const res = [];
+    for (let i = 0; i < data.length; i++) {
+      const element = data[i];
+      if (element.abnormal) {
+        res.push(element);
+      }
+    }
+    return res.length ? res : null;
+  }
+
 
   render() {
+    const propsValues = this.props.values;
+
     const timerange = (this.props.dates ?  (
       <TimerangeSelector
         startDate={this.props.dates.startDate}
@@ -30,9 +44,63 @@ class EventsContainer extends Component {
       />
     ) : null);
 
+    let events = [];
+    if (propsValues && propsValues.status && propsValues.values) {
+      const abnormalsList = [];
+      for (var key in propsValues.values) {
+        if (propsValues.values.hasOwnProperty(key)) {
+            const dataSet = propsValues.values[key];
+            const abnormals = this.getAbnormals(dataSet);
+            if (abnormals) {
+              for (let i = 0; i < abnormals.length; i++) {
+                const element = abnormals[i];
+                abnormalsList.push({element, key, dataSet});
+              }
+            }
+        }
+      }
+      abnormalsList.sort((a, b) => {
+        if (moment(a.element.date).isBefore(b.element.date)) {
+          return 1;
+        } else {
+          return -1;
+        }
+      });
+      for (let i = 0; i < abnormalsList.length; i++) {
+        const element = abnormalsList[i].element;
+        const key = abnormalsList[i].key;
+        const dataSet = abnormalsList[i].dataSet;
+        events.push(
+        <div key={`${element.date}-${key}`}>
+          <Components.Events.EventPanel
+            dataSet={dataSet}
+            abnormalElement={element}
+            service={key}
+          />
+        </div>
+        );
+        
+      }
+    }
+
+
     return (
       <div>
-        {timerange}
+        <div className="row">
+          <div className="col-md-12">
+            <div className="white-box">
+              <h3 className="white-box-title no-padding inline-block">
+                <i className="fa fa-exclamation-triangle"></i>
+                &nbsp;
+                Events
+              </h3>
+              <div className="inline-block pull-right">
+                {timerange}
+              </div>
+            </div>
+          </div>
+        </div>
+        {events}
       </div>
     );
   }
@@ -41,6 +109,7 @@ class EventsContainer extends Component {
 
 EventsContainer.propTypes = {
   dates: PropTypes.object.isRequired,
+  values: PropTypes.object.isRequired,
   accounts: PropTypes.arrayOf(PropTypes.object),
   getData: PropTypes.func.isRequired,
   setDates: PropTypes.func.isRequired,
@@ -49,7 +118,8 @@ EventsContainer.propTypes = {
 /* istanbul ignore next */
 const mapStateToProps = ({aws, events}) => ({
   dates: events.dates,
-  accounts: aws.accounts.selection
+  accounts: aws.accounts.selection,
+  values: events.values,
 });
 
 /* istanbul ignore next */

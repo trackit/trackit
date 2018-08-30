@@ -160,6 +160,19 @@
     width: 20px;
 }
 
+.sidebar #side-menu .menu-badge {
+    position: absolute;
+    left: 32px;
+    top: 27px;
+    background-color: #e2837f;
+    min-width: 22px;
+    height: 19px;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
 .sidebar #side-menu {
     overflow: hidden;
 }
