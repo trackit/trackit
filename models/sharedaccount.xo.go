@@ -9,11 +9,11 @@ import (
 
 // SharedAccount represents a row from 'trackit.shared_account'.
 type SharedAccount struct {
-	ID             int  `json:"id"`              // id
-	AccountID      int  `json:"account_id"`      // account_id
-	UserID         int  `json:"user_id"`         // user_id
-	UserPermission int  `json:"user_permission"` // user_permission
-	AccountStatus  bool `json:"account_status"`  // account_status
+	ID              int  `json:"id"`               // id
+	AccountID       int  `json:"account_id"`       // account_id
+	UserID          int  `json:"user_id"`          // user_id
+	UserPermission  int  `json:"user_permission"`  // user_permission
+	SharingAccepted bool `json:"sharing_accepted"` // sharing_accepted
 
 	// xo fields
 	_exists, _deleted bool
@@ -40,14 +40,14 @@ func (sa *SharedAccount) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.shared_account (` +
-		`account_id, user_id, user_permission, account_status` +
+		`account_id, user_id, user_permission, sharing_accepted` +
 		`) VALUES (` +
 		`?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus)
-	res, err := db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus)
+	XOLog(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted)
+	res, err := db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted)
 	if err != nil {
 		return err
 	}
@@ -81,12 +81,12 @@ func (sa *SharedAccount) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.shared_account SET ` +
-		`account_id = ?, user_id = ?, user_permission = ?, account_status = ?` +
+		`account_id = ?, user_id = ?, user_permission = ?, sharing_accepted = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus, sa.ID)
-	_, err = db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.AccountStatus, sa.ID)
+	XOLog(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted, sa.ID)
+	_, err = db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted, sa.ID)
 	return err
 }
 
@@ -151,7 +151,7 @@ func SharedAccountsByAccountID(db XODB, accountID int) ([]*SharedAccount, error)
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, account_id, user_id, user_permission, account_status ` +
+		`id, account_id, user_id, user_permission, sharing_accepted ` +
 		`FROM trackit.shared_account ` +
 		`WHERE account_id = ?`
 
@@ -171,7 +171,7 @@ func SharedAccountsByAccountID(db XODB, accountID int) ([]*SharedAccount, error)
 		}
 
 		// scan
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
+		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.SharingAccepted)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +190,7 @@ func SharedAccountsByUserID(db XODB, userID int) ([]*SharedAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, account_id, user_id, user_permission, account_status ` +
+		`id, account_id, user_id, user_permission, sharing_accepted ` +
 		`FROM trackit.shared_account ` +
 		`WHERE user_id = ?`
 
@@ -210,7 +210,7 @@ func SharedAccountsByUserID(db XODB, userID int) ([]*SharedAccount, error) {
 		}
 
 		// scan
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
+		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.SharingAccepted)
 		if err != nil {
 			return nil, err
 		}
@@ -229,7 +229,7 @@ func SharedAccountByID(db XODB, id int) (*SharedAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, account_id, user_id, user_permission, account_status ` +
+		`id, account_id, user_id, user_permission, sharing_accepted ` +
 		`FROM trackit.shared_account ` +
 		`WHERE id = ?`
 
@@ -239,7 +239,7 @@ func SharedAccountByID(db XODB, id int) (*SharedAccount, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus)
+	err = db.QueryRow(sqlstr, id).Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.SharingAccepted)
 	if err != nil {
 		return nil, err
 	}
