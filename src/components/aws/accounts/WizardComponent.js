@@ -113,7 +113,8 @@ export class StepNameARN extends Component {
     let account = {
       roleArn: values.roleArn,
       pretty: values.pretty,
-      external: this.props.external.external
+      external: this.props.external.external,
+      payer: true,
     };
     this.props.submit(account);
   };

@@ -33,12 +33,15 @@ export class Item extends Component {
   };
 
   hasError = () => {
-    let result = !this.props.account.billRepositories.length;
-    this.props.account.billRepositories.forEach((billRepository) => {
-      if (billRepository.error !== "")
-        result = true;
-    });
-    return result;
+    if (this.props.account.payer) {
+      let result = !this.props.account.billRepositories.length;
+      this.props.account.billRepositories.forEach((billRepository) => {
+        if (billRepository.error !== "")
+          result = true;
+      });
+      return result;  
+    }
+    return false;
   };
 
   hasNextPending = () => {

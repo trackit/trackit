@@ -8,6 +8,7 @@ const account1 = {
     id: 42,
     roleArn: "arn:aws:iam::000000000000:role/TEST_ROLE",
     pretty: "pretty",
+    payer: true,
     billRepositories: [{
         awsAccountId: 1,
         bucket: "trackit-billing-report",
@@ -24,6 +25,7 @@ const account2 = {
     id: 84,
     roleArn: "arn:aws:iam::000000000000:role/TEST_ROLE_BIS",
     pretty: "pretty_bis",
+    payer: true,
     billRepositories: [{
         awsAccountId: 1,
         bucket: "trackit-billing-report",
