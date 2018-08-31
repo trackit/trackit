@@ -186,7 +186,7 @@
 /* Account Selector */
 
 #account-selection {
-    height: 150px;
+    height: auto;
     overflow-y: scroll;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
@@ -198,7 +198,6 @@
 
 #account-selection .account-selection-item .checkbox {
     margin: 0;
-    transform: scale(1.5);
 }
 
 #account-selection .account-selection-item input[type=checkbox] {

@@ -17,7 +17,8 @@ const accountWithoutBills = {
   id: 42,
   userId: 42,
   roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
-  billRepositories: []
+  billRepositories: [],
+  payer: true,
 };
 
 const accountWithBills = {
@@ -25,6 +26,7 @@ const accountWithBills = {
   userId: 42,
   roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
   pretty: "Name",
+  payer: true,
   billRepositories: [
     {
       error: "",
