@@ -72,15 +72,15 @@ class EventPanel extends Component {
 
     // 0 : Low, 1: Medium, 2: High, 3: Critical
     getAnomalyLevel(element) {
-        if (element.cost - element.upper_band < 20) {
+        if (element.cost - element.upper_band < 5) {
             return 0;
         } else {
             const percent = ((element.cost * 100) / element.upper_band) - 100;
-            if (percent < 10) {
+            if (percent < 20) {
                 return 0;
-            } else if (percent < 20) {
-                return 1;
             } else if (percent < 50) {
+                return 1;
+            } else if (percent < 100) {
                 return 2;
             } else {
                 return 3;
