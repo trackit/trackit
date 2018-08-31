@@ -38,6 +38,32 @@ func taskAnomaliesDetection(ctx context.Context) error {
 	return EmailAnomalies(ctx)
 }
 
+// getAnomalyLevel get the pretty level of an anomaly.
+func getAnomalyLevel(an anomalies.CostAnomaly) int {
+	percent := ((an.Cost * 100) / an.UpperBand) - 100
+	if an.Cost-an.UpperBand < 5 || percent < 20 {
+		return 0
+	} else if percent < 50 {
+		return 1
+	} else if percent < 100 {
+		return 2
+	} else {
+		return 3
+	}
+}
+
+// getAnomalyPrettyLevel get the pretty level of an anomaly.
+func getAnomalyPrettyLevel(an anomalies.CostAnomaly) string {
+	prettyLevels := []string{"low", "medium", "high", "critical"}
+	level := getAnomalyLevel(an)
+	for i, prettyLevel := range prettyLevels {
+		if i == level {
+			return prettyLevel
+		}
+	}
+	return prettyLevels[0]
+}
+
 // sendAnomalyEmail actually sends the mail and log everything.
 func sendAnomalyEmail(user users.User, awsAccount aws.AwsAccount, product string, an anomalies.CostAnomaly, date time.Time, ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -53,14 +79,14 @@ TrackIt detected an abnormal peak in your spendings!
 
 		Which account? %s
 		Which product? %s
-		How much? %f
-		How important? %.1f
+		How much? %.2f
+		How important? %s
 		When? %s</p>
 See more on our website http://re.trackit.io/
 
 this email is originally intended for %s.
-`, awsAccount.Pretty, product, an.Cost, an.Cost/an.UpperBand*100, date.String(), ea.Recipient)
-	recipient := "team@trackit.io" // replace by ea.Recipient.
+`, awsAccount.Pretty, product, an.Cost, getAnomalyPrettyLevel(an), date.String(), ea.Recipient)
+	recipient := "thibaut.c@trackit.io" // replace by ea.Recipient.
 	if err := mail.SendMail(recipient, subject, body, ctx); err != nil {
 		logger.Error("Error when sending mail", err)
 		return err
@@ -91,6 +117,7 @@ this email is originally intended for %s.
 
 // processAnomaliesByProduct checks if the anomaly has already been sent.
 // If not, it sends it.
+// Also check if the anomaly is a high or critical level.
 func processAnomaliesByProduct(user users.User, awsAccount aws.AwsAccount, product string, ans []anomalies.CostAnomaly, tx *sql.Tx, ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, an := range ans {
@@ -98,6 +125,7 @@ func processAnomaliesByProduct(user users.User, awsAccount aws.AwsAccount, produ
 		} else if date, err := time.Parse("2006-01-02T15:04:05.000Z", an.Date); err != nil {
 			logger.Error("Error when parsing date", err)
 			return err
+		} else if getAnomalyLevel(an) < 2 {
 		} else if alreadyEmailed, err := models.IsAnomalyAlreadyEmailed(tx, awsAccount.Id, product, date); err != nil {
 			logger.Error("Error when checking db for sent email", err)
 			return err
