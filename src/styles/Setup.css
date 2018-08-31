@@ -88,3 +88,14 @@ i.white-box-title-icon {
 .bill-alert .alert {
 	margin: 0 0 10px;
 }
+
+.team-sharing-form .form-group select {
+	margin: 0;
+	width: 100%;
+}
+
+button.btn:disabled,
+button.btn:disabled span,
+button.btn:disabled i {
+	color: #cccccc;
+}

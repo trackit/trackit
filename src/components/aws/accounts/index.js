@@ -6,6 +6,7 @@ import Bills from './bills';
 import Wizard from './WizardComponent';
 import SelectedIndicator from './SelectedIndicatorComponent';
 import StatusBadges from './StatusBadgesComponent';
+import Users from './teamSharing';
 
 export default {
   Form,
@@ -15,5 +16,6 @@ export default {
   Bills,
   SelectedIndicator,
   Wizard,
-  StatusBadges
+  StatusBadges,
+  Users,
 };

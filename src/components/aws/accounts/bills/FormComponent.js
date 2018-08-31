@@ -287,7 +287,7 @@ class FormComponent extends Component {
     return (
       <div>
 
-        <button className="btn btn-default" onClick={this.openDialog}>
+        <button className="btn btn-default" onClick={this.openDialog} disabled={this.props.disabled}>
           {this.props.bill !== undefined ? <i className="fa fa-edit"/> : <i className="fa fa-plus"/>}
           &nbsp;
           {this.props.bill !== undefined ? "Edit" : "Add a bill location"}
@@ -398,7 +398,11 @@ FormComponent.propTypes = {
       })
     )
   }),
+  disabled: PropTypes.bool
 };
 
+FormComponent.defaultProps = {
+  disabled: false
+};
 
 export default FormComponent;
