@@ -2,10 +2,10 @@ import { put, call } from 'redux-saga/effects';
 import API from '../../api';
 import Constants from '../../constants';
 
-export default function* registrationSaga({ username, password }) {
+export default function* registrationSaga({ username, password, awsToken }) {
   try {
     yield put({ type: Constants.REGISTRATION_REQUEST_LOADING });
-    const res = yield call(API.Auth.register, username, password);
+    const res = yield call(API.Auth.register, username, password, awsToken);
     if (res.success && !res.data.error) {
       yield put({type: Constants.REGISTRATION_SUCCESS, payload: { status: true }});
     }

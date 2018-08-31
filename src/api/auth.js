@@ -1,11 +1,11 @@
 import { call } from './misc.js';
 
-export const login = (email, password) => {
-  return call('/user/login', 'POST', {email, password});
+export const login = (email, password, awsToken) => {
+  return call('/user/login', 'POST', {email, password, awsToken});
 };
 
-export const register = (email, password) => {
-  return call('/user', 'POST', {email, password});
+export const register = (email, password, awsToken) => {
+  return call('/user', 'POST', {email, password, awsToken});
 };
 
 export const recoverPassword = (email) => {

@@ -20,9 +20,11 @@ export class LoginContainer extends Component {
 
 
   render() {
+    const awstoken = (this.props.match.params.hasOwnProperty("awstoken") ? this.props.match.params.awstoken : "");
     if (this.props.token)
       return (<Redirect to="/"/>);
     return (<Form
+      awsToken={decodeURIComponent(awstoken)}
       submit={this.props.login}
       loginStatus={this.props.loginStatus}
       registrationStatus={this.props.registrationStatus}
@@ -50,8 +52,8 @@ const mapStateToProps = (state) => ({
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  login: (email, password) => {
-    dispatch(Actions.Auth.login(email, password))
+  login: (email, password, awsToken) => {
+    dispatch(Actions.Auth.login(email, password, awsToken))
   },
   clear: () => {
     dispatch(Actions.Auth.clearRegister());

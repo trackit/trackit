@@ -10,7 +10,10 @@ const Form = Components.Auth.Form;
 export class RegisterContainer extends Component {
 
   render() {
-    return (<Form
+    const awstoken = (this.props.match.params.hasOwnProperty("awstoken") ? this.props.match.params.awstoken : "");
+    return (
+      <Form
+        awsToken={decodeURIComponent(awstoken)}
       submit={this.props.register}
       registration
       registrationStatus={this.props.registrationStatus}
@@ -32,8 +35,8 @@ const mapStateToProps = (state) => ({registrationStatus: state.auth.registration
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  register: (email, password) => {
-    dispatch(Actions.Auth.register(email, password))
+  register: (email, password, awsToken) => {
+    dispatch(Actions.Auth.register(email, password, awsToken))
   },
 });
 
