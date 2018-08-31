@@ -26,8 +26,10 @@ export class Item extends Component {
 
         <ListItem divider>
 
+
           <ListItemText
             disableTypography
+            style={{maxWidth: '143px', wordWrap: 'break-word'}}
             primary={this.props.account.pretty || this.props.account.roleArn}
           />
 
@@ -37,6 +39,7 @@ export class Item extends Component {
             onChange={this.selectAccount}
             disableRipple
           />
+
 
         </ListItem>
 
