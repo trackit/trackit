@@ -30,12 +30,13 @@ const (
 )
 
 var (
-	jwtIssuer                = config.AuthIssuer
-	jwtSecret                = []byte(config.AuthSecret)
-	ErrInvalidClaims         = errors.New("claims are invalid")
-	ErrCannotReadToken       = errors.New("failed to read token")
-	ErrMissingToken          = errors.New("missing or duplicate token")
-	ErrFailedToValidateToken = errors.New("failed to validate token")
+	jwtIssuer                  = config.AuthIssuer
+	jwtSecret                  = []byte(config.AuthSecret)
+	ErrInvalidClaims           = errors.New("claims are invalid")
+	ErrCannotReadToken         = errors.New("failed to read token")
+	ErrMissingToken            = errors.New("missing or duplicate token")
+	ErrFailedToValidateToken   = errors.New("failed to validate token")
+	ErrMarketplaceInvalidToken = errors.New("failed to validate marketplace token")
 )
 
 // getPasswordHash generates a hash string for a given password.
@@ -98,6 +99,9 @@ func testToken(tx *sql.Tx, tokenString string) (User, error) {
 			if areClaimsValid(*claims) {
 				userId := claims.Subject
 				user, err = GetUserWithId(tx, userId)
+				if !user.AwsCustomerEntitlement {
+					err = ErrMarketplaceInvalidToken
+				}
 			} else {
 				err = ErrInvalidClaims
 			}

@@ -72,6 +72,8 @@ var (
 	Task string
 	// Periodics, if true, indicates periodic tasks should be run in goroutines within the process.
 	Periodics bool
+	// Aws Market place product code
+	MarketPlaceProductCode string
 )
 
 func init() {
@@ -99,5 +101,6 @@ func init() {
 	flag.StringVar(&SmtpSender, "smtp-sender", "", "The mail address used to send mails.")
 	flag.StringVar(&Task, "task", "server", "The task to be run.")
 	flag.BoolVar(&Periodics, "periodics", true, "Periodic jobs should be run by the process.")
+	flag.StringVar(&MarketPlaceProductCode, "market-place-product-code", "productcode", "Aws market place product code.")
 	flag.Parse()
 }

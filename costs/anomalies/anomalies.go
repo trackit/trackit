@@ -17,10 +17,10 @@ package anomalies
 import (
 	"context"
 	"encoding/json"
+	"math"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
-	"math"
 )
 
 type (
@@ -41,10 +41,10 @@ type (
 		}
 	}
 
-	// CostAnomaly represents a half-day and contains
-	// the date of beginning, the average cost for the 12h,
+	// CostAnomaly represents a day and contains
+	// the date of beginning, the cost for the 24h,
 	// the value of the upper band and an abnormal value
-	// representing if the half-day is tagged as abnormal,
+	// representing if the day is tagged as abnormal,
 	// which is an alert.
 	CostAnomaly struct {
 		Date      string  `json:"date"`
@@ -60,11 +60,10 @@ type (
 
 // const values used by the Bollinger Bands algorithm.
 const (
-	// period is the number of half-day took.
-	// A period of 8 means it will check with the last 4 days.
+	// period is the number of day took.
 	// A bigger period means more stability in the cost so
 	// it will be more sensitive to the picks.
-	period = 6
+	period = 3
 
 	// standardDeviationCoefficient allows to add a
 	// coefficient to the standard deviation.
@@ -72,17 +71,14 @@ const (
 	// the algorithm more flexible.
 	standardDeviationCoefficient = 3.0
 
-	// margin of error set to 2% of the price.
-	// It can pick until 2% of the price without any alert.
+	// margin of error set to 5% of the price.
+	// Upper band will be higher by 5%.
 	margin = 1.05
 
-	// minCost is the minimum cost before alerting.
-	// An alert for pick from $0.000025 to $0.001 (x40!) is useless.
-	minCost = 2.0 / 60.0
-
-	// minOccurrence is the minimum of occurrence before
-	// the alert considered as an alert.
-	minOccurrence = 2
+	// minCostPercent is set to 4%.
+	// If an anomaly is detected, the cost has to be
+	// higher than 3.7% of the total bill.
+	minCostPercent = 0.037
 )
 
 // sum adds every element of a CostAnomaly slice.
@@ -116,26 +112,32 @@ func deviation(sigma float64, period int) float64 {
 }
 
 // clearDisturbances clears the fake alerts.
-// Alerts are considered as fake when the next half-days are not an alert.
-// Alerts below the minCost are removed.
-func clearDisturbances(costAnomalies []CostAnomaly) []CostAnomaly {
+// Alerts below the minCostPercent are removed.
+func clearDisturbances(costAnomalies []CostAnomaly, totalCostAnomalies map[string]float64) []CostAnomaly {
 	for index := range costAnomalies {
-		for j := 1; j < minOccurrence; j++ {
-			if index+j >= len(costAnomalies) || costAnomalies[index+j].Abnormal == false {
-				costAnomalies[index].Abnormal = false
-			}
-		}
-		if costAnomalies[index].Cost < minCost {
+		date := costAnomalies[index].Date
+		if costAnomalies[index].Cost-costAnomalies[index].UpperBand < totalCostAnomalies[date]*minCostPercent {
 			costAnomalies[index].Abnormal = false
 		}
 	}
 	return costAnomalies
 }
 
+func getTotalCostAnomalies(c ProductsCostAnomalies) map[string]float64 {
+	totalCostAnomalies := map[string]float64{}
+	for _, costAnomalies := range c {
+		for _, an := range costAnomalies {
+			totalCostAnomalies[an.Date] += an.Cost
+		}
+	}
+	return totalCostAnomalies
+}
+
 // analyseAnomalies calculates anomalies with Bollinger Bands algorithm and
 // the const above. It consists in generating an upper band, which, if
 // exceeded, make an alert.
 func analyseAnomalies(c ProductsCostAnomalies) ProductsCostAnomalies {
+	totalCostAnomalies := getTotalCostAnomalies(c)
 	for key, costAnomalies := range c {
 		for index := range costAnomalies {
 			if index > 0 {
@@ -151,7 +153,7 @@ func analyseAnomalies(c ProductsCostAnomalies) ProductsCostAnomalies {
 				}
 			}
 		}
-		c[key] = clearDisturbances(costAnomalies)
+		c[key] = clearDisturbances(costAnomalies, totalCostAnomalies)
 	}
 	return c
 }

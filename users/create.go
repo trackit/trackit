@@ -25,16 +25,16 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/marketplacemetering"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/trackit/jsonlog"
+	"github.com/satori/go.uuid"
 
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/mail"
-	"github.com/satori/go.uuid"
-
 )
 
 const (
@@ -110,6 +110,7 @@ type createUserRequestBody struct {
 //the customer identifier. If there is no Token, this function is not call.
 func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
 	var awsInput marketplacemetering.ResolveCustomerInput
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(config.AwsRegion),
 	}))
@@ -117,10 +118,15 @@ func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemet
 	awsInput.SetRegistrationToken(token)
 	result, err := svc.ResolveCustomer(&awsInput)
 	if err != nil {
-		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Error when checking the AWS token", err)
+		aerr, ok := err.(awserr.Error)
+		if ok {
+			logger.Error("Error when checking the AWS token", aerr.Message())
+		} else {
+			logger.Error("Error when checking the AWS token", err.Error())
+		}
+		return nil, errors.New("AWS error cast failed")
 	}
-	return result, err
+	return result, nil
 }
 
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
