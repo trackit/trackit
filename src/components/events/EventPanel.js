@@ -39,10 +39,10 @@ const context = {
   
 
 class EventPanel extends Component {
-    formatDataForChart(data) {
+    formatDataForChart(data, service) {
         const res = [
           {
-            key: "Cost",
+            key: `${service.length ? service : "Unknown service"} cost`,
             values: [],
           },
           {
@@ -125,7 +125,7 @@ class EventPanel extends Component {
                 <NVD3Chart
                     id="barChart"
                     type="multiBarChart"
-                    datum={this.formatDataForChart(this.isolateAnomaly(dataSet, abnormalElement))}
+                    datum={this.formatDataForChart(this.isolateAnomaly(dataSet, abnormalElement), service)}
                     context={context}
                     xAxis={xAxis}
                     yAxis={yAxis}
