@@ -10,6 +10,7 @@ const props = {
   login: jest.fn(),
   clear: jest.fn(),
   match: {
+    params: {},
     path: ""
   }
 };

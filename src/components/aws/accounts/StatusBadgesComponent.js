@@ -20,6 +20,10 @@ export class StatusBadgeComponent extends Component {
 
     // Determine Item warning level : 0 no warnings, 1 warning, 2 error
     getItemWarningLevel(item) {
+        // Account is not a paying account
+        if (!item.payer) {
+            return 0;
+        }
         if (item.billRepositories.length) {
             let hasError = false;
             for (let i = 0; i < item.billRepositories.length; i++) {

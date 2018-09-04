@@ -18,11 +18,23 @@ class FormComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      open: false
+      open: false,
+      roleArn: '',
+      pretty: '',
+      payer: false,
     };
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
     this.submit = this.submit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+
+  componentDidMount() {
+    this.setState({
+      roleArn: this.props.account !== undefined ? this.props.account.roleArn : undefined,
+      pretty: this.props.account !== undefined ? this.props.account.pretty : undefined,
+      payer: this.props.account !== undefined ? this.props.account.payer : false,
+    });
   }
 
   openDialog = (e) => {
@@ -32,19 +44,35 @@ class FormComponent extends Component {
 
   closeDialog = (e) => {
     e.preventDefault();
-    this.setState({open: false});
+    this.setState({
+      open: false,
+      roleArn: this.props.account !== undefined ? this.props.account.roleArn : undefined,
+      pretty: this.props.account !== undefined ? this.props.account.pretty : undefined,
+      payer: this.props.account !== undefined ? this.props.account.payer : false,
+    });
   };
 
   submit = (e) => {
     e.preventDefault();
     this.closeDialog(e);
-    let values = this.form.getValues();
     let account = {
-      roleArn: values.roleArn,
-      pretty: values.pretty
+      roleArn: this.state.roleArn,
+      pretty: this.state.pretty,
+      payer: this.state.payer,
     };
     this.props.submit(account);
   };
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
 
   render() {
     return (
@@ -77,7 +105,8 @@ class FormComponent extends Component {
                   name="roleArn"
                   type="text"
                   className="form-control"
-                  value={(this.props.account !== undefined ? this.props.account.roleArn : undefined)}
+                  value={this.state.roleArn}
+                  onChange={this.handleInputChange}
                   validations={[Validation.required, Validation.roleArnFormat]}
                 />
               </div>
@@ -91,10 +120,25 @@ class FormComponent extends Component {
                 <Input
                   type="text"
                   name="pretty"
-                  value={(this.props.account !== undefined ? this.props.account.pretty : undefined)}
+                  value={this.state.pretty}
+                  onChange={this.handleInputChange}
                   className="form-control"
                 />
               </div>
+
+              <div className="checkbox">
+                <label>
+                <input
+                  type="checkbox"
+                  name="payer"
+                  checked={this.state.payer}
+                  onChange={this.handleInputChange}
+                />
+                  This account has billing data
+                </label>
+              </div>
+
+              <hr />
 
               <DialogActions>
 
@@ -127,6 +171,7 @@ FormComponent.propTypes = {
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
     pretty: PropTypes.string,
+    payer: PropTypes.bool.isRequired,
   }),
   submit: PropTypes.func.isRequired,
 };

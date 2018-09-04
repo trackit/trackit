@@ -20,6 +20,13 @@ const bill = {
   prefix: "/path/to/bill"
 };
 
+const billWithError = {
+  error: "access denied",
+  nextPending: true,
+  bucket: "another-billing-bucket",
+  prefix: "another-prefix"
+};
+
 describe('<ListComponent />', () => {
 
   const props = {
@@ -105,6 +112,11 @@ describe('<Item />', () => {
     bill
   };
 
+  const propsWithErrorInBills = {
+    ...defaultProps,
+    bill: billWithError
+  };
+
   it('renders a <Item /> component', () => {
     const wrapper = shallow(<Item {...props}/>);
     expect(wrapper.length).toBe(1);
@@ -114,6 +126,12 @@ describe('<Item />', () => {
     const wrapper = shallow(<Item {...props}/>);
     const item = wrapper.find(ListItem);
     expect(item.length).toBe(1);
+  });
+
+  it('renders two <ListItem/> component with one for error message ', () => {
+    const wrapper = shallow(<Item {...propsWithErrorInBills}/>);
+    const item = wrapper.find(ListItem);
+    expect(item.length).toBe(2);
   });
 
   it('can edit item', () => {

@@ -160,6 +160,19 @@
     width: 20px;
 }
 
+.sidebar #side-menu .menu-badge {
+    position: absolute;
+    left: 32px;
+    top: 27px;
+    background-color: #e2837f;
+    min-width: 22px;
+    height: 19px;
+    color: #ffffff;
+    text-align: center;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
 .sidebar #side-menu {
     overflow: hidden;
 }
@@ -173,7 +186,7 @@
 /* Account Selector */
 
 #account-selection {
-    height: 150px;
+    height: auto;
     overflow-y: scroll;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
@@ -185,7 +198,6 @@
 
 #account-selection .account-selection-item .checkbox {
     margin: 0;
-    transform: scale(1.5);
 }
 
 #account-selection .account-selection-item input[type=checkbox] {

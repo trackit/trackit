@@ -15,6 +15,10 @@ export class App extends Component {
   }
 
   accountHasError(item) {
+    // Account is not a paying account
+    if (!item.payer) {
+      return false;
+    }
     if (item.billRepositories && item.billRepositories.length) {
         let hasError = false;
         for (let i = 0; i < item.billRepositories.length; i++) {
@@ -105,6 +109,10 @@ export class App extends Component {
             <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}
               component={this.props.token ? Containers.Setup.Main : redirectToLogin}
+            />
+            <Route
+              path={this.props.match.url + "/events"}
+              component={checkRedirections(Containers.Events)}
             />
           </div>
         </Containers.Main>
