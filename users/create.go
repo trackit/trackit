@@ -27,15 +27,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/trackit/jsonlog"
+	"github.com/satori/go.uuid"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/mail"
-	"github.com/satori/go.uuid"
-
-	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 const (
