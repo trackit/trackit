@@ -35,6 +35,7 @@ import (
 	"github.com/trackit/trackit-server/mail"
 	"github.com/satori/go.uuid"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 const (
@@ -116,9 +117,13 @@ func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemet
 	svc := marketplacemetering.New(mySession)
 	awsInput.SetRegistrationToken(token)
 	result, err := svc.ResolveCustomer(&awsInput)
+	aerr, ok := err.(awserr.Error)
+	if !ok {
+		return nil, errors.New("AWS error cast failed")
+	}
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Error when checking the AWS token", err)
+		logger.Error("Error when checking the AWS token", aerr.Message())
 	}
 	return result, err
 }
