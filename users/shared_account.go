@@ -29,6 +29,7 @@ import (
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/mail"
+	"github.com/trackit/trackit-server/users/shared_account"
 )
 
 // inviteUserRequest is the expected request body for the invite user route handler.
@@ -36,6 +37,10 @@ type inviteUserRequest struct {
 	Email           string `json:"email" req:"nonzero"`
 	AccountId       int    `json:"accountId"`
 	PermissionLevel int    `json:"permissionLevel"`
+}
+
+type listUserSharedAccountRequest struct {
+	AccountId       int    `json:"accountId" req:"nonzero"`
 }
 
 type sharedAccount struct {
@@ -64,6 +69,18 @@ func init() {
 			},
 		),
 	}.H().Register("/user/invite")
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(listUsers).With(
+			routes.RequestContentType{"application/json"},
+			db.RequestTransaction{db.Db},
+			RequireAuthenticatedUser{ViewerAsParent},
+			routes.RequestBody{listUserSharedAccountRequest{1}},
+			routes.Documentation{
+				Summary:     "List shared users",
+				Description: "Return a list of user who have an access to an AWS account on Trackit",
+			},
+		),
+	}.H().Register("/user/invite/list")
 }
 
 // inviteUser handles users invite for team sharing.
@@ -73,6 +90,25 @@ func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[AuthenticatedUser].(User)
 	return inviteUserWithValidBody(request, body, tx, user)
+}
+
+func listUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
+	var body listUserSharedAccountRequest
+	routes.MustRequestBody(a, &body)
+	tx := a[db.Transaction].(*sql.Tx)
+	user := a[AuthenticatedUser].(User)
+	return listUserWithValidBody(request, body, tx, user)
+}
+
+func listUserWithValidBody(request *http.Request, body listUserSharedAccountRequest, tx *sql.Tx, user User) (int, interface{}) {
+	_= shared_account.GetSharingList(request.Context(), db.Db, body.AccountId)
+	//if err == nil {
+	//	userList, err := shared_account.GetUserList(db.Db, res)
+	//	if err == nil {
+	//		return 200, userList
+	//	}
+	//}
+	return 403, "Error retrieving user list"
 }
 
 // checkuserWithEmail checks if user already exist.
