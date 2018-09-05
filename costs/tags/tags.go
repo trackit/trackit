@@ -15,6 +15,7 @@
 package tags
 
 import (
+	"errors"
 	"time"
 	"net/http"
 
@@ -31,8 +32,8 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(tagsValuesQueryArgs),
 			routes.Documentation{
-				Summary:     "get the tag values and their cost with a tag key",
-				Description: "get the tag values and their cost with a tag key for a specified time range and aws accounts",
+				Summary:     "get the tag values and their cost with a filter",
+				Description: "get the tag values and their cost with filter for a specified time range, aws accounts and keys",
 			},
 		),
 	}.H().Register("/costs/tags/values")
@@ -55,9 +56,15 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
 	routes.QueryArg{
-		Name:        "key",
-		Description: "key of the tags to search",
+		Name:        "keys",
+		Description: "keys of the tags to search",
 		Type:        routes.QueryArgStringSlice{},
+		Optional:    true,
+	},
+	routes.QueryArg{
+		Name:        "by",
+		Description: "Criteria for the ES aggregation: product, availabilityzone, region or account.",
+		Type:        routes.QueryArgString{},
 		Optional:    false,
 	},
 }
@@ -67,7 +74,8 @@ type tagsValuesQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	DateBegin   time.Time `json:"begin"`
 	DateEnd     time.Time `json:"end"`
-	TagsKey     []string  `json:"key"`
+	TagsKeys    []string  `json:"keys"`
+	By          string    `json:"by"`
 }
 
 // getTagsValues returns tags and their values (cost) based on the query params, in JSON format.
@@ -77,13 +85,20 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 		AccountList: []string{},
 		DateBegin:   a[tagsValuesQueryArgs[1]].(time.Time),
 		DateEnd:     a[tagsValuesQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
-		TagsKey:     a[tagsValuesQueryArgs[3]].([]string),
+		TagsKeys:    []string{},
+		By:          a[tagsValuesQueryArgs[4]].(string),
 	}
 	if a[tagsValuesQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsValuesQueryArgs[0]].([]string)
 	}
 	if err := aws.ValidateAwsAccounts(parsedParams.AccountList); err != nil {
 		return http.StatusBadRequest, err
+	}
+	if a[tagsValuesQueryArgs[3]] != nil {
+		parsedParams.TagsKeys = a[tagsValuesQueryArgs[3]].([]string)
+	}
+	if getTagsValuesFilter(parsedParams.By) == "error" {
+		return http.StatusBadRequest, errors.New("Invalid filter: " + parsedParams.By)
 	}
 	return getTagsValuesWithParsedParams(request.Context(), parsedParams, user)
 }

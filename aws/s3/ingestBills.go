@@ -201,10 +201,10 @@ func manifestsModifiedAfter(t time.Time) ManifestPredicate {
 // extractTags extracts tags from a LineItem's Any field. It retrieves user
 // tags only and stores them in the Tags map with a clean key.
 func extractTags(li LineItem) LineItem {
-	tags := make(map[string]string)
+	var tags []LineItemTags
 	for k, v := range li.Any {
 		if strings.HasPrefix(k, tagPrefix) {
-			tags[strings.TrimPrefix(k, tagPrefix)] = v
+			tags = append(tags, LineItemTags{strings.TrimPrefix(k, tagPrefix), v})
 		}
 	}
 	li.Tags = tags
