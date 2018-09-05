@@ -43,6 +43,15 @@ type listUserSharedAccountRequest struct {
 	AccountId       int    `json:"accountId" req:"nonzero"`
 }
 
+type updateUsersSharedAccountRequest struct {
+	ShareId         int `json:"shareId" req:"nonzero"`
+	PermissionLevel int `json:"permissionLevel"`
+}
+
+type deleteUsersSharedAccountRequest struct {
+	ShareId         int `json:"shareId" req:"nonzero"`
+}
+
 type sharedAccount struct {
 	AccountId       int
 	userId          int
@@ -68,7 +77,7 @@ func init() {
 				Description: "Creates an invite for account team sharing",
 			},
 		),
-	}.H().Register("/user/invite")
+	}.H().Register("/user/share/add")
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(listUsers).With(
 			routes.RequestContentType{"application/json"},
@@ -80,7 +89,31 @@ func init() {
 				Description: "Return a list of user who have an access to an AWS account on Trackit",
 			},
 		),
-	}.H().Register("/user/invite/list")
+	}.H().Register("/user/share/list")
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(updateUsers).With(
+			routes.RequestContentType{"application/json"},
+			db.RequestTransaction{db.Db},
+			RequireAuthenticatedUser{ViewerAsParent},
+			routes.RequestBody{updateUsersSharedAccountRequest{1, 2}},
+			routes.Documentation{
+				Summary:     "Update shared users",
+				Description: "Update shared users associated with a specific AWS account",
+			},
+		),
+	}.H().Register("/user/share/update")
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(deleteUsers).With(
+			routes.RequestContentType{"application/json"},
+			db.RequestTransaction{db.Db},
+			RequireAuthenticatedUser{ViewerAsParent},
+			routes.RequestBody{deleteUsersSharedAccountRequest{1}},
+			routes.Documentation{
+				Summary:     "Delete shared users",
+				Description: "Delete shared users associated with a specific AWS account",
+			},
+		),
+	}.H().Register("/user/share/delete")
 }
 
 // inviteUser handles users invite for team sharing.
@@ -92,23 +125,55 @@ func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	return inviteUserWithValidBody(request, body, tx, user)
 }
 
+// listUsers return the list of user who have an access to a specific AWS account
 func listUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body listUserSharedAccountRequest
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	user := a[AuthenticatedUser].(User)
-	return listUserWithValidBody(request, body, tx, user)
+	return listUserWithValidBody(request, body, tx)
 }
 
-func listUserWithValidBody(request *http.Request, body listUserSharedAccountRequest, tx *sql.Tx, user User) (int, interface{}) {
-	_= shared_account.GetSharingList(request.Context(), db.Db, body.AccountId)
-	//if err == nil {
-	//	userList, err := shared_account.GetUserList(db.Db, res)
-	//	if err == nil {
-	//		return 200, userList
-	//	}
-	//}
-	return 403, "Error retrieving user list"
+// listUsers return the list of user who have an access to a specific AWS account
+func updateUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
+	var body updateUsersSharedAccountRequest
+	routes.MustRequestBody(a, &body)
+	tx := a[db.Transaction].(*sql.Tx)
+	return updateUserWithValidBody(request, body, tx)
+}
+
+// listUsers return the list of user who have an access to a specific AWS account
+func deleteUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
+	var body deleteUsersSharedAccountRequest
+	routes.MustRequestBody(a, &body)
+	tx := a[db.Transaction].(*sql.Tx)
+	return deleteUserWithValidBody(request, body, tx)
+}
+
+// listUsersWithValidBody return the list of user who have an access to a specific AWS account
+func listUserWithValidBody(request *http.Request, body listUserSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
+	res, err := shared_account.GetSharingList(request.Context(), db.Db, body.AccountId)
+	if err != nil {
+		return 403, "Error retrieving shared users list"
+	}
+	return 200, res
+}
+
+// listUsersWithValidBody return the list of user who have an access to a specific AWS account
+func updateUserWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
+	err := shared_account.UpdateSharedUser(request.Context(), db.Db, body.ShareId, body.PermissionLevel)
+	if err != nil {
+		return 403, "Error updating shared user list"
+	}
+	return 200, "ok"
+}
+
+// listUsersWithValidBody return the list of user who have an access to a specific AWS account
+func deleteUserWithValidBody(request *http.Request, body deleteUsersSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
+	err := shared_account.DeleteSharedUser(request.Context(), db.Db, body.ShareId)
+	if err != nil {
+		return 403, "Error deleting shared user"
+	}
+	return 200, "ok"
 }
 
 // checkuserWithEmail checks if user already exist.
