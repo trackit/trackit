@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 6,
+	"version": 7,
 	"mappings": {
 		"lineitem": {
 			"properties": {
