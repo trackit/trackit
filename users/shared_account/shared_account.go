@@ -114,7 +114,8 @@ func listUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body listUserSharedAccountRequest
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	return listUserWithValidBody(request, body, tx)
+	user := a[users.AuthenticatedUser].(users.User)
+	return listUserWithValidBody(request, body, tx, user)
 }
 
 // listUsers return the list of user who have an access to a specific AWS account
@@ -134,12 +135,21 @@ func deleteUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
 }
 
 // listUsersWithValidBody return the list of user who have an access to a specific AWS account
-func listUserWithValidBody(request *http.Request, body listUserSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
-	res, err := GetSharingList(request.Context(), db.Db, body.AccountId)
+func listUserWithValidBody(request *http.Request, body listUserSharedAccountRequest, tx *sql.Tx, user users.User) (int, interface{}) {
+	check, err := checkUserOwnAccount(request.Context(), db.Db, body.AccountId, user.Id)
 	if err != nil {
 		return 403, "Error retrieving shared users list"
 	}
-	return 200, res
+	if check {
+		res, err := GetSharingList(request.Context(), db.Db, body.AccountId)
+		if err != nil {
+			return 403, "Error retrieving shared users list"
+		} else {
+			return 200, res
+		}
+	} else {
+		return 403, "You do not own this account"
+	}
 }
 
 // listUsersWithValidBody return the list of user who have an access to a specific AWS account
