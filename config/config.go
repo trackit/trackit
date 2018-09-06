@@ -74,6 +74,26 @@ var (
 	Periodics bool
 	// Aws Market place product code
 	MarketPlaceProductCode string
+	// AnomalyDetectionBollingerBandPeriod is the period in day used to generate the upper band.
+	AnomalyDetectionBollingerBandPeriod int
+	// AnomalyDetectionBollingerBandStandardDeviationCoefficient is the coefficient applied to the standard deviation used to generate the upper band.
+	AnomalyDetectionBollingerBandStandardDeviationCoefficient float64
+	// AnomalyDetectionBollingerBandUpperBandCoefficient is the coefficient applied to the upper band.
+	AnomalyDetectionBollingerBandUpperBandCoefficient float64
+	// AnomalyDetectionDisturbanceCleaningMinPercentOfDailyBill is the percentage of the daily bill an anomaly has to exceed. Otherwise, it's considered as a disturbance.
+	AnomalyDetectionDisturbanceCleaningMinPercentOfDailyBill float64
+	// AnomalyDetectionDisturbanceCleaningMinAbsoluteCost is the cost an anomaly has to exceed. Otherwise, it's considered as a disturbance.
+	AnomalyDetectionDisturbanceCleaningMinAbsoluteCost float64
+	// AnomalyDetectionDisturbanceCleaningHighestSpendingMinRank is the minimum rank of the service. Below, all anomalies detected in this service are considered as a disturbance.
+	AnomalyDetectionDisturbanceCleaningHighestSpendingMinRank int
+	// AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod is the period in day used to calculate the ranks of the highest spending services.
+	AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod int
+	// AnomalyDetectionLevels are the rules to generate the levels. Example: "0,120,150" would say there is three levels (pretty names are set below). An anomaly is classed level one if its cost is between 120 and 150% of the higher anticipated cost.
+	AnomalyDetectionLevels string
+	// AnomalyDetectionPrettyLevels are the pretty names of the levels above. Example: "low,medium,high".
+	AnomalyDetectionPrettyLevels string
+	// AnomalyEmailingMinLevel is the minimum level required for the mail to be sent.
+	AnomalyEmailingMinLevel int
 )
 
 func init() {
@@ -102,5 +122,15 @@ func init() {
 	flag.StringVar(&Task, "task", "server", "The task to be run.")
 	flag.BoolVar(&Periodics, "periodics", true, "Periodic jobs should be run by the process.")
 	flag.StringVar(&MarketPlaceProductCode, "market-place-product-code", "productcode", "Aws market place product code.")
+	flag.IntVar(&AnomalyDetectionBollingerBandPeriod, "anomaly-detection-bollinger-band-period", 3, "Period used by the Bollinger Band algorithm.")
+	flag.Float64Var(&AnomalyDetectionBollingerBandStandardDeviationCoefficient, "anomaly-detection-bollinger-band-standard-deviation-coefficient", 3.0, "Coefficient used by the Bollinger Band algorithm to generate the standard deviation.")
+	flag.Float64Var(&AnomalyDetectionBollingerBandUpperBandCoefficient, "anomaly-detection-bollinger-band-upper-band-coefficient", 1.05, "Coefficient used by the Bollinger Band algorithm to generate the upper band.")
+	flag.Float64Var(&AnomalyDetectionDisturbanceCleaningMinPercentOfDailyBill, "anomaly-detection-disturbance-cleaning-min-percent-of-daily-bill", 5.0, "Percentage of the daily bill an anomaly has to exceed.")
+	flag.Float64Var(&AnomalyDetectionDisturbanceCleaningMinAbsoluteCost, "anomaly-detection-disturbance-cleaning-absolute-cost", 20.0, "Absolute cost an anomaly has to exceed.")
+	flag.IntVar(&AnomalyDetectionDisturbanceCleaningHighestSpendingMinRank, "anomaly-detection-disturbance-cleaning-highest-spending-min-rank", 5, "Minimum rank of the service where the anomaly has been detected.")
+	flag.IntVar(&AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod, "anomaly-detection-disturbance-cleaning-highest-spending-period", 5, "Period to calculate the ranks.")
+	flag.StringVar(&AnomalyDetectionLevels, "anomaly-detection-levels", "0,120,150,200", "Rules to generate the levels.")
+	flag.StringVar(&AnomalyDetectionPrettyLevels, "anomaly-detection-pretty-levels", "low,medium,high,critical", "Pretty names of the levels.")
+	flag.IntVar(&AnomalyEmailingMinLevel, "anomaly-emailing-min-level", 2, "Minimum level for the mail to be sent.")
 	flag.Parse()
 }

@@ -29,57 +29,79 @@ import (
 )
 
 type (
-	// struct that allows to parse ES result
+	// structs that allows to parse ES result
 	esTagsValuesResult struct {
-		Tags struct {
+		Keys struct {
 			Buckets []struct {
 				Key string `json:"key"`
-				Cost struct {
-					Value float64 `json:"value"`
-				} `json:"cost"`
+				Tags esTagsResult `json:"tags"`
 			} `json:"buckets"`
-		}
+		} `json:"keys"`
 	}
 
-	// contain a tag and his cost
+	esTagsResult struct {
+		Buckets []struct {
+			Tag string `json:"key"`
+			Rev struct {
+				Filter esFilterResult `json:"filter"`
+			} `json:"rev"`
+		} `json:"buckets"`
+	}
+
+	esFilterResult struct {
+		Buckets []struct {
+			Product string `json:"key"`
+			Cost struct {
+				Value float64 `json:"value"`
+			} `json:"cost"`
+		} `json:"buckets"`
+	}
+
+	// contain a product and his cost
 	TagValue struct {
-		Tag  string  `json:"tag"`
+		Item string  `json:"item"`
 		Cost float64 `json:"cost"`
 	}
 
-	// contain a key and the list of tags associated
+	// contain a tag and the list of products associated
 	TagsValues struct {
-		Key        string     `json:"key"`
-		TagsValues []TagValue `json:"values"`
+		Tag   string     `json:"tag"`
+		Costs []TagValue `json:"costs"`
 	}
 
-	// result format of the endpoint
-	TagsValuesResponse []TagsValues
+	// response format of the endpoint
+	TagsValuesResponse map[string][]TagsValues
 )
 
 // getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams, user users.User) (int, interface{}){
-	var response = TagsValuesResponse{}
+func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams, user users.User) (int, interface{}) {
+	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	for i := range params.TagsKey {
-		var typedDocument esTagsValuesResult
-		res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, user, es.Client, i)
-		if err != nil {
-			if returnCode == http.StatusOK {
-				return returnCode, response
+	var typedDocument esTagsValuesResult
+	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, user, es.Client)
+	if err != nil {
+		if returnCode == http.StatusOK {
+			return returnCode, response
+		}
+		return returnCode, errors.New("Internal server error")
+	}
+	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
+	if err != nil {
+		l.Error("Error while unmarshaling", err)
+		return http.StatusInternalServerError, errors.New("Internal server error")
+	}
+	for _, key := range typedDocument.Keys.Buckets {
+		var values []TagsValues
+		for _, tag := range key.Tags.Buckets {
+			var costs []TagValue
+			for _, cost := range tag.Rev.Filter.Buckets {
+				costs = append(costs, TagValue{cost.Product, cost.Cost.Value})
 			}
-			return returnCode, errors.New("Internal server error")
+			values = append(values, TagsValues{tag.Tag, costs})
 		}
-		err = json.Unmarshal(*res.Aggregations["tags"], &typedDocument.Tags)
-		if err != nil {
-			l.Error("Error while unmarshaling", err)
-			return http.StatusInternalServerError, errors.New("Internal server error")
+		if len(params.TagsKeys) == 0 || arrayContainsString(params.TagsKeys, key.Key) {
+			response[key.Key] = values
 		}
-		tagsValues := TagsValues{params.TagsKey[i], nil}
-		for _, tag := range typedDocument.Tags.Buckets {
-			tagsValues.TagsValues = append(tagsValues.TagsValues, TagValue{tag.Key, tag.Cost.Value})
-		}
-		response = append(response, tagsValues)
 	}
 	return http.StatusOK, response
 }
@@ -90,13 +112,19 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams, user users.User, client *elastic.Client, i int) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams,
+	user users.User, client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
 	index := es.IndexNameForUser(user, "lineitems")
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("tags", elastic.NewTermsAggregation().Field("tags." + params.TagsKey[i]).
-		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
+	search.Aggregation("data",    elastic.NewNestedAggregation().Path("tags").
+		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key").
+		SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag").
+		SubAggregation("rev",     elastic.NewReverseNestedAggregation().
+		SubAggregation("filter",  elastic.NewTermsAggregation().Field(filter).
+		SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))))))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
@@ -127,4 +155,30 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 		accountListFormatted[i] = v
 	}
 	return elastic.NewTermsQuery("usageAccountId", accountListFormatted...)
+}
+
+// getTagsValuesFilter returns a string of the field to filter
+func getTagsValuesFilter(filter string) (string) {
+	var filters = map[string]string{
+		"product":          "productCode",
+		"region":           "region",
+		"account":          "usageAccountId",
+		"availabilityzone": "availabilityZone",
+	}
+	for i := range filters {
+		if i == filter {
+			return filters[i]
+		}
+	}
+	return "error"
+}
+
+// arrayContainsString returns true if a string is present in an array of string
+func arrayContainsString(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
