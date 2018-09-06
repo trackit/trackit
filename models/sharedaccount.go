@@ -18,13 +18,13 @@ package models
 // SharedAccountWithRole represent a row from 'trackit.shared_account' joined with
 // the role_arn from 'trackit.aws_account'
 type SharedAccountWithRole struct {
-	ID             int    `json:"id"`              // id
-	AccountID      int    `json:"account_id"`      // account_id
-	UserID         int    `json:"user_id"`         // user_id
-	UserPermission int    `json:"user_permission"` // user_permission
-	AccountStatus  bool   `json:"account_status"`  // account_status
-	RoleArn        string `json:"role_arn"`        // role_arn
-	OwnerID        int    `json:"owner_id"`        // owner_id
+	ID              int    `json:"id"`               // id
+	AccountID       int    `json:"account_id"`       // account_id
+	UserID          int    `json:"user_id"`          // user_id
+	UserPermission  int    `json:"user_permission"`  // user_permission
+	SharingAccepted bool   `json:"sharing_accepted"` // sharing_accepted
+	RoleArn         string `json:"role_arn"`         // role_arn
+	OwnerID         int    `json:"owner_id"`         // owner_id
 }
 
 // SharedAccountsWithRoleByUserID returns all the shared accounts and their role arn
@@ -32,7 +32,7 @@ type SharedAccountWithRole struct {
 func SharedAccountsWithRoleByUserID(db XODB, userID int) ([]*SharedAccountWithRole, error) {
 	var err error
 	const sqlstr = `SELECT ` +
-		`sa.id, sa.account_id, sa.user_id, sa.user_permission, sa.account_status, aa.role_arn, aa.user_id ` +
+		`sa.id, sa.account_id, sa.user_id, sa.user_permission, sa.sharing_accepted, aa.role_arn, aa.user_id ` +
 		`FROM trackit.shared_account AS sa ` +
 		`INNER JOIN trackit.aws_account AS aa ON sa.account_id=aa.id ` +
 		`WHERE sa.user_id=?`
@@ -44,7 +44,7 @@ func SharedAccountsWithRoleByUserID(db XODB, userID int) ([]*SharedAccountWithRo
 	res := []*SharedAccountWithRole{}
 	for q.Next() {
 		sa := SharedAccountWithRole{}
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.AccountStatus, &sa.RoleArn, &sa.OwnerID)
+		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.SharingAccepted, &sa.RoleArn, &sa.OwnerID)
 		if err != nil {
 			return nil, err
 		}
