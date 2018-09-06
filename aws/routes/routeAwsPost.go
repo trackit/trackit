@@ -35,6 +35,7 @@ type postAwsAccountRequestBody struct {
 	RoleArn  string `json:"roleArn"  req:"nonzero"`
 	External string `json:"external" req:"nonzero"`
 	Pretty   string `json:"pretty"`
+	Payer    bool   `json:"payer"`
 }
 
 var (
@@ -63,6 +64,7 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 		External: body.External,
 		UserId:   user.Id,
 		Pretty:   body.Pretty,
+		Payer:    body.Payer,
 	}
 	if account.External != user.NextExternal {
 		logger.Warning("tried to add AWS account with bad external", account)

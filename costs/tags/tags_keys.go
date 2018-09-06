@@ -30,11 +30,11 @@ import (
 type (
 	// struct that allows to parse ES result
 	esTagsKeysResult struct {
-		Tags struct {
+		Keys struct {
 			Buckets []struct {
 				Key string `json:"key"`
 			} `json:"buckets"`
-		}
+		} `json:"keys"`
 	}
 
 	// result format of the endpoint
@@ -53,13 +53,13 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 		}
 		return returnCode, errors.New("Internal server error")
 	}
-	err = json.Unmarshal(*res.Aggregations["tags"], &typedDocument.Tags)
+	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
 		return http.StatusInternalServerError, errors.New("Internal server error")
 	}
-	for _, tag := range typedDocument.Tags.Buckets {
-		response = append(response, tag.Key)
+	for _, key := range typedDocument.Keys.Buckets {
+		response = append(response, key.Key)
 	}
 	return http.StatusOK, response
 }
@@ -70,13 +70,14 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQueryParams, client *elastic.Client) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQueryParams,
+	client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := getTagsKeysQuery(params)
 	index := strings.Join(params.IndexList, ",")
-	script := elastic.NewScript("if (params._source.containsKey(\"tags\")) {  params._source[\"tags\"].keySet(); }")
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("tags", elastic.NewTermsAggregation().Script(script))
+	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
+		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key")))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {

@@ -18,6 +18,8 @@ import (
 	"time"
 
 	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/trackit-server/config"
 )
 
 // aggregationMaxSize is the maximum size of an Elastic Search Aggregation
@@ -33,14 +35,17 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 }
 
 // createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
-// defined by durationBegin and durationEnd
+// defined by durationBegin and durationEnd.
+// durationBegin is reduced by period. This offset is deleted later.
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
+	periodDuration := time.Duration(config.AnomalyDetectionBollingerBandPeriod) * 24 * time.Hour
+	durationBegin = durationBegin.Add(-periodDuration)
 	return elastic.NewRangeQuery("usageStartDate").
 		From(durationBegin).To(durationEnd)
 }
 
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
-// used to retrieve the average cost by usageType for each 12h.
+// used to retrieve the average cost by usageType for each day.
 // It takes as parameters :
 // 	- accountList []string : A slice of string representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'

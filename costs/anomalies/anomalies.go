@@ -17,10 +17,16 @@ package anomalies
 import (
 	"context"
 	"encoding/json"
+	"math"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
-	"math"
+
+	"github.com/trackit/trackit-server/config"
 )
 
 type (
@@ -41,16 +47,18 @@ type (
 		}
 	}
 
-	// CostAnomaly represents a half-day and contains
-	// the date of beginning, the average cost for the 12h,
+	// CostAnomaly represents a day and contains
+	// the date of beginning, the cost for the 24h,
 	// the value of the upper band and an abnormal value
-	// representing if the half-day is tagged as abnormal,
+	// representing if the day is tagged as abnormal,
 	// which is an alert.
 	CostAnomaly struct {
-		Date      string  `json:"date"`
-		Cost      float64 `json:"cost"`
-		UpperBand float64 `json:"upper_band"`
-		Abnormal  bool    `json:"abnormal"`
+		Date        string  `json:"date"`
+		Cost        float64 `json:"cost"`
+		UpperBand   float64 `json:"upper_band"`
+		Abnormal    bool    `json:"abnormal"`
+		Level       int     `json:"level"`
+		PrettyLevel string  `json:"pretty_level"`
 	}
 
 	// ProductsCostAnomalies is used as http response.
@@ -58,32 +66,39 @@ type (
 	ProductsCostAnomalies map[string][]CostAnomaly
 )
 
-// const values used by the Bollinger Bands algorithm.
-const (
-	// period is the number of half-day took.
-	// A period of 8 means it will check with the last 4 days.
-	// A bigger period means more stability in the cost so
-	// it will be more sensitive to the picks.
-	period = 6
+// getAnomalyLevel get the level of an anomaly.
+func getAnomalyLevel(an CostAnomaly) int {
+	percent := (an.Cost * 100) / an.UpperBand
+	levels := strings.Split(config.AnomalyDetectionLevels, ",")
+	for i, level := range levels[1:] {
+		l, _ := strconv.ParseFloat(level, 64)
+		if percent < l {
+			return i
+		}
+	}
+	return len(levels) - 1
+}
 
-	// standardDeviationCoefficient allows to add a
-	// coefficient to the standard deviation.
-	// A standardDeviationCoefficient bigger makes
-	// the algorithm more flexible.
-	standardDeviationCoefficient = 3.0
+// setAnomaliesLevel set the level for all anomalies.
+func setAnomaliesLevel(costAnomalies []CostAnomaly) []CostAnomaly {
+	prettyLevels := strings.Split(config.AnomalyDetectionPrettyLevels, ",")
+	for index, an := range costAnomalies {
+		if an.Abnormal {
+			l := getAnomalyLevel(an)
+			costAnomalies[index].Level = l
+			costAnomalies[index].PrettyLevel = prettyLevels[l]
+		}
+	}
+	return costAnomalies
+}
 
-	// margin of error set to 2% of the price.
-	// It can pick until 2% of the price without any alert.
-	margin = 1.05
-
-	// minCost is the minimum cost before alerting.
-	// An alert for pick from $0.000025 to $0.001 (x40!) is useless.
-	minCost = 2.0 / 60.0
-
-	// minOccurrence is the minimum of occurrence before
-	// the alert considered as an alert.
-	minOccurrence = 2
-)
+// min returns the minimum between a and b.
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
 
 // sum adds every element of a CostAnomaly slice.
 func sum(costAnomalies []CostAnomaly) float64 {
@@ -115,43 +130,94 @@ func deviation(sigma float64, period int) float64 {
 	return deviation
 }
 
-// clearDisturbances clears the fake alerts.
-// Alerts are considered as fake when the next half-days are not an alert.
-// Alerts below the minCost are removed.
-func clearDisturbances(costAnomalies []CostAnomaly) []CostAnomaly {
-	for index := range costAnomalies {
-		for j := 1; j < minOccurrence; j++ {
-			if index+j >= len(costAnomalies) || costAnomalies[index+j].Abnormal == false {
-				costAnomalies[index].Abnormal = false
+// getHighestSpenders gets a podium of the highest spenders.
+func getHighestSpenders(c ProductsCostAnomalies, dateString string) (res []string) {
+	date, err := time.Parse("2006-01-02T15:04:05.000Z", dateString)
+	lowestDate := date.Add(-time.Duration(config.AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod) * 24 * time.Hour)
+	if err != nil {
+		return
+	}
+	type costWithSpender struct {
+		spender string
+		cost    float64
+	}
+	var costWithSpenders []costWithSpender
+	for spender, costAnomalies := range c {
+		var totalCost float64
+		for _, an := range costAnomalies {
+			if cd, err := time.Parse("2006-01-02T15:04:05.000Z", an.Date); err == nil &&
+				cd.After(lowestDate) && (cd.Before(date) || cd.Equal(date)) {
+				totalCost += an.Cost
 			}
 		}
-		if costAnomalies[index].Cost < minCost {
-			costAnomalies[index].Abnormal = false
+		costWithSpenders = append(costWithSpenders, costWithSpender{spender, totalCost})
+	}
+	sort.Slice(costWithSpenders, func(i, j int) bool {
+		return costWithSpenders[i].cost > costWithSpenders[j].cost
+	})
+	for i := 0; i < config.AnomalyDetectionDisturbanceCleaningHighestSpendingMinRank; i++ {
+		res = append(res, costWithSpenders[i].spender)
+	}
+	return
+}
+
+// clearDisturbances clears the fake alerts.
+func clearDisturbances(service string, costAnomalies []CostAnomaly, totalCostAnomalies map[string]float64, c ProductsCostAnomalies) []CostAnomaly {
+	for index, an := range costAnomalies {
+		if an.Abnormal {
+			date := an.Date
+			increaseAmount := costAnomalies[index].Cost - costAnomalies[index].UpperBand
+			if increaseAmount < totalCostAnomalies[date]*config.AnomalyDetectionDisturbanceCleaningMinPercentOfDailyBill/100 || increaseAmount < config.AnomalyDetectionDisturbanceCleaningMinAbsoluteCost {
+				costAnomalies[index].Abnormal = false
+			} else {
+				spenderInPodium := false
+				for _, spender := range getHighestSpenders(c, date) {
+					if spender == service {
+						spenderInPodium = true
+					}
+				}
+				if spenderInPodium == false {
+					costAnomalies[index].Abnormal = false
+				}
+			}
 		}
 	}
 	return costAnomalies
+}
+
+// getTotalCostAnomalies gets the total cost by product.
+func getTotalCostAnomalies(c ProductsCostAnomalies) map[string]float64 {
+	totalCostAnomalies := map[string]float64{}
+	for _, costAnomalies := range c {
+		for _, an := range costAnomalies {
+			totalCostAnomalies[an.Date] += an.Cost
+		}
+	}
+	return totalCostAnomalies
 }
 
 // analyseAnomalies calculates anomalies with Bollinger Bands algorithm and
 // the const above. It consists in generating an upper band, which, if
 // exceeded, make an alert.
 func analyseAnomalies(c ProductsCostAnomalies) ProductsCostAnomalies {
+	totalCostAnomalies := getTotalCostAnomalies(c)
 	for key, costAnomalies := range c {
 		for index := range costAnomalies {
 			if index > 0 {
 				a := &costAnomalies[index]
-				tempSliceSize := int(math.Min(float64(index), period))
+				tempSliceSize := min(index, config.AnomalyDetectionBollingerBandPeriod)
 				tempSlice := costAnomalies[index-tempSliceSize : index]
 				avg := average(tempSlice)
 				sigma := sigma(tempSlice, avg)
 				deviation := deviation(sigma, tempSliceSize)
-				a.UpperBand = avg*margin + (deviation * standardDeviationCoefficient)
+				a.UpperBand = avg*config.AnomalyDetectionBollingerBandUpperBandCoefficient + (deviation * config.AnomalyDetectionBollingerBandStandardDeviationCoefficient)
 				if a.Cost > a.UpperBand {
 					a.Abnormal = true
 				}
 			}
 		}
-		c[key] = clearDisturbances(costAnomalies)
+		c[key] = clearDisturbances(key, costAnomalies, totalCostAnomalies, c)
+		c[key] = setAnomaliesLevel(c[key])
 	}
 	return c
 }
@@ -168,6 +234,8 @@ func parseAnomalies(typedDocument esTypedResult) ProductsCostAnomalies {
 				date.Cost.Value,
 				0,
 				false,
+				0,
+				"",
 			})
 		}
 		c[product.Key] = costAnomalies

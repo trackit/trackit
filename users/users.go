@@ -35,10 +35,11 @@ var (
 // User is a user of the platform. It is different from models.User which is
 // the database representation of a User.
 type User struct {
-	Id           int    `json:"id"`
-	Email        string `json:"email"`
-	NextExternal string `json:"-"`
-	ParentId     *int   `json:"parentId,omitempty"`
+	Id                      int    `json:"id"`
+	Email                   string `json:"email"`
+	NextExternal            string `json:"-"`
+	ParentId                *int   `json:"parentId,omitempty"`
+	AwsCustomerEntitlement	bool   `json:aws_customer_entitlement`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
@@ -48,6 +49,7 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 	dbUser := models.User{
 		Email: email,
 		AwsCustomerIdentifier: customerIdentifier,
+		AwsCustomerEntitlement: true,
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {
@@ -227,8 +229,9 @@ func GetUserWithEmailAndPassword(ctx context.Context, db models.XODB, email stri
 // UserFromDbUser builds a users.User from a models.User.
 func UserFromDbUser(dbUser models.User) User {
 	u := User{
-		Id:    dbUser.ID,
-		Email: dbUser.Email,
+		Id:                     dbUser.ID,
+		Email:                  dbUser.Email,
+		AwsCustomerEntitlement: dbUser.AwsCustomerEntitlement,
 	}
 	if dbUser.NextExternal.Valid {
 		u.NextExternal = dbUser.NextExternal.String
