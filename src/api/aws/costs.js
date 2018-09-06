@@ -15,3 +15,17 @@ export const getCostDiff = (token, begin, end, filters, accounts=undefined) => {
     route += `&accounts=${accounts.join(',')}`;
   return call(route, 'GET', null, token);
 };
+
+export const getTagsKeys = (token, begin, end, accounts=undefined) => {
+  let route = `/costs/tags/keys?begin=${begin.format("YYYY-MM-DD")}&end=${end.format("YYYY-MM-DD")}`;
+  if (accounts && accounts.length)
+    route += `&accounts=${accounts.join(',')}`;
+  return call(route, 'GET', null, token);
+};
+
+export const getTagsValues = (token, begin, end, key, filters, accounts=undefined) => {
+  let route = `/costs/tags/values?begin=${begin.format("YYYY-MM-DD")}&end=${end.format("YYYY-MM-DD")}&key=${key}&by=${filters.join(',')}`;
+  if (accounts && accounts.length)
+    route += `&accounts=${accounts.join(',')}`;
+  return call(route, 'GET', null, token);
+};

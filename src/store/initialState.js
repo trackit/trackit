@@ -44,6 +44,13 @@ export default {
       interval: {},
       filter: {}
     },
+    tags: {
+      charts: {},
+      dates: {},
+      interval: {},
+      keys: {},
+      values: {}
+    },
     reports: {
       account: '',
       download: {
