@@ -17,7 +17,8 @@ const getFilters = (total) => {
   let filters = {
     account: "Account",
     product: "Product",
-    region: "Region"
+    region: "Region",
+    availabilityzone: "Availability zone"
   };
   if (total)
     filters.all = "Total";
