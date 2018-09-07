@@ -69,10 +69,7 @@ func init() {
 // with empty data
 func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryParams, user users.User) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, "lineitems")
-	if len(parsedParams.IndexList) > 0 {
-		index = strings.Join(parsedParams.IndexList, ",")
-	}
+	index = strings.Join(parsedParams.IndexList, ",")
 	searchService := GetElasticSearchParams(
 		parsedParams.AccountList,
 		parsedParams.DateBegin,
