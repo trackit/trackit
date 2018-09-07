@@ -19,47 +19,117 @@ import (
 	"encoding/json"
 
 	"gopkg.in/olivere/elastic.v5"
-
+	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/es"
+	"fmt"
+	"strings"
 )
 
-type bucket = map[string]interface{}
-
-// parseBuckets iterates through all the buckets to retrieve the top hits
-func parseBuckets(reports []interface{}, parsedTopReports bucket) []interface{} {
-	buckets := parsedTopReports["buckets"].([]interface{})
-	for _, bucketTmp := range buckets {
-		bucketData := bucketTmp.(bucket)
-		bucketTopHits := bucketData["top_reports_hits"].(bucket)
-		topHitsHits := bucketTopHits["hits"].(bucket)
-		hitsList := topHitsHits["hits"].([]interface{})
-		if len(hitsList) > 0 {
-			topHit := hitsList[0].(bucket)
-			reports = append(reports, topHit["_source"])
-		}
-	}
-	return reports
+type ResponseCost struct {
+	Instances struct {
+		Buckets []struct {
+			Key string `json:"key"`
+			Cost struct {
+				Value float64 `json:"value"`
+			} `json:"cost"`
+		} `json:"buckets"`
+	} `json:"instances"`
 }
 
-// parseESResult parses an *elastic.SearchResult according to it's resultType
-func parseESResult(ctx context.Context, res *elastic.SearchResult) ([]interface{}, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	reports := make([]interface{}, 0)
-	var parsedTopReports bucket
-	err := json.Unmarshal(*res.Aggregations["top_reports"], &parsedTopReports)
+type ResponseEc2 struct {
+	TopReports struct {
+		Buckets []struct {
+			TopReportsHits struct {
+				Hits struct {
+					Hits []struct {
+						Source Report `json:"_source"`
+					} `json:"hits"`
+				} `json:"hits"`
+			} `json:"top_reports_hits"`
+		} `json:"buckets"`
+	} `json:"top_reports"`
+}
+
+type Report struct {
+	Account    string `json:"account"`
+	ReportDate string `json:"reportDate"`
+	Instances  []struct {
+		Id         string      `json:"id"`
+		Region     string      `json:"region"`
+		State      string      `json:"state"`
+		CpuAverage float64     `json:"cpuAverage"`
+		CpuPeak    float64     `json:"cpuPeak"`
+		NetworkIn  int64       `json:"networkIn"`
+		NetworkOut int64       `json:"networkOut"`
+		IORead     interface{} `json:"ioRead"`
+		IOWrite    interface{} `json:"ioWrite"`
+		KeyPair    string      `json:"keyPair"`
+		Type       string      `json:"type"`
+		Tags       interface{} `json:"tags"`
+		Cost       float64     `json:"cost"`
+	} `json:"instances"`
+}
+
+// makeElasticSearchCostRequests prepares and run the request to retrieve the latest reports
+// based on the esQueryParams
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empty data
+func makeElasticSearchCostRequest(ctx context.Context, user users.User, account string , date string) (ResponseCost, error) {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	index := es.IndexNameForUser(user, es.IndexPrefixLineItems)
+	searchService := GetElasticSearchCostParams(
+		account,
+		date,
+		es.Client,
+		index,
+	)
+	res, err := searchService.Do(ctx)
 	if err != nil {
-		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return reports, err
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists : " + index, err)
+			return ResponseCost{}, err
+		}
+		l.Error("Query execution failed : " + err.Error(), nil)
+		return ResponseCost{}, fmt.Errorf("could not execute the ElasticSearch query")
 	}
-	reports = parseBuckets(reports, parsedTopReports)
-	return reports, nil
+	var resCost ResponseCost
+	err = json.Unmarshal(*res.Aggregations["instances"], &resCost.Instances)
+	if err != nil {
+		return ResponseCost{}, err
+	}
+	return resCost,  nil
 }
 
-// prepareResponse parses the results from elasticsearch and returns the RDS report
-func prepareResponse(ctx context.Context, res *elastic.SearchResult) (interface{}, error) {
-	reports, err := parseESResult(ctx, res)
+// prepareResponse parses the results from elasticsearch and returns the EC2 usage report
+func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, params esQueryParams) (interface{}, error) {
+	var response ResponseEc2
+	var reports []Report
+	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
 	if err != nil {
 		return nil, err
+	}
+	for _, account := range response.TopReports.Buckets {
+		if len(account.TopReportsHits.Hits.Hits) > 0 {
+			report := account.TopReportsHits.Hits.Hits[0].Source
+			for i := range report.Instances {
+				report.Instances[i].Cost = 0
+			}
+			resCost, err := makeElasticSearchCostRequest(ctx, user, report.Account, report.ReportDate)
+			if err == nil {
+				for _, instance := range resCost.Instances.Buckets {
+					for i := range report.Instances {
+						if strings.Contains(instance.Key, report.Instances[i].Id) {
+							report.Instances[i].Cost += instance.Cost.Value
+						}
+					}
+				}
+			}
+			reports = append(reports, report)
+		}
 	}
 	return reports, nil
 }
