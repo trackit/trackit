@@ -118,6 +118,12 @@ export class Navigation extends Component {
               </NavLink>
             </li>
             <li>
+              <NavLink to='/app/dashboard' activeClassName="active">
+                <i className="menu-icon fa fa-tachometer"/>
+                <span className="hide-menu">Dashboard</span>
+              </NavLink>
+            </li>
+            <li>
               <NavLink to='/app/costbreakdown' activeClassName="active">
                 <i className="menu-icon fa fa-area-chart"/>
                 <span className="hide-menu">Cost Breakdown</span>

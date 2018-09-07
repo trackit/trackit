@@ -4,6 +4,7 @@ import AWS from './aws';
 import User from './user';
 import Dashboard from './dashboard';
 import Events from './events';
+import HighLevel from './high-level';
 
 export default {
   Misc,
@@ -11,5 +12,6 @@ export default {
   AWS,
   User,
   Dashboard,
-  Events
+  Events,
+  HighLevel
 };

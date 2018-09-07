@@ -125,11 +125,15 @@ class IntervalNavigator extends Component {
             <i className="fa fa-caret-right"/>
           </button>
         </div>
-        <IntervalSelector interval={this.props.interval} setInterval={this.updateInterval} availableIntervals={this.props.availableIntervals}/>
+        {!this.props.hideIntervalSelector && <IntervalSelector interval={this.props.interval} setInterval={this.updateInterval} availableIntervals={this.props.availableIntervals}/>}
       </div>
     );
   }
 
+}
+
+IntervalNavigator.defaultProps = {
+  hideIntervalSelector: false,
 }
 
 IntervalNavigator.propTypes = {
@@ -138,7 +142,8 @@ IntervalNavigator.propTypes = {
   setDatesFunc: PropTypes.func.isRequired,
   interval: PropTypes.string,
   availableIntervals: PropTypes.arrayOf(PropTypes.string),
-  setIntervalFunc: PropTypes.func
+  setIntervalFunc: PropTypes.func,
+  hideIntervalSelector: PropTypes.bool,
 };
 
 export default IntervalNavigator;

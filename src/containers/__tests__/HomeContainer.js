@@ -3,7 +3,7 @@ import HomeContainer from '../HomeContainer';
 import Components from '../../components';
 import { shallow } from "enzyme";
 
-const Dashboard = Components.Dashboard.Dashboard;
+const HighLevel = Components.HighLevel.HighLevel;
 
 describe('<HomeContainer />', () => {
 
@@ -12,9 +12,9 @@ describe('<HomeContainer />', () => {
     expect(wrapper.length).toBe(1);
   });
 
-  it('renders <Dashboard/> component', () => {
+  it('renders <HighLevel/> component', () => {
     const wrapper = shallow(<HomeContainer/>);
-    const costBreakdown = wrapper.find(Dashboard);
+    const costBreakdown = wrapper.find(HighLevel);
     expect(costBreakdown.length).toBe(1);
   });
 
