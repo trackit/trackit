@@ -97,7 +97,7 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	if err != nil {
 		return returnCode, err
 	}
-	res, err := prepareResponse(request.Context(), searchResult, user, parsedParams)
+	res, err := prepareResponse(request.Context(), searchResult, user)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

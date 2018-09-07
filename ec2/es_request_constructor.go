@@ -16,8 +16,9 @@
 package ec2
 
 import (
-	"gopkg.in/olivere/elastic.v5"
 	"time"
+
+	"gopkg.in/olivere/elastic.v5"
 )
 
 // createQueryAccountFilter creates and return a new *elastic.TermsQuery on the accountList array
@@ -35,7 +36,7 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 //	'awsdetailedlineitem.linked_account_id'
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "ec2-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
@@ -54,12 +55,12 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 
 // GetElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
+// 	- account string : A string representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
+//  - date string : A string representing the end of the period to search
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
-//	should be "ec2-reports"
+//	- index string : The Elastic Search index on which to execute the query
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash

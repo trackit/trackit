@@ -57,6 +57,7 @@ type (
 		Id         string                     `json:"id"`
 		Region     string                     `json:"region"`
 		State      string                     `json:"state"`
+		Purchasing string                     `json:"purchasing"`
 		CpuAverage float64                    `json:"cpuAverage"`
 		CpuPeak    float64                    `json:"cpuPeak"`
 		NetworkIn  float64                    `json:"networkIn"`
@@ -64,7 +65,6 @@ type (
 		IORead     map[VolumeName]VolumeValue `json:"ioRead"`
 		IOWrite    map[VolumeName]VolumeValue `json:"ioWrite"`
 		KeyPair    string                     `json:"keyPair"`
-		Purchasing string                     `json:"purchasing"`
 		Type       string                     `json:"type"`
 		Tags       map[TagName]TagValue       `json:"tags"`
 	}

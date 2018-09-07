@@ -26,53 +26,59 @@ import (
 	"strings"
 )
 
-type ResponseCost struct {
-	Instances struct {
-		Buckets []struct {
-			Key string `json:"key"`
-			Cost struct {
-				Value float64 `json:"value"`
-			} `json:"cost"`
-		} `json:"buckets"`
-	} `json:"instances"`
-}
+type (
 
-type ResponseEc2 struct {
-	TopReports struct {
-		Buckets []struct {
-			TopReportsHits struct {
-				Hits struct {
-					Hits []struct {
-						Source Report `json:"_source"`
+	// Structure that allow to parse ES response for costs
+	ResponseCost struct {
+		Instances struct {
+			Buckets []struct {
+				Key  string `json:"key"`
+				Cost struct {
+					Value float64 `json:"value"`
+				} `json:"cost"`
+			} `json:"buckets"`
+		} `json:"instances"`
+	}
+
+	// Structure that allow to parse ES response for EC2 usage report
+	ResponseEc2 struct {
+		TopReports struct {
+			Buckets []struct {
+				TopReportsHits struct {
+					Hits struct {
+						Hits []struct {
+							Source Report `json:"_source"`
+						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"hits"`
-			} `json:"top_reports_hits"`
-		} `json:"buckets"`
-	} `json:"top_reports"`
-}
+				} `json:"top_reports_hits"`
+			} `json:"buckets"`
+		} `json:"top_reports"`
+	}
 
-type Report struct {
-	Account    string `json:"account"`
-	ReportDate string `json:"reportDate"`
-	Instances  []struct {
-		Id         string      `json:"id"`
-		Region     string      `json:"region"`
-		State      string      `json:"state"`
-		CpuAverage float64     `json:"cpuAverage"`
-		CpuPeak    float64     `json:"cpuPeak"`
-		NetworkIn  int64       `json:"networkIn"`
-		NetworkOut int64       `json:"networkOut"`
-		IORead     interface{} `json:"ioRead"`
-		IOWrite    interface{} `json:"ioWrite"`
-		KeyPair    string      `json:"keyPair"`
-		Type       string      `json:"type"`
-		Tags       interface{} `json:"tags"`
-		Cost       float64     `json:"cost"`
-	} `json:"instances"`
-}
+	// Report format for EC2 usage
+	Report struct {
+		Account    string `json:"account"`
+		ReportDate string `json:"reportDate"`
+		Instances  []struct {
+			Id         string      `json:"id"`
+			Region     string      `json:"region"`
+			State      string      `json:"state"`
+			Purchasing string      `json:"purchasing"`
+			Cost       float64     `json:"cost"`
+			CpuAverage float64     `json:"cpuAverage"`
+			CpuPeak    float64     `json:"cpuPeak"`
+			NetworkIn  int64       `json:"networkIn"`
+			NetworkOut int64       `json:"networkOut"`
+			IORead     interface{} `json:"ioRead"`
+			IOWrite    interface{} `json:"ioWrite"`
+			KeyPair    string      `json:"keyPair"`
+			Type       string      `json:"type"`
+			Tags       interface{} `json:"tags"`
+		} `json:"instances"`
+	}
+)
 
-// makeElasticSearchCostRequests prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
+// makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
@@ -105,7 +111,7 @@ func makeElasticSearchCostRequest(ctx context.Context, user users.User, account 
 }
 
 // prepareResponse parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, params esQueryParams) (interface{}, error) {
+func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User) (interface{}, error) {
 	var response ResponseEc2
 	var reports []Report
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
