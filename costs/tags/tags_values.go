@@ -123,7 +123,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key").
 		SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag").
 		SubAggregation("rev",     elastic.NewReverseNestedAggregation().
-		SubAggregation("filter",  elastic.NewTermsAggregation().Field(filter).
+		SubAggregation("filter",  elastic.NewTermsAggregation().Field(filter).Size(0x7FFFFFFF).
 		SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))))))
 	res, err := search.Do(ctx)
 	if err != nil {
