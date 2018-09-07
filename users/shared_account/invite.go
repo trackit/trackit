@@ -1,19 +1,20 @@
 package shared_account
 
 import (
-	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/models"
-	"database/sql"
-	"github.com/satori/go.uuid"
 	"time"
 	"fmt"
 	"errors"
-
+	"database/sql"
 	"context"
-	"github.com/trackit/trackit-server/mail"
 	"net/http"
-	"github.com/trackit/trackit-server/users"
+
+	"github.com/trackit/jsonlog"
+	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/trackit/trackit-server/mail"
+	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/models"
 )
 
 var (

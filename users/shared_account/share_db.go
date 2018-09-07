@@ -16,9 +16,11 @@ package shared_account
 
 import (
 	"database/sql"
-	"github.com/trackit/trackit-server/models"
 	"context"
+
 	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit-server/models"
 )
 
 type SharedResults struct {
@@ -29,22 +31,7 @@ type SharedResults struct {
 	SharingStatus bool
 }
 
-func checkUserOwnAccount(ctx context.Context, db models.XODB, accountId int, userId int) (bool, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbAwsAccount, err := models.AwsAccountByID(db, accountId)
-	if err != nil {
-		logger.Error("Error while verifying user account link", err)
-		return false, err
-	}
-	if dbAwsAccount.UserID == userId {
-		return true, nil
-	} else {
-		logger.Info("User does not own this account", nil)
-		return false, nil
-	}
-}
-
-// GetSharingList return the list of user who have an access to a specific AWS account
+// GetSharingList returns a list of users who have access to a specific AWS account
 func GetSharingList(ctx context.Context, db models.XODB, accountId int) (interface{}, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response []SharedResults
@@ -60,12 +47,14 @@ func GetSharingList(ctx context.Context, db models.XODB, accountId int) (interfa
 			if err != nil {
 				return nil, err
 			}
-			response = append(response, SharedResults{ShareId: key.ID, Mail: dbUser.Email, Level: key.UserPermission, UserId: key.UserID, SharingStatus: key.SharingAccepted})
+			response = append(response, SharedResults{ShareId: key.ID, Mail: dbUser.Email, Level: key.UserPermission,
+			UserId: key.UserID, SharingStatus: key.SharingAccepted})
 		}
 		return response, nil
 	}
 }
 
+// UpdateSharedUser updates user permission level
 func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissionLevel int) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccount, err := models.SharedAccountByID(db, shareId)
@@ -82,6 +71,8 @@ func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissi
 	return nil
 }
 
+
+// DeleteSharedUser deletes a user access to an AWS account by removing entry in shared_account database table.
 func DeleteSharedUser(ctx context.Context, db models.XODB, shareId int) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccount, err := models.SharedAccountByID(db, shareId)
