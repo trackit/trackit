@@ -117,12 +117,12 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	query := getTagsValuesQuery(params)
 	index := strings.Join(params.IndexList, ",")
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
-		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").
-			SubAggregation("tags", elastic.NewTermsAggregation().Field("tags.tag").
-				SubAggregation("rev", elastic.NewReverseNestedAggregation().
-					SubAggregation("filter", elastic.NewTermsAggregation().Field(filter).
-						SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))))))
+	search.Aggregation("data",    elastic.NewNestedAggregation().Path("tags").
+		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key").
+			SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag").
+				SubAggregation("rev",     elastic.NewReverseNestedAggregation().
+					SubAggregation("filter",  elastic.NewTermsAggregation().Field(filter).Size(0x7FFFFFFF).
+						SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))))))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
