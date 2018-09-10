@@ -21,14 +21,14 @@ class SummaryComponent extends Component {
 
   render() {
     const months = Object.keys(this.props.costs.months);
-    let currentMonthProducts = this.props.costs.months[months[0]].product;
-    const previousProducts = this.props.costs.months[months[1]].product;
+    let currentMonthProducts = this.props.costs.months[months[1]].product;
+    const previousProducts = this.props.costs.months[months[0]].product;
     const currentMonthTotal = this.getMonthTotal(currentMonthProducts);
     const previousTotal = this.getMonthTotal(previousProducts);
 
     let projectedCurrentMonthTotal = 0;
     // Selected month is current month
-    if (moment(months[0]).month() === moment().month()) {
+    if (moment(months[1]).month() === moment().month()) {
       projectedCurrentMonthTotal = (currentMonthTotal / moment().date()) * daysInMonth(moment().month(), moment().year());
     } else {
       projectedCurrentMonthTotal = currentMonthTotal;

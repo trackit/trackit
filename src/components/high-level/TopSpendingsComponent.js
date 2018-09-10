@@ -99,9 +99,9 @@ class TopSpendings extends Component {
 
     render() {
         const months = Object.keys(this.props.costs.months);
-        const isSelectedCurrent = moment(months[0]).month() === moment().month();
-        let currentMonthProducts = convertProductObjectToArray(this.props.costs.months[months[0]].product);
-        const previousProducts = convertProductObjectToArray(this.props.costs.months[months[1]].product);
+        const isSelectedCurrent = moment(months[1]).month() === moment().month();
+        let currentMonthProducts = convertProductObjectToArray(this.props.costs.months[months[1]].product);
+        const previousProducts = convertProductObjectToArray(this.props.costs.months[months[0]].product);
         // Sorting by price
         currentMonthProducts.sort((a, b) => {
             if (a.value > b.value) {
