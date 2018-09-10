@@ -98,9 +98,10 @@ class TopSpendings extends Component {
     }
 
     render() {
-        const isSelectedCurrent = moment(Object.keys(this.props.costs.month)[0]).month() === moment().month();
-        let currentMonthProducts = convertProductObjectToArray(this.props.costs.month[Object.keys(this.props.costs.month)[0]].product);
-        const previousProducts = convertProductObjectToArray(this.props.costs.previousMonth[Object.keys(this.props.costs.previousMonth)[0]].product);
+        const months = Object.keys(this.props.costs.months);
+        const isSelectedCurrent = moment(months[0]).month() === moment().month();
+        let currentMonthProducts = convertProductObjectToArray(this.props.costs.months[months[0]].product);
+        const previousProducts = convertProductObjectToArray(this.props.costs.months[months[1]].product);
         // Sorting by price
         currentMonthProducts.sort((a, b) => {
             if (a.value > b.value) {
@@ -159,10 +160,9 @@ class TopSpendings extends Component {
 
 TopSpendings.propTypes = {
     costs: PropTypes.shape({
-        month : PropTypes.object.isRequired,
-        previousMonth: PropTypes.object.isRequired,
+        months : PropTypes.object.isRequired,
     }).isRequired,
     date: PropTypes.object.isRequired,
-}
+};
 
 export default TopSpendings;

@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import PropTypes from 'prop-types';
 import moment from "moment/moment";
+import Spinner from "react-spinkit";
 
 import Actions from '../../actions';
 
@@ -50,73 +51,91 @@ export class HighLevelComponent extends Component {
 
     let badges;
 
-    if (this.props.costs && this.props.costs.status) {
+    if (this.props.costs && this.props.costs.status)
       badges = (
         <StatusBadges
-          values={
-            this.props.costs ? (
-              this.props.costs.status ? this.props.costs.values : {}
-            ) : {}
-          }
+          values={this.props.costs ? (this.props.costs.status ? this.props.costs.values : {}) : {}}
         />
       );
-    }
 
+    let costLoader;
+    let costError;
     let summary;
-    if (this.props.costs && this.props.costs.status && this.props.costs.values && this.props.costs.values.month && this.props.costs.values.previousMonth) {
-      summary = <Summary
-        costs={this.props.costs.values}
-        date={this.props.dates.startDate}
-      />;
-    }
-
     let topSpendings;
-    if (this.props.costs && this.props.costs.status && this.props.costs.values && this.props.costs.values.month && this.props.costs.values.previousMonth) {
-      topSpendings = <TopSpendings
-        costs={this.props.costs.values}
-        date={this.props.dates.startDate}
-      />;
-    }
-
     let history;
-    if (this.props.costs && this.props.costs.status && this.props.costs.values && this.props.costs.values.history) {
-      history = <History
-        history={this.props.costs.values.history}
-      />;
+
+    if (this.props.costs) {
+      if (!this.props.costs.status)
+        costLoader = <Spinner className="spinner" name='circle'/>;
+      else if (this.props.costs.hasOwnProperty("error"))
+        costError = <div className="alert alert-warning" role="alert">Error while getting data ({this.props.costs.error.message})</div>;
+      else if (this.props.costs.values) {
+        if (this.props.costs.values.months) {
+          summary = <Summary
+            costs={this.props.costs.values}
+            date={this.props.dates.startDate}
+          />;
+          topSpendings = <TopSpendings
+            costs={this.props.costs.values}
+            date={this.props.dates.startDate}
+          />;
+        }
+        if (this.props.costs.values.history)
+          history = <History
+            history={this.props.costs.values.history}
+          />;
+      }
     }
 
+    let eventsLoader;
+    let eventsError;
     let events;
-    if (this.props.events && this.props.events.status && this.props.events.values) {
-      events = <Events
-        events={this.props.events.values}
-        date={this.props.dates.startDate}
-      />;
+    if (this.props.events) {
+      if (!this.props.events.status)
+        eventsLoader = <Spinner className="spinner" name='circle'/>;
+      else if (this.props.events.hasOwnProperty("error"))
+        eventsError = <div className="alert alert-warning" role="alert">Error while getting data
+          ({this.props.events.error.message})</div>;
+      else if (this.props.events.values)
+        events = <Events
+          events={this.props.events.values}
+          date={this.props.dates.startDate}
+        />;
     }
 
-  
+    const status = (costLoader || eventsLoader || costError || eventsError ? (
+      <div className="col-md-12">
+        <div className="white-box">
+          {costLoader || eventsLoader}
+          {costError}
+          {eventsError}
+        </div>
+      </div>
+    ) : null);
 
     return (
-        <div>
-            <div className="col-md-12">
-              <div className="white-box">
-                  <div className="clearfix">
-                      <h3 className="white-box-title no-padding inline-block">
-                          <i className="fa fa-home"></i>
-                          &nbsp;
-                          Home
-                          {badges}
-                      </h3>
-                      <div className="inline-block pull-right">
-                          {timerange}
-                      </div>
-                  </div>
+      <div>
+        <div className="col-md-12">
+          <div className="white-box">
+            <div className="clearfix">
+              <h3 className="white-box-title no-padding inline-block">
+                <i className="fa fa-home"></i>
+                &nbsp;
+                Home
+                {badges}
+              </h3>
+              <div className="inline-block pull-right">
+                {timerange}
               </div>
             </div>
-            {summary}
-            {history}
-            {topSpendings}
-            {events}
+          </div>
         </div>
+        {status}
+        {summary}
+        {history}
+        {topSpendings}
+        {events}
+      </div>
 
 
     );
