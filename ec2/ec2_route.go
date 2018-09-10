@@ -54,7 +54,7 @@ func init() {
 	}.H().Register("/ec2")
 }
 
-// makeElasticSearchRequests prepares and run the request to retrieve the latest reports
+// makeElasticSearchEc2Request prepares and run the request to retrieve the latest reports
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by

@@ -15,15 +15,16 @@
 package ec2
 
 import (
+	"fmt"
+	"strings"
 	"context"
 	"encoding/json"
 
 	"gopkg.in/olivere/elastic.v5"
-	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/es"
-	"fmt"
-	"strings"
 )
 
 type (
@@ -96,10 +97,10 @@ func makeElasticSearchCostRequest(ctx context.Context, user users.User, account 
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : " + index, err)
+			l.Warning("Query execution failed, ES index does not exists : "+index, err)
 			return ResponseCost{}, err
 		}
-		l.Error("Query execution failed : " + err.Error(), nil)
+		l.Error("Query execution failed : "+err.Error(), nil)
 		return ResponseCost{}, fmt.Errorf("could not execute the ElasticSearch query")
 	}
 	var resCost ResponseCost
