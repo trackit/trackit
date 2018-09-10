@@ -82,7 +82,7 @@ export const costBreakdown = {
     if (!data.hasOwnProperty(filter))
       return [];
     return Object.keys(data[filter]).map((id) => ({
-      key: id,
+      key: (id.length ? id : `No ${filter}`),
       value: data[filter][id]
     }));
   },
