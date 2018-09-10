@@ -25,6 +25,7 @@ class TimerangeSelector extends Component {
           parentEl="body"
           startDate={Moment(this.props.startDate)}
           endDate={Moment(this.props.endDate)}
+          maxDate={Moment()}
           ranges={this.props.ranges}
           opens="left"
           onApply={this.handleApply}

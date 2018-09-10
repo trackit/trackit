@@ -261,6 +261,11 @@ label {
     font-weight: 500;
 }
 
+/* Date Range Picker */
+.daterangepicker td.disabled, .daterangepicker option.disabled {
+    color: #ddd;
+    text-decoration: none;
+}
 
 /* Overriding React Table styling */
 
