@@ -97,6 +97,14 @@ export default {
       endDate: moment().subtract(1, 'month').endOf('month')
     }
   },
+  highlevel: {
+    dates: {
+      startDate: moment().startOf('month'),
+      endDate: moment().endOf('month')
+    },
+    costs: {},
+    events: {}
+  },
   auth: {
     token: null,
     mail: null,

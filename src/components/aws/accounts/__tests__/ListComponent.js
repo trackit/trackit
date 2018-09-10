@@ -159,7 +159,7 @@ describe('<Item />', () => {
     const item = wrapper.find(ListItem);
     expect(item.length).toBe(2);
     const wrapperBis = shallow(<Item {...propsWithErrorInBills}/>);
-    const itemBis = wrapper.find(ListItem);
+    const itemBis = wrapperBis.find(ListItem);
     expect(itemBis.length).toBe(2);
   });
 

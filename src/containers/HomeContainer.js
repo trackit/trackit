@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Components from '../components';
 
-const Dashboard = Components.Dashboard.Dashboard;
+const HighLevel = Components.HighLevel.HighLevel;
 
 // HomeContainer Component
 class HomeContainer extends Component {
@@ -9,7 +9,7 @@ class HomeContainer extends Component {
   render() {
     return (
       <div>
-        <Dashboard/>
+        <HighLevel/>
       </div>
     );
   }

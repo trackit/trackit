@@ -1,4 +1,5 @@
 import React from 'react';
+import * as d3 from 'd3';
 
 // Return a value not negative or zero
 export const noNeg = (value) => (value < 0 ? 0 : value);
@@ -10,6 +11,15 @@ export const formatBytes = (a,d = 2) => {if(0===a)return"0 Bytes";var c=1024,e=[
 export const formatGigaBytes = (a,d = 2) => (formatBytes(a * Math.pow(1024,3), d));
 
 export const formatPrice = (value, decimals = 2) => (<span><span className="dollar-sign">$</span>{parseFloat(value.toFixed(decimals)).toLocaleString()}</span>);
+export const formatChartPrice = (value) => {
+  if (value >= 1000000) {
+    return `$${d3.format(',.0f')(value / 1000000)}M`;
+  } else if (value >= 1000) {
+    return `$${d3.format(',.0f')(value / 1000)}k`;
+  } else {
+    return `$${d3.format(',.0f')(value)}`;
+  }
+}
 
 export const formatPercent = (value, decimals = 2, style=true) => {
   const formattedValue = parseFloat(Math.abs(value).toFixed(decimals)).toLocaleString();

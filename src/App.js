@@ -87,6 +87,10 @@ export class App extends Component {
               component={checkRedirections(Containers.Home)}
             />
             <Route
+              path={this.props.match.url + '/dashboard'}
+              component={checkRedirections(Containers.Dashboard)}
+            />
+            <Route
               path={this.props.match.url + '/s3'}
               component={checkRedirections(Containers.AWS.S3Analytics)}
             />

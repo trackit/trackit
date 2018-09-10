@@ -5,6 +5,7 @@ import auth from './auth';
 import user from './user';
 import dashboard from './dashboard';
 import events from './events';
+import highlevel from './highlevel';
 
 export default combineReducers({
   aws,
@@ -12,5 +13,6 @@ export default combineReducers({
   auth,
   user,
   dashboard,
-  events
+  events,
+  highlevel
 });
