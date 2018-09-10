@@ -27,16 +27,18 @@ import (
 	"github.com/trackit/trackit-server/awsSession"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/users"
+	"fmt"
 )
 
 // AwsAccount represents a client's AWS account.
 type AwsAccount struct {
-	Id       int    `json:"id"`
-	UserId   int    `json:"-"`
-	Pretty   string `json:"pretty"`
-	RoleArn  string `json:"roleArn"`
-	External string `json:"-"`
-	Payer    bool   `json:"payer"`
+	Id             int    `json:"id"`
+	UserId         int    `json:"-"`
+	Pretty         string `json:"pretty"`
+	RoleArn        string `json:"roleArn"`
+	External       string `json:"-"`
+	Payer          bool   `json:"payer"`
+	UserPermission int    `json:permissionLevel`
 }
 
 const (
@@ -76,12 +78,26 @@ func AccountId() string { return accountId }
 // GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
 // given user.
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
+	fmt.Print("---- CURRENT USER")
+	fmt.Print(u.Id)
+	var res []AwsAccount
 	dbAwsAccounts, err := models.AwsAccountsByUserID(tx, u.Id)
+	dbShareAccounts, err := models.SharedAccountsByUserID(tx, u.Id)
 	if err == nil {
-		awsAccounts := make([]AwsAccount, len(dbAwsAccounts))
-		for i := range dbAwsAccounts {
-			awsAccounts[i] = AwsAccountFromDbAwsAccount(*dbAwsAccounts[i])
+		//awsAccounts := make([]AwsAccount, len(dbAwsAccounts))
+		for _, key := range dbAwsAccounts {
+			res = append(res, key.ID, key.UserID, key.Pretty, key.RoleArn, key.External, key.Payer, 5)
 		}
+
+		//for i := range dbAwsAccounts {
+		//	awsAccounts[i] = AwsAccountFromDbAwsAccount(*dbAwsAccounts[i])
+		//}
+		//for _, key := range dbShareAccounts {
+		//	dbAwsAccountsById, err := models.AwsAccountByID(tx, key.ID)
+		//	if err == nil {
+		//		_ = dbAwsAccountsById
+		//	}
+		//}
 		return awsAccounts, nil
 	}
 	return nil, err
