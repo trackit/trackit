@@ -109,6 +109,25 @@ class IntervalNavigator extends Component {
     return this.props.setDatesFunc(start, end);
   }
 
+  isCurrentDate() {
+    let now;
+    switch (this.props.interval) {
+      case "year":
+        now = Moment().endOf('year');
+        break;
+      case "month":
+        now = Moment().endOf('month');
+        break;
+      case "week":
+        now = Moment().endOf('isoWeek');
+        break;
+      case "day":
+      default:
+        now = Moment();
+    }
+    return this.props.endDate.isSameOrAfter(now);
+  }
+
   render() {
     return(
       <div className="inline-block">
@@ -121,7 +140,7 @@ class IntervalNavigator extends Component {
             &nbsp;
             {this.getDate()}
           </div>
-          <button className="btn btn-default" onClick={this.nextDate}>
+          <button className="btn btn-default" disabled={this.isCurrentDate()} onClick={this.nextDate}>
             <i className="fa fa-caret-right"/>
           </button>
         </div>
@@ -134,7 +153,8 @@ class IntervalNavigator extends Component {
 
 IntervalNavigator.defaultProps = {
   hideIntervalSelector: false,
-}
+  lockFuture: true
+};
 
 IntervalNavigator.propTypes = {
   startDate: PropTypes.object.isRequired,
@@ -144,6 +164,7 @@ IntervalNavigator.propTypes = {
   availableIntervals: PropTypes.arrayOf(PropTypes.string),
   setIntervalFunc: PropTypes.func,
   hideIntervalSelector: PropTypes.bool,
+  lockFuture: PropTypes.bool
 };
 
 export default IntervalNavigator;
