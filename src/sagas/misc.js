@@ -138,8 +138,10 @@ export const initialDashboard = () => {
 
 export const initialTagsCharts = () => {
   const id1 = UUID();
+  const id2 = UUID();
   let charts = {};
   charts[id1] = "";
+  charts[id2] = "";
   let dates = {};
   Object.keys(charts).forEach((id) => {
     dates[id] = {
@@ -147,7 +149,8 @@ export const initialTagsCharts = () => {
       endDate: moment().subtract(1, 'month').endOf('month')
     };
   });
-  let interval = {};
-  interval[id1] = "month";
-  return { charts, dates, interval };
+  let filters = {};
+  filters[id1] = "product";
+  filters[id2] = "region";
+  return { charts, dates, filters };
 };

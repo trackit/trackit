@@ -7,7 +7,7 @@ import 'nvd3/build/nv.d3.min.css';
 import * as d3 from "d3";
 import ChartsColors from "../../../styles/ChartsColors";
 
-const transformProductsPieChart = tags.transformProductsPieChart;
+const transformItemsPieChart = tags.transformItemsPieChart;
 const getTotalPieChart = tags.getTotalPieChart;
 
 /* istanbul ignore next */
@@ -23,26 +23,26 @@ const margin = {
 class TagsChartComponent extends Component {
 
   render() {
-    const datum = transformProductsPieChart(this.props.values);
+    const datum = transformItemsPieChart(this.props.values);
 
     if (!datum)
       return (<h4 className="no-data">No data available for this timerange</h4>);
 
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
 
-    const productsList = [];
+    const itemsList = [];
     datum.forEach((tag) => {
-      Object.keys(tag.products).forEach((product) => {
-        if (productsList.indexOf(product) === -1)
-          productsList.push(product);
+      Object.keys(tag.items).forEach((item) => {
+        if (itemsList.indexOf(item) === -1)
+          itemsList.push(item);
       })
     });
-    const productsColumns = productsList.map((product) => ({
-      Header: product,
-      accessor: 'products',
-      id: product,
-      sortMethod: (a, b) => (a.hasOwnProperty(product) && b.hasOwnProperty(product) && a[product] > b[product] ? 1 : -1),
-      Cell: row => (<span className="total-cell">{formatPrice(row.value[product] || 0)}</span>)
+    const itemsColumns = itemsList.map((item) => ({
+      Header: (item && item.length ? item : `No ${this.props.filter}`),
+      accessor: 'items',
+      id: item,
+      sortMethod: (a, b) => (a.hasOwnProperty(item) && b.hasOwnProperty(item) && a[item] > b[item] ? 1 : -1),
+      Cell: row => (<span className="total-cell">{formatPrice(row.value[item] || 0)}</span>)
     }));
 
     /* istanbul ignore next */
@@ -60,8 +60,8 @@ class TagsChartComponent extends Component {
             accessor: 'value',
             Cell: row => (<strong className="total-cell">{formatPrice(row.value)}</strong>)
           }, {
-            Header: 'Products',
-            columns: productsColumns
+            Header: `${this.props.filter}s`,
+            columns: itemsColumns
           }
         ]}
         defaultSorted={[{
@@ -107,6 +107,7 @@ TagsChartComponent.propTypes = {
   values: PropTypes.arrayOf(PropTypes.object),
   legend: PropTypes.bool.isRequired,
   height: PropTypes.number.isRequired,
+  filter: PropTypes.string.isRequired
 };
 
 

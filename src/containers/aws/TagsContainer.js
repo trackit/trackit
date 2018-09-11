@@ -54,7 +54,7 @@ export class TagsContainer extends Component {
   getChart(id, tag, index) {
     if (this.props.values
       && this.props.dates && this.props.dates.hasOwnProperty(id)
-      && this.props.interval && this.props.interval.hasOwnProperty(id)) {
+      && this.props.filters && this.props.filters.hasOwnProperty(id)) {
       return (
         <Chart
           key={index}
@@ -68,8 +68,8 @@ export class TagsContainer extends Component {
           getValues={this.props.getValues}
           dates={this.props.dates[id]}
           setDates={this.props.setDates}
-          interval={this.props.interval[id]}
-          setInterval={this.props.setInterval}
+          filter={this.props.filters[id]}
+          selectFilter={this.props.selectFilter}
           close={Object.keys(this.props.charts).length > minimalCount ? this.props.removeChart : null}
         />
       );
@@ -114,7 +114,6 @@ TagsContainer.propTypes = {
   keys: PropTypes.object.isRequired,
   values: PropTypes.object.isRequired,
   dates: PropTypes.object.isRequired,
-  interval: PropTypes.object.isRequired,
   initCharts: PropTypes.func.isRequired,
   addChart: PropTypes.func.isRequired,
   removeChart: PropTypes.func.isRequired,
@@ -125,9 +124,8 @@ TagsContainer.propTypes = {
   getKeys: PropTypes.func.isRequired,
   clearKeys: PropTypes.func.isRequired,
   selectKey: PropTypes.func.isRequired,
-  setInterval: PropTypes.func.isRequired,
-  resetInterval: PropTypes.func.isRequired,
-  clearInterval: PropTypes.func.isRequired
+  filters: PropTypes.object.isRequired,
+  selectFilter: PropTypes.func.isRequired,
 };
 
 /* istanbul ignore next */
@@ -135,9 +133,9 @@ const tagsStateToProps = ({aws}) => ({
   charts: aws.tags.charts,
   keys: aws.tags.keys,
   dates: aws.tags.dates,
-  interval: aws.tags.interval,
   values: aws.tags.values,
-  accounts: aws.accounts.selection
+  accounts: aws.accounts.selection,
+  filters: aws.tags.filters
 });
 
 /* istanbul ignore next */
@@ -151,8 +149,8 @@ const tagsDispatchToProps = (dispatch) => ({
   removeChart: (id) => {
     dispatch(Actions.AWS.Tags.removeChart(id));
   },
-  getValues: (id, begin, end, key) => {
-    dispatch(Actions.AWS.Tags.getValues(id, begin, end, key));
+  getValues: (id, begin, end, filter, key) => {
+    dispatch(Actions.AWS.Tags.getValues(id, begin, end, filter, key));
   },
   setDates: (id, startDate, endDate) => {
     dispatch(Actions.AWS.Tags.setDates(id, startDate, endDate))
@@ -172,15 +170,15 @@ const tagsDispatchToProps = (dispatch) => ({
   selectKey: (id, tag) => {
     dispatch(Actions.AWS.Tags.selectKey(id, tag));
   },
-  setInterval: (id, interval) => {
-    dispatch(Actions.AWS.Tags.setInterval(id, interval))
+  selectFilter: (id, filter) => {
+    dispatch(Actions.AWS.Tags.selectFilter(id, filter));
   },
-  resetInterval: () => {
-    dispatch(Actions.AWS.Tags.resetInterval())
+  clearFilters: () => {
+    dispatch(Actions.AWS.Tags.clearFilters());
   },
-  clearInterval: () => {
-    dispatch(Actions.AWS.Tags.clearInterval())
-  },
+  resetFilters: () => {
+    dispatch(Actions.AWS.Tags.resetFilters());
+  }
 });
 
 export default connect(tagsStateToProps, tagsDispatchToProps)(TagsContainer);

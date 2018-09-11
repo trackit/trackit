@@ -4,11 +4,12 @@ export default {
   initCharts: () => ({type: Constants.AWS_TAGS_INIT_CHARTS}),
   addChart: (id) => ({type: Constants.AWS_TAGS_ADD_CHART, id}),
   removeChart: (id) => ({type: Constants.AWS_TAGS_REMOVE_CHART, id}),
-  getValues: (id, begin, end, key) => ({
+  getValues: (id, begin, end, filter, key) => ({
     type: Constants.AWS_TAGS_GET_VALUES,
     id,
     begin,
     end,
+    filter,
     key
   }),
   getKeys: (id, begin, end) => ({
@@ -29,11 +30,11 @@ export default {
   }),
   clearDates: () => ({type: Constants.AWS_TAGS_CLEAR_DATES}),
   resetDates: () => ({type: Constants.AWS_TAGS_RESET_DATES}),
-  setInterval: (id, interval) => ({
-    type: Constants.AWS_TAGS_SET_INTERVAL,
+  selectFilter: (id, filter) => ({
+    type: Constants.AWS_TAGS_SET_FILTER,
     id,
-    interval
+    filter
   }),
-  clearInterval: () => ({type: Constants.AWS_TAGS_CLEAR_INTERVAL}),
-  resetInterval: () => ({type: Constants.AWS_TAGS_RESET_INTERVAL}),
+  clearFilters: () => ({type: Constants.AWS_TAGS_CLEAR_FILTERS}),
+  resetFilters: () => ({type: Constants.AWS_TAGS_RESET_FILTERS}),
 };
