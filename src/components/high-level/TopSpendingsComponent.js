@@ -1,11 +1,10 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import { Link } from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import NVD3Chart from 'react-nvd3';
 import * as d3 from 'd3';
-import { formatChartPrice } from '../../common/formatters';
-
+import {formatChartPrice} from '../../common/formatters';
 
 const convertProductObjectToArray = (values) => {
     const res = Object.keys(values).map((key) => {
@@ -40,12 +39,8 @@ const margin = {
     bottom: 80,
 };
 
-function daysInMonth (month, year) {
-    return new Date(year, month, 0).getDate();
-}
-
-
 class TopSpendings extends Component {
+
     findProduct(toFind, values) {
         for (let i = 0; i < values.length; i++) {
             const element = values[i];
@@ -60,8 +55,8 @@ class TopSpendings extends Component {
         const res = [];
         for (let i = 0; i < values.length; i++) {
             const element = values[i];
-            const projectedValue = (element.value / moment().date()) * daysInMonth(moment().month(), moment().year());
-            res.push([element.key, projectedValue]);
+            const projectedValue = (element.value / moment().date()) * parseInt(moment().endOf('month').format("DD"), 10);
+          res.push([element.key, projectedValue]);
         }
         return res;
     }
