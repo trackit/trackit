@@ -322,7 +322,7 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 	}
 }
 
-// getPurchasingOption return a string that describes how the instance given as parameter have been purchased
+// getPurchasingOption returns a string that describes how the instance given as parameter have been purchased
 func getPurchasingOption(instance *ec2.Instance) (string) {
 	var purchasing string
 	lifeCycle := aws.StringValue(instance.InstanceLifecycle)
@@ -365,7 +365,7 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 				KeyPair:    aws.StringValue(instance.KeyName),
 				Tags:       getInstanceTag(instance.Tags),
 				Type:       aws.StringValue(instance.InstanceType),
-				State:		aws.StringValue(instance.State.Name),
+				State:      aws.StringValue(instance.State.Name),
 				Purchasing: purchasing,
 				CpuAverage: stats.CpuAverage,
 				CpuPeak:    stats.CpuPeak,

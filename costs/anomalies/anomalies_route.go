@@ -16,12 +16,14 @@ package anomalies
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
@@ -35,6 +37,7 @@ type AnomalyEsQueryParams struct {
 	DateBegin   time.Time
 	DateEnd     time.Time
 	AccountList []string
+	IndexList   []string
 }
 
 // anomalyQueryArgs allows to get required queryArgs params
@@ -66,7 +69,7 @@ func init() {
 // with empty data
 func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryParams, user users.User) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, "lineitems")
+	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := GetElasticSearchParams(
 		parsedParams.AccountList,
 		parsedParams.DateBegin,
@@ -98,9 +101,13 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 	if a[anomalyQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[anomalyQueryArgs[0]].([]string)
 	}
-	if err := aws.ValidateAwsAccounts(parsedParams.AccountList); err != nil {
-		return http.StatusBadRequest, err
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
 	}
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
 	res, returnCode, err := GetAnomaliesData(request.Context(), parsedParams, user)
 	if err != nil {
 		if returnCode == http.StatusOK {

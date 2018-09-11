@@ -19,6 +19,7 @@ import (
 	"strings"
 	"context"
 	"encoding/json"
+	"database/sql"
 
 	"gopkg.in/olivere/elastic.v5"
 	"github.com/trackit/jsonlog"
@@ -85,9 +86,13 @@ type (
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchCostRequest(ctx context.Context, user users.User, account string , date string) (ResponseCost, error) {
+func makeElasticSearchCostRequest(ctx context.Context, user users.User, tx *sql.Tx, account string , date string) (ResponseCost, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, es.IndexPrefixLineItems)
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes([]string{account}, user, tx, es.IndexPrefixLineItems)
+	if err != nil {
+		return ResponseCost{}, err
+	}
+	index := strings.Join(accountsAndIndexes.Indexes, ",")
 	searchService := GetElasticSearchCostParams(
 		account,
 		date,
@@ -112,7 +117,7 @@ func makeElasticSearchCostRequest(ctx context.Context, user users.User, account 
 }
 
 // prepareResponse parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User) (interface{}, error) {
+func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, tx *sql.Tx) (interface{}, error) {
 	var response ResponseEc2
 	var reports []Report
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
@@ -125,7 +130,7 @@ func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user use
 			for i := range report.Instances {
 				report.Instances[i].Cost = 0
 			}
-			resCost, err := makeElasticSearchCostRequest(ctx, user, report.Account, report.ReportDate)
+			resCost, err := makeElasticSearchCostRequest(ctx, user, tx, report.Account, report.ReportDate)
 			if err == nil {
 				for _, instance := range resCost.Instances.Buckets {
 					for i := range report.Instances {
