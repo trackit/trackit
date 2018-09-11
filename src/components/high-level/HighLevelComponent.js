@@ -103,16 +103,17 @@ export class HighLevelComponent extends Component {
         />;
     }
 
-    const status = (costLoader || eventsLoader || costError || eventsError ? (
+    // Add support for eventsLoader & eventsError once API is fixed
+    const status = (costLoader || costError ? (
       <div className="col-md-12">
         <div className="white-box">
-          {costLoader || eventsLoader}
+          {costLoader}
           {costError}
-          {eventsError}
         </div>
       </div>
     ) : null);
 
+    // Add events once API is fixed
     return (
       <div>
         <div className="col-md-12">
@@ -134,7 +135,6 @@ export class HighLevelComponent extends Component {
         {summary}
         {history}
         {topSpendings}
-        {events}
       </div>
 
 
