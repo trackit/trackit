@@ -3,10 +3,6 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import { formatPrice } from '../../common/formatters';
 
-function daysInMonth (month, year) {
-  return new Date(year, month, 0).getDate();
-}
-
 class SummaryComponent extends Component {
   getMonthTotal(products) {
     let res = 0;
@@ -29,7 +25,7 @@ class SummaryComponent extends Component {
     let projectedCurrentMonthTotal = 0;
     // Selected month is current month
     if (moment(months[1]).month() === moment().month()) {
-      projectedCurrentMonthTotal = (currentMonthTotal / moment().date()) * daysInMonth(moment().month(), moment().year());
+      projectedCurrentMonthTotal = (currentMonthTotal / moment().date()) * parseInt(moment().endOf('month').format("DD"), 10);
     } else {
       projectedCurrentMonthTotal = currentMonthTotal;
     }
