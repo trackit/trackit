@@ -16,16 +16,15 @@ package tags
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
-	"encoding/json"
+	"strings"
 
-	"gopkg.in/olivere/elastic.v5"
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/es"
-
 )
 
 type (
@@ -33,7 +32,7 @@ type (
 	esTagsValuesResult struct {
 		Keys struct {
 			Buckets []struct {
-				Key string `json:"key"`
+				Key  string       `json:"key"`
 				Tags esTagsResult `json:"tags"`
 			} `json:"buckets"`
 		} `json:"keys"`
@@ -51,7 +50,7 @@ type (
 	esFilterResult struct {
 		Buckets []struct {
 			Product string `json:"key"`
-			Cost struct {
+			Cost    struct {
 				Value float64 `json:"value"`
 			} `json:"cost"`
 		} `json:"buckets"`
@@ -74,11 +73,11 @@ type (
 )
 
 // getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams, user users.User) (int, interface{}) {
+func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams) (int, interface{}) {
 	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTagsValuesResult
-	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, user, es.Client)
+	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
 	if err != nil {
 		if returnCode == http.StatusOK {
 			return returnCode, response
@@ -112,33 +111,32 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams,
-	user users.User, client *elastic.Client) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams, client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
-	index := es.IndexNameForUser(user, "lineitems")
+	index := strings.Join(params.IndexList, ",")
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("data",    elastic.NewNestedAggregation().Path("tags").
-		SubAggregation("keys",    elastic.NewTermsAggregation().Field("tags.key").
-		SubAggregation("tags",    elastic.NewTermsAggregation().Field("tags.tag").
-		SubAggregation("rev",     elastic.NewReverseNestedAggregation().
-		SubAggregation("filter",  elastic.NewTermsAggregation().Field(filter).Size(0x7FFFFFFF).
-		SubAggregation("cost",    elastic.NewSumAggregation().Field("unblendedCost")))))))
+	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
+		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").
+			SubAggregation("tags", elastic.NewTermsAggregation().Field("tags.tag").
+				SubAggregation("rev", elastic.NewReverseNestedAggregation().
+					SubAggregation("filter", elastic.NewTermsAggregation().Field(filter).Size(0x7FFFFFFF).
+						SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))))))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : " + index, err)
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return nil, http.StatusOK, err
 		}
-		l.Error("Query execution failed : " + err.Error(), nil)
+		l.Error("Query execution failed", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	return res, http.StatusOK, nil
 }
 
 // getTagsValuesQuery will generate a query for the ElasticSearch based on params
-func getTagsValuesQuery(params tagsValuesQueryParams) (*elastic.BoolQuery) {
+func getTagsValuesQuery(params tagsValuesQueryParams) *elastic.BoolQuery {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(params.AccountList))
@@ -158,7 +156,7 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 }
 
 // getTagsValuesFilter returns a string of the field to filter
-func getTagsValuesFilter(filter string) (string) {
+func getTagsValuesFilter(filter string) string {
 	var filters = map[string]string{
 		"product":          "productCode",
 		"region":           "region",
