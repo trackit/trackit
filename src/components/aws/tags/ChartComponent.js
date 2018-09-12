@@ -144,7 +144,7 @@ class ChartComponent extends Component {
       if (this.props.keys.hasOwnProperty("error"))
         error = (<div className="alert alert-warning m-t-20" role="alert">Data not available ({this.props.keys.error.message})</div>);
       else if (this.props.keys.hasOwnProperty("values") && !this.props.keys.values.length)
-        error = (<div className="alert alert-warning m-t-20" role="alert">Data not available (No keys available for this timerange)</div>);
+        error = (<div className="alert alert-warning m-t-20" role="alert">You need to set tags (No keys available for this timerange)</div>);
     }
     if (this.props.values && this.props.keys.values && this.props.keys.hasOwnProperty("error"))
       error = (<div className="alert alert-warning m-t-20" role="alert">Data not available ({this.props.keys.error.message})</div>);
