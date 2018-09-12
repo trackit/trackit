@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 7,
+	"version": 8,
 	"mappings": {
 		"lineitem": {
 			"properties": {
@@ -62,6 +62,10 @@ const TemplateLineItem = `
 					"norms": false
 				},
 				"usageAccountId": {
+					"type": "keyword",
+					"norms": false
+				},
+				"lineItemType": {
 					"type": "keyword",
 					"norms": false
 				},
@@ -104,6 +108,10 @@ const TemplateLineItem = `
 				"unblendedCost": {
 					"type": "float",
 					"index": false
+				},
+				"taxType": {
+					"type": "keyword",
+					"norms": false
 				},
 				"usageStartDate": {
 					"type": "date"
