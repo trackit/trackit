@@ -105,7 +105,7 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	if a[tagsValuesQueryArgs[3]] != nil {
 		parsedParams.TagsKeys = a[tagsValuesQueryArgs[3]].([]string)
 	}
-	if getTagsValuesFilter(parsedParams.By) == "error" {
+	if getTagsValuesFilter(parsedParams.By).Filter == "error" {
 		return http.StatusBadRequest, errors.New("Invalid filter: " + parsedParams.By)
 	}
 	return getTagsValuesWithParsedParams(request.Context(), parsedParams)
