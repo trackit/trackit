@@ -32,7 +32,7 @@ type SharedResults struct {
 }
 
 // GetSharingList returns a list of users who have access to a specific AWS account
-func GetSharingList(ctx context.Context, db models.XODB, accountId int) (interface{}, error) {
+func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]SharedResults, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response []SharedResults
 	dbSharedAccounts, err := models.SharedAccountsByAccountID(db, accountId)
@@ -45,30 +45,30 @@ func GetSharingList(ctx context.Context, db models.XODB, accountId int) (interfa
 		for _, key := range dbSharedAccounts {
 			dbUser, err := models.UserByID(db, key.UserID)
 			if err != nil {
+				logger.Error("Error getting users from database.", err.Error())
 				return nil, err
 			}
-			response = append(response, SharedResults{ShareId: key.ID, Mail: dbUser.Email, Level: key.UserPermission,
-			UserId: key.UserID, SharingStatus: key.SharingAccepted})
+			response = append(response, SharedResults{key.ID, dbUser.Email,key.UserPermission,key.UserID,key.SharingAccepted})
 		}
 		return response, nil
 	}
 }
 
 // UpdateSharedUser updates user permission level
-func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissionLevel int) (error) {
+func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissionLevel int) (interface{}, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccount, err := models.SharedAccountByID(db, shareId)
 	if err != nil {
 		logger.Error("Error while getting shared user information", err)
-		return err
+		return nil, err
 	}
 	dbSharedAccount.UserPermission = permissionLevel
 	err = dbSharedAccount.Update(db)
 	if err != nil {
 		logger.Error("Error while updating user permission", err)
-		return err
+		return nil, err
 	}
-	return nil
+	return dbSharedAccount, nil
 }
 
 

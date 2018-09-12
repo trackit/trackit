@@ -141,11 +141,11 @@ func listSharedUserAccessWithValidBody(request *http.Request, body int, tx *sql.
 
 // updateSharedUserAccessWithValidBody tries to update users permission level for team sharing
 func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
-	err := UpdateSharedUser(request.Context(), db.Db, body.ShareId, body.PermissionLevel)
+	res, err := UpdateSharedUser(request.Context(), db.Db, body.ShareId, body.PermissionLevel)
 	if err != nil {
 		return 403, "Error updating shared user list"
 	}
-	return 200, "ok"
+	return 200, res
 }
 
 // deleteSharedUserAccessWithValidBody tries to delete users from accessing specific shared aws account
@@ -154,5 +154,5 @@ func deleteSharedUserAccessWithValidBody(request *http.Request, body deleteUsers
 	if err != nil {
 		return 403, "Error deleting shared user"
 	}
-	return 200, "ok"
+	return 200, nil
 }

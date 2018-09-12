@@ -37,16 +37,13 @@ var (
 	ErrorAlreadyShared = errors.New("You are already sharing this account with this user.")
 )
 
-const (
-	bCryptCost = 12
-)
+const bCryptCost = 12
 
 // getPasswordHash generates a hash string for a given password.
 func getPasswordHash(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bCryptCost)
 	return string(hash), err
 }
-
 
 // checkuserWithEmail checks if user already exist.
 // true is returned if invited user already exist.
@@ -164,43 +161,55 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	return nil
 }
 
+func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequest, guestId int) (int, interface{}) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	isAlreadyShared, err := checkSharedAccount(ctx, tx, body.AccountId, guestId)
+	if err != nil {
+		return 403, ErrorInviteUser
+	} else if isAlreadyShared {
+		return 200, ErrorAlreadyShared
+	}
+	err = addAccountToGuest(ctx, tx, body.AccountId, body.PermissionLevel, guestId)
+	if err == nil {
+		err = sendMailNotification(ctx, tx, body.Email,true, 0)
+		if err != nil {
+			logger.Error("Error occured while sending an email to an existing user.", err.Error())
+			return 403, ErrorInviteUser
+		}
+		return 200, nil
+	} else {
+		logger.Error("Error occured while adding account to an existing user.", err.Error())
+		return 403, ErrorInviteUser
+	}
+}
+
+func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int, interface{}) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	newUserId, err := createAccountForGuest(ctx, tx, body.Email, body.AccountId, body.PermissionLevel)
+	if err == nil {
+		err = sendMailNotification(ctx, tx, body.Email,false, newUserId)
+		if err != nil {
+			logger.Error("Error occured while sending an email to a new user.", err.Error())
+			return 403, ErrorInviteNewUser
+		}
+		return 200, nil
+	} else {
+		logger.Error("Error occured while creating new account for a guest.", err.Error())
+		return 403, ErrorInviteNewUser
+	}
+}
+
 // inviteUserWithValidBody tries to share an account with a specific user
 func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email)
 	if err == nil {
 		if result {
-			isAlreadyShared, err := checkSharedAccount(request.Context(), tx, body.AccountId, guestId)
-			if err != nil {
-				return 403, ErrorInviteUser
-			} else if isAlreadyShared {
-				return 200, ErrorAlreadyShared
-			}
-			err = addAccountToGuest(request.Context(), tx, body.AccountId, body.PermissionLevel, guestId)
-			if err == nil {
-				err = sendMailNotification(request.Context(), tx, body.Email,true, 0)
-				if err != nil {
-					logger.Error("Error occured while sending an email to an existing user.", err.Error())
-					return 403, ErrorInviteUser
-				}
-				return 200, nil
-			} else {
-				logger.Error("Error occured while adding account to an existing user.", err.Error())
-				return 403, ErrorInviteUser
-			}
+			code, res := inviteUserAlreadyExist(request.Context(), tx, body, guestId)
+			return code, res
 		} else {
-			newUserId, err := createAccountForGuest(request.Context(), tx, body.Email, body.AccountId, body.PermissionLevel)
-			if err == nil {
-				err = sendMailNotification(request.Context(), tx, body.Email,false, newUserId)
-				if err != nil {
-					logger.Error("Error occured while sending an email to a new user.", err.Error())
-					return 403, ErrorInviteNewUser
-				}
-				return 200, nil
-			} else {
-				logger.Error("Error occured while creating new account for a guest.", err.Error())
-				return 403, ErrorInviteNewUser
-			}
+			code, res := inviteNewUser(request.Context(), tx, body)
+			return code, res
 		}
 	} else {
 		logger.Error("Error occured while checking if user already exist.", err.Error())
