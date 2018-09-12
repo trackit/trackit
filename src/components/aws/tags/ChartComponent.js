@@ -4,8 +4,15 @@ import Misc from "../../misc";
 import Spinner from "react-spinkit";
 import TagsChart from './TagsChartComponent';
 
-const IntervalNavigator = Misc.IntervalNavigator;
+const TimerangeSelector = Misc.TimerangeSelector;
 const Selector = Misc.Selector;
+
+const filters = {
+  product: "Product",
+  region: "Region",
+  availabilityzone: "Availability Zone",
+  account: "Account",
+};
 
 class Header extends Component {
 
@@ -13,8 +20,8 @@ class Header extends Component {
     super(props);
     this.close = this.close.bind(this);
     this.setDates = this.setDates.bind(this);
-    this.setInterval = this.setInterval.bind(this);
     this.selectTag = this.selectTag.bind(this);
+    this.selectFilter = this.selectFilter.bind(this);
   }
 
   close = (e) => {
@@ -26,12 +33,12 @@ class Header extends Component {
     this.props.setDates(this.props.id, start, end);
   };
 
-  setInterval = (interval) => {
-    this.props.setInterval(this.props.id, interval);
-  };
-
   selectTag = (tag) => {
     this.props.selectKey(this.props.id, tag);
+  };
+
+  selectFilter = (filter) => {
+    this.props.selectFilter(this.props.id, filter);
   };
 
   render() {
@@ -71,12 +78,18 @@ class Header extends Component {
           {keys}
 
           <div className="inline-block">
-            <IntervalNavigator
+            <Selector
+              values={filters}
+              selected={this.props.filter}
+              selectValue={this.selectFilter}
+            />
+          </div>
+
+          <div className="inline-block">
+            <TimerangeSelector
               startDate={this.props.dates.startDate}
               endDate={this.props.dates.endDate}
               setDatesFunc={this.setDates}
-              interval={this.props.interval}
-              setIntervalFunc={this.setInterval}
             />
           </div>
 
@@ -101,8 +114,8 @@ Header.propTypes = {
   getValues: PropTypes.func.isRequired,
   dates: PropTypes.object.isRequired,
   setDates: PropTypes.func.isRequired,
-  interval: PropTypes.string.isRequired,
-  setInterval: PropTypes.func.isRequired,
+  filter: PropTypes.string.isRequired,
+  selectFilter: PropTypes.func.isRequired,
   close: PropTypes.func
 };
 
@@ -120,8 +133,8 @@ class ChartComponent extends Component {
     else if (this.props.keys !== nextProps.keys && nextProps.keys.status
       && nextProps.keys.hasOwnProperty("values") && nextProps.keys.values.length)
       nextProps.selectKey(nextProps.id, nextProps.keys.values[0]);
-    else if ((this.props.tag !== nextProps.tag && nextProps.tag !== ""))
-      nextProps.getValues(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, nextProps.tag);
+    else if ((this.props.tag !== nextProps.tag && nextProps.tag !== "") || (this.props.filter !== nextProps.filter && nextProps.filter !== ""))
+      nextProps.getValues(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, nextProps.filter, nextProps.tag);
   }
 
   render() {
@@ -131,7 +144,7 @@ class ChartComponent extends Component {
       if (this.props.keys.hasOwnProperty("error"))
         error = (<div className="alert alert-warning m-t-20" role="alert">Data not available ({this.props.keys.error.message})</div>);
       else if (this.props.keys.hasOwnProperty("values") && !this.props.keys.values.length)
-        error = (<div className="alert alert-warning m-t-20" role="alert">Data not available (No keys available for this timerange)</div>);
+        error = (<div className="alert alert-warning m-t-20" role="alert">You need to set tags (No keys available for this timerange)</div>);
     }
     if (this.props.values && this.props.keys.values && this.props.keys.hasOwnProperty("error"))
       error = (<div className="alert alert-warning m-t-20" role="alert">Data not available ({this.props.keys.error.message})</div>);
@@ -141,6 +154,7 @@ class ChartComponent extends Component {
         values={this.props.values.values}
         legend
         height={450}
+        filter={filters[this.props.filter]}
       />
     ) : null);
 
@@ -166,8 +180,8 @@ ChartComponent.propTypes = {
   getValues: PropTypes.func.isRequired,
   dates: PropTypes.object.isRequired,
   setDates: PropTypes.func.isRequired,
-  interval: PropTypes.string.isRequired,
-  setInterval: PropTypes.func.isRequired,
+  filter: PropTypes.string.isRequired,
+  selectFilter: PropTypes.func.isRequired,
   close: PropTypes.func
 };
 

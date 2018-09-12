@@ -135,8 +135,9 @@ export function* watchSaveTagsCharts() {
   yield takeEvery(Constants.AWS_TAGS_REMOVE_CHART, saveTagsChartsSaga);
   yield takeEvery(Constants.AWS_TAGS_SET_DATES, saveTagsChartsSaga);
   yield takeEvery(Constants.AWS_TAGS_RESET_DATES, saveTagsChartsSaga);
-  yield takeEvery(Constants.AWS_TAGS_SET_INTERVAL, saveTagsChartsSaga);
-  yield takeEvery(Constants.AWS_TAGS_CLEAR_INTERVAL, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_SET_FILTER, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_RESET_FILTERS, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_CLEAR_FILTERS, saveTagsChartsSaga);
 }
 
 export function* watchGetAccountBillStatus() {

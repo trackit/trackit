@@ -158,20 +158,20 @@ export const s3Analytics = {
 };
 
 export const tags = {
-  transformProductsPieChart: (data) => {
+  transformItemsPieChart: (data) => {
     if (!data)
       return null;
     return data.map((tag) => {
-      const products = {};
+      const items = {};
       let value = 0;
-      tag.costs.forEach((product) => {
-        products[product.item] = product.cost;
-        value += product.cost;
+      tag.costs.forEach((item) => {
+        items[item.item] = item.cost;
+        value += item.cost;
       });
       return ({
         key: tag.tag || "No tag",
         value,
-        products
+        items
       });
     });
   },

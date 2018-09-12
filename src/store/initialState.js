@@ -47,7 +47,7 @@ export default {
     tags: {
       charts: {},
       dates: {},
-      interval: {},
+      filters: {},
       keys: {},
       values: {}
     },
