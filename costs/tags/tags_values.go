@@ -28,6 +28,11 @@ import (
 )
 
 type (
+	FilterType struct {
+		Filter string
+		Type   string
+	}
+
 	// structs that allows to parse ES result
 	esTagsValuesResult struct {
 		Keys struct {
@@ -49,7 +54,8 @@ type (
 
 	esFilterResult struct {
 		Buckets []struct {
-			Product string `json:"key"`
+			Time string      `json:"key_as_string"`
+			Item interface{} `json:"key"`
 			Cost    struct {
 				Value float64 `json:"value"`
 			} `json:"cost"`
@@ -94,7 +100,11 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		for _, tag := range key.Tags.Buckets {
 			var costs []TagValue
 			for _, cost := range tag.Rev.Filter.Buckets {
-				costs = append(costs, TagValue{cost.Product, cost.Cost.Value})
+				if cost.Time != "" {
+					costs = append(costs, TagValue{cost.Time, cost.Cost.Value})
+				} else {
+					costs = append(costs, TagValue{cost.Item.(string), cost.Cost.Value})
+				}
 			}
 			values = append(values, TagsValues{tag.Tag, costs})
 		}
@@ -116,13 +126,20 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
 	index := strings.Join(params.IndexList, ",")
+	aggregation := elastic.NewReverseNestedAggregation().
+		SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(0x7FFFFFFF).
+			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
+	if filter.Type == "time" {
+		aggregation = elastic.NewReverseNestedAggregation().
+			SubAggregation("filter", elastic.NewDateHistogramAggregation().
+				Field("usageStartDate").MinDocCount(0).Interval(filter.Filter).
+					SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
+	}
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
 		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").
 			SubAggregation("tags", elastic.NewTermsAggregation().Field("tags.tag").
-				SubAggregation("rev", elastic.NewReverseNestedAggregation().
-					SubAggregation("filter", elastic.NewTermsAggregation().Field(filter).Size(0x7FFFFFFF).
-						SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))))))
+				SubAggregation("rev", aggregation))))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
@@ -156,19 +173,23 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 }
 
 // getTagsValuesFilter returns a string of the field to filter
-func getTagsValuesFilter(filter string) string {
-	var filters = map[string]string{
-		"product":          "productCode",
-		"region":           "region",
-		"account":          "usageAccountId",
-		"availabilityzone": "availabilityZone",
+func getTagsValuesFilter(filter string) (FilterType) {
+	var filters = map[string]FilterType{
+		"product":          {"productCode",     "term"},
+		"region":           {"region",          "term"},
+		"account":          {"usageAccountId",  "term"},
+		"availabilityzone": {"availabilityZone","term"},
+		"day":              {"day",             "time"},
+		"week":             {"week",            "time"},
+		"month":            {"month",           "time"},
+		"year":             {"year",            "time"},
 	}
 	for i := range filters {
 		if i == filter {
 			return filters[i]
 		}
 	}
-	return "error"
+	return FilterType{"error", "error"}
 }
 
 // arrayContainsString returns true if a string is present in an array of string
