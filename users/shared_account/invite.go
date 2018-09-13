@@ -198,7 +198,7 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int
 			logger.Error("Error occured while sending an email to a new user.", err.Error())
 			return 403, ErrorInviteNewUser
 		}
-		return 200, newUser
+		return http.StatusBadRequest, newUser
 	} else {
 		logger.Error("Error occured while creating new account for a guest.", err.Error())
 		return 403, ErrorInviteNewUser
