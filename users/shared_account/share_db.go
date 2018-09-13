@@ -37,7 +37,7 @@ func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]Share
 	var response []SharedResults
 	dbSharedAccounts, err := models.SharedAccountsByAccountID(db, accountId)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return response, nil
 	} else if err != nil {
 		logger.Error("Error getting shared account from database.", err.Error())
 		return nil, err

@@ -17,6 +17,7 @@ package shared_account
 import (
 	"database/sql"
 	"net/http"
+	"errors"
 
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
@@ -31,7 +32,7 @@ type InviteUserRequest struct {
 }
 
 var listUserSharedAccountRequest = routes.QueryArg{
-	Name:        "AccountId",
+	Name:        "accountid",
 	Type:        routes.QueryArgInt{},
 	Description: "AWS Account ID",
 	Optional:    false,
@@ -118,7 +119,8 @@ func updateSharedUsers(request *http.Request, a routes.Arguments) (int, interfac
 	var body updateUsersSharedAccountRequest
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	return updateSharedUserAccessWithValidBody(request, body, tx)
+	user := a[users.AuthenticatedUser].(users.User)
+	return updateSharedUserAccessWithValidBody(request, body, tx, user)
 }
 
 // deleteSharedUsers handles user access deletion for team sharing
@@ -126,33 +128,46 @@ func deleteSharedUsers(request *http.Request, a routes.Arguments) (int, interfac
 	var body deleteUsersSharedAccountRequest
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	return deleteSharedUserAccessWithValidBody(request, body, tx)
+	user := a[users.AuthenticatedUser].(users.User)
+	return deleteSharedUserAccessWithValidBody(request, body, tx, user)
 }
 
 // listSharedUserAccessWithValidBody tries to list users who have an access to an AWS account
 func listSharedUserAccessWithValidBody(request *http.Request, body int, tx *sql.Tx, user users.User) (int, interface{}) {
+	security, err := safetyCheckByAccountId(request.Context(), tx, body, user)
+	if !security || err != nil {
+		return 403, err
+	}
 	res, err := GetSharingList(request.Context(), db.Db, body)
 	if err != nil {
-		return 403, "Error retrieving shared users list"
+		return 403, errors.New("Error retrieving shared users list")
 	} else {
 		return 200, res
 	}
 }
 
 // updateSharedUserAccessWithValidBody tries to update users permission level for team sharing
-func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
+func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, tx *sql.Tx, user users.User) (int, interface{}) {
+	security, err := safetyCheckByShareId(request.Context(), tx, body.ShareId, user)
+	if !security || err != nil {
+		return 403, err
+	}
 	res, err := UpdateSharedUser(request.Context(), db.Db, body.ShareId, body.PermissionLevel)
 	if err != nil {
-		return 403, "Error updating shared user list"
+		return 403, errors.New("Error updating shared user list")
 	}
 	return 200, res
 }
 
 // deleteSharedUserAccessWithValidBody tries to delete users from accessing specific shared aws account
-func deleteSharedUserAccessWithValidBody(request *http.Request, body deleteUsersSharedAccountRequest, tx *sql.Tx) (int, interface{}) {
-	err := DeleteSharedUser(request.Context(), db.Db, body.ShareId)
+func deleteSharedUserAccessWithValidBody(request *http.Request, body deleteUsersSharedAccountRequest, tx *sql.Tx, user users.User) (int, interface{}) {
+	security, err := safetyCheckByShareId(request.Context(), tx, body.ShareId, user)
+	if !security || err != nil {
+		return 403, err
+	}
+	err = DeleteSharedUser(request.Context(), db.Db, body.ShareId)
 	if err != nil {
-		return 403, "Error deleting shared user"
+		return 403, errors.New("Error deleting shared user")
 	}
 	return 200, nil
 }

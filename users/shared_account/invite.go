@@ -47,7 +47,7 @@ func getPasswordHash(password string) (string, error) {
 
 // checkuserWithEmail checks if user already exist.
 // true is returned if invited user already exist.
-func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string) (bool, int, error) {
+func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string, user users.User) (bool, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser, err := models.UserByEmail(db, userEmail)
 	if err == sql.ErrNoRows {
@@ -56,7 +56,11 @@ func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string) (
 		logger.Error("Error getting user from database.", err.Error())
 		return false, 0, err
 	} else {
-		return true, dbUser.ID,nil
+		if user.Id != dbUser.ID {
+			return true, dbUser.ID, nil
+		} else {
+			return false, dbUser.ID, ErrorAlreadyShared
+		}
 	}
 }
 
@@ -82,32 +86,33 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, user
 
 // addAccountToGuest adds an entry in shared_account table allowing a user
 // to share an access to all or part of his account
-func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int) (error) {
+func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int) (interface{}, error) {
 	dbSharedAccount := models.SharedAccount{
 		AccountID:  accountId,
 		UserID:   guestId,
 		UserPermission: permissionLevel,
 	}
 	err := dbSharedAccount.Insert(db)
-	return err
+	return dbSharedAccount, err
 }
 
 // createAccountForGuest creates an account for invited user who do not already own an account
-func createAccountForGuest(ctx context.Context, db *sql.Tx, userMail string, accountId int, permissionLevel int) (int, error) {
+func createAccountForGuest(ctx context.Context, db *sql.Tx, userMail string, accountId int, permissionLevel int) (int, interface{}, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var sharedAccount interface{}
 	tempPassword := uuid.NewV1().String()
 	usr, err := users.CreateUserWithPassword(ctx, db, userMail, tempPassword, "")
 	if err == nil {
-		err = addAccountToGuest(ctx, db, accountId, permissionLevel, usr.Id)
+		sharedAccount, err = addAccountToGuest(ctx, db, accountId, permissionLevel, usr.Id)
 		if err != nil {
 			logger.Error("Error occured while adding account to an newly created user.", err.Error())
-			return 0, err
+			return 0, nil, err
 		}
 	} else {
 		logger.Error("Error occured while creating an automatic new account.", err.Error())
-		return 0, err
+		return 0, nil, err
 	}
-	return usr.Id,nil
+	return usr.Id, sharedAccount, nil
 }
 
 // resetPasswordGenerator returns a reset password token. It is used in order to
@@ -137,6 +142,7 @@ func resetPasswordGenerator(ctx context.Context, tx *sql.Tx, newUserId int) (mod
 
 // sendMailNotification sends an email to user how has been invited to access a AWS account on trackit.io
 func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, userNew bool, newUserId int) (error) {
+	return nil
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
@@ -169,14 +175,14 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	} else if isAlreadyShared {
 		return 200, ErrorAlreadyShared
 	}
-	err = addAccountToGuest(ctx, tx, body.AccountId, body.PermissionLevel, guestId)
+	sharedAccount, err := addAccountToGuest(ctx, tx, body.AccountId, body.PermissionLevel, guestId)
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email,true, 0)
 		if err != nil {
 			logger.Error("Error occured while sending an email to an existing user.", err.Error())
 			return 403, ErrorInviteUser
 		}
-		return 200, nil
+		return http.StatusBadRequest, sharedAccount
 	} else {
 		logger.Error("Error occured while adding account to an existing user.", err.Error())
 		return 403, ErrorInviteUser
@@ -185,14 +191,14 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 
 func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	newUserId, err := createAccountForGuest(ctx, tx, body.Email, body.AccountId, body.PermissionLevel)
+	newUserId, newUser, err := createAccountForGuest(ctx, tx, body.Email, body.AccountId, body.PermissionLevel)
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email,false, newUserId)
 		if err != nil {
 			logger.Error("Error occured while sending an email to a new user.", err.Error())
 			return 403, ErrorInviteNewUser
 		}
-		return 200, nil
+		return 200, newUser
 	} else {
 		logger.Error("Error occured while creating new account for a guest.", err.Error())
 		return 403, ErrorInviteNewUser
@@ -202,8 +208,12 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int
 // inviteUserWithValidBody tries to share an account with a specific user
 func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email)
-	if err == nil {
+	security, err := safetyCheckByAccountId(request.Context(), tx, body.AccountId, user)
+	if !security || err != nil {
+		return 403, err
+	}
+	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email, user)
+	if err == nil && (body.PermissionLevel == 0 || body.PermissionLevel == 1 || body.PermissionLevel == 2) {
 		if result {
 			code, res := inviteUserAlreadyExist(request.Context(), tx, body, guestId)
 			return code, res
@@ -212,7 +222,7 @@ func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, tx *
 			return code, res
 		}
 	} else {
-		logger.Error("Error occured while checking if user already exist.", err.Error())
+		logger.Error("Error occured while checking body elements.", err.Error())
 		return 403, ErrorInviteNewUser
 	}
 }
