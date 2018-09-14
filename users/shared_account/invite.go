@@ -142,7 +142,6 @@ func resetPasswordGenerator(ctx context.Context, tx *sql.Tx, newUserId int) (mod
 
 // sendMailNotification sends an email to user how has been invited to access a AWS account on trackit.io
 func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, userNew bool, newUserId int) (error) {
-	return nil
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
