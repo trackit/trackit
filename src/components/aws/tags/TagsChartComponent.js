@@ -22,16 +22,39 @@ const margin = {
 
 class TagsChartComponent extends Component {
 
-  render() {
-    const datum = transformItemsPieChart(this.props.values);
+  constructor(props) {
+    super(props);
+    this.state = {
+      datum: [],
+      total: 0
+    };
+    this.getSelectedTotal = this.getSelectedTotal.bind(this);
+  }
 
-    if (!datum)
+  componentWillMount() {
+    const datum = transformItemsPieChart(this.props.values);
+    const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
+    this.setState({datum, total});
+  }
+
+  getSelectedTotal = (selection, chart) => {
+    const datum = [];
+    this.state.datum.forEach((item, index) => {
+      if (!selection[index])
+        datum.push(item);
+    });
+    const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
+    this.setState({total});
+    chart.title(total);
+    chart.update();
+  };
+
+  render() {
+    if (!this.state.datum)
       return (<h4 className="no-data">No data available for this timerange</h4>);
 
-    const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
-
     const itemsList = [];
-    datum.forEach((tag) => {
+    this.state.datum.forEach((tag) => {
       Object.keys(tag.items).forEach((item) => {
         if (itemsList.indexOf(item) === -1)
           itemsList.push(item);
@@ -48,7 +71,7 @@ class TagsChartComponent extends Component {
     /* istanbul ignore next */
     const table = (
       <ReactTable
-        data={datum}
+        data={this.state.datum}
         noDataText="No tags available"
         columns={[
           {
@@ -80,8 +103,8 @@ class TagsChartComponent extends Component {
             <NVD3Chart
               id="pieChart"
               type="pieChart"
-              title={total}
-              datum={datum}
+              title={this.state.total}
+              datum={this.state.datum}
               color={ChartsColors}
               margin={margin}
               x={formatX}
@@ -91,6 +114,11 @@ class TagsChartComponent extends Component {
               legendPosition="top"
               donut={true}
               height={this.props.height}
+              renderStart={(chart) => {
+                chart.dispatch.on('stateChange', (data) => {
+                  this.getSelectedTotal(data.disabled, chart);
+                })
+              }}
             />
           </div>
           <div className="col-md-9">

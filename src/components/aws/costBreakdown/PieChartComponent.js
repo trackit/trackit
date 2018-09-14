@@ -22,24 +22,48 @@ const margin = {
 
 class PieChartComponent extends Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      datum: [],
+      total: 0
+    };
+    this.getSelectedTotal = this.getSelectedTotal.bind(this);
+  }
+
+  componentWillMount() {
+    const datum = this.generateDatum();
+    const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
+    this.setState({datum, total});
+  }
+
   generateDatum = () => {
     if (this.props.values && Object.keys(this.props.values).length && this.props.filter)
       return transformProductsPieChart(this.props.values, this.props.filter);
     return null;
   };
 
-  render() {
-    const datum = this.generateDatum();
+  getSelectedTotal = (selection, chart) => {
+    const datum = [];
+    this.state.datum.forEach((item, index) => {
+      if (!selection[index])
+        datum.push(item);
+    });
+    const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
+    this.setState({total});
+    chart.title(total);
+    chart.update();
+  };
 
-    if (!datum)
+  render() {
+    if (!this.state.datum)
       return (<h4 className="no-data">No data available for this timerange</h4>);
 
-    const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
 
     /* istanbul ignore next */
     const table = (this.props.table ? (
       <ReactTable
-        data={datum}
+        data={this.state.datum}
         noDataText="No buckets available"
         columns={[
           {
@@ -61,23 +85,32 @@ class PieChartComponent extends Component {
       />
     ) : null);
 
+    const chart = (
+      <NVD3Chart
+        id="pieChart"
+        type="pieChart"
+        title={this.state.total}
+        datum={this.state.datum}
+        color={ChartsColors}
+        margin={this.props.margin ? margin : null}
+        x={formatX}
+        y={formatY}
+        showLabels={false}
+        showLegend={this.props.legend}
+        legendPosition="right"
+        donut={true}
+        height={this.props.height}
+        renderStart={(chart) => {
+          chart.dispatch.on('stateChange', (data) => {
+            this.getSelectedTotal(data.disabled, chart);
+          })
+        }}
+      />
+    );
+
     return (
       <div className="clearfix">
-        <NVD3Chart
-          id="pieChart"
-          type="pieChart"
-          title={total}
-          datum={datum}
-          color={ChartsColors}
-          margin={this.props.margin ? margin : null}
-          x={formatX}
-          y={formatY}
-          showLabels={false}
-          showLegend={this.props.legend}
-          legendPosition="right"
-          donut={true}
-          height={this.props.height}
-        />
+        {chart}
         {table}
       </div>
     )

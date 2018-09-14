@@ -11,7 +11,7 @@ import StatusBadges from '../aws/accounts/StatusBadgesComponent';
 import Summary from './SummaryComponent';
 import TopSpendings from './TopSpendingsComponent';
 import History from './HistoryComponent';
-import Events from './EventsComponent';
+//import Events from './EventsComponent';
 
 const defaultDates = {
   startDate: moment().startOf('month'),
@@ -87,6 +87,7 @@ export class HighLevelComponent extends Component {
       }
     }
 
+    /* Uncomment this block once API is fixed
     let eventsLoader;
     let eventsError;
     let events;
@@ -102,6 +103,7 @@ export class HighLevelComponent extends Component {
           date={this.props.dates.startDate}
         />;
     }
+    */
 
     // Add support for eventsLoader & eventsError once API is fixed
     const status = (costLoader || costError ? (
@@ -136,7 +138,6 @@ export class HighLevelComponent extends Component {
         {history}
         {topSpendings}
       </div>
-
 
     );
   }

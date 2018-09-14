@@ -735,3 +735,14 @@ h4.no-data {
 .tags-item:last-child {
     border-bottom: none;
 }
+
+.wrapper .popover-trigger i.btn {
+    font-size: 1.45em;
+}
+
+.wrapper .popover-trigger i.btn:active {
+    background: #ffffff;
+    color: #4885ed;
+    border-color: #f1f1f1;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+}
