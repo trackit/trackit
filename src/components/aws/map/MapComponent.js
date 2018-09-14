@@ -104,7 +104,7 @@ class MapComponent extends Component {
         .select("#" + mask)
         .on("mouseover", () => {
           tooltip.innerHTML = null;
-          tooltip.appendChild(generateTooltip((region === "global" ? "Global products" : region), this.props.data[region]));
+          tooltip.appendChild(generateTooltip((region === "global" ? "Global products" : (region === "taxes" ? "": region)), this.props.data[region]));
           d3.select(tooltip)
             .style({
               opacity: 1,
@@ -148,6 +148,9 @@ class MapComponent extends Component {
           if (region === "global") {
             style["stroke"] = "none";
             setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "global_toggle");
+          } else if (region === "taxes") {
+            style["stroke"] = "none";
+            setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "taxes_toggle");
           }
           setupRegion(region, style);
         });

@@ -30,7 +30,8 @@ const regions = {
   "us-east-2": "Ohio",
   "us-west-1": "North California",
   "us-west-2": "Oregon",
-  "global": "No specific region"
+  "global": "No specific region",
+  "taxes": "Taxes"
 };
 
 const formatData = (costs) => {
@@ -93,7 +94,7 @@ const regionDetails = (key, region, data, double, close) => {
         </div>
       </div>
       <div className="region-name">
-        <h3>{(region === "" ? "Global Products" : region)}</h3>
+        <h3>{(region === "global" ? "Global Products" : (region === "taxes" ? "Taxes" : region))}</h3>
         <h4>{regions[region]}</h4>
       </div>
       <div className="region-info">
@@ -250,7 +251,6 @@ export class ResourcesMapContainer extends Component {
         <div className="clearfix white-box">
           <div className="inline-block">
             <h3 className="white-box-title no-padding inline-block">
-              {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
               <i className="fa fa-globe"></i>
               &nbsp;
               Resources Map
