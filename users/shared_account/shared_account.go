@@ -31,13 +31,6 @@ type InviteUserRequest struct {
 	PermissionLevel int    `json:"permissionLevel"`
 }
 
-var listUserSharedAccountRequest = routes.QueryArg{
-	Name:        "accountid",
-	Type:        routes.QueryArgInt{},
-	Description: "AWS Account ID",
-	Optional:    false,
-}
-
 type updateUsersSharedAccountRequest struct {
 	ShareId         int `json:"shareId" req:"nonzero"`
 	PermissionLevel int `json:"permissionLevel"`
@@ -57,7 +50,7 @@ func init() {
 				Description: "Return a list of user who have an access to an AWS account on Trackit",
 			},
 			routes.QueryArgs{
-				listUserSharedAccountRequest,
+				routes.AwsAccountIdQueryArg,
 			},
 		),
 		http.MethodPost: routes.H(inviteUser).With(
@@ -108,7 +101,7 @@ func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 
 // listSharedUsers handles listing of users who have an access to an AWS account.
 func listSharedUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
-	body := a[listUserSharedAccountRequest].(int)
+	body := a[routes.AwsAccountIdQueryArg].(int)
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
 	return listSharedUserAccessWithValidBody(request, body, tx, user)
