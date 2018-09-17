@@ -57,6 +57,7 @@ type (
 		Id         string                     `json:"id"`
 		Region     string                     `json:"region"`
 		State      string                     `json:"state"`
+		Purchasing string                     `json:"purchasing"`
 		CpuAverage float64                    `json:"cpuAverage"`
 		CpuPeak    float64                    `json:"cpuPeak"`
 		NetworkIn  float64                    `json:"networkIn"`
@@ -321,6 +322,23 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 	}
 }
 
+// getPurchasingOption returns a string that describes how the instance given as parameter have been purchased
+func getPurchasingOption(instance *ec2.Instance) (string) {
+	var purchasing string
+	lifeCycle := aws.StringValue(instance.InstanceLifecycle)
+	tenancy   := aws.StringValue(instance.Placement.Tenancy)
+	if tenancy == "" || tenancy == "default" {
+		if lifeCycle == "" {
+			purchasing = "on demand"
+		} else {
+			purchasing = lifeCycle
+		}
+	} else {
+		purchasing = tenancy
+	}
+	return purchasing
+}
+
 // fetchInstancesList sent in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances, getAccountID and getInstanceStats.
 func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
@@ -340,13 +358,15 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 	for _, reservation := range instances.Reservations {
 		for _, instance := range reservation.Instances {
 			stats := getInstanceStats(ctx, instance, sess)
+			purchasing := getPurchasingOption(instance)
 			instanceInfoChan <- InstanceInfo{
 				Id:         aws.StringValue(instance.InstanceId),
 				Region:     aws.StringValue(instance.Placement.AvailabilityZone),
 				KeyPair:    aws.StringValue(instance.KeyName),
 				Tags:       getInstanceTag(instance.Tags),
 				Type:       aws.StringValue(instance.InstanceType),
-				State:		aws.StringValue(instance.State.Name),
+				State:      aws.StringValue(instance.State.Name),
+				Purchasing: purchasing,
 				CpuAverage: stats.CpuAverage,
 				CpuPeak:    stats.CpuPeak,
 				NetworkIn:  stats.NetworkIn,
