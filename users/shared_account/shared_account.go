@@ -101,10 +101,10 @@ func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 
 // listSharedUsers handles listing of users who have an access to an AWS account.
 func listSharedUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
-	body := a[routes.AwsAccountIdQueryArg].(int)
+	accountId := a[routes.AwsAccountIdQueryArg].(int)
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-	return listSharedUserAccessWithValidBody(request, body, tx, user)
+	return listSharedUserAccessWithValidBody(request, accountId, tx, user)
 }
 
 // updateSharedUsers handles updates of user permission level for team sharing.
@@ -126,12 +126,12 @@ func deleteSharedUsers(request *http.Request, a routes.Arguments) (int, interfac
 }
 
 // listSharedUserAccessWithValidBody tries to list users who have an access to an AWS account
-func listSharedUserAccessWithValidBody(request *http.Request, body int, tx *sql.Tx, user users.User) (int, interface{}) {
-	security, err := safetyCheckByAccountId(request.Context(), tx, body, user)
+func listSharedUserAccessWithValidBody(request *http.Request, accountId int, tx *sql.Tx, user users.User) (int, interface{}) {
+	security, err := safetyCheckByAccountId(request.Context(), tx, accountId, user)
 	if !security || err != nil {
 		return 403, err
 	}
-	res, err := GetSharingList(request.Context(), db.Db, body)
+	res, err := GetSharingList(request.Context(), db.Db, accountId)
 	if err != nil {
 		return 403, errors.New("Error retrieving shared users list")
 	} else {
