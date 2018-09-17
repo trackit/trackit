@@ -66,8 +66,11 @@ class FormComponent extends Component {
     if (!this.state.step) {
       this.setState({ step : 1 })
     } else {
-      const formValues = this.form.getValues();
-      this.props.submit(formValues);  
+      const body = {
+        bucket: this.state.bucket,
+        prefix: this.state.prefix
+      };
+      this.props.submit(body);
     }
   };
 
