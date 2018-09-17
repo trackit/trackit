@@ -66,7 +66,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 	return false, err
 }
 
-
+// checkPermissionLevel checks user permission level
 func checkPermissionLevel(permissionLevel int) (bool) {
 	if permissionLevel == 0 {
 		return true
