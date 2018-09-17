@@ -172,7 +172,7 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	if err != nil {
 		return 403, ErrorInviteUser
 	} else if isAlreadyShared {
-		return 200, ErrorAlreadyShared
+		return http.StatusBadRequest, ErrorAlreadyShared
 	}
 	sharedAccount, err := addAccountToGuest(ctx, tx, body.AccountId, body.PermissionLevel, guestId)
 	if err == nil {
