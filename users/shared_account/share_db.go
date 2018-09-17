@@ -24,10 +24,10 @@ import (
 )
 
 type SharedResults struct {
-	ShareId int
-	Mail string
-	Level int
-	UserId int
+	ShareId       int
+	Mail          string
+	Level         int
+	UserId        int
 	SharingStatus bool
 }
 
