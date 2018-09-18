@@ -166,6 +166,7 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	return nil
 }
 
+// inviteUserAlreadyExist handles sharing for user that already exists
 func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequest, guestId int) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	isAlreadyShared, err := checkSharedAccount(ctx, tx, body.AccountId, guestId)
@@ -188,6 +189,7 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	}
 }
 
+// inviteNewUser handles sharing for user that do not already exist
 func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	newUserId, newUser, err := createAccountForGuest(ctx, tx, body)
@@ -208,11 +210,17 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int
 func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	security, err := safetyCheckByAccountId(request.Context(), tx, body.AccountId, user)
-	if !security || err != nil {
-		return 403, err
+	if err != nil {
+		return http.StatusBadRequest, err
+	} else if !security {
+		return http.StatusForbidden, errors.New("You do not have permission to edit this sharing")
+	}
+	if !checkPermissionLevel(body.PermissionLevel) {
+		logger.Info("Non existing user permission", nil)
+		return http.StatusBadRequest, ErrorInviteUser
 	}
 	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email, user)
-	if err == nil && checkPermissionLevel(body.PermissionLevel) {
+	if err == nil {
 		if result {
 			code, res := inviteUserAlreadyExist(request.Context(), tx, body, guestId)
 			return code, res

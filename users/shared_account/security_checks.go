@@ -34,8 +34,8 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 			}
 		}
 	}
-	logger.Error("Non existing AWS error", err)
-	return false, errors.New("This AWS Account does not exist")
+	logger.Error("Unable to ensure user have enough rights to do this action", err)
+	return false, errors.New("Unable to ensure user have enough rights to do this action")
 }
 
 // safetyCheckByShareId checks by ShareId if the user have a high enough
@@ -44,8 +44,8 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbShareAccount, err := models.SharedAccountByID(tx, shareId)
 	if err == sql.ErrNoRows {
-		logger.Error("Non existing AWS error", err)
-		return false, errors.New("This AWS Account does not exist")
+		logger.Error("Non existing Shared access error", err)
+		return false, nil
 	} else if err != nil {
 		logger.Error("Error while retrieving Shared Accounts" ,err)
 		return false, err
@@ -57,7 +57,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 	dbShareAccountByAccountId, err := models.SharedAccountsByAccountID(tx, dbShareAccount.AccountID)
 	if err == nil {
 		for _, key := range dbShareAccountByAccountId {
-			if key.UserID == user.Id {
+			if key.UserID == user.Id && (key.UserPermission == 0 || key.UserPermission == 1) {
 				return true, nil
 			}
 		}
@@ -65,6 +65,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 	logger.Error("Unable to ensure user have enough rights to do this action", err)
 	return false, err
 }
+
 
 // checkPermissionLevel checks user permission level
 func checkPermissionLevel(permissionLevel int) (bool) {
