@@ -47,6 +47,7 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
+	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))

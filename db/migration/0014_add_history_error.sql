@@ -12,5 +12,4 @@
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_account_update_job ADD rdsHistoryError VARCHAR(255) NOT NULL DEFAULT "";
-ALTER TABLE aws_account_update_job ADD ec2HistoryError VARCHAR(255) NOT NULL DEFAULT "";
+ALTER TABLE aws_account_update_job ADD historyError VARCHAR(255) NOT NULL DEFAULT "";

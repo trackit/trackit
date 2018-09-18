@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
-	"version": 3,
+	"version": 4,
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -52,8 +52,8 @@ const TemplateLineItem = `
 				"reportDate": {
 					"type": "date"
 				},
-				"endDate": {
-					"type": "date"
+				"reportType": {
+					"type": "keyword"
 				},
 				"instances" : {
 					"type": "nested",
@@ -96,6 +96,10 @@ const TemplateLineItem = `
 						},
 						"tags": {
 							"type": "nested"
+						},
+						"cost": {
+							"type": "float",
+							"index": false
 						}
 					}
 				}

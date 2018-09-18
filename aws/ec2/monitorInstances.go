@@ -48,6 +48,7 @@ type (
 	ReportInfo struct {
 		Account    string         `json:"account"`
 		ReportDate time.Time      `json:"reportDate"`
+		ReportType string         `json:"reportType"`
 		Instances  []InstanceInfo `json:"instances"`
 	}
 
@@ -67,6 +68,7 @@ type (
 		KeyPair    string                     `json:"keyPair"`
 		Type       string                     `json:"type"`
 		Tags       map[TagName]TagValue       `json:"tags"`
+		Cost       float64                    `json:"cost"`
 	}
 
 	InstanceStats struct {
@@ -373,6 +375,7 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 				NetworkOut: stats.NetworkOut,
 				IORead:     stats.IORead,
 				IOWrite:    stats.IOWrite,
+				Cost:       0,
 			}
 		}
 	}
@@ -454,6 +457,7 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 	report := ReportInfo{
 		account,
 		time.Now().UTC(),
+		"daily",
 		make([]InstanceInfo, 0),
 	}
 	regions, err := fetchRegionsList(ctx, defaultSession)

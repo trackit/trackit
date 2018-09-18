@@ -42,43 +42,50 @@ func init() {
 const TemplateRDSReport = `
 {
 	"template": "*-rds-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"rds-report": {
 			"properties": {
 				"account": {
  					"type": "keyword"
- 				},
-        "reportDate": {
+				},
+				"reportDate": {
 					"type": "date"
 				},
-        "instances": {
-          "type": "nested",
-          "properties": {
-            "dbInstanceIdentifier": {
-              "type": "keyword",
-              "norms": false
-            },
-            "dbInstanceClass": {
-              "type": "keyword",
-              "norms": false
-            },
-            "allocatedStorage": {
-              "type": "integer"
-            },
-            "engine": {
-              "type": "keyword",
-              "norms": false
-            },
-            "availabilityZone": {
-              "type": "keyword",
-              "norms": false
-            },
-            "multiAZ": {
-              "type": "boolean"
-            }
-          }
-        }
+				"reportType": {
+					"type": "keyword"
+				},
+				"instances": {
+					"type": "nested",
+					"properties": {
+						"dbInstanceIdentifier": {
+							"type": "keyword",
+							"norms": false
+						},
+						"dbInstanceClass": {
+							"type": "keyword",
+							"norms": false
+						},
+						"allocatedStorage": {
+							"type": "integer"
+						},
+						"engine": {
+							"type": "keyword",
+							"norms": false
+						},
+						"availabilityZone": {
+							"type": "keyword",
+							"norms": false
+						},
+						"multiAZ": {
+							"type": "boolean"
+						},
+						"cost": {
+							"type": "float",
+							"index": false
+						}
+					}
+				}
 			},
 			"_all": {
 				"enabled": false

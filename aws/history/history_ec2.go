@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,23 +12,18 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package es
+package history
 
 import (
-	"fmt"
+	"context"
 
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws"
 )
 
-const (
-	IndexPrefixLineItems = "lineitems"
-	IndexPrefixHistory = "history-report"
-)
-
-func IndexNameForUser(u users.User, p string) string {
-	return IndexNameForUserId(u.Id, p)
+func getEc2InstancesInfos(ctx context.Context, instances []CostPerInstance, aa aws.AwsAccount) (interface{}, error) {
+	return nil, nil
 }
 
-func IndexNameForUserId(i int, p string) string {
-	return fmt.Sprintf("%06d-%s", i, p)
+func putEc2ReportInES(ctx context.Context, report interface{}, aa aws.AwsAccount) (error) {
+	return nil
 }
