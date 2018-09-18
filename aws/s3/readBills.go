@@ -32,8 +32,8 @@ import (
 
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/util/csv"
 	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/util/csv"
 )
 
 const (
@@ -101,6 +101,7 @@ type LineItem struct {
 	BillingPeriodStart string            `csv:"bill/BillingPeriodStartDate"  json:"-"`
 	BillingPeriodEnd   string            `csv:"bill/BillingPeriodEndDate"    json:"-"`
 	UsageAccountId     string            `csv:"lineItem/UsageAccountId"      json:"usageAccountId"`
+	LineItemType       string            `csv:"lineItem/LineItemType"        json:"lineItemType"`
 	UsageStartDate     string            `csv:"lineItem/UsageStartDate"      json:"usageStartDate"`
 	UsageEndDate       string            `csv:"lineItem/UsageEndDate"        json:"usageEndDate""`
 	ProductCode        string            `csv:"lineItem/ProductCode"         json:"productCode"`
@@ -113,8 +114,14 @@ type LineItem struct {
 	ServiceCode        string            `csv:"product/servicecode"          json:"serviceCode"`
 	CurrencyCode       string            `csv:"lineItem/CurrencyCode"        json:"currencyCode"`
 	UnblendedCost      string            `csv:"lineItem/UnblendedCost"       json:"unblendedCost"`
+	TaxType            string            `csv:"lineItem/TaxType"             json:"taxType"`
 	Any                map[string]string `csv:",any"                         json:"-"`
-	Tags               map[string]string `csv:"-"                            json:"tags,omitempty"`
+	Tags               []LineItemTags    `csv:"-"                            json:"tags,omitempty"`
+}
+
+type LineItemTags struct {
+	Key string `json:"key"`
+	Tag string `json:"tag"`
 }
 
 func (li LineItem) EsId() string {
@@ -209,7 +216,7 @@ func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadClos
 		defer close(out)
 		csvDecoder := csv.NewDecoder(reader)
 		for r := range records(ctx, &csvDecoder) {
-			if (mp(m, false) || r.InvoiceId == "") {
+			if mp(m, false) || r.InvoiceId == "" {
 				out <- r
 			}
 		}

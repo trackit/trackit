@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lineitems",
-	"version": 6,
+	"version": 8,
 	"mappings": {
 		"lineitem": {
 			"properties": {
@@ -62,6 +62,10 @@ const TemplateLineItem = `
 					"norms": false
 				},
 				"usageAccountId": {
+					"type": "keyword",
+					"norms": false
+				},
+				"lineItemType": {
 					"type": "keyword",
 					"norms": false
 				},
@@ -105,24 +109,30 @@ const TemplateLineItem = `
 					"type": "float",
 					"index": false
 				},
+				"taxType": {
+					"type": "keyword",
+					"norms": false
+				},
 				"usageStartDate": {
 					"type": "date"
 				},
 				"usageEndDate": {
 					"type": "date"
-				}
-			},
-			"dynamic_templates": [
-				{
-					"tags": {
-						"match_mapping_type": "string",
-						"path_match": "tags.*",
-						"mapping": {
-							"type": "keyword"
+				},
+				"tags": {
+					"type": "nested",
+					"properties": {
+						"key": {
+							"type": "keyword",
+							"norms": false
+						},
+						"tag": {
+							"type": "keyword",
+							"norms": false
 						}
 					}
 				}
-			],
+			},
 			"_all": {
 				"enabled": false
 			},

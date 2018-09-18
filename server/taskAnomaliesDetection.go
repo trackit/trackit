@@ -28,6 +28,7 @@ import (
 	"github.com/trackit/trackit-server/mail"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/config"
 )
 
 // taskAnomaliesDetection processes an AwsAccount to email
@@ -36,32 +37,6 @@ func taskAnomaliesDetection(ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'anomalies-detection'.", nil)
 	return EmailAnomalies(ctx)
-}
-
-// getAnomalyLevel get the pretty level of an anomaly.
-func getAnomalyLevel(an anomalies.CostAnomaly) int {
-	percent := ((an.Cost * 100) / an.UpperBand) - 100
-	if an.Cost-an.UpperBand < 5 || percent < 20 {
-		return 0
-	} else if percent < 50 {
-		return 1
-	} else if percent < 100 {
-		return 2
-	} else {
-		return 3
-	}
-}
-
-// getAnomalyPrettyLevel get the pretty level of an anomaly.
-func getAnomalyPrettyLevel(an anomalies.CostAnomaly) string {
-	prettyLevels := []string{"low", "medium", "high", "critical"}
-	level := getAnomalyLevel(an)
-	for i, prettyLevel := range prettyLevels {
-		if i == level {
-			return prettyLevel
-		}
-	}
-	return prettyLevels[0]
 }
 
 // sendAnomalyEmail actually sends the mail and log everything.
@@ -85,7 +60,7 @@ TrackIt detected an abnormal peak in your spendings!
 See more on our website http://re.trackit.io/
 
 this email is originally intended for %s.
-`, awsAccount.Pretty, product, an.Cost, getAnomalyPrettyLevel(an), date.String(), ea.Recipient)
+`, awsAccount.Pretty, product, an.Cost, an.PrettyLevel, date.String(), ea.Recipient)
 	recipient := "thibaut.c@trackit.io" // replace by ea.Recipient.
 	if err := mail.SendMail(recipient, subject, body, ctx); err != nil {
 		logger.Error("Error when sending mail", err)
@@ -125,7 +100,7 @@ func processAnomaliesByProduct(user users.User, awsAccount aws.AwsAccount, produ
 		} else if date, err := time.Parse("2006-01-02T15:04:05.000Z", an.Date); err != nil {
 			logger.Error("Error when parsing date", err)
 			return err
-		} else if getAnomalyLevel(an) < 2 {
+		} else if an.Level < config.AnomalyEmailingMinLevel {
 		} else if alreadyEmailed, err := models.IsAnomalyAlreadyEmailed(tx, awsAccount.Id, product, date); err != nil {
 			logger.Error("Error when checking db for sent email", err)
 			return err

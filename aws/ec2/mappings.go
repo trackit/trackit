@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
-	"version": 2,
+	"version": 3,
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -65,6 +65,9 @@ const TemplateLineItem = `
 							"type": "keyword"
 						},
 						"state": {
+							"type": "keyword"
+						},
+						"purchasing": {
 							"type": "keyword"
 						},
 						"cpuAverage": {

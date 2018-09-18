@@ -16,13 +16,14 @@ package costs
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
@@ -50,6 +51,7 @@ type esQueryParams struct {
 	dateBegin         time.Time
 	dateEnd           time.Time
 	accountList       []string
+	indexList         []string
 	aggregationParams []string
 }
 
@@ -104,9 +106,9 @@ func validateCriteriaParam(parsedParams esQueryParams) error {
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empy data
-func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQueryParams, user users.User) (es.SimplifiedCostsDocument, int, error) {
+func makeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams esQueryParams) (es.SimplifiedCostsDocument, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, "lineitems")
+	index := strings.Join(parsedParams.indexList, ",")
 	searchService := GetElasticSearchParams(
 		parsedParams.accountList,
 		parsedParams.dateBegin,
@@ -147,10 +149,14 @@ func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	if err := validateCriteriaParam(parsedParams); err != nil {
 		return http.StatusBadRequest, err
 	}
-	if err := aws.ValidateAwsAccounts(parsedParams.accountList); err != nil {
-		return http.StatusBadRequest, err
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
 	}
-	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams, user)
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
+	simplifiedCostDocument, returnCode, err := makeElasticSearchRequestAndParseIt(request.Context(), parsedParams)
 	if err != nil {
 		if returnCode == http.StatusOK {
 			return returnCode, es.SimplifiedCostsDocument{}.ToJsonable()
