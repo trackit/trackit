@@ -11,6 +11,7 @@ import Moment from "moment/moment";
 const TimerangeSelector = Misc.TimerangeSelector;
 const IntervalNavigator = Misc.IntervalNavigator;
 const Selector = Misc.Selector;
+const Tooltip = Misc.Popover;
 
 /* istanbul ignore next */
 const getFilters = (total) => {
@@ -180,6 +181,12 @@ export class Header extends Component {
       </div>
     ) : null);
 
+    const tooltip = ((this.props.type === "pie" || this.props.type === "bar") ? (
+      <div className="inline-block">
+        <Tooltip icon={<i className="fa fa-info-circle btn btn-default"/>} tooltip="To hide/display a data series please click on its name in the legend. Double-click will display only this item." placement="left"/>
+      </div>
+    ) : null);
+
     return (
       <div className="clearfix">
 
@@ -190,6 +197,8 @@ export class Header extends Component {
         </div>
 
         <div className="inline-block pull-right">
+
+          {tooltip}
 
           {table}
 

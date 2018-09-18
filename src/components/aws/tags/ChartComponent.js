@@ -6,6 +6,7 @@ import TagsChart from './TagsChartComponent';
 
 const TimerangeSelector = Misc.TimerangeSelector;
 const Selector = Misc.Selector;
+const Tooltip = Misc.Popover;
 
 const filters = {
   product: "Product",
@@ -61,6 +62,12 @@ class Header extends Component {
       loading = (!this.props.values || !this.props.values.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
     }
 
+    const tooltip = (
+      <div className="inline-block">
+        <Tooltip icon={<i className="fa fa-info-circle btn btn-default"/>} tooltip="To hide/display a data series please click on its name in the legend. Double-click will display only this item." placement="left"/>
+      </div>
+    );
+
     return (
       <div className="clearfix">
 
@@ -74,6 +81,8 @@ class Header extends Component {
         </div>
 
         <div className="inline-block pull-right">
+
+          {tooltip}
 
           {keys}
 
