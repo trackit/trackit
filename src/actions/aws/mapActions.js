@@ -1,10 +1,11 @@
 import Constants from '../../constants';
 
 export default {
-	getCosts: (begin, end) => ({
+	getCosts: (begin, end, filter) => ({
 		type: Constants.AWS_MAP_GET_COSTS,
     begin,
-    end
+    end,
+    filter
 	}),
   clearCosts: () => ({type: Constants.AWS_MAP_GET_COSTS_CLEAR}),
   setDates: (startDate, endDate) => ({
@@ -16,4 +17,9 @@ export default {
   }),
   clearDates: () => ({type: Constants.AWS_MAP_CLEAR_COSTS_DATES}),
   resetDates: () => ({type: Constants.AWS_MAP_RESET_COSTS_DATES}),
+  setFilter: (filter) => ({
+    type: Constants.AWS_MAP_SET_FILTER,
+    filter
+  }),
+  clearFilter: () => ({type: Constants.AWS_MAP_RESET_FILTER})
 };
