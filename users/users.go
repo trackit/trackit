@@ -71,6 +71,7 @@ func CreateUserWithParent(ctx context.Context, db models.XODB, email string, par
 	dbUser := models.User{
 		Email:        email,
 		ParentUserID: sql.NullInt64{int64(parent.Id), true},
+		AwsCustomerEntitlement: true,
 	}
 	var user User
 	var passRandom [12]byte
