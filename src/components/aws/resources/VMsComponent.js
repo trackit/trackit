@@ -6,7 +6,7 @@ import Spinner from "react-spinkit";
 import Moment from 'moment';
 import ReactTable from 'react-table';
 import Popover from '@material-ui/core/Popover';
-import {formatPercent, formatBytes} from '../../../common/formatters';
+import {formatPercent, formatBytes, formatPrice} from '../../../common/formatters';
 import Misc from '../../misc';
 
 const Tooltip = Misc.Popover;
@@ -100,6 +100,7 @@ export class VMsComponent extends Component {
 
     const regions = [];
     const types = [];
+    const purchasings = [];
     if (instances)
       instances.forEach((instance) => {
         instance.ioRead.total = Object.keys(instance.ioRead).map((volume) => (instance.ioRead[volume])).reduce((a, b) => (a+b));
@@ -108,9 +109,12 @@ export class VMsComponent extends Component {
           regions.push(instance.region);
         if (types.indexOf(instance.type) === -1)
           types.push(instance.type);
+        if (purchasings.indexOf(instance.purchasing) === -1)
+          purchasings.push(instance.purchasing);
       });
     regions.sort();
     types.sort();
+    purchasings.sort();
 
     const list = (!loading && !error ? (
       <ReactTable
@@ -198,6 +202,27 @@ export class VMsComponent extends Component {
               >
                 <option value="all">Show All</option>
                 {regions.map((region, index) => (<option key={index} value={region}>{region}</option>))}
+              </select>
+            )
+          },
+          {
+            Header: 'Cost',
+            accessor: 'cost',
+            filterable: false,
+            Cell: row => (formatPrice(row.value))
+          },
+          {
+            Header: 'Purchasing Option',
+            accessor: 'purchasing',
+            filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
+            Filter: ({ filter, onChange }) => (
+              <select
+                onChange={event => onChange(event.target.value)}
+                style={{ width: "100%" }}
+                value={filter ? filter.value : "all"}
+              >
+                <option value="all">Show All</option>
+                {purchasings.map((purchasing, index) => (<option key={index} value={purchasing}>{purchasing}</option>))}
               </select>
             )
           },

@@ -1,8 +1,7 @@
 import React from 'react';
 import WizardComponent, {
   StepRoleCreation,
-  StepNameARN,
-  StepThree
+  StepNameARN
 } from '../WizardComponent';
 import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -28,43 +27,11 @@ const accountEmpty = {
   value: null
 };
 
-const account = {
-  ...accountEmpty,
-  value: {
-    id: 42,
-    roleArn: "arn:aws:iam::000000000000:role/TEST_ROLE",
-    pretty: "pretty"
-  }
-};
-
 const accountWaiting = {
   status: false
 };
 
 const accountError = {
-  status: true,
-  error: Error("Error")
-};
-
-const billEmpty = {
-  status: true,
-  value: null
-};
-
-const bill = {
-  ...billEmpty,
-  value: {
-    id: 42,
-    roleArn: "arn:aws:iam::000000000000:role/TEST_ROLE",
-    pretty: "pretty"
-  }
-};
-
-const billWaiting = {
-  status: false
-};
-
-const billError = {
   status: true,
   error: Error("Error")
 };
@@ -212,11 +179,6 @@ describe('<StepNameARN />', () => {
   const propsWaiting = {
     ...props,
     account: accountWaiting
-  };
-
-  const propsDone = {
-    ...props,
-    account
   };
 
   const propsError = {

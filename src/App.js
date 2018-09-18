@@ -87,6 +87,10 @@ export class App extends Component {
               component={checkRedirections(Containers.Home)}
             />
             <Route
+              path={this.props.match.url + '/dashboard'}
+              component={checkRedirections(Containers.Dashboard)}
+            />
+            <Route
               path={this.props.match.url + '/s3'}
               component={checkRedirections(Containers.AWS.S3Analytics)}
             />
@@ -105,6 +109,10 @@ export class App extends Component {
             <Route
               path={this.props.match.url + '/resources'}
               component={hasAccounts ? Containers.AWS.Resources : redirectToSetup}
+            />
+            <Route
+              path={this.props.match.url + "/tags"}
+              component={checkRedirections(Containers.AWS.Tags)}
             />
             <Route
               path={this.props.match.url + "/setup/:hasAccounts*"}

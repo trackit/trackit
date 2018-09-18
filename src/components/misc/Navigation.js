@@ -118,6 +118,12 @@ export class Navigation extends Component {
               </NavLink>
             </li>
             <li>
+              <NavLink to='/app/dashboard' activeClassName="active">
+                <i className="menu-icon fa fa-tachometer"/>
+                <span className="hide-menu">Dashboard</span>
+              </NavLink>
+            </li>
+            <li>
               <NavLink to='/app/costbreakdown' activeClassName="active">
                 <i className="menu-icon fa fa-area-chart"/>
                 <span className="hide-menu">Cost Breakdown</span>
@@ -130,6 +136,12 @@ export class Navigation extends Component {
                 {eventsBadge}
                 </div>
                 <span className="hide-menu">Events</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink to='/app/tags' activeClassName="active">
+                <i className="menu-icon fa fa-tags"/>
+                <span className="hide-menu">Tags</span>
               </NavLink>
             </li>
             <li>
@@ -204,6 +216,5 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(Actions.Events.getData(begin, end));
   },
 });
-
 
 export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Navigation));

@@ -100,11 +100,25 @@ class MapComponent extends Component {
 
   createMap() {
     const setupRegion = (region, style, mask=region) => {
+      let title;
+      switch (region) {
+        case "global":
+          title = "Global products";
+          break;
+        case "taxes":
+          title = "";
+          break;
+        case "":
+          title = "Other products";
+          break;
+        default:
+          title = region;
+      }
       d3.selectAll("g#AWS-Regions")
         .select("#" + mask)
         .on("mouseover", () => {
           tooltip.innerHTML = null;
-          tooltip.appendChild(generateTooltip((region === "global" ? "Global products" : region), this.props.data[region]));
+          tooltip.appendChild(generateTooltip(title, this.props.data[region]));
           d3.select(tooltip)
             .style({
               opacity: 1,
@@ -145,11 +159,14 @@ class MapComponent extends Component {
             "pointer-events": "all",
             "stroke": "#777777"
           };
-          if (region === "global") {
+          if (region === "global" || region === "") {
             style["stroke"] = "none";
             setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "global_toggle");
+          } else if (region === "taxes") {
+            style["stroke"] = "none";
+            setupRegion(region, {"cursor": "pointer", "pointer-events": "all"}, "taxes_toggle");
           }
-          setupRegion(region, style);
+          setupRegion(region, style, (region !== "" ? region : "global"));
         });
       }
     });

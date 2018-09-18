@@ -5,9 +5,15 @@ body {
     background: #ecedf0 !important;
 }
 
+.app-container {
+    max-width: 1500px;
+    margin: auto;
+}
+
 .dollar-sign,
 .percent-sign {
     color: #bbbbbb;
+    font-weight: 300;
 }
 
 .percent-bold {
@@ -255,6 +261,11 @@ label {
     font-weight: 500;
 }
 
+/* Date Range Picker */
+.daterangepicker td.disabled, .daterangepicker option.disabled {
+    color: #ddd;
+    text-decoration: none;
+}
 
 /* Overriding React Table styling */
 
@@ -368,6 +379,56 @@ h4.no-data {
     text-align: center;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+/* High Level views */
+
+.hl-card {
+    width: 48%;
+    float: left;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.hl-panel {
+    height: 400px;
+}
+
+.hl-panel-title {
+    text-align: center;
+}
+
+.hl-details-link {
+    font-size: 13px;
+    text-decoration: underline;
+    position: absolute;
+    right: 35px;
+    top: 16px;
+}
+
+.hl-events-table {
+    width: 100%;
+    font-size: 14px;
+    margin: auto;
+}
+
+.hl-events-table-wrapper {
+    max-height: 310px;
+    overflow-y: scroll;
+}
+
+.hl-events-table tr {
+    height: 50px;
+    padding: 20px;
+}
+
+.hl-events-table tbody tr:nth-child(odd) {
+    background-color: #f2f2f2
+}
+
+.hl-events-table .badge-cell {
+    text-align: center;
 }
 
 /* Resources Map */
@@ -673,4 +734,15 @@ h4.no-data {
 
 .tags-item:last-child {
     border-bottom: none;
+}
+
+.wrapper .popover-trigger i.btn {
+    font-size: 1.45em;
+}
+
+.wrapper .popover-trigger i.btn:active {
+    background: #ffffff;
+    color: #4885ed;
+    border-color: #f1f1f1;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }

@@ -5,6 +5,7 @@ import { getS3DataSaga, saveS3DatesSaga, loadS3DatesSaga } from './s3Saga';
 import { getReportsSaga, clearReportsSaga, downloadReportSaga } from './reportsSaga';
 import { getEC2ReportSaga, getRDSReportSaga } from './resourcesSaga';
 import { getMapCostsSaga } from './mapSaga';
+import { getTagsKeysSaga, getTagsValuesSaga, initTagsChartsSaga, loadTagsChartsSaga, saveTagsChartsSaga } from './tagsSaga';
 import Constants from '../../constants';
 
 export function* watchGetAccounts() {
@@ -111,6 +112,32 @@ export function* watchGetRDSReport() {
 
 export function* watchGetMapCosts() {
   yield takeLatest(Constants.AWS_MAP_GET_COSTS, getMapCostsSaga);
+}
+
+export function* watchGetTagsKeys() {
+  yield takeEvery(Constants.AWS_TAGS_GET_KEYS, getTagsKeysSaga);
+}
+
+export function* watchGetTagsValues() {
+  yield takeEvery(Constants.AWS_TAGS_GET_VALUES, getTagsValuesSaga);
+}
+
+export function* watchInitTagsCharts() {
+  yield takeLatest(Constants.AWS_TAGS_INIT_CHARTS, initTagsChartsSaga);
+}
+
+export function* watchLoadTagsCharts() {
+  yield takeLatest(Constants.AWS_TAGS_LOAD_CHARTS, loadTagsChartsSaga);
+}
+
+export function* watchSaveTagsCharts() {
+  yield takeEvery(Constants.AWS_TAGS_ADD_CHART, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_REMOVE_CHART, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_SET_DATES, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_RESET_DATES, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_SET_FILTER, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_RESET_FILTERS, saveTagsChartsSaga);
+  yield takeEvery(Constants.AWS_TAGS_CLEAR_FILTERS, saveTagsChartsSaga);
 }
 
 export function* watchGetAccountBillStatus() {

@@ -35,7 +35,8 @@ export default {
         startDate: moment().subtract(1, 'months').startOf('month'),
         endDate: moment().subtract(1, 'months').endOf('month')
       },
-      values: {}
+      values: {},
+      filter: "region"
     },
     costs: {
       charts: {},
@@ -43,6 +44,13 @@ export default {
       dates: {},
       interval: {},
       filter: {}
+    },
+    tags: {
+      charts: {},
+      dates: {},
+      filters: {},
+      keys: {},
+      values: {}
     },
     reports: {
       account: '',
@@ -89,6 +97,14 @@ export default {
       startDate: moment().subtract(1, 'month').startOf('month'),
       endDate: moment().subtract(1, 'month').endOf('month')
     }
+  },
+  highlevel: {
+    dates: {
+      startDate: moment().startOf('month'),
+      endDate: moment().endOf('month')
+    },
+    costs: {},
+    events: {}
   },
   auth: {
     token: null,
