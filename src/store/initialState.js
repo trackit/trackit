@@ -35,7 +35,8 @@ export default {
         startDate: moment().subtract(1, 'months').startOf('month'),
         endDate: moment().subtract(1, 'months').endOf('month')
       },
-      values: {}
+      values: {},
+      filter: "region"
     },
     costs: {
       charts: {},

@@ -8,9 +8,11 @@ import PropTypes from "prop-types";
 import Actions from "../../actions";
 
 import {formatPrice} from '../../common/formatters';
+import Misc from "../../components/misc";
 
 const Map = Components.AWS.Map.Map;
 const TimerangeSelector = Components.Misc.TimerangeSelector;
+const Selector = Misc.Selector;
 
 const regions = {
   "sa-east-1": "Sao Paulo",
@@ -30,10 +32,17 @@ const regions = {
   "us-east-2": "Ohio",
   "us-west-1": "North California",
   "us-west-2": "Oregon",
-  "global": "No specific region"
+  "global": "No specific region",
+  "": "No specific availability zone",
+  "taxes": "Taxes"
 };
 
-const formatData = (costs) => {
+let filters = {
+  region: "Region",
+  availabilityzone: "Availability zone"
+};
+
+const formatData = (costs, filter) => {
   const data = {};
   let maxTotal = 0;
   Object.keys(regions).forEach((region) => {
@@ -43,16 +52,17 @@ const formatData = (costs) => {
       zones: {},
       opacity: 0
     };
-    if (costs.hasOwnProperty("region"))
-      Object.keys(costs.region).forEach((zone) => {
+    const key = (costs.hasOwnProperty("region") ? "region" : (costs.hasOwnProperty("availabilityzone") ? "availabilityzone" : null));
+    if (key)
+      Object.keys(costs[key]).forEach((zone) => {
         if ((zone.startsWith(region) && region.length) || zone === region) {
           let total = 0;
-          Object.keys(costs.region[zone].product).forEach((product) => {
-            total += costs.region[zone].product[product];
+          Object.keys(costs[key][zone].product).forEach((product) => {
+            total += costs[key][zone].product[product];
           });
           data[region].zones[zone] = {
             total,
-            products: costs.region[zone].product
+            products: costs[key][zone].product
           };
           data[region].total += total;
         }
@@ -66,6 +76,10 @@ const formatData = (costs) => {
       data[region].opacity = (ratio < 0.25 ? 0.5 : (ratio < 0.5 ? 0.7 : (ratio < 0.75 ? 0.9 : 1)));
     }
   });
+  if (filter === "region")
+    delete data[""];
+  else
+    delete data["global"];
   return data;
 };
 
@@ -85,6 +99,20 @@ const regionDetails = (key, region, data, double, close) => {
     </div>
   ));
   const colWidth = (double ? "col-md-6" : "col-md-12");
+  let title;
+  switch (region) {
+    case "global":
+      title = "Global Products";
+      break;
+    case "taxes":
+      title = "Taxes";
+      break;
+    case "":
+      title = "Other products";
+      break;
+    default:
+      title = region;
+  }
   return (
     <div key={key} className={"region-details white-box " + colWidth}>
       <div className="header">
@@ -93,12 +121,12 @@ const regionDetails = (key, region, data, double, close) => {
         </div>
       </div>
       <div className="region-name">
-        <h3>{(region === "" ? "Global Products" : region)}</h3>
+        <h3>{title}</h3>
         <h4>{regions[region]}</h4>
       </div>
       <div className="region-info">
         <div>
-          <div className="col-md-4 col-sm-4 p-t-15 p-b-15 br-sm br-md bb-xs info">
+          <div className="col-md-6 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs info">
             <ul className="in-col">
               <li>
                 <i className="fa fa-credit-card fa-2x blue-color"/>
@@ -113,7 +141,7 @@ const regionDetails = (key, region, data, double, close) => {
               total cost
             </h4>
           </div>
-          <div className="col-md-4 col-sm-4 p-t-15 p-b-15 br-md bb-xs info">
+          <div className="col-md-6 col-sm-6 p-t-15 p-b-15 info">
             <ul className="in-col">
               <li>
                 <i className="fa fa-th-list fa-2x blue-color"/>
@@ -128,22 +156,7 @@ const regionDetails = (key, region, data, double, close) => {
               products
             </h4>
           </div>
-          <div className="col-md-4 col-sm-4 p-t-15 p-b-15 info">
-            <ul className="in-col">
-              <li>
-                <i className="fa fa-globe fa-2x blue-color"/>
-              </li>
-              <li>
-                <h3 className="no-margin no-padding font-light">
-                  {Object.keys(data.zones).length}
-                </h3>
-              </li>
-            </ul>
-            <h4 className="card-label p-l-10 m-b-0">
-              zones
-            </h4>
-          </div>
-          <span className="clearfix"></span>
+          <span className="clearfix"/>
         </div>
         <div className="region-info-zones">
           {zones}
@@ -166,7 +179,7 @@ export class ResourcesMapContainer extends Component {
   }
 
   componentWillMount() {
-    this.props.getCosts(this.props.dates.startDate, this.props.dates.endDate);
+    this.props.getCosts(this.props.dates.startDate, this.props.dates.endDate, this.props.filter);
   }
 
   componentWillUnmount() {
@@ -174,12 +187,14 @@ export class ResourcesMapContainer extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts)
-      nextProps.getCosts(nextProps.dates.startDate, nextProps.dates.endDate);
+    if (this.props.dates !== nextProps.dates ||
+      this.props.accounts !== nextProps.accounts ||
+      this.props.filter !== nextProps.filter)
+      nextProps.getCosts(nextProps.dates.startDate, nextProps.dates.endDate, nextProps.filter);
     else {
       this.setState({selected: []});
       if (nextProps.costs.status && nextProps.costs.hasOwnProperty("values"))
-        this.setState({data: formatData(nextProps.costs.values)});
+        this.setState({data: formatData(nextProps.costs.values, nextProps.filter)});
     }
   }
 
@@ -250,8 +265,7 @@ export class ResourcesMapContainer extends Component {
         <div className="clearfix white-box">
           <div className="inline-block">
             <h3 className="white-box-title no-padding inline-block">
-              {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
-              <i className="fa fa-globe"></i>
+              <i className="fa fa-globe"/>
               &nbsp;
               Resources Map
               {badges}
@@ -262,6 +276,13 @@ export class ResourcesMapContainer extends Component {
               startDate={this.props.dates.startDate}
               endDate={this.props.dates.endDate}
               setDatesFunc={this.props.setDates}
+            />
+          </div>
+          <div className="inline-block pull-right">
+            <Selector
+              values={filters}
+              selected={this.props.filter}
+              selectValue={this.props.setFilter}
             />
           </div>
         </div>
@@ -282,24 +303,28 @@ ResourcesMapContainer.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   costs: PropTypes.object,
   dates: PropTypes.object,
+  filter: PropTypes.string,
   getCosts: PropTypes.func.isRequired,
   clearCosts: PropTypes.func.isRequired,
   setDates: PropTypes.func.isRequired,
   resetDates: PropTypes.func.isRequired,
   clearDates: PropTypes.func.isRequired,
+  setFilter: PropTypes.func.isRequired,
+  clearFilter: PropTypes.func.isRequired,
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   costs: aws.map.values,
   dates: aws.map.dates,
+  filter: aws.map.filter,
   accounts: aws.accounts.selection
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getCosts: (begin, end) => {
-    dispatch(Actions.AWS.Map.getCosts(begin, end));
+  getCosts: (begin, end, filter) => {
+    dispatch(Actions.AWS.Map.getCosts(begin, end, filter));
   },
   clearCosts: () => {
     dispatch(Actions.AWS.Map.clearCosts());
@@ -313,6 +338,12 @@ const mapDispatchToProps = (dispatch) => ({
   clearDates: () => {
     dispatch(Actions.AWS.Map.clearDates());
   },
+  setFilter: (filter) => {
+    dispatch(Actions.AWS.Map.setFilter(filter))
+  },
+  clearFilter: () => {
+    dispatch(Actions.AWS.Map.clearFilter());
+  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ResourcesMapContainer);

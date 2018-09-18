@@ -3,13 +3,11 @@ import { getToken, getAWSAccounts } from '../misc';
 import API from '../../api';
 import Constants from '../../constants';
 
-const filters = ["region", "product"];
-
-export function* getMapCostsSaga({ begin, end }) {
+export function* getMapCostsSaga({ begin, end, filter }) {
   try {
     const token = yield getToken();
     const accounts = yield getAWSAccounts();
-    const res = yield call(API.AWS.Costs.getCosts, token, begin, end, filters, accounts);
+    const res = yield call(API.AWS.Costs.getCosts, token, begin, end, [filter, "product"], accounts);
     if (res.success === null) {
       yield put({type: Constants.LOGOUT_REQUEST});
       return;
