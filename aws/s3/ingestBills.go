@@ -162,6 +162,10 @@ func getBulkProcessor(ctx context.Context) (*elastic.BulkProcessor, error) {
 func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index string, br BillRepository) OnLineItem {
 	return func(li LineItem, ok bool) {
 		if ok {
+			if li.LineItemType == "Tax" {
+				li.AvailabilityZone = "taxes"
+				li.Region = "taxes"
+			}
 			li.BillRepositoryId = br.Id
 			li = extractTags(li)
 			rq := elastic.NewBulkIndexRequest()
@@ -182,7 +186,7 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 // manifests starting after a given date.
 func manifestsModifiedAfter(t time.Time) ManifestPredicate {
 	return func(m manifest, oneMonthBefore bool) bool {
-		if (oneMonthBefore) {
+		if oneMonthBefore {
 			if time.Time(m.LastModified).AddDate(0, 1, 0).After(t) {
 				return true
 			} else {
