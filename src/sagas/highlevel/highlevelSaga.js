@@ -17,7 +17,7 @@ export function* getCostsSaga({ begin, end }) {
     }
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error")
       && resHistory.success && resHistory.hasOwnProperty("data") && !resHistory.data.hasOwnProperty("error"))
-      yield put({ type: Constants.HIGHLEVEL_COSTS_SUCCESS, months: res.data.month, history: resHistory.data.month });
+      yield put({ type: Constants.HIGHLEVEL_COSTS_SUCCESS, months: (res.data.month || {}), history: (resHistory.data.month || {}) });
     else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       throw Error(res.data.error);
     else

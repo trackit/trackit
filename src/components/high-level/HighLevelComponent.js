@@ -22,6 +22,14 @@ const defaultDates = {
 // HighLevelComponent Component
 export class HighLevelComponent extends Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      currentInterval: true
+    };
+    this.isCurrentInterval = this.isCurrentInterval.bind(this);
+  }
+
   componentDidMount() {
     if (this.props.dates) {
       this.props.getData(this.props.dates.startDate, this.props.dates.endDate);
@@ -38,6 +46,11 @@ export class HighLevelComponent extends Component {
     }
   }
 
+  isCurrentInterval(currentInterval) {
+    if (this.state.currentInterval !== currentInterval)
+      this.setState({currentInterval})
+  }
+
   render() {
     const timerange = (this.props.dates ?  (
       <IntervalNavigator
@@ -46,6 +59,7 @@ export class HighLevelComponent extends Component {
         setDatesFunc={this.props.setDates}
         interval={'month'}
         hideIntervalSelector={true}
+        isCurrentInterval={this.isCurrentInterval}
       />
     ) : null);
 
@@ -74,10 +88,12 @@ export class HighLevelComponent extends Component {
           summary = <Summary
             costs={this.props.costs.values}
             date={this.props.dates.startDate}
+            currentInterval={this.state.currentInterval}
           />;
           topSpendings = <TopSpendings
             costs={this.props.costs.values}
             date={this.props.dates.startDate}
+            currentInterval={this.state.currentInterval}
           />;
         }
         if (this.props.costs.values.history)
