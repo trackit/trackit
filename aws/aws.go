@@ -79,6 +79,9 @@ func AccountId() string { return accountId }
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	var res []AwsAccount
 	dbAwsAccounts, err := models.AwsAccountsByUserID(tx, u.Id)
+	if err != nil {
+		return nil, err
+	}
 	dbShareAccounts, err := models.SharedAccountsByUserID(tx, u.Id)
 	if err != nil {
 		return nil, err
