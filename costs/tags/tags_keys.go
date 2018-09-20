@@ -16,14 +16,14 @@ package tags
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
-	"encoding/json"
+	"strings"
 
-	"gopkg.in/olivere/elastic.v5"
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/es"
 )
 
@@ -42,11 +42,11 @@ type (
 )
 
 // getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams, user users.User) (int, interface{}){
+func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams) (int, interface{}) {
 	var typedDocument esTagsKeysResult
 	var response = TagsKeys{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	res, returnCode, err := makeElasticSearchRequestForTagsKeys(ctx, params, user, es.Client)
+	res, returnCode, err := makeElasticSearchRequestForTagsKeys(ctx, params, es.Client)
 	if err != nil {
 		if returnCode == http.StatusOK {
 			return returnCode, response
@@ -71,27 +71,27 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQueryParams,
-	user users.User, client *elastic.Client) (*elastic.SearchResult, int, error) {
+	client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := getTagsKeysQuery(params)
-	index := es.IndexNameForUser(user, "lineitems")
+	index := strings.Join(params.IndexList, ",")
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
 		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key")))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : " + index, err)
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return nil, http.StatusOK, err
 		}
-		l.Error("Query execution failed : " + err.Error(), nil)
+		l.Error("Query execution failed", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	return res, http.StatusOK, nil
 }
 
 // getTagsKeysQuery will generate a query for the ElasticSearch based on params
-func getTagsKeysQuery(params tagsKeysQueryParams) (*elastic.BoolQuery) {
+func getTagsKeysQuery(params tagsKeysQueryParams) *elastic.BoolQuery {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(params.AccountList))
