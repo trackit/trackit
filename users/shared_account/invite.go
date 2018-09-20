@@ -182,7 +182,7 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 			logger.Error("Error occured while sending an email to an existing user.", err.Error())
 			return 403, ErrorInviteUser
 		}
-		return http.StatusBadRequest, sharedAccount
+		return http.StatusOK, sharedAccount
 	} else {
 		logger.Error("Error occured while adding account to an existing user.", err.Error())
 		return 403, ErrorInviteUser
@@ -199,7 +199,7 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, acco
 			logger.Error("Error occured while sending an email to a new user.", err.Error())
 			return 403, ErrorInviteNewUser
 		}
-		return http.StatusBadRequest, newUser
+		return http.StatusOK, newUser
 	} else {
 		logger.Error("Error occured while creating new account for a guest.", err.Error())
 		return 403, ErrorInviteNewUser
