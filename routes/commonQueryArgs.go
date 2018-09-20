@@ -106,9 +106,9 @@ var (
 		Optional:    false,
 	}
 
-	// FileNameQueryArg allows to a file name in the URL
-	// Parameters with routes.QueryArgs. This type will be a
-	// string stored in the routes.Arguments map with itself for key.
+	// ShareIdQueryArg allows to get the DB id for an Shared access in the URL Parameters
+	// with routes.QueryArgs. This Shared ID will be an Uint stored
+	// in the routes.Arguments map with itself for key.
 	ShareIdQueryArg = QueryArg{
 		Name:        "share-id",
 		Type:        QueryArgInt{},
