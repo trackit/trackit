@@ -69,15 +69,15 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 func GetElasticSearchCostParams(account string, date string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", account))
-	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonEC2"))
-	dateEnd, err := time.Parse("2006-01-02T15:04:05.000Z", date)
+	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
+	dateEnd, err := time.Parse("2006-01-02T15:04:05Z", date)
 	if err == nil {
-		dateStart := time.Date(dateEnd.Year(), dateEnd.Month(), dateEnd.Day()-31, 0, 0, 0, 0, dateEnd.Location())
+		dateStart := time.Date(dateEnd.Year(), dateEnd.Month(), dateEnd.Day()-31, dateEnd.Hour(), dateEnd.Minute(), dateEnd.Second(), dateEnd.Nanosecond(), dateEnd.Location())
 		query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 			From(dateStart).To(dateEnd))
 	}
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("instances", elastic.NewTermsAggregation().Field("resourceId").
+	search.Aggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
 		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
 	return search
 }

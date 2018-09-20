@@ -62,20 +62,20 @@ type (
 		Account    string `json:"account"`
 		ReportDate string `json:"reportDate"`
 		Instances  []struct {
-			Id         string      `json:"id"`
-			Region     string      `json:"region"`
-			State      string      `json:"state"`
-			Purchasing string      `json:"purchasing"`
-			Cost       float64     `json:"cost"`
-			CpuAverage float64     `json:"cpuAverage"`
-			CpuPeak    float64     `json:"cpuPeak"`
-			NetworkIn  int64       `json:"networkIn"`
-			NetworkOut int64       `json:"networkOut"`
-			IORead     interface{} `json:"ioRead"`
-			IOWrite    interface{} `json:"ioWrite"`
-			KeyPair    string      `json:"keyPair"`
-			Type       string      `json:"type"`
-			Tags       interface{} `json:"tags"`
+			Id         string             `json:"id"`
+			Region     string             `json:"region"`
+			State      string             `json:"state"`
+			Purchasing string             `json:"purchasing"`
+			Cost       float64            `json:"cost"`
+			CpuAverage float64            `json:"cpuAverage"`
+			CpuPeak    float64            `json:"cpuPeak"`
+			NetworkIn  int64              `json:"networkIn"`
+			NetworkOut int64              `json:"networkOut"`
+			IORead     map[string]float64 `json:"ioRead"`
+			IOWrite    map[string]float64 `json:"ioWrite"`
+			KeyPair    string             `json:"keyPair"`
+			Type       string             `json:"type"`
+			Tags       interface{}        `json:"tags"`
 		} `json:"instances"`
 	}
 )
@@ -116,6 +116,28 @@ func makeElasticSearchCostRequest(ctx context.Context, user users.User, tx *sql.
 	return resCost,  nil
 }
 
+// addCostToReport adds cost for each instance based on billing data
+func addCostToReport(report Report, costs ResponseCost) (Report) {
+	for _, instance := range costs.Instances.Buckets {
+		for i := range report.Instances {
+			if strings.Contains(instance.Key, report.Instances[i].Id) {
+				report.Instances[i].Cost += instance.Cost.Value
+			}
+			for volume := range report.Instances[i].IOWrite {
+				if volume == instance.Key {
+					report.Instances[i].Cost += instance.Cost.Value
+				}
+			}
+			for volume := range report.Instances[i].IORead {
+				if volume == instance.Key {
+					report.Instances[i].Cost += instance.Cost.Value
+				}
+			}
+		}
+	}
+	return report
+}
+
 // prepareResponse parses the results from elasticsearch and returns the EC2 usage report
 func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, tx *sql.Tx) (interface{}, error) {
 	var response ResponseEc2
@@ -132,13 +154,7 @@ func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user use
 			}
 			resCost, err := makeElasticSearchCostRequest(ctx, user, tx, report.Account, report.ReportDate)
 			if err == nil {
-				for _, instance := range resCost.Instances.Buckets {
-					for i := range report.Instances {
-						if strings.Contains(instance.Key, report.Instances[i].Id) {
-							report.Instances[i].Cost += instance.Cost.Value
-						}
-					}
-				}
+				report = addCostToReport(report, resCost)
 			}
 			reports = append(reports, report)
 		}

@@ -26,7 +26,6 @@ import (
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/aws/ec2"
 )
 
 type (
@@ -62,9 +61,9 @@ type (
 )
 
 func getHistoryDate() (time.Time, time.Time) {
-	now := time.Now()
-	end := time.Date(now.Year(), now.Month(), 0, 23, 59, 59, 9999, now.Location())
-	start := time.Date(now.Year(), now.Month() - 1, 0, 24, 0, 0, 0, now.Location())
+	now := time.Now().UTC()
+	start := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
+	end := time.Date(now.Year(), now.Month(), 0, 23, 59, 59, 999999999, now.Location()).UTC()
 	return start, end
 }
 
@@ -80,12 +79,12 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
-	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonRDS"))
+	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
-		From(startDate.Format("2006-01-02T15:04:05Z")).To(endDate.Format("2006-01-02T15:04:05Z")))
+		From(startDate).To(endDate))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("products", elastic.NewTermsAggregation().Field("productCode").
-		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").
+	search.Aggregation("products", elastic.NewTermsAggregation().Field("productCode").Size(0x7FFFFFFF).
+		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
 			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	result, err := search.Do(ctx)
 	if err != nil {
@@ -159,7 +158,7 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
 	query = query.Filter(elastic.NewTermQuery("invoiceId", ""))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
-		From(startDate.Format("2006-01-02T15:04:05Z")).To(endDate.Format("2006-01-02T15:04:05Z")))
+		From(startDate).To(endDate))
 	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
 	result, err := es.Client.Search().Index(index).Size(0).Query(query).Do(ctx)
 	if err != nil {
@@ -179,16 +178,26 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) (error) {
 	var errorString string
+	var err error
+	var ec2Cost []CostPerInstance
+	var cloudwatchCost []CostPerInstance
 	for _, product := range response {
+		err = nil
 		switch product.Product {
 		case "AmazonEC2":
-			if already, err := checkAlreadyHistory(ctx, startDate, aa, ec2.IndexPrefixEC2Report); already || err != nil {
-			} else if report, err := getEc2InstancesInfos(ctx, product.Instances, aa); err != nil {
-				errorString += "Error while fetching EC2 infos. "
-			} else if err = putEc2ReportInES(ctx, report, aa); err != nil {
-				errorString += "Error while saving EC2 report in ES. "
-			}
+			ec2Cost = product.Instances
+			break
+		case "AmazonCloudWatch":
+			cloudwatchCost = product.Instances
+			break
 		}
+	}
+	err = getEc2HistoryReport(ctx, ec2Cost, cloudwatchCost, aa, startDate, endDate)
+	if err != nil {
+		if errorString != "" {
+			errorString += " + "
+		}
+		errorString += err.Error()
 	}
 	if errorString != "" {
 		return errors.New(errorString)
