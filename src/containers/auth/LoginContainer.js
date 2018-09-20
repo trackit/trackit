@@ -18,7 +18,6 @@ export class LoginContainer extends Component {
     this.props.clear();
   }
 
-
   render() {
     const awstoken = (this.props.match.params.hasOwnProperty("awstoken") ? this.props.match.params.awstoken : "");
     if (this.props.token)
@@ -28,7 +27,7 @@ export class LoginContainer extends Component {
       submit={this.props.login}
       loginStatus={this.props.loginStatus}
       registrationStatus={this.props.registrationStatus}
-      timeout={(this.props.match.path.endsWith("timeout"))}
+      timeout={(this.props.match.params && this.props.match.params.prefill && this.props.match.params.prefill === "timeout")}
       />);
   }
 
