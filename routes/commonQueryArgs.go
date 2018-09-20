@@ -105,4 +105,13 @@ var (
 		Description: "The file type",
 		Optional:    false,
 	}
+
+	// FileNameQueryArg allows to a file name in the URL
+	// Parameters with routes.QueryArgs. This type will be a
+	// string stored in the routes.Arguments map with itself for key.
+	ShareIdQueryArg = QueryArg{
+		Name:        "share-id",
+		Type:        QueryArgInt{},
+		Description: "The DB ID of the sharing",
+	}
 )

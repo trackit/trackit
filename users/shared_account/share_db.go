@@ -24,17 +24,17 @@ import (
 )
 
 type SharedResults struct {
-	ShareId       int
-	Mail          string
-	Level         int
-	UserId        int
-	SharingStatus bool
+	ShareId       int    `json:"sharedId" req:"nonzero"`
+	Mail          string `json:"email" req:"nonzero"`
+	Level         int    `json:"level"`
+	UserId        int    `json:"userId" req:"nonzero"`
+	SharingStatus bool   `json:"sharingStatus"`
 }
 
 // GetSharingList returns a list of users who have access to a specific AWS account
 func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]SharedResults, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var response []SharedResults
+	response := []SharedResults{}
 	dbSharedAccounts, err := models.SharedAccountsByAccountID(db, accountId)
 	if err == sql.ErrNoRows {
 		return response, nil
@@ -70,7 +70,6 @@ func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissi
 	}
 	return dbSharedAccount, nil
 }
-
 
 // DeleteSharedUser deletes a user access to an AWS account by removing entry in shared_account database table.
 func DeleteSharedUser(ctx context.Context, db models.XODB, shareId int) (error) {

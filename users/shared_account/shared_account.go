@@ -22,73 +22,8 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/db"
+	"fmt"
 )
-
-// inviteUserRequest is the expected request body for the invite user route handler.
-type InviteUserRequest struct {
-	Email           string `json:"email" req:"nonzero"`
-	AccountId       int    `json:"accountId"`
-	PermissionLevel int    `json:"permissionLevel"`
-}
-
-type updateUsersSharedAccountRequest struct {
-	ShareId         int `json:"shareId" req:"nonzero"`
-	PermissionLevel int `json:"permissionLevel"`
-}
-
-type deleteUsersSharedAccountRequest struct {
-	ShareId         int `json:"shareId" req:"nonzero"`
-}
-
-func init() {
-	routes.MethodMuxer{
-		http.MethodGet: routes.H(listSharedUsers).With(
-			db.RequestTransaction{db.Db},
-			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			routes.Documentation{
-				Summary:     "List shared users",
-				Description: "Return a list of user who have an access to an AWS account on Trackit",
-			},
-			routes.QueryArgs{
-				routes.AwsAccountIdQueryArg,
-			},
-		),
-		http.MethodPost: routes.H(inviteUser).With(
-			db.RequestTransaction{db.Db},
-			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			routes.RequestContentType{"application/json"},
-			routes.RequestBody{InviteUserRequest{"example@example.com", 1234, 0}},
-			routes.Documentation{
-				Summary:     "Creates an invite",
-				Description: "Creates an invite for account team sharing. Permission level can be 0 for admin, 1 for standard and 2 for read-only.",
-			},
-		),
-		http.MethodPatch: routes.H(updateSharedUsers).With(
-			db.RequestTransaction{db.Db},
-			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			routes.RequestContentType{"application/json"},
-			routes.RequestBody{updateUsersSharedAccountRequest{1, 2}},
-			routes.Documentation{
-				Summary:     "Update shared users",
-				Description: "Update shared users associated with a specific AWS account. Permission level can be 0 for admin, 1 for standard and 2 for read-only.",
-			},
-		),
-		http.MethodDelete: routes.H(deleteSharedUsers).With(
-			db.RequestTransaction{db.Db},
-			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			routes.RequestBody{deleteUsersSharedAccountRequest{1}},
-			routes.Documentation{
-				Summary:     "Delete shared users",
-				Description: "Delete shared users associated with a specific AWS account",
-			},
-		),
-	}.H().With(
-		db.RequestTransaction{db.Db},
-		routes.Documentation{
-			Summary: "interact with shared accounts",
-		},
-	).Register("/user/share")
-}
 
 // inviteUser handles users invite for team sharing.
 func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
@@ -110,19 +45,22 @@ func listSharedUsers(request *http.Request, a routes.Arguments) (int, interface{
 // updateSharedUsers handles updates of user permission level for team sharing.
 func updateSharedUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body updateUsersSharedAccountRequest
-	routes.MustRequestBody(a, &body)
+	shareId := a[routes.ShareIdQueryArg].(int)
+	err := decodeRequestBody(request, &body)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-	return updateSharedUserAccessWithValidBody(request, body, tx, user)
+	return updateSharedUserAccessWithValidBody(request, body, shareId, tx, user)
 }
 
 // deleteSharedUsers handles user access deletion for team sharing
 func deleteSharedUsers(request *http.Request, a routes.Arguments) (int, interface{}) {
-	var body deleteUsersSharedAccountRequest
-	routes.MustRequestBody(a, &body)
+	shareId := a[routes.ShareIdQueryArg].(int)
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-	return deleteSharedUserAccessWithValidBody(request, body, tx, user)
+	return deleteSharedUserAccessWithValidBody(request, shareId, tx, user)
 }
 
 // listSharedUserAccessWithValidBody tries to list users who have an access to an AWS account
@@ -135,21 +73,26 @@ func listSharedUserAccessWithValidBody(request *http.Request, accountId int, tx 
 	}
 	res, err := GetSharingList(request.Context(), db.Db, accountId)
 	if err != nil {
-		return 403, errors.New("Error retrieving shared users list")
+		return http.StatusForbidden, errors.New("Error retrieving shared users list")
 	} else {
-		return 200, res
+		return http.StatusOK, res
 	}
 }
 
 // updateSharedUserAccessWithValidBody tries to update users permission level for team sharing
-func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, tx *sql.Tx, user users.User) (int, interface{}) {
-	security, err := safetyCheckByShareId(request.Context(), tx, body.ShareId, user)
+func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, shareId int, tx *sql.Tx, user users.User) (int, interface{}) {
+	security, err := safetyCheckByShareIdAndPermissionLevel(request.Context(), tx, shareId, body.PermissionLevel, user)
+	fmt.Print("USER : ")
+	fmt.Print(user.Id)
 	if err != nil {
 		return http.StatusBadRequest, err
 	} else if !security {
 		return http.StatusForbidden, errors.New("You do not have permission to edit this sharing")
 	}
-	res, err := UpdateSharedUser(request.Context(), db.Db, body.ShareId, body.PermissionLevel)
+	if !checkPermissionLevel(body.PermissionLevel) {
+		return http.StatusBadRequest, errors.New(("Bad permission level"))
+	}
+	res, err := UpdateSharedUser(request.Context(), db.Db, shareId, body.PermissionLevel)
 	if err != nil {
 		return http.StatusForbidden, errors.New("Error updating shared user list")
 	}
@@ -157,14 +100,14 @@ func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsers
 }
 
 // deleteSharedUserAccessWithValidBody tries to delete users from accessing specific shared aws account
-func deleteSharedUserAccessWithValidBody(request *http.Request, body deleteUsersSharedAccountRequest, tx *sql.Tx, user users.User) (int, interface{}) {
-	security, err := safetyCheckByShareId(request.Context(), tx, body.ShareId, user)
+func deleteSharedUserAccessWithValidBody(request *http.Request, shareId int, tx *sql.Tx, user users.User) (int, interface{}) {
+	security, err := safetyCheckByShareId(request.Context(), tx, shareId, user)
 	if err != nil {
 		return http.StatusBadRequest, err
 	} else if !security {
 		return http.StatusForbidden, errors.New("You do not have permission to delete this sharing")
 	}
-	err = DeleteSharedUser(request.Context(), db.Db, body.ShareId)
+	err = DeleteSharedUser(request.Context(), db.Db, shareId)
 	if err != nil {
 		return http.StatusBadRequest, errors.New("Error deleting shared user")
 	}
