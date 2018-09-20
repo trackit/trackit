@@ -11,7 +11,6 @@ import (
 // inviteUserRequest is the expected request body for the invite user route handler.
 type InviteUserRequest struct {
 	Email           string `json:"email" req:"nonzero"`
-	AccountId       int    `json:"accountId"`
 	PermissionLevel int    `json:"permissionLevel"`
 }
 
@@ -36,10 +35,12 @@ func init() {
 			db.RequestTransaction{db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{InviteUserRequest{"example@example.com", 1234, 0}},
 			routes.Documentation{
 				Summary:     "Creates an invite",
 				Description: "Creates an invite for account team sharing. Permission level can be 0 for admin, 1 for standard and 2 for read-only.",
+			},
+			routes.QueryArgs{
+				routes.AwsAccountIdQueryArg,
 			},
 		),
 		http.MethodPatch: routes.H(updateSharedUsers).With(

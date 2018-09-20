@@ -28,10 +28,14 @@ import (
 // inviteUser handles users invite for team sharing.
 func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body InviteUserRequest
-	routes.MustRequestBody(a, &body)
+	accountId := a[routes.AwsAccountIdQueryArg].(int)
+	err := decodeRequestBody(request, &body)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-	return InviteUserWithValidBody(request, body, tx, user)
+	return InviteUserWithValidBody(request, body, accountId, tx, user)
 }
 
 // listSharedUsers handles listing of users who have an access to an AWS account.

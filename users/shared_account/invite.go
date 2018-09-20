@@ -97,13 +97,13 @@ func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissio
 }
 
 // createAccountForGuest creates an account for invited user who do not already own an account
-func createAccountForGuest(ctx context.Context, db *sql.Tx, body InviteUserRequest) (int, models.SharedAccount, error) {
+func createAccountForGuest(ctx context.Context, db *sql.Tx, body InviteUserRequest, accountId int) (int, models.SharedAccount, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var sharedAccount models.SharedAccount
 	tempPassword := uuid.NewV1().String()
 	usr, err := users.CreateUserWithPassword(ctx, db, body.Email, tempPassword, "")
 	if err == nil {
-		sharedAccount, err = addAccountToGuest(ctx, db, body.AccountId, body.AccountId, usr.Id)
+		sharedAccount, err = addAccountToGuest(ctx, db, accountId, body.PermissionLevel, usr.Id)
 		if err != nil {
 			logger.Error("Error occured while adding account to an newly created user.", err.Error())
 			return 0, models.SharedAccount{}, err
@@ -167,15 +167,15 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 }
 
 // inviteUserAlreadyExist handles sharing for user that already exists
-func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequest, guestId int) (int, interface{}) {
+func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequest, accountId int, guestId int) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	isAlreadyShared, err := checkSharedAccount(ctx, tx, body.AccountId, guestId)
+	isAlreadyShared, err := checkSharedAccount(ctx, tx, accountId, guestId)
 	if err != nil {
 		return 403, ErrorInviteUser
 	} else if isAlreadyShared {
 		return http.StatusBadRequest, ErrorAlreadyShared
 	}
-	sharedAccount, err := addAccountToGuest(ctx, tx, body.AccountId, body.PermissionLevel, guestId)
+	sharedAccount, err := addAccountToGuest(ctx, tx, accountId, body.PermissionLevel, guestId)
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email,true, 0)
 		if err != nil {
@@ -190,9 +190,9 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 }
 
 // inviteNewUser handles sharing for user that do not already exist
-func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int, interface{}) {
+func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, accountId int) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	newUserId, newUser, err := createAccountForGuest(ctx, tx, body)
+	newUserId, newUser, err := createAccountForGuest(ctx, tx, body, accountId)
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email,false, newUserId)
 		if err != nil {
@@ -207,9 +207,9 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest) (int
 }
 
 // inviteUserWithValidBody tries to share an account with a specific user
-func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, tx *sql.Tx, user users.User) (int, interface{}) {
+func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, accountId int, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	security, err := safetyCheckByAccountId(request.Context(), tx, body.AccountId, user)
+	security, err := safetyCheckByAccountId(request.Context(), tx, accountId, user)
 	if err != nil {
 		return http.StatusBadRequest, err
 	} else if !security {
@@ -222,10 +222,10 @@ func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, tx *
 	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email, user)
 	if err == nil {
 		if result {
-			code, res := inviteUserAlreadyExist(request.Context(), tx, body, guestId)
+			code, res := inviteUserAlreadyExist(request.Context(), tx, body, accountId, guestId)
 			return code, res
 		} else {
-			code, res := inviteNewUser(request.Context(), tx, body)
+			code, res := inviteNewUser(request.Context(), tx, body, accountId)
 			return code, res
 		}
 	} else {
