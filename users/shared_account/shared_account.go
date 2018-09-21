@@ -22,7 +22,6 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/db"
-	"fmt"
 )
 
 // inviteUser handles users invite for team sharing.
@@ -86,8 +85,6 @@ func listSharedUserAccessWithValidBody(request *http.Request, accountId int, tx 
 // updateSharedUserAccessWithValidBody tries to update users permission level for team sharing
 func updateSharedUserAccessWithValidBody(request *http.Request, body updateUsersSharedAccountRequest, shareId int, tx *sql.Tx, user users.User) (int, interface{}) {
 	security, err := safetyCheckByShareIdAndPermissionLevel(request.Context(), tx, shareId, body.PermissionLevel, user)
-	fmt.Print("USER : ")
-	fmt.Print(user.Id)
 	if err != nil {
 		return http.StatusBadRequest, err
 	} else if !security {

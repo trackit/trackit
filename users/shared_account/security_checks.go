@@ -11,6 +11,12 @@ import (
 	"github.com/trackit/trackit-server/models"
 )
 
+const (
+	AdminLevel = 0
+	StandardLevel = 1
+	ReadLevel = 2
+)
+
 // safetyCheckByAccountId checks by AccountId if the user have a high enough
 // permission level to perform an action on a shared account
 func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user users.User) (bool, error) {
@@ -29,7 +35,7 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
 	if err == nil {
 		for _, key := range dbSharedAccount {
-			if key.UserID == user.Id  && (key.UserPermission == 0 || key.UserPermission == 1){
+			if key.UserID == user.Id  && (key.UserPermission == AdminLevel || key.UserPermission == StandardLevel){
 				return true, nil
 			}
 		}
@@ -40,9 +46,9 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 
 // checkLevel checks if the current user permission level is high enough to perform an action
 func checkLevel(PermissionLevelToCheck int, currentUserPermissionLevel int) (bool) {
-	if currentUserPermissionLevel == 0 {
+	if currentUserPermissionLevel == AdminLevel {
 		return true
-	} else if currentUserPermissionLevel == 1 {
+	} else if currentUserPermissionLevel == StandardLevel {
 		if currentUserPermissionLevel <= PermissionLevelToCheck {
 			return true
 		}
@@ -138,11 +144,11 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 
 // checkPermissionLevel checks user permission level
 func checkPermissionLevel(permissionLevel int) (bool) {
-	if permissionLevel == 0 {
+	if permissionLevel == AdminLevel {
 		return true
-	} else if permissionLevel == 1 {
+	} else if permissionLevel == StandardLevel {
 		return true
-	} else if permissionLevel == 2 {
+	} else if permissionLevel == ReadLevel {
 		return true
 	} else {
 		return false
