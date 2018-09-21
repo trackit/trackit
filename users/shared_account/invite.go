@@ -209,7 +209,7 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, acco
 // inviteUserWithValidBody tries to share an account with a specific user
 func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, accountId int, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	security, err := safetyCheckByAccountId(request.Context(), tx, accountId, user)
+	security, err := safetyCheckByAccountIdAndPermissionLevel(request.Context(), tx, accountId, body, user)
 	if err != nil {
 		return http.StatusBadRequest, err
 	} else if !security {

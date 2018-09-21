@@ -39,15 +39,44 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 }
 
 // checkLevel checks if the current user permission level is high enough to perform an action
-func checkLevel(sharePermissionLevel int, permissionLevel int) (bool) {
-	if permissionLevel == 0 {
+func checkLevel(PermissionLevelToCheck int, currentUserPermissionLevel int) (bool) {
+	if currentUserPermissionLevel == 0 {
 		return true
-	} else if permissionLevel == 1 {
-		if permissionLevel <= sharePermissionLevel {
+	} else if currentUserPermissionLevel == 1 {
+		if currentUserPermissionLevel <= PermissionLevelToCheck {
 			return true
 		}
 	}
 	return false
+}
+
+// safetyCheckByAccountIdAndPermissionLevel checks by AccountId if the user have a high enough
+// permission level to perform an action on a shared account. It also compares current user Permission Level
+// to the permissionLevel of the viewer account.
+func safetyCheckByAccountIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, AccountId int, body InviteUserRequest, user users.User) (bool, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbAwsAccount, err := models.AwsAccountByID(tx, AccountId)
+	if err == sql.ErrNoRows {
+		logger.Error("Non existing AWS error", err)
+		return false, errors.New("This AWS Account does not exist")
+	} else if err != nil {
+		logger.Error("Unable to ensure user have enough rights to do this action", err)
+		return false, err
+	}
+	if dbAwsAccount.UserID == user.Id {
+		logger.Error("User tries to share an account with himself", err)
+		return false, errors.New("You are already sharing this account with this user")
+	}
+	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
+	if err == nil {
+		for _, key := range dbSharedAccount {
+			if key.UserID == user.Id  && checkLevel(body.PermissionLevel, key.UserPermission){
+				return true, nil
+			}
+		}
+	}
+	logger.Error("Unable to ensure user have enough rights to do this action", err)
+	return false, errors.New("Unable to ensure user have enough rights to do this action")
 }
 
 // safetyCheckByShareId checks by ShareId if the user have a high enough
