@@ -46,3 +46,62 @@ export function* getEventsSaga({ begin, end }) {
     yield put({ type: Constants.HIGHLEVEL_EVENTS_ERROR, error });
   }
 }
+
+export function* getTagsKeysSaga({ begin, end }) {
+  try {
+    const token = yield getToken();
+    const accounts = yield getAWSAccounts();
+    const res = yield call(API.AWS.Costs.getTagsKeys, token, begin, end, accounts);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
+    if (res.success && res.hasOwnProperty("data")) {
+      if (res.data.hasOwnProperty("error"))
+        throw Error(res.data.error);
+      else {
+        yield put({type: Constants.HIGHLEVEL_TAGS_KEYS_SUCCESS, keys: res.data});
+        if (res.data.length) {
+          // Setting first key as selected
+          yield put({type: Constants.HIGHLEVEL_TAGS_KEYS_SELECT, key: res.data[0]});
+          // Retrieving values for this key
+          yield put({type: Constants.HIGHLEVEL_TAGS_COST_REQUEST, begin, end, key: res.data[0]});
+        } else {
+          // No keys so no possible selection or costs
+          yield put({type: Constants.HIGHLEVEL_TAGS_COST_CLEAR});
+          yield put({type: Constants.HIGHLEVEL_TAGS_KEYS_CLEAR_SELECTED});
+        }
+      }
+    }
+    else
+      throw Error("Error with request");
+  } catch (error) {
+    yield put({type: Constants.HIGHLEVEL_TAGS_KEYS_ERROR, error});
+  }
+}
+
+export function* getTagsValuesSaga({ begin, end, key }) {
+  try {
+    const token = yield getToken();
+    const accounts = yield getAWSAccounts();
+    const res = yield call(API.AWS.Costs.getTagsValues, token, moment(begin).subtract(1, 'months'), end, key, ['month'], accounts);
+    if (res.success === null) {
+      yield put({type: Constants.LOGOUT_REQUEST});
+      return;
+    }
+    if (res.success && res.hasOwnProperty("data")) {
+      if (res.data.hasOwnProperty("error"))
+        throw Error(res.data.error);
+      else if (res.data.hasOwnProperty(key) && Array.isArray(res.data[key])) {
+        yield put({type: Constants.HIGHLEVEL_TAGS_COST_SUCCESS, values: res.data[key]});
+      }
+      else
+        throw Error("Error with response");
+    }
+    else
+      throw Error("Error with request");
+  } catch (error) {
+    yield put({type: Constants.HIGHLEVEL_TAGS_COST_ERROR, error});
+  }
+}
+

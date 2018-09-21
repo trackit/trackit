@@ -399,6 +399,12 @@ h4.no-data {
     text-align: center;
 }
 
+.hl-panel-select {
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
 .hl-details-link {
     font-size: 13px;
     text-decoration: underline;

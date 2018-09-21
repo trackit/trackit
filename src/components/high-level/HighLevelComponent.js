@@ -10,6 +10,7 @@ import IntervalNavigator from '../misc/IntervalNavigator';
 import StatusBadges from '../aws/accounts/StatusBadgesComponent';
 import Summary from './SummaryComponent';
 import TopSpendings from './TopSpendingsComponent';
+import TopTags from './TopTagsComponent';
 import History from './HistoryComponent';
 //import Events from './EventsComponent';
 
@@ -28,12 +29,14 @@ export class HighLevelComponent extends Component {
       currentInterval: true
     };
     this.isCurrentInterval = this.isCurrentInterval.bind(this);
+    this.handleKeyChange = this.handleKeyChange.bind(this);
   }
 
   componentDidMount() {
     if (this.props.dates) {
       this.props.getData(this.props.dates.startDate, this.props.dates.endDate);
       this.props.getEvents(this.props.dates.startDate, this.props.dates.endDate);
+      this.props.getTagsKeys(this.props.dates.startDate, this.props.dates.endDate);
     }
     else
       this.props.setDates(defaultDates.startDate, defaultDates.endDate);
@@ -43,12 +46,18 @@ export class HighLevelComponent extends Component {
     if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts)) {
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
       nextProps.getEvents(nextProps.dates.startDate, nextProps.dates.endDate);
+      nextProps.getTagsKeys(nextProps.dates.startDate, nextProps.dates.endDate);
     }
   }
 
   isCurrentInterval(currentInterval) {
     if (this.state.currentInterval !== currentInterval)
       this.setState({currentInterval})
+  }
+
+  handleKeyChange(key) {
+      this.props.setTagsKeySelected(key);
+      this.props.getTagsValues(this.props.dates.startDate, this.props.dates.endDate, key);
   }
 
   render() {
@@ -103,6 +112,27 @@ export class HighLevelComponent extends Component {
       }
     }
 
+    let tagsLoader;
+    let tagsError;
+    let tags;
+    if (this.props.tags && this.props.tags.keys) {
+      if (!this.props.tags.keys.status)
+        tagsLoader = <Spinner className="spinner" name='circle'/>;
+      else if (this.props.tags.keys.hasOwnProperty("error"))
+        tagsError = <div className="alert alert-warning" role="alert">Error while getting data
+          ({this.props.tags.keys.error.message})</div>;
+      else if (this.props.tags.keys.values)
+        tags = <TopTags
+          date={this.props.dates.startDate}
+          keys={this.props.tags.keys.values}
+          selected={this.props.tags.selected}
+          currentInterval={this.state.currentInterval}
+          setSelected={this.handleKeyChange}
+          costs={this.props.tags.costs}
+        />;
+    }
+
+
     /* Uncomment this block once API is fixed
     let eventsLoader;
     let eventsError;
@@ -122,11 +152,13 @@ export class HighLevelComponent extends Component {
     */
 
     // Add support for eventsLoader & eventsError once API is fixed
-    const status = (costLoader || costError ? (
+    const status = ((costLoader || costError || tagsLoader || tagsError) ? (
       <div className="col-md-12">
         <div className="white-box">
           {costLoader}
           {costError}
+          {tagsLoader}
+          {tagsError}
         </div>
       </div>
     ) : null);
@@ -153,6 +185,7 @@ export class HighLevelComponent extends Component {
         {summary}
         {history}
         {topSpendings}
+        {tags}
       </div>
 
     );
@@ -173,6 +206,7 @@ const mapStateToProps = ({highlevel, aws}) => ({
   dates: highlevel.dates,
   costs: highlevel.costs,
   events: highlevel.events,
+  tags: highlevel.tags,
   accounts: aws.accounts.selection,
 });
 
@@ -183,6 +217,15 @@ const mapDispatchToProps = (dispatch) => ({
   },
   getEvents: (begin, end) => {
     dispatch(Actions.Highlevel.getEvents(begin, end))
+  },
+  getTagsKeys: (begin, end) => {
+    dispatch(Actions.Highlevel.getTagsKeys(begin, end))
+  },
+  getTagsValues: (begin, end, key) => {
+    dispatch(Actions.Highlevel.getTagsValues(begin, end, key))
+  },
+  setTagsKeySelected: (key) => {
+    dispatch(Actions.Highlevel.selectTagsKey(key))
   },
   setDates: (startDate, endDate) => {
     dispatch(Actions.Highlevel.setDates(startDate, endDate))
