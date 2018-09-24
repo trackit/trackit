@@ -59,16 +59,26 @@ func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string, u
 		if user.Id != dbUser.ID {
 			return true, dbUser.ID, nil
 		} else {
-			return false, dbUser.ID, ErrorAlreadyShared
+			logger.Warning("User tries to share an account with himself", nil)
+			return false, dbUser.ID, errors.New("You can't share an account with yourself")
 		}
 	}
 }
 
 // checkSharedAccount checks if an account is already shared with a user.
 // true is returned if invited user already have an access to this account.
-func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, userId int) (bool, error) {
+func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, guestId int) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbSharedAccounts, err := models.SharedAccountsByUserID(db, userId)
+	dbAwsAccount, err := models.AwsAccountByID(db, accountId)
+	if err != nil {
+		logger.Error("Error while retrieving AWS account from DB", err)
+		return false, err
+	}
+	if dbAwsAccount.UserID == guestId {
+		logger.Warning("User tries to share an account with the owner of the account", nil)
+		return false, errors.New("You can't share an account with this user")
+	}
+	dbSharedAccounts, err := models.SharedAccountsByUserID(db, guestId)
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {

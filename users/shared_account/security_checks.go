@@ -68,8 +68,7 @@ func safetyCheckByAccountIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, A
 		return false, err
 	}
 	if dbAwsAccount.UserID == user.Id {
-		logger.Warning("User tries to share an account with himself", err)
-		return false, errors.New("You are already sharing this account with this user")
+		return true, nil
 	}
 	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
 	if err == nil {
