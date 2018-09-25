@@ -89,12 +89,11 @@ class TopSpendings extends Component {
       let selectedMonthProducts = [];
       let previousMonthProducts = [];
       let mappedPreviousMonthProducts = [];
-      const parsedMonths = months.map((month) => (moment(month)));
 
-      if (parsedMonths.length === 2) {
+      if (months.length === 2) {
         selectedMonthProducts = convertProductObjectToArray(this.props.costs.months[months[1]].product);
         previousMonthProducts = convertProductObjectToArray(this.props.costs.months[months[0]].product);
-      } else if (parsedMonths[0].isSame(this.props.date, "month")) {
+      } else {
         selectedMonthProducts = convertProductObjectToArray(this.props.costs.months[months[0]].product);
       }
 

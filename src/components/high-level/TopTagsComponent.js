@@ -48,7 +48,13 @@ class TopTags extends Component {
     }
 
     getProjectedValues(values) {
-        return values.map((item) => [item.tag.length ? item.tag : 'No value', (item.costs[1].cost / moment().date()) * parseInt(moment().endOf('month').format("DD"), 10)]);
+        return values.map((item) => {
+            if (item.costs[1] && item.costs[1].cost) {
+                return ([item.tag.length ? item.tag : 'No value', (item.costs[1].cost / moment().date()) * parseInt(moment().endOf('month').format("DD"), 10)]);
+            } else {
+                return ([item.tag.length ? item.tag : 'No value', (item.costs[0].cost / moment().date()) * parseInt(moment().endOf('month').format("DD"), 10)]);
+            }
+        });
     }
 
     formatDataForChart(values) {
@@ -67,8 +73,13 @@ class TopTags extends Component {
         for (let i = 0; i < values.length; i++) {
             const element = values[i];
             const tag = element.tag.length ? element.tag : 'No value';
-            res[0].values.push([tag, element.costs[1].cost]);
-            res[1].values.push([tag, element.costs[0].cost]);
+            if (element.costs[0] && element.costs[0].cost && element.costs[1] && element.costs[1].cost) {
+                res[0].values.push([tag, element.costs[1].cost]);
+                res[1].values.push([tag, element.costs[0].cost]);    
+            } else if (element.costs[0] && element.costs[0].cost) {
+                res[0].values.push([tag, element.costs[0].cost]);
+                res[1].values.push([tag, 0]);    
+            }
         }
         if (this.props.currentInterval) {
             res[2] = res[1];
@@ -90,7 +101,15 @@ class TopTags extends Component {
             if (!values.length)
               chart = (<h4 className="no-data">No data available for this timerange</h4>);
             else {
-                const sorted = values.sort((a, b) =>  (a.costs[1].cost > b.costs[1].cost ? -1 : (a.costs[1].cost < b.costs[1].cost ? 1 : 0))).slice(0, 5);
+                const sorted = values.sort((a, b) =>  {
+                    if (a.costs[1] && b.costs[1]) {
+                        return (a.costs[1].cost > b.costs[1].cost ? -1 : (a.costs[1].cost < b.costs[1].cost ? 1 : 0));
+                    } else if (a.costs[0] && b.costs[0]) {
+                        return (a.costs[0].cost > b.costs[0].cost ? -1 : (a.costs[0].cost < b.costs[0].cost ? 1 : 0));
+                    } else {
+                        return 1;
+                    }
+                }).slice(0, 5);
                 const datum = this.formatDataForChart(sorted);
                 chart = (
                     <NVD3Chart
@@ -122,7 +141,7 @@ class TopTags extends Component {
         let selector;
         if (this.props.selected) {
             selector = (
-                <select className="hl-panel-select" value={this.props.selected} onChange={this.handleKeySelection.bind(this)}>
+                <select className="hl-panel-select" style={{maxWidth: '110px'}} value={this.props.selected} onChange={this.handleKeySelection.bind(this)}>
                     {this.props.keys.map(item => <option key={item} value={item}>{item}</option>)}
                 </select>
             );
