@@ -149,9 +149,6 @@ func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, user 
 	for _, account := range response.TopReports.Buckets {
 		if len(account.TopReportsHits.Hits.Hits) > 0 {
 			report := account.TopReportsHits.Hits.Hits[0].Source
-			for i := range report.Instances {
-				report.Instances[i].Cost = 0
-			}
 			resCost, err := makeElasticSearchCostRequest(ctx, user, tx, report.Account, report.ReportDate)
 			if err == nil {
 				report = addCostToReport(report, resCost)

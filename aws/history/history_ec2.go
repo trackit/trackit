@@ -328,10 +328,11 @@ func putEc2ReportInEs(ctx context.Context, report tec2.ReportInfo, aa taws.AwsAc
 		Id(hash64).
 		Do(context.Background()); err != nil {
 		logger.Error("Error when putting InstanceInfo history in ES", err.Error())
+		return err
 	} else {
 		logger.Info("Instance put in ES", *res)
+		return nil
 	}
-	return nil
 }
 
 // filterEc2Instances filter instances and volumes of EC2 instances

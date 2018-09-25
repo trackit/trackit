@@ -81,7 +81,7 @@ type (
 	}
 )
 
-// merge function from https://blog.golang.org/pipelines#TOC_4
+// Merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
 func Merge(cs ...<-chan InstanceInfo) <-chan InstanceInfo {
 	var wg sync.WaitGroup
@@ -109,7 +109,7 @@ func Merge(cs ...<-chan InstanceInfo) <-chan InstanceInfo {
 	return out
 }
 
-// getAccountId gets the AWS Account ID for the given credentials
+// GetAccountId gets the AWS Account ID for the given credentials
 func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := sts.New(sess)
@@ -381,7 +381,7 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 	return nil
 }
 
-// fetchRegionsList fetchs the regions list from AWS and returns an array of their name.
+// FetchRegionsList fetchs the regions list from AWS and returns an array of their name.
 func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := ec2.New(sess)

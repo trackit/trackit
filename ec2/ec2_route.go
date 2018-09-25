@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
@@ -29,7 +30,6 @@ import (
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"time"
 )
 
 // ec2QueryParams will store the parsed query params

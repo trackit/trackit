@@ -22,7 +22,6 @@ import (
 
 const (
 	IndexPrefixLineItems = "lineitems"
-	IndexPrefixHistory = "history-report"
 )
 
 func IndexNameForUser(u users.User, p string) string {

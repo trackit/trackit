@@ -158,12 +158,12 @@ func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountHistoryRDS processes all the RDS and EC2 data with billing data for an AwsAccount
+// processAccountHistoryRDS processes aEC2 data with billing data for an AwsAccount (only EC2 for now)
 func processAccountHistory(ctx context.Context, aa aws.AwsAccount) (error) {
 	err := history.FetchHistoryInfos(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Failed to ingest RDS and EC2 history data.", map[string]interface{}{
+		logger.Error("Failed to ingest History data.", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
 		})
