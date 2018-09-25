@@ -15,35 +15,25 @@
 package history
 
 import (
-	"context"
-
-	taws "github.com/trackit/trackit-server/aws"
 	"time"
-	tec2 "github.com/trackit/trackit-server/aws/ec2"
+	"strings"
+	"context"
+	"crypto/md5"
+	"encoding/json"
+	"encoding/base64"
+
 	"github.com/trackit/jsonlog"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/trackit/trackit-server/config"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"strings"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/trackit/trackit-server/es"
-	"encoding/json"
-	"crypto/md5"
-	"encoding/base64"
-)
 
-func getInstanceInput (instances []CostPerInstance) (ec2.DescribeInstancesInput) {
-	var array []string
-	for _, instance := range instances {
-		array = append(array, instance.Instance)
-	}
-	aws.StringSlice(array)
-	return ec2.DescribeInstancesInput{
-		InstanceIds: aws.StringSlice(array),
-	}
-}
+	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit-server/aws"
+	tec2 "github.com/trackit/trackit-server/aws/ec2"
+)
 
 // getInstanceCPUStats gets the CPU average and the CPU peak from CloudWatch
 func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
@@ -52,7 +42,7 @@ func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Di
 		MetricName: aws.String("CPUUtilization"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Average"), aws.String("Maximum")},
 		Dimensions: dimensions,
 	})
@@ -72,7 +62,7 @@ func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatc
 		MetricName: aws.String("NetworkIn"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Sum")},
 		Dimensions: dimensions,
 	})
@@ -84,7 +74,7 @@ func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatc
 		MetricName: aws.String("NetworkOut"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Sum")},
 		Dimensions: dimensions,
 	})
@@ -104,7 +94,7 @@ func getInstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudw
 		MetricName: aws.String("DiskReadBytes"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Sum")},
 		Dimensions: dimensions,
 	})
@@ -116,7 +106,7 @@ func getInstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudw
 		MetricName: aws.String("DiskWriteBytes"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Sum")},
 		Dimensions: dimensions,
 	})
@@ -136,7 +126,7 @@ func getInstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.
 		MetricName: aws.String("VolumeReadBytes"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Sum")},
 		Dimensions: dimensions,
 	})
@@ -148,7 +138,7 @@ func getInstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.
 		MetricName: aws.String("VolumeWriteBytes"),
 		StartTime:  aws.Time(startDate),
 		EndTime:    aws.Time(endDate),
-		Period:     aws.Int64(int64(60*60*24) * 31), // Period of thirty days expressed in seconds
+		Period:     aws.Int64(int64(60*60*24) * 31),
 		Statistics: []*string{aws.String("Sum")},
 		Dimensions: dimensions,
 	})
@@ -228,9 +218,9 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 	}
 }
 
-// fetchInstancesList sent in instanceInfoChan the instances fetched from DescribeInstances
+// fetchEc2InstancesList sent in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances, getAccountID and getInstanceStats.
-func fetchInstancesList(ctx context.Context, creds *credentials.Credentials, instList []CostPerInstance,
+func fetchEc2InstancesList(ctx context.Context, creds *credentials.Credentials, instList []CostPerInstance,
 	region string, instanceInfoChan chan tec2.InstanceInfo, startDate, endDate time.Time) error {
 	defer close(instanceInfoChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -269,6 +259,7 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials, ins
 	return nil
 }
 
+// getEc2Metrics get credentials, accounts and region to fetch EC2 instances stats
 func getEc2Metrics(ctx context.Context, instances []CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (tec2.ReportInfo, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, tec2.MonitorInstanceStsSessionName)
@@ -299,7 +290,7 @@ func getEc2Metrics(ctx context.Context, instances []CostPerInstance, aa taws.Aws
 	instanceInfoChans := make([]<-chan tec2.InstanceInfo, 0, len(regions))
 	for _, region := range regions {
 		instanceInfoChan := make(chan tec2.InstanceInfo)
-		go fetchInstancesList(ctx, creds, instances, region, instanceInfoChan, startDate, endDate)
+		go fetchEc2InstancesList(ctx, creds, instances, region, instanceInfoChan, startDate, endDate)
 		instanceInfoChans = append(instanceInfoChans, instanceInfoChan)
 	}
 	for instance := range tec2.Merge(instanceInfoChans...) {
@@ -308,6 +299,7 @@ func getEc2Metrics(ctx context.Context, instances []CostPerInstance, aa taws.Aws
 	return report, nil
 }
 
+// putEc2ReportInEs puts the history EC2 report in elasticsearch
 func putEc2ReportInEs(ctx context.Context, report tec2.ReportInfo, aa taws.AwsAccount) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EC2 history instances for AWS account.", map[string]interface{}{
@@ -342,6 +334,7 @@ func putEc2ReportInEs(ctx context.Context, report tec2.ReportInfo, aa taws.AwsAc
 	return nil
 }
 
+// filterEc2Instances filter instances and volumes of EC2 instances
 func filterEc2Instances(ec2Cost, cloudwatchCost []CostPerInstance) ([]CostPerInstance, []CostPerInstance) {
 	newInstance := []CostPerInstance{}
 	newVolume   := []CostPerInstance{}
@@ -363,15 +356,21 @@ func filterEc2Instances(ec2Cost, cloudwatchCost []CostPerInstance) ([]CostPerIns
 	return newInstance, newVolume
 }
 
+// getEc2HistoryReport puts a monthly report of EC2 instance in ES
 func getEc2HistoryReport(ctx context.Context, ec2Cost []CostPerInstance, cloudwatchCost []CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Starting EC2 history report for " + string(aa.Id) + " (" + aa.Pretty + ")", map[string]interface{}{
+		"awsAccountId": aa.Id,
+		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
+		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
+	})
 	costInstance, costVolume := filterEc2Instances(ec2Cost, cloudwatchCost)
-	logger.Info("COST INST", costInstance)
-	logger.Info("COST VOL", costVolume)
 	if len(costInstance) == 0 {
+		logger.Info("No EC2 instances found in billing data.", aa)
 		return nil
 	}
 	if already, err := checkAlreadyHistory(ctx, startDate, aa, tec2.IndexPrefixEC2Report); already || err != nil {
+		logger.Info("There is already an EC2 history report", aa)
 		return err
 	}
 	report, err := getEc2Metrics(ctx, costInstance, aa, startDate, endDate)
@@ -394,7 +393,6 @@ func getEc2HistoryReport(ctx context.Context, ec2Cost []CostPerInstance, cloudwa
 			}
 		}
 	}
-	logger.Info("REPORT FINAL", report)
 	err = putEc2ReportInEs(ctx, report, aa)
 	return err
 }

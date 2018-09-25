@@ -140,7 +140,7 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	return http.StatusOK, res
 }
 
-// makeElasticSearchEc2Request prepares and run the request to retrieve the latest reports
+// makeElasticSearchEc2HistoryRequest prepares and run the request to retrieve a month report
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
@@ -168,7 +168,7 @@ func makeElasticSearchEc2HistoryRequest(ctx context.Context, parsedParams ec2His
 	return res, http.StatusOK, nil
 }
 
-// getEc2Instances returns the list of EC2 reports based on the query params, in JSON format.
+// getEc2HistoryInstances returns the list of EC2 reports based on the query params, in JSON format.
 func getEc2HistoryInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := ec2HistoryQueryParams{
@@ -189,7 +189,7 @@ func getEc2HistoryInstances(request *http.Request, a routes.Arguments) (int, int
 	if err != nil {
 		return returnCode, err
 	}
-	res, err := prepareResponseEc2History(request.Context(), searchResult, user, tx)
+	res, err := prepareResponseEc2History(request.Context(), searchResult)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

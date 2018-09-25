@@ -54,7 +54,7 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 	return search
 }
 
-// GetElasticSearchEc2Params is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// GetElasticSearchEc2HistoryParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
 // 	- accountList []string : A slice of strings representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'

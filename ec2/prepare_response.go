@@ -163,7 +163,7 @@ func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, user 
 }
 
 // prepareResponseEc2History parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponseEc2History(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, tx *sql.Tx) (interface{}, error) {
+func prepareResponseEc2History(ctx context.Context, resEc2 *elastic.SearchResult) (interface{}, error) {
 	var response ResponseEc2
 	var reports []Report
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
