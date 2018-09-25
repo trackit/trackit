@@ -129,7 +129,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 	if err == nil {
 		for _, key := range dbShareAccountByAccountId {
 			if key.UserID == user.Id && checkLevel(newPermissionLevel, key.UserPermission) {
-				if key.UserPermission == StandardLevel && dbShareAccount.UserPermission != AdminLevel {
+				if key.UserPermission == StandardLevel && dbShareAccount.UserPermission == AdminLevel {
 					return false, nil
 				}
 				return true, nil
