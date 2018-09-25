@@ -104,7 +104,12 @@ export default {
       endDate: moment().endOf('month')
     },
     costs: {},
-    events: {}
+    events: {},
+    tags: {
+      keys: {},
+      selected: null,
+      costs: {}
+    }
   },
   auth: {
     token: null,

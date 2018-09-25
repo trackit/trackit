@@ -20,7 +20,7 @@ export class FormComponent extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      email: (this.props.match && this.props.match.params && this.props.match.params.prefill) ? decodeURIComponent(this.props.match.params.prefill) : '',
+      email: (this.props.match && this.props.match.params && this.props.match.params.prefill && this.props.match.params.prefill !== "timeout") ? decodeURIComponent(this.props.match.params.prefill) : '',
       password: '',
       passwordConfirmation: '',
     }

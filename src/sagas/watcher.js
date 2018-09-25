@@ -4,13 +4,27 @@ import * as Auth from './auth';
 import * as User from './user';
 import * as Events from './events';
 import * as Highlevel from './highlevel';
-import { takeEvery, takeLatest } from 'redux-saga/effects';
+import { takeEvery, takeLatest, fork, cancel } from 'redux-saga/effects';
 import {getDataSaga, saveDashboardSaga, loadDashboardSaga, initDashboardSaga} from "./dashboardSaga";
 import Constants from "../constants";
 
+// To manage concurrency when multiple calls are fired for the same id
+let tasks = {};
+
+function* accumulateGetValuesSaga(action) {
+  const {id, type} = action;
+  if (!tasks[type]) tasks[type] = {};
+
+  if (tasks[type][id]) {
+    yield cancel(tasks[type][id]);
+  }
+  tasks[type][id] = yield fork(getDataSaga, action);
+}
+
+
 const Dashboard = {
   watchGetDashboardValues: function*() {
-    yield takeEvery(Constants.DASHBOARD_GET_VALUES, getDataSaga);
+    yield takeEvery(Constants.DASHBOARD_GET_VALUES, accumulateGetValuesSaga);
   },
   watchSaveDashboard: function*() {
     yield takeEvery(Constants.DASHBOARD_UPDATE_ITEMS, saveDashboardSaga);

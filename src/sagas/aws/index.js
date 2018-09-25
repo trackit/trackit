@@ -1,4 +1,4 @@
-import { takeEvery, takeLatest } from 'redux-saga/effects';
+import { takeEvery, takeLatest, fork, cancel } from 'redux-saga/effects';
 import * as AccountsSaga from './accountsSaga';
 import { getCostsSaga, saveChartsSaga, loadChartsSaga, initChartsSaga } from "./costsSaga";
 import { getS3DataSaga, saveS3DatesSaga, loadS3DatesSaga } from './s3Saga';
@@ -55,7 +55,20 @@ export function* watchLoadSelectedAccounts() {
 }
 
 export function* watchGetCosts() {
-  yield takeEvery(Constants.AWS_GET_COSTS, getCostsSaga);
+  yield takeEvery(Constants.AWS_GET_COSTS, accumulateGetCostsSaga);
+}
+
+// To manage concurrency when multiple calls are fired for the same id
+let tasks = {};
+
+function* accumulateGetCostsSaga(action) {
+  const {id, type} = action;
+  if (!tasks[type]) tasks[type] = {};
+
+  if (tasks[type][id]) {
+    yield cancel(tasks[type][id]);
+  }
+  tasks[type][id] = yield fork(getCostsSaga, action);
 }
 
 export function* watchSaveCharts() {
