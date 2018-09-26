@@ -15,31 +15,30 @@
 package ec2
 
 import (
-	"fmt"
 	"strings"
 	"context"
 	"encoding/json"
-	"database/sql"
-
 	"gopkg.in/olivere/elastic.v5"
-	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/es"
 )
 
 type (
 
 	// Structure that allow to parse ES response for costs
 	ResponseCost struct {
-		Instances struct {
+		Accounts struct {
 			Buckets []struct {
-				Key  string `json:"key"`
-				Cost struct {
-					Value float64 `json:"value"`
-				} `json:"cost"`
+				Key string `json:"key"`
+				Instances struct {
+					Buckets []struct {
+						Key string `json:"key"`
+						Cost struct {
+							Value float64 `json:"value"`
+						} `json:"cost"`
+					} `json:"buckets"`
+				} `json:"instances"`
 			} `json:"buckets"`
-		} `json:"instances"`
+		} `json:"accounts"`
 	}
 
 	// Structure that allow to parse ES response for EC2 usage report
@@ -61,6 +60,7 @@ type (
 	Report struct {
 		Account    string `json:"account"`
 		ReportDate string `json:"reportDate"`
+		ReportType string `json:"reportType"`
 		Instances  []struct {
 			Id         string             `json:"id"`
 			Region     string             `json:"region"`
@@ -80,57 +80,26 @@ type (
 	}
 )
 
-// makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empty data
-func makeElasticSearchCostRequest(ctx context.Context, user users.User, tx *sql.Tx, account string , date string) (ResponseCost, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	accountsAndIndexes, _, err := es.GetAccountsAndIndexes([]string{account}, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return ResponseCost{}, err
-	}
-	index := strings.Join(accountsAndIndexes.Indexes, ",")
-	searchService := GetElasticSearchCostParams(
-		account,
-		date,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return ResponseCost{}, err
-		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return ResponseCost{}, fmt.Errorf("could not execute the ElasticSearch query")
-	}
-	var resCost ResponseCost
-	err = json.Unmarshal(*res.Aggregations["instances"], &resCost.Instances)
-	if err != nil {
-		return ResponseCost{}, err
-	}
-	return resCost,  nil
-}
-
 // addCostToReport adds cost for each instance based on billing data
 func addCostToReport(report Report, costs ResponseCost) (Report) {
-	for _, instance := range costs.Instances.Buckets {
-		for i := range report.Instances {
-			if strings.Contains(instance.Key, report.Instances[i].Id) {
-				report.Instances[i].Cost += instance.Cost.Value
-			}
-			for volume := range report.Instances[i].IOWrite {
-				if volume == instance.Key {
+	for _, accounts := range costs.Accounts.Buckets {
+		if accounts.Key != report.Account {
+			continue
+		}
+		for _, instance := range accounts.Instances.Buckets {
+			for i := range report.Instances {
+				if strings.Contains(instance.Key, report.Instances[i].Id) {
 					report.Instances[i].Cost += instance.Cost.Value
 				}
-			}
-			for volume := range report.Instances[i].IORead {
-				if volume == instance.Key {
-					report.Instances[i].Cost += instance.Cost.Value
+				for volume := range report.Instances[i].IOWrite {
+					if volume == instance.Key {
+						report.Instances[i].Cost += instance.Cost.Value
+					}
+				}
+				for volume := range report.Instances[i].IORead {
+					if volume == instance.Key {
+						report.Instances[i].Cost += instance.Cost.Value
+					}
 				}
 			}
 		}
@@ -139,20 +108,21 @@ func addCostToReport(report Report, costs ResponseCost) (Report) {
 }
 
 // prepareResponseEc2 parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, tx *sql.Tx) (interface{}, error) {
-	var response ResponseEc2
-	var reports []Report
-	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
+func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) (interface{}, error) {
+	ec2  := ResponseEc2{}
+	cost := ResponseCost{}
+	reports := []Report{}
+	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &ec2.TopReports)
 	if err != nil {
 		return nil, err
 	}
-	for _, account := range response.TopReports.Buckets {
+	if resCost != nil {
+		json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
+	}
+	for _, account := range ec2.TopReports.Buckets {
 		if len(account.TopReportsHits.Hits.Hits) > 0 {
 			report := account.TopReportsHits.Hits.Hits[0].Source
-			resCost, err := makeElasticSearchCostRequest(ctx, user, tx, report.Account, report.ReportDate)
-			if err == nil {
-				report = addCostToReport(report, resCost)
-			}
+			report = addCostToReport(report, cost)
 			reports = append(reports, report)
 		}
 	}
@@ -161,7 +131,7 @@ func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, user 
 
 // prepareResponseEc2History parses the results from elasticsearch and returns the EC2 usage report
 func prepareResponseEc2History(ctx context.Context, resEc2 *elastic.SearchResult) (interface{}, error) {
-	var response ResponseEc2
+	response := ResponseEc2{}
 	reports := []Report{}
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
 	if err != nil {

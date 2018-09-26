@@ -86,6 +86,32 @@ func init() {
 	}.H().Register("/ec2/history")
 }
 
+// makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empty data
+func makeElasticSearchCostRequest(ctx context.Context, params ec2QueryParams) (*elastic.SearchResult, int, error) {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	index := strings.Join(params.indexList, ",")
+	searchService := GetElasticSearchCostParams(
+		params.accountList,
+		es.Client,
+		index,
+	)
+	res, err := searchService.Do(ctx)
+	if err != nil {
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists : "+index, err)
+			return nil, http.StatusOK, err
+		}
+		l.Error("Query execution failed : "+err.Error(), nil)
+		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+	}
+	return res, http.StatusOK, nil
+}
+
 // makeElasticSearchEc2Request prepares and run the request to retrieve the latest reports
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
@@ -133,7 +159,14 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	if err != nil {
 		return returnCode, err
 	}
-	res, err := prepareResponseEc2(request.Context(), searchResult, user, tx)
+	accountsAndIndexes, returnCode, err = es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, es.IndexPrefixLineItems)
+	if err != nil {
+		return returnCode, err
+	}
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
+	costResult, _, _ := makeElasticSearchCostRequest(request.Context(), parsedParams)
+	res, err := prepareResponseEc2(request.Context(), searchResult, costResult)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
