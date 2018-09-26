@@ -111,10 +111,8 @@ type createUserRequestBody struct {
 func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
 	var awsInput marketplacemetering.ResolveCustomerInput
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	test := true
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(config.AwsRegion),
-		CredentialsChainVerboseErrors: &test,
 	}))
 	svc := marketplacemetering.New(mySession)
 	awsInput.SetRegistrationToken(token)
