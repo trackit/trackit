@@ -21,7 +21,10 @@
                 "rds:DescribeDBInstances",
                 "cloudwatch:GetMetricStatistics",
                 "ec2:DescribeRegions",
-                "ec2:DescribeInstances"
+                "ec2:DescribeInstances",
+                "ec2:DescribeReservedInstancesListings",
+                "ec2:DescribeReservedInstancesModifications",
+                "ec2:DescribeReservedInstancesOfferings"
             ],
             "Resource": "*"
         }
