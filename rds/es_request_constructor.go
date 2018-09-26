@@ -81,15 +81,7 @@ func GetElasticSearchCostParams(accountList []string, client *elastic.Client, in
 	}
 	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonRDS"))
 	dateEnd := time.Now().UTC()
-	dateStart := time.Date(
-		dateEnd.Year(),
-		dateEnd.Month(),
-		dateEnd.Day()-31,
-		dateEnd.Hour(),
-		dateEnd.Minute(),
-		dateEnd.Second(),
-		dateEnd.Nanosecond(),
-		dateEnd.Location()).UTC()
+	dateStart := time.Date(dateEnd.Year(), dateEnd.Month(), 1, 0, 0, 0, 0, dateEnd.Location()).UTC()
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
