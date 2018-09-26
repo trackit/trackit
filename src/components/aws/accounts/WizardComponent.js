@@ -26,6 +26,23 @@ const Validation = Validations.AWSAccount;
 
 export class StepRoleCreation extends Component {
 
+  constructor() {
+    super();
+    this.state = {
+      copied: null,
+    };
+    this.toggleCopied = this.toggleCopied.bind(this);
+  }
+
+  toggleCopied = (value, result) => {
+    if (result) {
+      this.setState({ copied: value });
+      setTimeout(() => {
+        this.setState({ copied: null });
+      }, 3000);  
+    }
+  };
+
   submit = (e) => {
     e.preventDefault();
     this.props.next();
@@ -58,16 +75,18 @@ export class StepRoleCreation extends Component {
                   />
                   <hr/>
                   Account ID : <strong className="value">{this.props.external.accountId}</strong>
-                  <CopyToClipboard text={this.props.external.accountId}>
+                  <CopyToClipboard text={this.props.external.accountId} onCopy={this.toggleCopied}>
                     <div className="badge">
                       <i className="fa fa-clipboard" aria-hidden="true"/>
+                      {this.state.copied === this.props.external.accountId && ' Copied'}
                     </div>
                   </CopyToClipboard>
                   <br/>
                   External : <strong className="value">{this.props.external.external}</strong>
-                  <CopyToClipboard text={this.props.external.external}>
+                  <CopyToClipboard text={this.props.external.external} onCopy={this.toggleCopied}>
                     <div className="badge">
                       <i className="fa fa-clipboard" aria-hidden="true"/>
+                      {this.state.copied === this.props.external.external && ' Copied'}
                     </div>
                   </CopyToClipboard>
                 </div>
@@ -230,7 +249,18 @@ export class StepBucket extends Component {
       bucketPrefix: '',
     };
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.toggleCopied = this.toggleCopied.bind(this);
   };
+
+  toggleCopied = (value, result) => {
+    if (result) {
+      this.setState({ copied: value });
+      setTimeout(() => {
+        this.setState({ copied: null });
+      }, 3000);  
+    }
+  };
+
 
   handleInputChange(event) {
     const target = event.target;
@@ -317,9 +347,10 @@ export class StepBucket extends Component {
           <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
           <li>
             Paste the following into the Bucket policy Editor and <strong>Save</strong>:
-            <CopyToClipboard text={this.getBucketPolicy()}>
+            <CopyToClipboard text={this.getBucketPolicy()} onCopy={this.toggleCopied}>
                   <div className="badge">
                     <i className="fa fa-clipboard" aria-hidden="true"/>
+                    {this.state.copied && ' Copied'}
                   </div>
             </CopyToClipboard>
             <pre style={{ height: '85px', marginTop: '10px' }}>
@@ -400,7 +431,17 @@ export class StepPolicy extends Component {
       minimal: false
     };
     this.next = this.next.bind(this);
+    this.toggleCopied = this.toggleCopied.bind(this);
   }
+
+  toggleCopied = (value, result) => {
+    if (result) {
+      this.setState({ copied: value });
+      setTimeout(() => {
+        this.setState({ copied: null });
+      }, 3000);  
+    }
+  };
 
   next() {
     this.props.setMinimalPolicy(this.state.minimal);
@@ -455,9 +496,10 @@ export class StepPolicy extends Component {
           <li>Select the <strong>JSON</strong> tab</li>
           <li>
             Paste the following into the JSON Editor:
-            <CopyToClipboard text={this.getPolicy()}>
+            <CopyToClipboard text={this.getPolicy()} onCopy={this.toggleCopied}>
                   <div className="badge">
                     <i className="fa fa-clipboard" aria-hidden="true"/>
+                    {this.state.copied && ' Copied'}
                   </div>
             </CopyToClipboard>
             <pre style={{ height: '180px', marginTop: '10px' }}>
