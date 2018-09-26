@@ -105,4 +105,13 @@ var (
 		Description: "The file type",
 		Optional:    false,
 	}
+
+	// ShareIdQueryArg allows to get the DB id for an Shared access in the URL Parameters
+	// with routes.QueryArgs. This Shared ID will be an Uint stored
+	// in the routes.Arguments map with itself for key.
+	ShareIdQueryArg = QueryArg{
+		Name:        "share-id",
+		Type:        QueryArgInt{},
+		Description: "The DB ID of the sharing",
+	}
 )

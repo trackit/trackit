@@ -12,38 +12,24 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package users
+package shared_account
 
 import (
-	"database/sql"
-	"net/http"
-	"errors"
-	"context"
-	"fmt"
 	"time"
+	"fmt"
+	"errors"
+	"database/sql"
+	"context"
+	"net/http"
 
 	"github.com/trackit/jsonlog"
 	"github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/mail"
+	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/models"
 )
-
-// inviteUserRequest is the expected request body for the invite user route handler.
-type inviteUserRequest struct {
-	Email           string `json:"email" req:"nonzero"`
-	AccountId       int    `json:"accountId"`
-	PermissionLevel int    `json:"permissionLevel"`
-}
-
-type sharedAccount struct {
-	AccountId       int
-	userId          int
-	UserPermission  int
-	SharingAccepted int
-}
 
 var (
 	ErrorInviteNewUser = errors.New("An error occured while inviting a new user. Please, try again.")
@@ -51,33 +37,17 @@ var (
 	ErrorAlreadyShared = errors.New("You are already sharing this account with this user.")
 )
 
-func init() {
-	routes.MethodMuxer{
-		http.MethodPost: routes.H(inviteUser).With(
-			routes.RequestContentType{"application/json"},
-			db.RequestTransaction{db.Db},
-			RequireAuthenticatedUser{ViewerAsParent},
-			routes.RequestBody{inviteUserRequest{"example@example.com", 1234, 0}},
-			routes.Documentation{
-				Summary:     "Creates an invite",
-				Description: "Creates an invite for account team sharing",
-			},
-		),
-	}.H().Register("/user/invite")
-}
+const bCryptCost = 12
 
-// inviteUser handles users invite for team sharing.
-func inviteUser(request *http.Request, a routes.Arguments) (int, interface{}) {
-	var body inviteUserRequest
-	routes.MustRequestBody(a, &body)
-	tx := a[db.Transaction].(*sql.Tx)
-	user := a[AuthenticatedUser].(User)
-	return inviteUserWithValidBody(request, body, tx, user)
+// getPasswordHash generates a hash string for a given password.
+func getPasswordHash(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bCryptCost)
+	return string(hash), err
 }
 
 // checkuserWithEmail checks if user already exist.
 // true is returned if invited user already exist.
-func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string) (bool, int, error) {
+func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string, user users.User) (bool, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser, err := models.UserByEmail(db, userEmail)
 	if err == sql.ErrNoRows {
@@ -86,15 +56,29 @@ func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string) (
 		logger.Error("Error getting user from database.", err.Error())
 		return false, 0, err
 	} else {
-		return true, dbUser.ID,nil
+		if user.Id != dbUser.ID {
+			return true, dbUser.ID, nil
+		} else {
+			logger.Warning("User tries to share an account with himself", nil)
+			return false, dbUser.ID, errors.New("You can't share an account with yourself")
+		}
 	}
 }
 
 // checkSharedAccount checks if an account is already shared with a user.
 // true is returned if invited user already have an access to this account.
-func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, userId int) (bool, error) {
+func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, guestId int) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbSharedAccounts, err := models.SharedAccountsByUserID(db, userId)
+	dbAwsAccount, err := models.AwsAccountByID(db, accountId)
+	if err != nil {
+		logger.Error("Error while retrieving AWS account from DB", err)
+		return false, err
+	}
+	if dbAwsAccount.UserID == guestId {
+		logger.Warning("User tries to share an account with the owner of the account", nil)
+		return false, errors.New("You can't share an account with this user")
+	}
+	dbSharedAccounts, err := models.SharedAccountsByUserID(db, guestId)
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
@@ -112,32 +96,33 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, user
 
 // addAccountToGuest adds an entry in shared_account table allowing a user
 // to share an access to all or part of his account
-func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int) (error) {
+func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int) (models.SharedAccount, error) {
 	dbSharedAccount := models.SharedAccount{
 		AccountID:  accountId,
 		UserID:   guestId,
 		UserPermission: permissionLevel,
 	}
 	err := dbSharedAccount.Insert(db)
-	return err
+	return dbSharedAccount, err
 }
 
 // createAccountForGuest creates an account for invited user who do not already own an account
-func createAccountForGuest(ctx context.Context, db *sql.Tx, userMail string, accountId int, permissionLevel int) (int, error) {
+func createAccountForGuest(ctx context.Context, db *sql.Tx, body InviteUserRequest, accountId int) (int, models.SharedAccount, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var sharedAccount models.SharedAccount
 	tempPassword := uuid.NewV1().String()
-	usr, err := CreateUserWithPassword(ctx, db, userMail, tempPassword, "")
+	usr, err := users.CreateUserWithPassword(ctx, db, body.Email, tempPassword, "")
 	if err == nil {
-		err = addAccountToGuest(ctx, db, accountId, permissionLevel, usr.Id)
+		sharedAccount, err = addAccountToGuest(ctx, db, accountId, body.PermissionLevel, usr.Id)
 		if err != nil {
 			logger.Error("Error occured while adding account to an newly created user.", err.Error())
-			return 0, err
+			return 0, models.SharedAccount{}, err
 		}
 	} else {
 		logger.Error("Error occured while creating an automatic new account.", err.Error())
-		return 0, err
+		return 0, models.SharedAccount{}, err
 	}
-	return usr.Id,nil
+	return usr.Id, sharedAccount, nil
 }
 
 // resetPasswordGenerator returns a reset password token. It is used in order to
@@ -191,46 +176,70 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	return nil
 }
 
+// inviteUserAlreadyExist handles sharing for user that already exists
+func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequest, accountId int, guestId int) (int, interface{}) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	isAlreadyShared, err := checkSharedAccount(ctx, tx, accountId, guestId)
+	if err != nil {
+		return 403, ErrorInviteUser
+	} else if isAlreadyShared {
+		return http.StatusBadRequest, ErrorAlreadyShared
+	}
+	sharedAccount, err := addAccountToGuest(ctx, tx, accountId, body.PermissionLevel, guestId)
+	if err == nil {
+		err = sendMailNotification(ctx, tx, body.Email,true, 0)
+		if err != nil {
+			logger.Error("Error occured while sending an email to an existing user.", err.Error())
+			return 403, ErrorInviteUser
+		}
+		return http.StatusOK, sharedAccount
+	} else {
+		logger.Error("Error occured while adding account to an existing user.", err.Error())
+		return 403, ErrorInviteUser
+	}
+}
+
+// inviteNewUser handles sharing for user that do not already exist
+func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, accountId int) (int, interface{}) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	newUserId, newUser, err := createAccountForGuest(ctx, tx, body, accountId)
+	if err == nil {
+		err = sendMailNotification(ctx, tx, body.Email,false, newUserId)
+		if err != nil {
+			logger.Error("Error occured while sending an email to a new user.", err.Error())
+			return 403, ErrorInviteNewUser
+		}
+		return http.StatusOK, newUser
+	} else {
+		logger.Error("Error occured while creating new account for a guest.", err.Error())
+		return 403, ErrorInviteNewUser
+	}
+}
+
 // inviteUserWithValidBody tries to share an account with a specific user
-func inviteUserWithValidBody(request *http.Request, body inviteUserRequest, tx *sql.Tx, user User) (int, interface{}) {
+func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, accountId int, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email)
+	security, err := safetyCheckByAccountIdAndPermissionLevel(request.Context(), tx, accountId, body, user)
+	if err != nil {
+		return http.StatusBadRequest, err
+	} else if !security {
+		return http.StatusForbidden, errors.New("You do not have permission to edit this sharing")
+	}
+	if !checkPermissionLevel(body.PermissionLevel) {
+		logger.Info("Non existing user permission", nil)
+		return http.StatusBadRequest, ErrorInviteUser
+	}
+	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email, user)
 	if err == nil {
 		if result {
-			isAlreadyShared, err := checkSharedAccount(request.Context(), tx, body.AccountId, guestId)
-			if err != nil {
-				return 403, ErrorInviteUser
-			} else if isAlreadyShared {
-				return 200, ErrorAlreadyShared
-			}
-			err = addAccountToGuest(request.Context(), tx, body.AccountId, body.PermissionLevel, guestId)
-			if err == nil {
-				err = sendMailNotification(request.Context(), tx, body.Email,true, 0)
-				if err != nil {
-					logger.Error("Error occured while sending an email to an existing user.", err.Error())
-					return 403, ErrorInviteUser
-				}
-				return 200, nil
-			} else {
-				logger.Error("Error occured while adding account to an existing user.", err.Error())
-				return 403, ErrorInviteUser
-			}
+			code, res := inviteUserAlreadyExist(request.Context(), tx, body, accountId, guestId)
+			return code, res
 		} else {
-			newUserId, err := createAccountForGuest(request.Context(), tx, body.Email, body.AccountId, body.PermissionLevel)
-			if err == nil {
-				err = sendMailNotification(request.Context(), tx, body.Email,false, newUserId)
-				if err != nil {
-					logger.Error("Error occured while sending an email to a new user.", err.Error())
-					return 403, ErrorInviteNewUser
-				}
-				return 200, nil
-			} else {
-				logger.Error("Error occured while creating new account for a guest.", err.Error())
-				return 403, ErrorInviteNewUser
-			}
+			code, res := inviteNewUser(request.Context(), tx, body, accountId)
+			return code, res
 		}
 	} else {
-		logger.Error("Error occured while checking if user already exist.", err.Error())
+		logger.Error("Error occured while checking body elements.", err.Error())
 		return 403, ErrorInviteNewUser
 	}
 }
