@@ -15,26 +15,26 @@
 package users
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
-	"net/http"
-	"context"
 
-	"github.com/aws/aws-sdk-go/service/marketplacemetering"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/trackit/jsonlog"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/marketplacemetering"
 	"github.com/satori/go.uuid"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/mail"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/mail"
 )
 
 const (
@@ -111,8 +111,10 @@ type createUserRequestBody struct {
 func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
 	var awsInput marketplacemetering.ResolveCustomerInput
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	test := true
 	mySession := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(config.AwsRegion),
+		CredentialsChainVerboseErrors: &test,
 	}))
 	svc := marketplacemetering.New(mySession)
 	awsInput.SetRegistrationToken(token)
@@ -166,7 +168,7 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	} else {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
-		if (len(errSplit) >= 1 && errSplit[0] == "Error 1062") {
+		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
 			return 409, errors.New("Account already exists.")
 		} else {
 			return 500, errors.New("Failed to create user.")
@@ -199,7 +201,7 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
 	if err != nil {
 		errSplit := strings.Split(err.Error(), ":")
-		if (len(errSplit) >= 1 && errSplit[0] == "Error 1062") {
+		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
 			return 409, errors.New("Email already taken.")
 		} else {
 			return 500, errors.New("Failed to create viewer user.")
