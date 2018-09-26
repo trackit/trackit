@@ -200,7 +200,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 	return err
 }
 
-// FetchHistoryInfos fetchs billing data et stats of EC2 instances of the last month (only EC2 for now=
+// FetchHistoryInfos fetchs billing data and stats of EC2 instances of the last month (only EC2 for now=
 func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := getHistoryDate()

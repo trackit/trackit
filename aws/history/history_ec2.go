@@ -259,7 +259,7 @@ func fetchEc2InstancesList(ctx context.Context, creds *credentials.Credentials, 
 	return nil
 }
 
-// getEc2Metrics get credentials, accounts and region to fetch EC2 instances stats
+// getEc2Metrics gets credentials, accounts and region to fetch EC2 instances stats
 func getEc2Metrics(ctx context.Context, instances []CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (tec2.ReportInfo, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, tec2.MonitorInstanceStsSessionName)
@@ -335,7 +335,7 @@ func putEc2ReportInEs(ctx context.Context, report tec2.ReportInfo, aa taws.AwsAc
 	}
 }
 
-// filterEc2Instances filter instances and volumes of EC2 instances
+// filterEc2Instances filters instances and volumes of EC2 instances
 func filterEc2Instances(ec2Cost, cloudwatchCost []CostPerInstance) ([]CostPerInstance, []CostPerInstance) {
 	newInstance := []CostPerInstance{}
 	newVolume   := []CostPerInstance{}
