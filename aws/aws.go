@@ -31,12 +31,13 @@ import (
 
 // AwsAccount represents a client's AWS account.
 type AwsAccount struct {
-	Id       int    `json:"id"`
-	UserId   int    `json:"-"`
-	Pretty   string `json:"pretty"`
-	RoleArn  string `json:"roleArn"`
-	External string `json:"-"`
-	Payer    bool   `json:"payer"`
+	Id             int    `json:"id"`
+	UserId         int    `json:"-"`
+	Pretty         string `json:"pretty"`
+	RoleArn        string `json:"roleArn"`
+	External       string `json:"-"`
+	Payer          bool   `json:"payer"`
+	UserPermission int    `json:permissionLevel`
 }
 
 const (
@@ -76,15 +77,40 @@ func AccountId() string { return accountId }
 // GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
 // given user.
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
+	var res []AwsAccount
 	dbAwsAccounts, err := models.AwsAccountsByUserID(tx, u.Id)
-	if err == nil {
-		awsAccounts := make([]AwsAccount, len(dbAwsAccounts))
-		for i := range dbAwsAccounts {
-			awsAccounts[i] = AwsAccountFromDbAwsAccount(*dbAwsAccounts[i])
-		}
-		return awsAccounts, nil
+	if err != nil {
+		return nil, err
 	}
-	return nil, err
+	dbShareAccounts, err := models.SharedAccountsByUserID(tx, u.Id)
+	if err != nil {
+		return nil, err
+	}
+	for _, key := range dbAwsAccounts {
+		res = append(res, AwsAccount{
+			key.ID,
+			key.UserID,
+			key.Pretty,
+			key.RoleArn,
+			key.External,
+			key.Payer,
+			0})
+	}
+	for _, key := range dbShareAccounts {
+		dbAwsAccountById, err := models.AwsAccountByID(tx, key.AccountID)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, AwsAccount{
+			dbAwsAccountById.ID,
+			dbAwsAccountById.UserID,
+			dbAwsAccountById.Pretty,
+			dbAwsAccountById.RoleArn,
+			dbAwsAccountById.External,
+			dbAwsAccountById.Payer,
+			key.UserPermission})
+	}
+	return res, nil
 }
 
 // GetAwsAccountWithId returns an AWS account.
