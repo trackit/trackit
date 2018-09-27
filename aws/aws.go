@@ -37,7 +37,7 @@ type AwsAccount struct {
 	RoleArn        string `json:"roleArn"`
 	External       string `json:"-"`
 	Payer          bool   `json:"payer"`
-	UserPermission int    `json:permissionLevel`
+	UserPermission int    `json:"permissionLevel"`
 }
 
 const (
