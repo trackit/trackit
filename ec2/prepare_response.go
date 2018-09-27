@@ -17,10 +17,10 @@ package ec2
 import (
 	"strings"
 	"context"
-	"encoding/json"
-	"gopkg.in/olivere/elastic.v5"
-
 	"net/http"
+	"encoding/json"
+
+	"gopkg.in/olivere/elastic.v5"
 )
 
 type (

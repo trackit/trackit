@@ -15,17 +15,19 @@
 package ec2
 
 import (
-	"gopkg.in/olivere/elastic.v5"
-	"github.com/trackit/jsonlog"
-	"strings"
-	"github.com/trackit/trackit-server/es"
-	"net/http"
 	"fmt"
-	"context"
-	"github.com/trackit/trackit-server/aws/ec2"
-	"github.com/trackit/trackit-server/users"
-	"database/sql"
 	"time"
+	"context"
+	"strings"
+	"net/http"
+	"database/sql"
+
+	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws/ec2"
 )
 
 // makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance

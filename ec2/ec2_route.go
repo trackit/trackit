@@ -15,14 +15,14 @@
 package ec2
 
 import (
-	"database/sql"
-	"net/http"
 	"time"
+	"errors"
+	"net/http"
+	"database/sql"
 
 	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"errors"
+	"github.com/trackit/trackit-server/routes"
 )
 
 type (
