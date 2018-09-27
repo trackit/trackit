@@ -47,6 +47,32 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
+	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
+	search := client.Search().Index(index).Size(0).Query(query)
+	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
+		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
+	return search
+}
+
+// GetElasticSearchEc2HistoryParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// It takes as paramters :
+// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
+//	'awsdetailedlineitem.linked_account_id'
+//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	It needs to be fully configured and ready to execute a client.Search()
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
+//	should be "ec2-reports"
+// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
+// it crash :
+//	- If the client is nil or malconfigured, it will crash
+//	- If the index is not an index present in the ES, it will crash
+func GetElasticSearchEc2HistoryParams(accountList []string, date time.Time, client *elastic.Client, index string) *elastic.SearchService {
+	query := elastic.NewBoolQuery()
+	if len(accountList) > 0 {
+		query = query.Filter(createQueryAccountFilter(accountList))
+	}
+	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
+	query = query.Filter(elastic.NewTermQuery("reportDate", date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
@@ -68,15 +94,15 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 func GetElasticSearchCostParams(account string, date string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", account))
-	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonEC2"))
-	dateEnd, err := time.Parse("2006-01-02T15:04:05.000Z", date)
+	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
+	dateEnd, err := time.Parse("2006-01-02T15:04:05Z", date)
 	if err == nil {
-		dateStart := time.Date(dateEnd.Year(), dateEnd.Month(), dateEnd.Day()-31, 0, 0, 0, 0, dateEnd.Location())
+		dateStart := time.Date(dateEnd.Year(), dateEnd.Month(), dateEnd.Day()-31, dateEnd.Hour(), dateEnd.Minute(), dateEnd.Second(), dateEnd.Nanosecond(), dateEnd.Location())
 		query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 			From(dateStart).To(dateEnd))
 	}
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("instances", elastic.NewTermsAggregation().Field("resourceId").
+	search.Aggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
 		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
 	return search
 }

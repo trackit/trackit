@@ -48,6 +48,7 @@ type (
 	ReportInfo struct {
 		Account    string         `json:"account"`
 		ReportDate time.Time      `json:"reportDate"`
+		ReportType string         `json:"reportType"`
 		Instances  []InstanceInfo `json:"instances"`
 	}
 
@@ -67,6 +68,7 @@ type (
 		KeyPair    string                     `json:"keyPair"`
 		Type       string                     `json:"type"`
 		Tags       map[TagName]TagValue       `json:"tags"`
+		Cost       float64                    `json:"cost"`
 	}
 
 	InstanceStats struct {
@@ -79,9 +81,9 @@ type (
 	}
 )
 
-// merge function from https://blog.golang.org/pipelines#TOC_4
+// Merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan InstanceInfo) <-chan InstanceInfo {
+func Merge(cs ...<-chan InstanceInfo) <-chan InstanceInfo {
 	var wg sync.WaitGroup
 	out := make(chan InstanceInfo)
 
@@ -107,8 +109,8 @@ func merge(cs ...<-chan InstanceInfo) <-chan InstanceInfo {
 	return out
 }
 
-// getAccountId gets the AWS Account ID for the given credentials
-func getAccountId(ctx context.Context, sess *session.Session) (string, error) {
+// GetAccountId gets the AWS Account ID for the given credentials
+func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := sts.New(sess)
 	res, err := svc.GetCallerIdentity(nil)
@@ -119,8 +121,8 @@ func getAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	return aws.StringValue(res.Account), nil
 }
 
-// getInstanceTag formats []*ec2.Tag to map[TagName]TagValue
-func getInstanceTag(tags []*ec2.Tag) map[TagName]TagValue {
+// GetInstanceTag formats []*ec2.Tag to map[TagName]TagValue
+func GetInstanceTag(tags []*ec2.Tag) map[TagName]TagValue {
 	res := make(map[TagName]TagValue)
 	for _, tag := range tags {
 		res[TagName(aws.StringValue(tag.Key))] = TagValue(aws.StringValue(tag.Value))
@@ -322,8 +324,8 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 	}
 }
 
-// getPurchasingOption returns a string that describes how the instance given as parameter have been purchased
-func getPurchasingOption(instance *ec2.Instance) (string) {
+// GetPurchasingOption returns a string that describes how the instance given as parameter have been purchased
+func GetPurchasingOption(instance *ec2.Instance) (string) {
 	var purchasing string
 	lifeCycle := aws.StringValue(instance.InstanceLifecycle)
 	tenancy   := aws.StringValue(instance.Placement.Tenancy)
@@ -358,29 +360,29 @@ func fetchInstancesList(ctx context.Context, creds *credentials.Credentials,
 	for _, reservation := range instances.Reservations {
 		for _, instance := range reservation.Instances {
 			stats := getInstanceStats(ctx, instance, sess)
-			purchasing := getPurchasingOption(instance)
 			instanceInfoChan <- InstanceInfo{
 				Id:         aws.StringValue(instance.InstanceId),
 				Region:     aws.StringValue(instance.Placement.AvailabilityZone),
 				KeyPair:    aws.StringValue(instance.KeyName),
-				Tags:       getInstanceTag(instance.Tags),
+				Tags:       GetInstanceTag(instance.Tags),
 				Type:       aws.StringValue(instance.InstanceType),
 				State:      aws.StringValue(instance.State.Name),
-				Purchasing: purchasing,
+				Purchasing: GetPurchasingOption(instance),
 				CpuAverage: stats.CpuAverage,
 				CpuPeak:    stats.CpuPeak,
 				NetworkIn:  stats.NetworkIn,
 				NetworkOut: stats.NetworkOut,
 				IORead:     stats.IORead,
 				IOWrite:    stats.IOWrite,
+				Cost:       0,
 			}
 		}
 	}
 	return nil
 }
 
-// fetchRegionsList fetchs the regions list from AWS and returns an array of their name.
-func fetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
+// FetchRegionsList fetchs the regions list from AWS and returns an array of their name.
+func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := ec2.New(sess)
 	regions, err := svc.DescribeRegions(nil)
@@ -446,7 +448,7 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
-	account, err := getAccountId(ctx, defaultSession)
+	account, err := GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
 		return err
@@ -454,9 +456,10 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 	report := ReportInfo{
 		account,
 		time.Now().UTC(),
+		"daily",
 		make([]InstanceInfo, 0),
 	}
-	regions, err := fetchRegionsList(ctx, defaultSession)
+	regions, err := FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
@@ -467,7 +470,7 @@ func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error 
 		go fetchInstancesList(ctx, creds, region, instanceInfoChan)
 		instanceInfoChans = append(instanceInfoChans, instanceInfoChan)
 	}
-	for instance := range merge(instanceInfoChans...) {
+	for instance := range Merge(instanceInfoChans...) {
 		report.Instances = append(report.Instances, instance)
 	}
 	return importInstancesToEs(ctx, awsAccount, report)

@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
@@ -31,15 +32,33 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-// esQueryParams will store the parsed query params
-type esQueryParams struct {
+// ec2QueryParams will store the parsed query params
+type ec2QueryParams struct {
 	accountList []string
 	indexList   []string
+}
+
+// ec2HistoryQueryParams will store the parsed query params
+type ec2HistoryQueryParams struct {
+	accountList []string
+	indexList   []string
+	date        time.Time
 }
 
 // ec2QueryArgs allows to get required queryArgs params
 var ec2QueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
+}
+
+// ec2QueryArgs allows to get required queryArgs params
+var ec2HistoryQueryArgs = []routes.QueryArg{
+	routes.AwsAccountsOptionalQueryArg,
+	routes.QueryArg{
+		Name:        "date",
+		Type:        routes.QueryArgDate{},
+		Description: "Date with year and month. Format is ISO8601",
+		Optional:    false,
+	},
 }
 
 func init() {
@@ -54,6 +73,17 @@ func init() {
 			},
 		),
 	}.H().Register("/ec2")
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getEc2HistoryInstances).With(
+			db.RequestTransaction{Db: db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(ec2HistoryQueryArgs),
+			routes.Documentation{
+				Summary:     "get the list of EC2 instances of a month",
+				Description: "Responds with the list of EC2 instances of a month based on the queryparams passed to it",
+			},
+		),
+	}.H().Register("/ec2/history")
 }
 
 // makeElasticSearchEc2Request prepares and run the request to retrieve the latest reports
@@ -63,7 +93,7 @@ func init() {
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEc2Request(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchEc2Request(ctx context.Context, parsedParams ec2QueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
 	searchService := GetElasticSearchEc2Params(
@@ -86,7 +116,7 @@ func makeElasticSearchEc2Request(ctx context.Context, parsedParams esQueryParams
 // getEc2Instances returns the list of EC2 reports based on the query params, in JSON format.
 func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := esQueryParams{
+	parsedParams := ec2QueryParams{
 		accountList: []string{},
 	}
 	if a[ec2QueryArgs[0]] != nil {
@@ -103,7 +133,63 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	if err != nil {
 		return returnCode, err
 	}
-	res, err := prepareResponse(request.Context(), searchResult, user, tx)
+	res, err := prepareResponseEc2(request.Context(), searchResult, user, tx)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, res
+}
+
+// makeElasticSearchEc2HistoryRequest prepares and run the request to retrieve a month report
+// based on the esQueryParams
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empty data
+func makeElasticSearchEc2HistoryRequest(ctx context.Context, parsedParams ec2HistoryQueryParams) (*elastic.SearchResult, int, error) {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	index := strings.Join(parsedParams.indexList, ",")
+	searchService := GetElasticSearchEc2HistoryParams(
+		parsedParams.accountList,
+		parsedParams.date,
+		es.Client,
+		index,
+	)
+	res, err := searchService.Do(ctx)
+	if err != nil {
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists : "+index, err)
+			return nil, http.StatusOK, err
+		}
+		l.Error("Query execution failed : "+err.Error(), nil)
+		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+	}
+	return res, http.StatusOK, nil
+}
+
+// getEc2HistoryInstances returns the list of EC2 reports based on the query params, in JSON format.
+func getEc2HistoryInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
+	user := a[users.AuthenticatedUser].(users.User)
+	parsedParams := ec2HistoryQueryParams{
+		accountList: []string{},
+		date:        a[ec2HistoryQueryArgs[1]].(time.Time),
+	}
+	if a[ec2QueryArgs[0]] != nil {
+		parsedParams.accountList = a[ec2HistoryQueryArgs[0]].([]string)
+	}
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
+	if err != nil {
+		return returnCode, err
+	}
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
+	searchResult, returnCode, err := makeElasticSearchEc2HistoryRequest(request.Context(), parsedParams)
+	if err != nil {
+		return returnCode, err
+	}
+	res, err := prepareResponseEc2History(request.Context(), searchResult)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
