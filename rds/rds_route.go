@@ -31,8 +31,8 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-// esQueryParams will store the parsed query params
-type esQueryParams struct {
+// rdsQueryParams will store the parsed query params
+type rdsQueryParams struct {
 	accountList []string
 	indexList   []string
 }
@@ -56,17 +56,44 @@ func init() {
 	}.H().Register("/rds")
 }
 
-// makeElasticSearchRequest prepares and run the request to retrieve the latest reports
+// makeElasticSearchRdsRequest prepares and run the request to retrieve the latest reports
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empy data
-func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRdsRequest(ctx context.Context, parsedParams rdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchParams(
+	searchService := GetElasticSearchRdsParams(
+		parsedParams.accountList,
+		es.Client,
+		index,
+	)
+	res, err := searchService.Do(ctx)
+	if err != nil {
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists : "+index, err)
+			return nil, http.StatusOK, err
+		}
+		l.Error("Query execution failed : "+err.Error(), nil)
+		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+	}
+	return res, http.StatusOK, nil
+}
+
+// makeElasticSearchRdsRequest prepares and run the request to retrieve the latest reports
+// based on the esQueryParams
+// It will return the data, an http status code (as int) and an error.
+// Because an error can be generated, but is not critical and is not needed to be known by
+// the user (e.g if the index does not exists because it was not yet indexed ) the error will
+// be returned, but instead of having a 500 status code, it will return the provided status code
+// with empy data
+func makeElasticSearchCostRequest(ctx context.Context, parsedParams rdsQueryParams) (*elastic.SearchResult, int, error) {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	index := strings.Join(parsedParams.indexList, ",")
+	searchService := GetElasticSearchCostParams(
 		parsedParams.accountList,
 		es.Client,
 		index,
@@ -86,7 +113,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams) (
 // getRDSReport returns the list of rds reports based on the query params, in JSON format.
 func getRDSReport(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := esQueryParams{
+	parsedParams := rdsQueryParams{
 		accountList: []string{},
 	}
 	if a[rdsQueryArgs[0]] != nil {
@@ -99,11 +126,18 @@ func getRDSReport(request *http.Request, a routes.Arguments) (int, interface{}) 
 	}
 	parsedParams.accountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	searchResult, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams)
+	ec2Result, returnCode, err := makeElasticSearchRdsRequest(request.Context(), parsedParams)
 	if err != nil {
 		return returnCode, err
 	}
-	res, err := prepareResponse(request.Context(), searchResult)
+	accountsAndIndexes, returnCode, err = es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, es.IndexPrefixLineItems)
+	if err != nil {
+		return returnCode, err
+	}
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
+	costResult, _, _ := makeElasticSearchCostRequest(request.Context(), parsedParams)
+	res, err := prepareResponse(request.Context(), ec2Result, costResult)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
