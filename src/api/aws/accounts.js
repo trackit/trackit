@@ -39,3 +39,19 @@ export const deleteAccountBill = (accountID, billID, token) => {
 export const newExternal = (token) => {
   return call('/aws/next', 'GET', null, token);
 };
+
+export const getAccountViewer = (accountID, token) => {
+  return call(`/user/share?account-id=${accountID}`, 'GET', null, token);
+};
+
+export const addAccountViewer = (accountID, email, permissionLevel, token) => {
+  return call(`/user/share?account-id=${accountID}`, 'POST', {email, permissionLevel}, token);
+};
+
+export const editAccountViewer = (sharedID, permissionLevel, token) => {
+  return call(`/user/share?share-id=${sharedID}`, 'PATCH', {permissionLevel}, token);
+};
+
+export const deleteAccountViewer = (sharedID, token) => {
+  return call(`/user/share?share-id=${sharedID}`, 'DELETE', null, token);
+};

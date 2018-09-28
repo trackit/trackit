@@ -25,7 +25,7 @@ class Selector extends Component {
 
 Selector.propTypes = {
   values: PropTypes.object.isRequired,
-  selected: PropTypes.string.isRequired,
+  selected: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   selectValue: PropTypes.func.isRequired
 };
 

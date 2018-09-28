@@ -1,5 +1,7 @@
 import { takeEvery, takeLatest, fork, cancel } from 'redux-saga/effects';
 import * as AccountsSaga from './accountsSaga';
+import * as BillsSaga from './billsSaga';
+import * as AccountViewersSaga from './accountViewersSaga';
 import { getCostsSaga, saveChartsSaga, loadChartsSaga, initChartsSaga } from "./costsSaga";
 import { getS3DataSaga, saveS3DatesSaga, loadS3DatesSaga } from './s3Saga';
 import { getReportsSaga, clearReportsSaga, downloadReportSaga } from './reportsSaga';
@@ -14,7 +16,7 @@ export function* watchGetAccounts() {
 }
 
 export function* watchGetAccountBills() {
-  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILLS, AccountsSaga.getAccountBillsSaga);
+  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILLS, BillsSaga.getAccountBillsSaga);
 }
 
 export function* watchNewAccount() {
@@ -22,7 +24,7 @@ export function* watchNewAccount() {
 }
 
 export function* watchNewAccountBill() {
-  yield takeLatest(Constants.AWS_NEW_ACCOUNT_BILL, AccountsSaga.newAccountBillSaga);
+  yield takeLatest(Constants.AWS_NEW_ACCOUNT_BILL, BillsSaga.newAccountBillSaga);
 }
 
 export function* watchEditAccount() {
@@ -30,7 +32,7 @@ export function* watchEditAccount() {
 }
 
 export function* watchEditAccountBill() {
-  yield takeLatest(Constants.AWS_EDIT_ACCOUNT_BILL, AccountsSaga.editAccountBillSaga);
+  yield takeLatest(Constants.AWS_EDIT_ACCOUNT_BILL, BillsSaga.editAccountBillSaga);
 }
 
 export function* watchDeleteAccount() {
@@ -38,7 +40,7 @@ export function* watchDeleteAccount() {
 }
 
 export function* watchDeleteAccountBill() {
-  yield takeLatest(Constants.AWS_DELETE_ACCOUNT_BILL, AccountsSaga.deleteAccountBillSaga);
+  yield takeLatest(Constants.AWS_DELETE_ACCOUNT_BILL, BillsSaga.deleteAccountBillSaga);
 }
 
 export function* watchNewExternal() {
@@ -154,5 +156,21 @@ export function* watchSaveTagsCharts() {
 }
 
 export function* watchGetAccountBillStatus() {
-  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILL_STATUS, AccountsSaga.getAccountBillStatusSaga)
+  yield takeLatest(Constants.AWS_GET_ACCOUNT_BILL_STATUS, BillsSaga.getAccountBillStatusSaga)
+}
+
+export function* getAccountViewers() {
+  yield takeLatest(Constants.AWS_GET_ACCOUNT_VIEWERS, AccountViewersSaga.getAccountViewers)
+}
+
+export function* addAccountViewer() {
+  yield takeLatest(Constants.AWS_ADD_ACCOUNT_VIEWER, AccountViewersSaga.addAccountViewer)
+}
+
+export function* editAccountViewer() {
+  yield takeLatest(Constants.AWS_EDIT_ACCOUNT_VIEWER, AccountViewersSaga.editAccountViewer)
+}
+
+export function* deleteAccountViewer() {
+  yield takeLatest(Constants.AWS_DELETE_ACCOUNT_VIEWER, AccountViewersSaga.deleteAccountViewer)
 }

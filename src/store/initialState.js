@@ -22,6 +22,9 @@ export default {
         value: null
       },
       external: null,
+      accountViewers: {status: true, value: null},
+      addAccountViewer: {status: true, value: null},
+      editAccountViewer: {status: true, value: null}
     },
     s3: {
       dates: {
