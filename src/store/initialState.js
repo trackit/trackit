@@ -66,7 +66,10 @@ export default {
       }
     },
     resources: {
-      account: '',
+      dates: {
+        startDate: moment().startOf('months'),
+        endDate: moment().endOf('months')
+      },
       EC2: {
         status: true,
         value: null

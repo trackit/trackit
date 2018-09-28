@@ -22,7 +22,7 @@ class IntervalNavigator extends Component {
         end = this.props.endDate.subtract(1, 'years');
         break;
       case "month":
-        start = this.props.startDate.subtract(1, 'months');
+        start = this.props.startDate.subtract(1, 'months').startOf('months');
         end = this.props.endDate.subtract(1, 'months').endOf('months');
         break;
       case "week":
@@ -143,7 +143,7 @@ class IntervalNavigator extends Component {
             &nbsp;
             {this.getDate()}
           </div>
-          <button className="btn btn-default" disabled={false} onClick={this.nextDate}>
+          <button className="btn btn-default" disabled={(this.props.lockFuture ? currentInterval : false)} onClick={this.nextDate}>
             <i className="fa fa-caret-right"/>
           </button>
         </div>
