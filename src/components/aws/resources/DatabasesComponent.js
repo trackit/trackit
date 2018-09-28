@@ -6,22 +6,34 @@ import Spinner from "react-spinkit";
 import Moment from "moment";
 import Misc from '../../misc';
 import ReactTable from "react-table";
-import {formatGigaBytes} from "../../../common/formatters";
+import {formatGigaBytes, formatPrice} from "../../../common/formatters";
 
 const Tooltip = Misc.Popover;
 
 export class DatabasesComponent extends Component {
 
   componentWillMount() {
-    this.props.getData();
+    this.props.getData(this.props.dates.startDate);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.accounts !== this.props.accounts)
-      nextProps.getData();
+    if (nextProps.accounts !== this.props.accounts || nextProps.dates !== this.props.dates)
+      nextProps.getData(nextProps.dates.startDate);
   }
 
   render() {
+    if (this.props.dates.startDate.isBefore(Moment().startOf('months')))
+      return (
+        <div className="clearfix resources dbs">
+          <h3 className="white-box-title no-padding inline-block">
+            <i className="menu-icon fa fa-database"/>
+            &nbsp;
+            Databases
+          </h3>
+          <div className="alert alert-warning" role="alert">Report not available for this month</div>
+        </div>
+      );
+
     const loading = (!this.props.data.status ? (<Spinner className="spinner" name='circle'/>) : null);
     const error = (this.props.data.error ? (<div className="alert alert-warning" role="alert">Error while getting data ({this.props.data.error.message})</div>) : null);
 
@@ -93,6 +105,13 @@ export class DatabasesComponent extends Component {
                 {availabilityZones.map((region, index) => (<option key={index} value={region}>{region}</option>))}
               </select>
             )
+          },
+          {
+            Header: 'Cost',
+            id: 'cost',
+            accessor: d => d.cost || 0,
+            filterable: false,
+            Cell: row => (formatPrice(row.value))
           },
           {
             Header: 'Engine',
@@ -179,18 +198,20 @@ DatabasesComponent.propTypes = {
   }),
   getData: PropTypes.func.isRequired,
   clear: PropTypes.func.isRequired,
+  dates: PropTypes.object,
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.selection,
+  dates: aws.resources.dates,
   data: aws.resources.RDS
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getData: (accountId) => {
-    dispatch(Actions.AWS.Resources.get.RDS(accountId));
+  getData: (date) => {
+    dispatch(Actions.AWS.Resources.get.RDS(date));
   },
   clear: () => {
     dispatch(Actions.AWS.Resources.clear.RDS());
