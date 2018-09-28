@@ -58,23 +58,13 @@ var (
 	// ec2HistoryQueryArgs allows to get required queryArgs params
 	ec2HistoryQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
-		routes.QueryArg{
-			Name:        "date",
-			Type:        routes.QueryArgDate{},
-			Description: "Date with year and month. Format is ISO8601",
-			Optional:    false,
-		},
+		routes.DateQueryArg,
 	}
 
 	// ec2UnusedQueryArgs allows to get required queryArgs params
 	ec2UnusedQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
-		routes.QueryArg{
-			Name:        "date",
-			Type:        routes.QueryArgDate{},
-			Description: "Date with year and month. Format is ISO8601",
-			Optional:    false,
-		},
+		routes.DateQueryArg,
 		routes.QueryArg{
 			Name:        "count",
 			Type:        routes.QueryArgInt{},
