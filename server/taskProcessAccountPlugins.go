@@ -141,7 +141,7 @@ func updateAccountPluginsCompletion(ctx context.Context, aaId int, db *sql.DB, u
 
 func updateNextUpdateAccountPlugins(db *sql.DB, aaId int) error {
 	const sqlstr = `UPDATE aws_account SET
-		next_update_plugins=?
+	next_update_plugins=?
 	WHERE id=?`
 	_, err := db.Exec(sqlstr, time.Now().AddDate(0, 0, 1), aaId)
 	return err
@@ -149,8 +149,8 @@ func updateNextUpdateAccountPlugins(db *sql.DB, aaId int) error {
 
 func registerAccountPluginsCompletion(db *sql.DB, updateId int64, jobErr error) error {
 	const sqlstr = `UPDATE aws_account_plugins_job SET
-		completed=?,
-		jobError=?
+	completed=?,
+	jobError=?
 	WHERE id=?`
 	jobError := ""
 	if jobErr != nil {
