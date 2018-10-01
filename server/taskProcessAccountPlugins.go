@@ -116,8 +116,8 @@ func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccoun
 
 func registerAccountPluginsProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	const sqlstr = `INSERT INTO aws_account_plugins_job(
-		aws_account_id,
-		worker_id
+	aws_account_id,
+	worker_id
 	) VALUES (?, ?)`
 	res, err := db.Exec(sqlstr, aa.Id, backendId)
 	if err != nil {
