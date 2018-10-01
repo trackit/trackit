@@ -88,12 +88,6 @@ export default {
     values: {}
   },
   gcp: {},
-  user: {
-    viewers: {
-      all: {status: true, value: null},
-      creation: {status: true, value: null}
-    },
-  },
   dashboard: {
     items: {},
     values: {},
