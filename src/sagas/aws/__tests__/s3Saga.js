@@ -109,6 +109,11 @@ describe("S3 Saga", () => {
       endDate: Moment()
     };
 
+    const defaultDates = {
+      startDate: Moment().subtract(1, "months").startOf("months"),
+      endDate: Moment().subtract(1, "months").endOf("months")
+    };
+
     const invalidData = [];
 
     it("handles saga with valid data", () => {
@@ -147,7 +152,7 @@ describe("S3 Saga", () => {
         .toEqual(call(getS3DatesLS));
 
       expect(saga.next(null).value)
-        .toEqual(put({ type: Constants.AWS_LOAD_S3_DATES_ERROR, error: Error("No S3 Analytics dates available") }));
+        .toEqual(put({ type: Constants.AWS_INSERT_S3_DATES, dates: defaultDates }));
 
       expect(saga.next().done).toBe(true);
 

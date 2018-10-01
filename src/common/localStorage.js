@@ -59,6 +59,10 @@ export const setCostBreakdownCharts = (charts) => {
   setValue('cb_charts', JSON.stringify(charts));
 };
 
+export const unsetCostBreakdownCharts = () => {
+  unsetValue('cb_charts');
+};
+
 export const getCostBreakdownCharts = () => {
   return JSON.parse(getValue('cb_charts'));
 };
@@ -67,6 +71,10 @@ export const getCostBreakdownCharts = () => {
 
 export const setS3Dates = (dates) => {
   setValue('s3_dates', JSON.stringify(dates));
+};
+
+export const unsetS3Dates = () => {
+  unsetValue('s3_dates');
 };
 
 export const getS3Dates = () => {
@@ -79,14 +87,22 @@ export const setDashboard = (dates) => {
   setValue('dashboard', JSON.stringify(dates));
 };
 
+export const unsetDashboard = () => {
+  unsetValue('dashboard');
+};
+
 export const getDashboard = () => {
   return JSON.parse(getValue('dashboard'));
 };
 
-/* Cost Breakdown charts */
+/* Tags charts */
 
 export const setTagsCharts = (charts) => {
   setValue('tags_charts', JSON.stringify(charts));
+};
+
+export const unsetTagsCharts = () => {
+  unsetValue('tags_charts');
 };
 
 export const getTagsCharts = () => {

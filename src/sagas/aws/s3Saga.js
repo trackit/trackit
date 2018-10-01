@@ -3,7 +3,7 @@ import API from '../../api';
 import Constants from '../../constants';
 import Moment from 'moment';
 import {getAWSAccounts, getToken, getS3Dates} from "../misc";
-import {setS3Dates, getS3Dates as getS3DatesLS} from "../../common/localStorage";
+import {setS3Dates, getS3Dates as getS3DatesLS, unsetS3Dates} from "../../common/localStorage";
 
 export function* getS3DataSaga({ begin, end }) {
   try {
@@ -31,17 +31,27 @@ export function* saveS3DatesSaga() {
 export function* loadS3DatesSaga() {
   try {
     const data = yield call(getS3DatesLS);
+    let dates;
     if (!data)
-      throw Error("No S3 Analytics dates available");
+      dates = {
+        startDate: Moment().subtract(1, "months").startOf("months"),
+        endDate: Moment().subtract(1, "months").endOf("months")
+      };
     else if (!Array.isArray(data))
-      yield put({type: Constants.AWS_INSERT_S3_DATES, dates: {
-          startDate: Moment(data.startDate),
-          endDate: Moment(data.endDate)
-        }});
+      dates = {
+        startDate: Moment(data.startDate),
+        endDate: Moment(data.endDate)
+      };
     else
       throw Error("Invalid data for S3 Analytics dates");
+    yield put({type: Constants.AWS_INSERT_S3_DATES, dates});
+    setS3Dates(dates);
   } catch (error) {
     yield put({ type: Constants.AWS_LOAD_S3_DATES_ERROR, error });
   }
+}
+
+export function* cleanS3DatesSaga() {
+  yield call(unsetS3Dates);
 }
 
