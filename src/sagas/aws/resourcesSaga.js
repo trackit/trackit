@@ -8,11 +8,7 @@ export function* getEC2ReportSaga({date}) {
   try {
     const token = yield getToken();
     const accounts = yield getAWSAccounts();
-    let res;
-    if (date.isSameOrAfter(Moment().startOf('months')))
-      res = yield call(API.AWS.Resources.getEC2, token, accounts);
-    else
-      res = yield call(API.AWS.Resources.getEC2History, token, date, accounts);
+    const res = yield call(API.AWS.Resources.getEC2, token, date, accounts);
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_RESOURCES_GET_EC2_SUCCESS, report: res.data });
     else if (res.success && res.data.hasOwnProperty("error"))
