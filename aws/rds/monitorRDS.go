@@ -41,17 +41,19 @@ const (
 )
 
 type RDSInstance struct {
-	DBInstanceIdentifier string `json:"dbInstanceIdentifier"`
-	DBInstanceClass      string `json:"dbInstanceClass"`
-	AllocatedStorage     int64  `json:"allocatedStorage"`
-	Engine               string `json:"engine"`
-	AvailabilityZone     string `json:"availabilityZone"`
-	MultiAZ              bool   `json:"multiAZ"`
+	DBInstanceIdentifier string  `json:"dbInstanceIdentifier"`
+	DBInstanceClass      string  `json:"dbInstanceClass"`
+	AllocatedStorage     int64   `json:"allocatedStorage"`
+	Engine               string  `json:"engine"`
+	AvailabilityZone     string  `json:"availabilityZone"`
+	MultiAZ              bool    `json:"multiAZ"`
+	Cost                 float64 `json:"cost"`
 }
 
 type RDSReport struct {
 	Account    string        `json:"account"`
 	ReportDate time.Time     `json:"reportDate"`
+	ReportType string        `json:"reportType"`
 	Instances  []RDSInstance `json:"instances"`
 }
 
@@ -166,6 +168,7 @@ func fetchRDSInstancesList(ctx context.Context, creds *credentials.Credentials, 
 					Engine:               util.SafeStringFromPtr(DBInstance.Engine),
 					AvailabilityZone:     util.SafeStringFromPtr(DBInstance.AvailabilityZone),
 					MultiAZ:              util.SafeBoolFromPtr(DBInstance.MultiAZ),
+					Cost:                 0,
 				}
 			}
 			return lastPage == true
@@ -203,6 +206,7 @@ func FetchRDSInfos(ctx context.Context, aa taws.AwsAccount) error {
 	report := RDSReport{
 		Account:    account,
 		ReportDate: time.Now().UTC(),
+		ReportType: "daily",
 		Instances:  instances,
 	}
 	RDSInstanceChans := make([]<-chan RDSInstance, 0, len(regions))

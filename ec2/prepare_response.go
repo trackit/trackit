@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -15,31 +15,31 @@
 package ec2
 
 import (
-	"fmt"
 	"strings"
 	"context"
+	"net/http"
 	"encoding/json"
-	"database/sql"
 
 	"gopkg.in/olivere/elastic.v5"
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/es"
 )
 
 type (
 
 	// Structure that allow to parse ES response for costs
 	ResponseCost struct {
-		Instances struct {
+		Accounts struct {
 			Buckets []struct {
-				Key  string `json:"key"`
-				Cost struct {
-					Value float64 `json:"value"`
-				} `json:"cost"`
+				Key string `json:"key"`
+				Instances struct {
+					Buckets []struct {
+						Key string `json:"key"`
+						Cost struct {
+							Value float64 `json:"value"`
+						} `json:"cost"`
+					} `json:"buckets"`
+				} `json:"instances"`
 			} `json:"buckets"`
-		} `json:"instances"`
+		} `json:"accounts"`
 	}
 
 	// Structure that allow to parse ES response for EC2 usage report
@@ -59,89 +59,186 @@ type (
 
 	// Report format for EC2 usage
 	Report struct {
-		Account    string `json:"account"`
-		ReportDate string `json:"reportDate"`
-		Instances  []struct {
-			Id         string      `json:"id"`
-			Region     string      `json:"region"`
-			State      string      `json:"state"`
-			Purchasing string      `json:"purchasing"`
-			Cost       float64     `json:"cost"`
-			CpuAverage float64     `json:"cpuAverage"`
-			CpuPeak    float64     `json:"cpuPeak"`
-			NetworkIn  int64       `json:"networkIn"`
-			NetworkOut int64       `json:"networkOut"`
-			IORead     interface{} `json:"ioRead"`
-			IOWrite    interface{} `json:"ioWrite"`
-			KeyPair    string      `json:"keyPair"`
-			Type       string      `json:"type"`
-			Tags       interface{} `json:"tags"`
-		} `json:"instances"`
+		Account    string     `json:"account"`
+		ReportDate string     `json:"reportDate"`
+		ReportType string     `json:"reportType"`
+		Instances  []Instance `json:"instances"`
+	}
+
+	// Instance contains stats of an EC2 instance
+	Instance struct {
+		Id         string             `json:"id"`
+		Region     string             `json:"region"`
+		State      string             `json:"state"`
+		Purchasing string             `json:"purchasing"`
+		Cost       float64            `json:"cost"`
+		CpuAverage float64            `json:"cpuAverage"`
+		CpuPeak    float64            `json:"cpuPeak"`
+		NetworkIn  int64              `json:"networkIn"`
+		NetworkOut int64              `json:"networkOut"`
+		IORead     map[string]float64 `json:"ioRead"`
+		IOWrite    map[string]float64 `json:"ioWrite"`
+		KeyPair    string             `json:"keyPair"`
+		Type       string             `json:"type"`
+		Tags       map[string]string  `json:"tags"`
 	}
 )
 
-// makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empty data
-func makeElasticSearchCostRequest(ctx context.Context, user users.User, tx *sql.Tx, account string , date string) (ResponseCost, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	accountsAndIndexes, _, err := es.GetAccountsAndIndexes([]string{account}, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return ResponseCost{}, err
-	}
-	index := strings.Join(accountsAndIndexes.Indexes, ",")
-	searchService := GetElasticSearchCostParams(
-		account,
-		date,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return ResponseCost{}, err
+// addCostToReport adds cost for each instance based on billing data
+func addCostToReport(report Report, costs ResponseCost) (Report) {
+	for _, accounts := range costs.Accounts.Buckets {
+		if accounts.Key != report.Account {
+			continue
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return ResponseCost{}, fmt.Errorf("could not execute the ElasticSearch query")
+		for _, instance := range accounts.Instances.Buckets {
+			for i := range report.Instances {
+				if strings.Contains(instance.Key, report.Instances[i].Id) {
+					report.Instances[i].Cost += instance.Cost.Value
+				}
+				for volume := range report.Instances[i].IOWrite {
+					if volume == instance.Key {
+						report.Instances[i].Cost += instance.Cost.Value
+					}
+				}
+				for volume := range report.Instances[i].IORead {
+					if volume == instance.Key {
+						report.Instances[i].Cost += instance.Cost.Value
+					}
+				}
+			}
+		}
 	}
-	var resCost ResponseCost
-	err = json.Unmarshal(*res.Aggregations["instances"], &resCost.Instances)
-	if err != nil {
-		return ResponseCost{}, err
-	}
-	return resCost,  nil
+	return report
 }
 
-// prepareResponse parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponse(ctx context.Context, resEc2 *elastic.SearchResult, user users.User, tx *sql.Tx) (interface{}, error) {
-	var response ResponseEc2
-	var reports []Report
+// prepareResponseEc2 parses the results from elasticsearch and returns the EC2 usage report
+func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) ([]Report, error) {
+	ec2  := ResponseEc2{}
+	cost := ResponseCost{}
+	reports := []Report{}
+	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &ec2.TopReports)
+	if err != nil {
+		return nil, err
+	}
+	if resCost != nil {
+		json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
+	}
+	for _, account := range ec2.TopReports.Buckets {
+		if len(account.TopReportsHits.Hits.Hits) > 0 {
+			report := account.TopReportsHits.Hits.Hits[0].Source
+			report = addCostToReport(report, cost)
+			reports = append(reports, report)
+		}
+	}
+	return reports, nil
+}
+
+// prepareResponseEc2History parses the results from elasticsearch and returns the EC2 usage report
+func prepareResponseEc2History(ctx context.Context, resEc2 *elastic.SearchResult) ([]Report, error) {
+	response := ResponseEc2{}
+	reports := []Report{}
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
 	if err != nil {
 		return nil, err
 	}
 	for _, account := range response.TopReports.Buckets {
 		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			report := account.TopReportsHits.Hits.Hits[0].Source
-			for i := range report.Instances {
-				report.Instances[i].Cost = 0
-			}
-			resCost, err := makeElasticSearchCostRequest(ctx, user, tx, report.Account, report.ReportDate)
-			if err == nil {
-				for _, instance := range resCost.Instances.Buckets {
-					for i := range report.Instances {
-						if strings.Contains(instance.Key, report.Instances[i].Id) {
-							report.Instances[i].Cost += instance.Cost.Value
-						}
-					}
-				}
-			}
-			reports = append(reports, report)
+			reports = append(reports, account.TopReportsHits.Hits.Hits[0].Source)
 		}
 	}
 	return reports, nil
+}
+
+// compareInstanceCpu compares the Cpu average of two ec2 instances
+// If inst1 is lower it returns 1, if inst2 is lower it returns -1, if they are equals it returns 0
+func compareInstanceCpu(inst1, inst2 Instance) int {
+	if inst1.CpuAverage < inst2.CpuAverage {
+		return 1
+	} else if inst1.CpuAverage > inst2.CpuAverage {
+		return -1
+	} else {
+		return 0
+	}
+}
+
+// compareInstanceNetwork compares the network in and out of two ec2 instances
+// If inst1 is lower it returns 1, if inst2 is lower it returns -1, if they are equals it returns 0
+func compareInstanceNetwork(inst1, inst2 Instance) int {
+	network1 := inst1.NetworkIn
+	network1 += inst1.NetworkOut
+	network2 := inst2.NetworkIn
+	network2 += inst2.NetworkOut
+	if network1 < network2 {
+		return 1
+	} else if network1 > network2 {
+		return -1
+	} else {
+		return 0
+	}
+}
+
+// compareInstanceIo compares the IO read and write of two ec2 instances
+// If inst1 is lower it returns 1, if inst2 is lower it returns -1, if they are equals it returns 0
+func compareInstanceIo(inst1, inst2 Instance) int {
+	var io1 float64 = 0
+	var io2 float64 = 0
+	for _, read := range inst1.IORead {
+		io1 += read
+	}
+	for _, write := range inst1.IOWrite {
+		io1 += write
+	}
+	for _, read := range inst2.IORead {
+		io2 += read
+	}
+	for _, write := range inst2.IOWrite {
+		io2 += write
+	}
+	if io1 < io2 {
+		return 1
+	} else if io1 > io2 {
+		return -1
+	} else {
+		return 0
+	}
+}
+
+// compareInstance compares two ec2 instances depending on "by" parameter
+// If inst1 is lower it returns 1, if inst2 is lower it returns -1, if they are equals it returns 0
+func compareInstance(inst1, inst2 Instance, by string) int {
+	switch by {
+	case "cpu":
+		return compareInstanceCpu(inst1, inst2)
+	case "network":
+		return compareInstanceNetwork(inst1, inst2)
+	case "io":
+		return compareInstanceIo(inst1, inst2)
+	default:
+		return 0
+	}
+}
+
+// prepareResponseEc2Unused filter reports to get the top instances
+func prepareResponseEc2Unused(params ec2UnusedQueryParams, reports []Report) (int, []Instance, error) {
+	instances := []Instance{}
+	for _, report := range reports {
+		for _, instance := range report.Instances {
+			instances = append(instances, instance)
+		}
+	}
+	for i := 0; i < len(instances) - 1; i++ {
+		if diff := compareInstance(instances[i], instances[i + 1], params.by); diff == -1 {
+			tmp := instances[i]
+			instances[i] = instances[i + 1]
+			instances[i + 1] = tmp
+			i -= 2
+			if i < -1 {
+				i = -1
+			}
+		}
+	}
+	if params.count >= 0 && params.count <= len(instances) {
+		return http.StatusOK, instances[0:params.count], nil
+	}
+	return http.StatusOK, instances, nil
 }

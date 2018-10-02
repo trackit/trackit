@@ -64,7 +64,22 @@ func init() {
 
 func isUserAccount(tx *sql.Tx, user users.User, aa int) (bool, error) {
 	aaDB, err := models.AwsAccountByID(tx, aa)
-	return aaDB != nil && aaDB.UserID == user.Id, err
+	if err != nil {
+		return false, err
+	}
+	if aaDB.UserID == user.Id {
+		return true, nil
+	}
+	saDB, err := models.SharedAccountsByAccountID(tx, aa)
+	if err != nil {
+		return false, err
+	}
+	for _, key := range saDB {
+		if key.UserID == user.Id {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // getAwsReports returns the list of reports based on the query params, in JSON format.

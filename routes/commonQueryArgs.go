@@ -66,6 +66,16 @@ var (
 		Description: "The ID for a bill repository.",
 	}
 
+	// DateQueryArg allows to get the iso8601 date in the URL
+	// Parameters with routes.QueryArgs. This date will be a
+	// time.Time stored in the routes.Arguments map with itself for key.
+	DateQueryArg = QueryArg{
+		Name:        "date",
+		Type:        QueryArgDate{},
+		Description: "Date with year, month and day. Format is ISO8601",
+		Optional:    false,
+	}
+
 	// DateBeginQueryArg allows to get the iso8601 begin date in the URL
 	// Parameters with routes.QueryArgs. This date will be a
 	// time.Time stored in the routes.Arguments map with itself for key.
@@ -104,5 +114,14 @@ var (
 		Type:        QueryArgString{},
 		Description: "The file type",
 		Optional:    false,
+	}
+
+	// ShareIdQueryArg allows to get the DB id for an Shared access in the URL Parameters
+	// with routes.QueryArgs. This Shared ID will be an Uint stored
+	// in the routes.Arguments map with itself for key.
+	ShareIdQueryArg = QueryArg{
+		Name:        "share-id",
+		Type:        QueryArgInt{},
+		Description: "The DB ID of the sharing",
 	}
 )

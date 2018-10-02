@@ -17,6 +17,7 @@ type AwsAccountUpdateJob struct {
 	Joberror     string    `json:"jobError"`       // jobError
 	Rdserror     string    `json:"rdsError"`       // rdsError
 	Ec2error     string    `json:"ec2Error"`       // ec2Error
+	Historyerror string    `json:"historyError"`   // historyError
 
 	// xo fields
 	_exists, _deleted bool
@@ -43,14 +44,14 @@ func (aauj *AwsAccountUpdateJob) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_account_update_job (` +
-		`aws_account_id, completed, worker_id, jobError, rdsError, ec2Error` +
+		`aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error)
-	res, err := db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error)
+	XOLog(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error, aauj.Historyerror)
+	res, err := db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error, aauj.Historyerror)
 	if err != nil {
 		return err
 	}
@@ -84,12 +85,12 @@ func (aauj *AwsAccountUpdateJob) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_account_update_job SET ` +
-		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, rdsError = ?, ec2Error = ?` +
+		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, rdsError = ?, ec2Error = ?, historyError = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error, aauj.ID)
-	_, err = db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error, aauj.ID)
+	XOLog(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error, aauj.Historyerror, aauj.ID)
+	_, err = db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.Joberror, aauj.Rdserror, aauj.Ec2error, aauj.Historyerror, aauj.ID)
 	return err
 }
 
@@ -147,7 +148,7 @@ func AwsAccountUpdateJobByID(db XODB, id int) (*AwsAccountUpdateJob, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error ` +
+		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError ` +
 		`FROM trackit.aws_account_update_job ` +
 		`WHERE id = ?`
 
@@ -157,7 +158,7 @@ func AwsAccountUpdateJobByID(db XODB, id int) (*AwsAccountUpdateJob, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.Ec2error)
+	err = db.QueryRow(sqlstr, id).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.Ec2error, &aauj.Historyerror)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +174,7 @@ func AwsAccountUpdateJobsByAwsAccountID(db XODB, awsAccountID int) ([]*AwsAccoun
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error ` +
+		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError ` +
 		`FROM trackit.aws_account_update_job ` +
 		`WHERE aws_account_id = ?`
 
@@ -193,7 +194,7 @@ func AwsAccountUpdateJobsByAwsAccountID(db XODB, awsAccountID int) ([]*AwsAccoun
 		}
 
 		// scan
-		err = q.Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.Ec2error)
+		err = q.Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.Ec2error, &aauj.Historyerror)
 		if err != nil {
 			return nil, err
 		}
