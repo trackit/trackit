@@ -19,6 +19,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -47,6 +48,7 @@ func IngestPluginResult(ctx context.Context, aa aws.AwsAccount, pluginRes Plugin
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
 	index := es.IndexNameForUserId(aa.UserId, IndexPrefixAccountPlugin)
+	pluginRes.AccountPluginIdx = fmt.Sprintf("%s-%s", pluginRes.Account, pluginRes.PluginName)
 	if res, err := client.
 		Index().
 		Index(index).

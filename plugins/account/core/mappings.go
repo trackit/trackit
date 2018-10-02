@@ -42,10 +42,13 @@ func init() {
 const TemplateAccountPlugin = `
 {
   "template": "*-account-plugins",
-  "version": 1,
+  "version": 2,
   "mappings": {
     "account-plugin": {
       "properties": {
+        "accountPluginIdx": {
+          "type": "keyword"
+        },
         "account": {
           "type": "keyword"
         },

@@ -51,12 +51,13 @@ type PluginResult struct {
 
 // PluginResultES is the struct used to save a plugin result into elaticsearch
 type PluginResultES struct {
-	ReportDate time.Time `json:"reportDate"`
-	PluginName string    `json:"pluginName"`
-	Account    string    `json:"account"`
-	Result     string    `json:"result"`
-	Details    string    `json:"details"`
-	Error      string    `json:"error"`
+	AccountPluginIdx string    `json:"accountPluginIdx"`
+	ReportDate       time.Time `json:"reportDate"`
+	PluginName       string    `json:"pluginName"`
+	Account          string    `json:"account"`
+	Result           string    `json:"result"`
+	Details          string    `json:"details"`
+	Error            string    `json:"error"`
 }
 
 // PluginFunc is the type that should be implemented by the plugin's function
