@@ -42,7 +42,7 @@ type PluginParams struct {
 	ESClient           *elastic.Client
 }
 
-// PluginParams is the struct that each plugin should return
+// PluginResult is the struct that each plugin should return
 type PluginResult struct {
 	Result  string
 	Details string
