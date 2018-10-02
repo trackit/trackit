@@ -20,6 +20,20 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
+// getDateForDailyReport returns the end and the begin of the date of the report based on a date
+func getDateForDailyReport(date time.Time) (begin, end time.Time) {
+	now := time.Now().UTC()
+	if date.Year() == now.Year() && date.Month() == now.Month() {
+		end = now
+		begin = time.Date(end.Year(), end.Month(), 1, 0, 0, 0, 0, end.Location()).UTC()
+		return
+	} else {
+		begin = date
+		end = time.Date(date.Year(), date.Month() + 1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
+		return
+	}
+}
+
 // createQueryAccountFilterEc2 creates and return a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilterEc2(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
@@ -29,10 +43,9 @@ func createQueryAccountFilterEc2(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// GetElasticSearchEc2Params is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// GetElasticSearchEc2DailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
-//	'awsdetailedlineitem.linked_account_id'
+// 	- params ec2QueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
@@ -41,22 +54,24 @@ func createQueryAccountFilterEc2(accountList []string) *elastic.TermsQuery {
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchEc2DailyParams(params ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEc2(accountList))
+	if len(params.accountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEc2(params.accountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
+	dateStart, dateEnd := getDateForDailyReport(params.date)
+	query = query.Filter(elastic.NewRangeQuery("reportDate").
+		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
 	return search
 }
 
-// GetElasticSearchEc2HistoryParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// GetElasticSearchEc2MonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
-//	'awsdetailedlineitem.linked_account_id'
+// 	- params ec2QueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
@@ -65,13 +80,13 @@ func GetElasticSearchEc2Params(accountList []string, client *elastic.Client, ind
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEc2HistoryParams(accountList []string, date time.Time, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchEc2MonthlyParams(params ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEc2(accountList))
+	if len(params.accountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEc2(params.accountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
-	query = query.Filter(elastic.NewTermQuery("reportDate", date))
+	query = query.Filter(elastic.NewTermQuery("reportDate", params.date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
@@ -89,8 +104,7 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 
 // GetElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
-//	'awsdetailedlineitem.linked_account_id'
+// 	- params ec2QueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query
@@ -98,18 +112,17 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchCostParams(accountList []string, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchCostParams(params ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterBill(accountList))
+	if len(params.accountList) > 0 {
+		query = query.Filter(createQueryAccountFilterBill(params.accountList))
 	}
 	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
-	dateEnd := time.Now().UTC()
-	dateStart := time.Date(dateEnd.Year(), dateEnd.Month(), 1, 0, 0, 0, 0, dateEnd.Location()).UTC()
+	dateStart, dateEnd := getDateForDailyReport(params.date)
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("accounts",  elastic.NewTermsAggregation().Field("usageAccountId").Size(len(accountList)).
+	search.Aggregation("accounts",  elastic.NewTermsAggregation().Field("usageAccountId").Size(len(params.accountList)).
 		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
 			SubAggregation("cost",  elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search

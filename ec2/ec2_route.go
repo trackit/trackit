@@ -30,12 +30,6 @@ type (
 	ec2QueryParams struct {
 		accountList []string
 		indexList   []string
-	}
-
-	// ec2HistoryQueryParams will store the parsed query params
-	ec2HistoryQueryParams struct {
-		accountList []string
-		indexList   []string
 		date        time.Time
 	}
 
@@ -52,11 +46,6 @@ type (
 var (
 	// ec2QueryArgs allows to get required queryArgs params
 	ec2QueryArgs = []routes.QueryArg{
-		routes.AwsAccountsOptionalQueryArg,
-	}
-
-	// ec2HistoryQueryArgs allows to get required queryArgs params
-	ec2HistoryQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
 	}
@@ -93,17 +82,6 @@ func init() {
 		),
 	}.H().Register("/ec2")
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getEc2HistoryInstances).With(
-			db.RequestTransaction{Db: db.Db},
-			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			routes.QueryArgs(ec2HistoryQueryArgs),
-			routes.Documentation{
-				Summary:     "get the list of EC2 instances of a month",
-				Description: "Responds with the list of EC2 instances of a month based on the queryparams passed to it",
-			},
-		),
-	}.H().Register("/ec2/history")
-	routes.MethodMuxer{
 		http.MethodGet: routes.H(getEc2UnusedInstances).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
@@ -122,30 +100,12 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := ec2QueryParams{
 		accountList: []string{},
+		date:        a[ec2QueryArgs[1]].(time.Time),
 	}
 	if a[ec2QueryArgs[0]] != nil {
 		parsedParams.accountList = a[ec2QueryArgs[0]].([]string)
 	}
 	returnCode, report, err := getEc2Data(request, parsedParams, user, tx)
-	if err != nil {
-		return returnCode, err
-	} else {
-		return returnCode, report
-	}
-}
-
-// getEc2HistoryInstances returns the list of EC2 reports based on the query params, in JSON format.
-func getEc2HistoryInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
-	user := a[users.AuthenticatedUser].(users.User)
-	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := ec2HistoryQueryParams{
-		accountList: []string{},
-		date:        a[ec2HistoryQueryArgs[1]].(time.Time),
-	}
-	if a[ec2HistoryQueryArgs[0]] != nil {
-		parsedParams.accountList = a[ec2HistoryQueryArgs[0]].([]string)
-	}
-	returnCode, report, err := getEc2HistoryData(request, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {

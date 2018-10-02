@@ -16,7 +16,6 @@ package ec2
 
 import (
 	"fmt"
-	"time"
 	"context"
 	"strings"
 	"net/http"
@@ -40,7 +39,7 @@ func makeElasticSearchCostRequest(ctx context.Context, params ec2QueryParams) (*
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(params.indexList, ",")
 	searchService := GetElasticSearchCostParams(
-		params.accountList,
+		params,
 		es.Client,
 		index,
 	)
@@ -56,18 +55,18 @@ func makeElasticSearchCostRequest(ctx context.Context, params ec2QueryParams) (*
 	return res, http.StatusOK, nil
 }
 
-// makeElasticSearchEc2Request prepares and run the request to retrieve the latest reports
+// makeElasticSearchEc2DailyRequest prepares and run the request to retrieve the latest reports
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEc2Request(ctx context.Context, parsedParams ec2QueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchEc2DailyRequest(ctx context.Context, parsedParams ec2QueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchEc2Params(
-		parsedParams.accountList,
+	searchService := GetElasticSearchEc2DailyParams(
+		parsedParams,
 		es.Client,
 		index,
 	)
@@ -83,19 +82,18 @@ func makeElasticSearchEc2Request(ctx context.Context, parsedParams ec2QueryParam
 	return res, http.StatusOK, nil
 }
 
-// makeElasticSearchEc2HistoryRequest prepares and run the request to retrieve a month report
+// makeElasticSearchEc2MonthlyRequest prepares and run the request to retrieve a month report
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEc2HistoryRequest(ctx context.Context, parsedParams ec2HistoryQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams ec2QueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchEc2HistoryParams(
-		parsedParams.accountList,
-		parsedParams.date,
+	searchService := GetElasticSearchEc2MonthlyParams(
+		parsedParams,
 		es.Client,
 		index,
 	)
@@ -109,6 +107,25 @@ func makeElasticSearchEc2HistoryRequest(ctx context.Context, parsedParams ec2His
 		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
 	}
 	return res, http.StatusOK, nil
+}
+
+func getEc2DailyData(ctx context.Context, params ec2QueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
+	searchResult, returnCode, err := makeElasticSearchEc2DailyRequest(ctx, params)
+	if err != nil {
+		return returnCode, nil, err
+	}
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.accountList, user, tx, es.IndexPrefixLineItems)
+	if err != nil {
+		return returnCode, nil, err
+	}
+	params.accountList = accountsAndIndexes.Accounts
+	params.indexList = accountsAndIndexes.Indexes
+	costResult, _, _ := makeElasticSearchCostRequest(ctx, params)
+	res, err := prepareResponseEc2(ctx, searchResult, costResult)
+	if err != nil {
+		return http.StatusInternalServerError, nil, err
+	}
+	return http.StatusOK, res, nil
 }
 
 func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
@@ -118,54 +135,23 @@ func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.U
 	}
 	parsedParams.accountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	searchResult, returnCode, err := makeElasticSearchEc2Request(request.Context(), parsedParams)
+	searchResult, returnCode, err := makeElasticSearchEc2MonthlyRequest(request.Context(), parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err = es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return returnCode, nil, err
+	if searchResult.Hits.TotalHits > 0 {
+		res, err := prepareResponseEc2History(request.Context(), searchResult)
+		if err != nil {
+			return http.StatusInternalServerError, nil, err
+		}
+		return http.StatusOK, res, nil
+	} else {
+		return getEc2DailyData(request.Context(), parsedParams, user, tx)
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
-	costResult, _, _ := makeElasticSearchCostRequest(request.Context(), parsedParams)
-	res, err := prepareResponseEc2(request.Context(), searchResult, costResult)
-	if err != nil {
-		return http.StatusInternalServerError, nil, err
-	}
-	return http.StatusOK, res, nil
-}
-
-func getEc2HistoryData(request *http.Request, parsedParams ec2HistoryQueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
-	searchResult, returnCode, err := makeElasticSearchEc2HistoryRequest(request.Context(), parsedParams)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	res, err := prepareResponseEc2History(request.Context(), searchResult)
-	if err != nil {
-		return http.StatusInternalServerError, nil, err
-	}
-	return http.StatusOK, res, nil
 }
 
 func getEc2UnusedData(request *http.Request, params ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []Instance, error) {
-	var returnCode int
-	var reports []Report
-	var err error
-	now := time.Now().UTC()
-	if now.Year() < params.date.Year() || (now.Year() == params.date.Year() && now.Month() <= params.date.Month()) {
-		returnCode, reports, err = getEc2Data(request,
-			ec2QueryParams{params.accountList, nil}, user, tx)
-	} else {
-		returnCode, reports, err = getEc2HistoryData(request,
-			ec2HistoryQueryParams{params.accountList, nil, params.date}, user, tx)
-	}
+	returnCode, reports, err := getEc2Data(request, ec2QueryParams{params.accountList, nil, params.date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
