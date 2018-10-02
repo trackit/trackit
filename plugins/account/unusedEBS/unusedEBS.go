@@ -20,6 +20,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 
+	"github.com/trackit/trackit-server/config"
 	core "github.com/trackit/trackit-server/plugins/account/core"
 	"github.com/trackit/trackit-server/plugins/utils"
 )
@@ -55,7 +56,7 @@ func formatResult(unusedByAZ map[string]int) (string, string, string) {
 // getUnusedEBsRecommendation searches for unused ebs in every region available
 // It takes a core.PluginParams struct and returns 3 strings (result, details, error)
 func getUnusedEBsRecommendation(pluginParams core.PluginParams) (string, string, string) {
-	svc := plugins_utils.GetEc2ClientSession(pluginParams.AccountCredentials, nil)
+	svc := plugins_utils.GetEc2ClientSession(pluginParams.AccountCredentials, &config.AwsRegion)
 	regionsOutput, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
 	if err != nil {
 		return "", "", fmt.Sprintf("Unable to retrieve the list of regions: %s", err.Error())
