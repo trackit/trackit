@@ -1,5 +1,6 @@
 import React from 'react';
 import Misc from "./MiscForm";
+import Validator from "validator";
 
 const roleArnFormat = (value) => {
   const regex = /arn:aws:iam::[\d]{12}:role\/(?:[a-zA-Z0-9+=,.@_-](?:\/[a-zA-Z0-9+=,.@_-])?)+/;
@@ -50,6 +51,11 @@ const getS3BucketValues = (value) => {
   return null;
 };
 
+const guestMailFormat = (value) => {
+  if (!Validator.isEmail(value))
+    return (<div className="alert alert-warning">{value} is not a valid email.</div>);
+};
+
 export default {
   required: Misc.required,
   roleArnFormat,
@@ -57,5 +63,6 @@ export default {
   s3BucketFormat,
   s3BucketNameFormat,
   s3PrefixFormat,
-  getS3BucketValues
+  getS3BucketValues,
+  guestMailFormat,
 };

@@ -54,6 +54,9 @@ jobs:
       - run:
           name: Invalid cache
           command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID --invalidation-batch '{"Paths":{"Quantity":1,"Items":["/*"]},"CallerReference":"'$CIRCLE_SHA1'"}'
+      - run:
+          name: Send Slack notification
+          command: curl -X POST --data '{"attachments":[{"fallback":"Front-End (Commit '$CIRCLE_SHA1') has been deployed on Production","color":"#36a64f","text":"Front-End (Commit '$CIRCLE_SHA1') has been deployed on Production","ts":'$(date +%s)'}]}' $SLACK_WEBHOOK_DEPLOYMENT
   deploy_stg:
     working_directory: ~/trackit2-client
     docker:
@@ -85,6 +88,9 @@ jobs:
       - run:
           name: Invalid cache
           command: aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_ID_STG --invalidation-batch '{"Paths":{"Quantity":1,"Items":["/*"]},"CallerReference":"'$CIRCLE_SHA1'"}'
+      - run:
+          name: Send Slack notification
+          command: curl -X POST --data '{"attachments":[{"fallback":"Front-End (Commit '$CIRCLE_SHA1') has been deployed on Staging","color":"#36a64f","text":"Front-End (Commit '$CIRCLE_SHA1') has been deployed on Staging","ts":'$(date +%s)'}]}' $SLACK_WEBHOOK_DEPLOYMENT
 workflows:
   version: 2
   test-and-deploy:

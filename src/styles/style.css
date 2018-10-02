@@ -637,18 +637,36 @@ h4.no-data {
     font-size: 1.5em;
 }
 
-.tags-list {
+.tags-list,
+.volumes-list {
     padding: 10px;
     border: 1px solid #ddd;
 }
 
-.tags-item {
+.tags-item,
+.volumes-item {
     padding: 10px 5px;
     border-bottom: 1px solid #ddd;
 }
 
-.tags-item:last-child {
+.tags-item:last-child,
+.volumes-item:last-child {
     border-bottom: none;
+}
+
+.ioDetails {
+    position: relative;
+}
+
+.ioDetails > div {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+}
+
+.ioDetails .popover-trigger i {
+    color: #cccccc !important;
 }
 
 /* Resources */

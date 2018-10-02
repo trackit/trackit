@@ -22,6 +22,9 @@ export default {
         value: null
       },
       external: null,
+      accountViewers: {status: true, value: null},
+      addAccountViewer: {status: true, value: null},
+      editAccountViewer: {status: true, value: null}
     },
     s3: {
       dates: {
@@ -63,7 +66,10 @@ export default {
       }
     },
     resources: {
-      account: '',
+      dates: {
+        startDate: moment().startOf('months'),
+        endDate: moment().endOf('months')
+      },
       EC2: {
         status: true,
         value: null

@@ -65,7 +65,7 @@ class DialogComponent extends Component {
     return(
       <div>
 
-        <button className={"btn btn-" + this.props.buttonType} onClick={this.openDialog}>
+        <button className={"btn btn-" + this.props.buttonType} onClick={this.openDialog} disabled={this.props.disabled}>
           {this.props.buttonName}
         </button>
 
@@ -104,12 +104,14 @@ DialogComponent.propTypes = {
   children: PropTypes.node,
   onOpen: PropTypes.func,
   onClose: PropTypes.func,
+  disabled: PropTypes.bool
 };
 
 DialogComponent.defaultProps = {
   buttonType: "default",
   secondActionName: "Cancel",
-  titleChildren: null
+  titleChildren: null,
+  disabled: false
 };
 
 export default DialogComponent;

@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import Misc from '../../misc';
 import Form from './FormComponent';
 import Bills from './bills';
+import TeamSharing from './teamSharing';
 
 const DeleteConfirmation = Misc.DeleteConfirmation;
 
@@ -87,18 +88,23 @@ export class Item extends Component {
           <div className="actions">
 
             <div className="inline-block">
-              <Bills.List account={this.props.account.id} />
+              <TeamSharing.List account={this.props.account.id} disabled={this.props.account.permissionLevel === 2} permissionLevel={this.props.account.permissionLevel}/>
+            </div>
+            &nbsp;
+            <div className="inline-block">
+              <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
             </div>
             &nbsp;
             <div className="inline-block">
               <Form
                 account={this.props.account}
                 submit={this.editAccount}
+                disabled={this.props.account.permissionLevel !== 0}
               />
             </div>
             &nbsp;
             <div className="inline-block">
-              <DeleteConfirmation entity="account" confirm={this.deleteAccount}/>
+              <DeleteConfirmation entity="account" confirm={this.deleteAccount} disabled={this.props.account.permissionLevel !== 0}/>
             </div>
 
           </div>
@@ -118,6 +124,8 @@ Item.propTypes = {
     id: PropTypes.number.isRequired,
     roleArn: PropTypes.string.isRequired,
     pretty: PropTypes.string,
+    permissionLevel: PropTypes.number,
+    payer: PropTypes.bool.isRequired,
     billRepositories: PropTypes.arrayOf(
       PropTypes.shape({
         error: PropTypes.string.isRequired,
@@ -172,6 +180,8 @@ ListComponent.propTypes = {
         id: PropTypes.number.isRequired,
         roleArn: PropTypes.string.isRequired,
         pretty: PropTypes.string,
+        permissionLevel: PropTypes.number,
+        payer: PropTypes.bool.isRequired,
         billRepositories: PropTypes.arrayOf(
           PropTypes.shape({
             error: PropTypes.string.isRequired,

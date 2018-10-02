@@ -7,6 +7,9 @@ import creation from './creationReducer';
 import billCreation from './billCreationReducer';
 import billsStatus from './billsStatusReducer';
 import billEdition from './billEditionReducer';
+import accountViewers from './accountViewersReducer';
+import addAccountViewer from './addAccountViewerReducer';
+import editAccountViewer from './editAccountViewerReducer';
 
 export default combineReducers({
   all,
@@ -16,5 +19,8 @@ export default combineReducers({
   creation,
   billCreation,
   billsStatus,
-  billEdition
+  billEdition,
+  accountViewers,
+  addAccountViewer,
+  editAccountViewer
 });

@@ -11,6 +11,68 @@ import Misc from '../../misc';
 
 const Tooltip = Misc.Popover;
 
+export class Volumes extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      showPopOver: false
+    };
+    this.handlePopoverOpen = this.handlePopoverOpen.bind(this);
+    this.handlePopoverClose = this.handlePopoverClose.bind(this);
+  }
+
+  handlePopoverOpen = (e) => {
+    e.preventDefault();
+    this.setState({ showPopOver: true });
+  };
+
+  handlePopoverClose = (e) => {
+    e.preventDefault();
+    this.setState({ showPopOver: false });
+  };
+
+  render() {
+    return (
+      <div>
+        <Popover
+          open={this.state.showPopOver}
+          anchorEl={this.anchor}
+          onClose={this.handlePopoverClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'center',
+          }}
+        >
+          <div
+            className="volumes-list"
+            onClick={this.handlePopoverClose}
+          >
+            {Object.keys(this.props.volumes).filter(key => (key !== "total")).map((volume, index) => (<div key={index} className="volumes-item">{volume} : {formatBytes(this.props.volumes[volume])}</div>))}
+          </div>
+        </Popover>
+        <div
+          ref={node => {
+            this.anchor = node;
+          }}
+          onClick={this.handlePopoverOpen}
+        >
+          <Tooltip placement="right" info tooltip="Click to see more details"/>
+        </div>
+      </div>
+    );
+  }
+
+}
+
+Volumes.propTypes = {
+  volumes: PropTypes.object.isRequired
+};
+
 export class Tags extends Component {
 
   constructor(props) {
@@ -76,12 +138,12 @@ Tags.propTypes = {
 export class VMsComponent extends Component {
 
   componentWillMount() {
-    this.props.getData();
+    this.props.getData(this.props.dates.startDate);
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.accounts !== this.props.accounts)
-      nextProps.getData();
+    if (nextProps.accounts !== this.props.accounts || nextProps.dates !== this.props.dates)
+      nextProps.getData(nextProps.dates.startDate);
   }
 
   render() {
@@ -123,36 +185,6 @@ export class VMsComponent extends Component {
         filterable
         defaultFilterMethod={(filter, row) => String(row[filter.id]).toLowerCase().includes(filter.value)}
         columns={[
-          {
-            accessor: 'state',
-            filterable: false,
-            maxWidth: 50,
-            Cell: row => {
-              let color;
-              switch (row.value) {
-                case "pending":
-                case "shutting-down":
-                  color = "orange";
-                  break;
-                case "running":
-                  color = "green";
-                  break;
-                case "terminated":
-                case "stopping":
-                case "stopped":
-                  color = "red";
-                  break;
-                default:
-                  color = "grey";
-              }
-              return (
-                <Tooltip
-                  placement="left"
-                  icon={(<i className={"fa fa-circle " + color}/>)}
-                  tooltip={row.value}
-                />);
-            }
-          },
           {
             Header: 'Tags',
             accessor: 'tags',
@@ -305,16 +337,32 @@ export class VMsComponent extends Component {
               {
                 Header: 'Read',
                 accessor: 'ioRead',
+                minWidth: 120,
                 filterable: false,
                 sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
-                Cell: row => (row.value ? formatBytes(row.value.total) : null)
+                Cell: row => (row.value ? (
+                  <div className="ioDetails">
+                    <span>
+                      {formatBytes(row.value.total)}
+                    </span>
+                    <Volumes volumes={row.value}/>
+                  </div>
+                ) : null)
               },
               {
                 Header: 'Write',
                 accessor: 'ioWrite',
+                minWidth: 120,
                 filterable: false,
                 sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
-                Cell: row => (row.value ? formatBytes(row.value.total) : null)
+                Cell: row => (row.value ? (
+                  <div className="ioDetails">
+                    <span>
+                      {formatBytes(row.value.total)}
+                    </span>
+                    <Volumes volumes={row.value}/>
+                  </div>
+                ) : null)
               }
             ]
           },
@@ -393,18 +441,20 @@ VMsComponent.propTypes = {
   }),
   getData: PropTypes.func.isRequired,
   clear: PropTypes.func.isRequired,
+  dates: PropTypes.object,
 };
 
 /* istanbul ignore next */
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.selection,
+  dates: aws.resources.dates,
   data: aws.resources.EC2
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
-  getData: () => {
-    dispatch(Actions.AWS.Resources.get.EC2());
+  getData: (date) => {
+    dispatch(Actions.AWS.Resources.get.EC2(date));
   },
   clear: () => {
     dispatch(Actions.AWS.Resources.clear.EC2());

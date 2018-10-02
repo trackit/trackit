@@ -10,7 +10,11 @@ const Tooltip = Misc.Popover;
 
 const props = {
   getData: jest.fn(),
-  clear: jest.fn()
+  clear: jest.fn(),
+  dates: {
+    startDate: Moment().startOf("months"),
+    endDate: Moment().endOf("months")
+  }
 };
 
 const propsWithData = {

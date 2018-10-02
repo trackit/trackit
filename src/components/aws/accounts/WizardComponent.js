@@ -26,6 +26,23 @@ const Validation = Validations.AWSAccount;
 
 export class StepRoleCreation extends Component {
 
+  constructor() {
+    super();
+    this.state = {
+      copied: null,
+    };
+    this.toggleCopied = this.toggleCopied.bind(this);
+  }
+
+  toggleCopied = (value, result) => {
+    if (result) {
+      this.setState({ copied: value });
+      setTimeout(() => {
+        this.setState({ copied: null });
+      }, 3000);  
+    }
+  };
+
   submit = (e) => {
     e.preventDefault();
     this.props.next();
@@ -49,7 +66,7 @@ export class StepRoleCreation extends Component {
                 <div>
                   Follow this screenshot to configure your new role correctly,
                   <br/>
-                  using the informations provided below :
+                  using the informations provided below and click Next:
                   <br/>
                   <Picture
                     src={RoleCreation}
@@ -58,22 +75,28 @@ export class StepRoleCreation extends Component {
                   />
                   <hr/>
                   Account ID : <strong className="value">{this.props.external.accountId}</strong>
-                  <CopyToClipboard text={this.props.external.accountId}>
+                  <CopyToClipboard text={this.props.external.accountId} onCopy={this.toggleCopied}>
                     <div className="badge">
                       <i className="fa fa-clipboard" aria-hidden="true"/>
+                      {this.state.copied === this.props.external.accountId && ' Copied'}
                     </div>
                   </CopyToClipboard>
                   <br/>
                   External : <strong className="value">{this.props.external.external}</strong>
-                  <CopyToClipboard text={this.props.external.external}>
+                  <CopyToClipboard text={this.props.external.external} onCopy={this.toggleCopied}>
                     <div className="badge">
                       <i className="fa fa-clipboard" aria-hidden="true"/>
+                      {this.state.copied === this.props.external.external && ' Copied'}
                     </div>
                   </CopyToClipboard>
                 </div>
                 <hr/>
               </li>
-              <li>Select the policy you created in previous step</li>
+              {
+                this.props.minimalPolicy ?
+                <li>Select the policy you created in previous step</li>
+                : <li>Select the <strong>ReadOnlyAccess</strong> policy</li>
+              }
               <li>Set a name for this new role and validate</li>
             </ol>
 
@@ -102,7 +125,8 @@ StepRoleCreation.propTypes = {
   }),
   next: PropTypes.func.isRequired,
   back: PropTypes.func.isRequired,
-  close: PropTypes.func.isRequired
+  close: PropTypes.func.isRequired,
+  minimalPolicy: PropTypes.bool,
 };
 
 export class StepNameARN extends Component {
@@ -225,7 +249,18 @@ export class StepBucket extends Component {
       bucketPrefix: '',
     };
     this.handleInputChange = this.handleInputChange.bind(this);
+    this.toggleCopied = this.toggleCopied.bind(this);
   };
+
+  toggleCopied = (value, result) => {
+    if (result) {
+      this.setState({ copied: value });
+      setTimeout(() => {
+        this.setState({ copied: null });
+      }, 3000);  
+    }
+  };
+
 
   handleInputChange(event) {
     const target = event.target;
@@ -312,9 +347,10 @@ export class StepBucket extends Component {
           <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
           <li>
             Paste the following into the Bucket policy Editor and <strong>Save</strong>:
-            <CopyToClipboard text={this.getBucketPolicy()}>
+            <CopyToClipboard text={this.getBucketPolicy()} onCopy={this.toggleCopied}>
                   <div className="badge">
                     <i className="fa fa-clipboard" aria-hidden="true"/>
+                    {this.state.copied && ' Copied'}
                   </div>
             </CopyToClipboard>
             <pre style={{ height: '85px', marginTop: '10px' }}>
@@ -389,6 +425,29 @@ StepBucket.propTypes = {
 };
 
 export class StepPolicy extends Component {
+  constructor() {
+    super();
+    this.state = {
+      minimal: false
+    };
+    this.next = this.next.bind(this);
+    this.toggleCopied = this.toggleCopied.bind(this);
+  }
+
+  toggleCopied = (value, result) => {
+    if (result) {
+      this.setState({ copied: value });
+      setTimeout(() => {
+        this.setState({ copied: null });
+      }, 3000);  
+    }
+  };
+
+  next() {
+    this.props.setMinimalPolicy(this.state.minimal);
+    this.props.next();
+  }
+
   getPolicy() {
     const bucketString = this.props.bucketPrefix.length ? `${this.props.bucketName}/${this.props.bucketPrefix}` : this.props.bucketName;
 
@@ -416,7 +475,10 @@ export class StepPolicy extends Component {
                     "rds:DescribeDBInstances",
                     "cloudwatch:GetMetricStatistics",
                     "ec2:DescribeRegions",
-                    "ec2:DescribeInstances"
+                    "ec2:DescribeInstances",
+                    "ec2:DescribeReservedInstancesListings",
+                    "ec2:DescribeReservedInstancesModifications",
+                    "ec2:DescribeReservedInstancesOfferings"
                 ],
                 "Resource": "*"
             }
@@ -426,39 +488,62 @@ export class StepPolicy extends Component {
   }
 
   render() {
+    const tutorial = (
+        <div className="tutorial">
+        <ol>
+          <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/iam/home#/policies">AWS Console IAM Policies page</a>.</li>
+          <li>Click <strong>Create Policy</strong></li>
+          <li>Select the <strong>JSON</strong> tab</li>
+          <li>
+            Paste the following into the JSON Editor:
+            <CopyToClipboard text={this.getPolicy()} onCopy={this.toggleCopied}>
+                  <div className="badge">
+                    <i className="fa fa-clipboard" aria-hidden="true"/>
+                    {this.state.copied && ' Copied'}
+                  </div>
+            </CopyToClipboard>
+            <pre style={{ height: '180px', marginTop: '10px' }}>
+              {this.getPolicy()}
+            </pre>
+            <div className="alert alert-info">
+              <i className="fa fa-info-circle"></i>
+              &nbsp;
+              With this policy you only gives TrackIt access to the strict minimum it needs to be functional.
+            </div>
+          </li>
+          <li>Click <strong>Review Policy</strong> to submit</li>
+          <li>Give your policy a name and click <strong>Create policy</strong></li>
+        </ol>
+      </div>
+    );
+
+    const permissionChoice = (
+      <div>
+        <div className="alert alert-info">
+          <i className="fa fa-info-circle"></i>
+          &nbsp;
+          TrackIt works best using AWS full ReadOnly policy.
+          <br/>
+          <br/>
+          If you want to use a more restrictive policy we can generate one for you that strictly gives TrackIt access to the minimum it needs. However you might need to update it for future TrackIt features to work.
+        </div>
+        <button className="btn btn-primary btn-block" onClick={this.next}><strong>Use AWS ReadOnly policy</strong></button>
+        <br/>
+        <button className="btn btn-primary btn-block" onClick={() => {this.setState({ minimal: true })}}>Use minimal policy</button>
+        <hr/>
+      </div>
+    );
+
     return (
       <div>
-        <div className="tutorial">
-          <ol>
-            <li>Go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/iam/home#/policies">AWS Console IAM Policies page</a>.</li>
-            <li>Click <strong>Create Policy</strong></li>
-            <li>Select the <strong>JSON</strong> tab</li>
-            <li>
-              Paste the following into the JSON Editor:
-              <CopyToClipboard text={this.getPolicy()}>
-                    <div className="badge">
-                      <i className="fa fa-clipboard" aria-hidden="true"/>
-                    </div>
-              </CopyToClipboard>
-              <pre style={{ height: '180px', marginTop: '10px' }}>
-                {this.getPolicy()}
-              </pre>
-              <div className="alert alert-info">
-                <i className="fa fa-info-circle"></i>
-                &nbsp;
-                With this policy you only gives TrackIt access to the data it needs to be functional. We won't be able to access any of your sensitive data.
-              </div>
-            </li>
-            <li>Click <strong>Review Policy</strong> to submit</li>
-            <li>Give your policy a name and click <strong>Create policy</strong></li>
-          </ol>
-        </div>
+        {this.state.minimal ? tutorial : permissionChoice}
+
         <div className="form-group clearfix">
           <div className="btn-group col-md-5" role="group">
             <div className="btn btn-default btn-left" onClick={this.props.close}>Cancel</div>
             <div className="btn btn-default btn-left" onClick={this.props.back}>Previous</div>
           </div>
-          <button className="btn btn-primary col-md-5 btn-right" onClick={this.props.next}>Next</button>
+          {this.state.minimal && <button className="btn btn-primary col-md-5 btn-right" onClick={this.next}>Next</button>}
         </div>
 
       </div>
@@ -471,7 +556,8 @@ StepPolicy.propTypes = {
   bucketPrefix: PropTypes.string.isRequired,
   next: PropTypes.func.isRequired,
   back: PropTypes.func.isRequired,
-  close: PropTypes.func.isRequired
+  close: PropTypes.func.isRequired,
+  setMinimalPolicy: PropTypes.func.isRequired,
 }
 
 class Wizard extends Component {
@@ -483,6 +569,7 @@ class Wizard extends Component {
       activeStep: 0,
       bucket: '',
       prefix: '',
+      minimalPolicy: false,
       billEditMode: false,
     };
     this.nextStep = this.nextStep.bind(this);
@@ -492,6 +579,7 @@ class Wizard extends Component {
     this.setBucketValues = this.setBucketValues.bind(this);
     this.submit = this.submit.bind(this);
     this.submitBucket = this.submitBucket.bind(this);
+    this.setMinimalPolicy = this.setMinimalPolicy.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -515,6 +603,10 @@ class Wizard extends Component {
   setBucketValues(values) {
     const { bucket, prefix } = values;
     this.setState({ bucket, prefix });
+  }
+
+  setMinimalPolicy(value) {
+    this.setState({ minimalPolicy: value });
   }
 
   submit(account) {
@@ -549,7 +641,7 @@ class Wizard extends Component {
   closeDialog = (e=null) => {
     if (e)
       e.preventDefault();
-    this.setState({open: false, activeStep: 0, bucket: '', prefix: '', billEditMode: false });
+    this.setState({open: false, activeStep: 0, bucket: '', prefix: '', billEditMode: false, minimalPolicy: false });
     this.props.clearAccount();
     this.props.clearBucket();
   };
@@ -563,14 +655,14 @@ class Wizard extends Component {
         component: <StepBucket account={this.props.account} bill={this.props.bill} next={this.nextStep} submit={this.setBucketValues} close={this.closeDialog}/>
       },
       {
-        title: "Create a policy",
-        label: "Policy creation",
-        component: <StepPolicy bucketName={this.state.bucket} bucketPrefix={this.state.prefix} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
+        title: "Policy",
+        label: "Policy",
+        component: <StepPolicy bucketName={this.state.bucket} setMinimalPolicy={this.setMinimalPolicy} bucketPrefix={this.state.prefix} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
       },
       {
         title: "Create a role",
         label: "Role creation",
-        component: <StepRoleCreation external={this.props.external} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
+        component: <StepRoleCreation external={this.props.external} minimalPolicy={this.state.minimalPolicy} next={this.nextStep} back={this.previousStep} close={this.closeDialog}/>
       },
       {
         title: "Add your role",

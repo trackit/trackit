@@ -161,6 +161,7 @@ export class ListComponent extends Component {
     return (
       <Dialog
         buttonName={<span><i className="fa fa-map-marker"/> Bills location</span>}
+        disabled={this.props.disabled}
         title="Bills locations"
         secondActionName="Close"
         onOpen={this.getBills}
@@ -209,7 +210,12 @@ ListComponent.propTypes = {
   deleteBill: PropTypes.func.isRequired,
   clearBills: PropTypes.func.isRequired,
   clearNewBill: PropTypes.func.isRequired,
-  clearBillEdit: PropTypes.func.isRequired
+  clearBillEdit: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
+};
+
+ListComponent.defaultProps = {
+  disabled: false
 };
 
 /* istanbul ignore next */

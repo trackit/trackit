@@ -2,6 +2,7 @@ import React from 'react';
 import { ResourcesContainer } from '../ResourcesContainer';
 import { shallow } from 'enzyme';
 import Components from "../../../components";
+import Moment from "moment";
 
 const Panel = Components.Misc.Panel;
 const VMs = Components.AWS.Resources.VMs;
@@ -10,6 +11,10 @@ const Databases = Components.AWS.Resources.Databases;
 const props = {
   account: '42',
   selectAccount: jest.fn(),
+  dates: {
+    startDate: Moment().startOf("months"),
+    endDate: Moment().endOf("months")
+  }
 };
 
 describe('<ResourcesContainer />', () => {

@@ -12,6 +12,7 @@ class DeleteConfirmation extends Component {
         title={"Are you sure to want to delete " + (this.props.entity || "this") + " ?"}
         actionName="Confirm"
         actionFunction={this.props.confirm}
+        disabled={this.props.disabled}
       />
     );
   }
@@ -20,8 +21,12 @@ class DeleteConfirmation extends Component {
 
 DeleteConfirmation.propTypes = {
   entity: PropTypes.string,
-  confirm: PropTypes.func.isRequired
+  confirm: PropTypes.func.isRequired,
+  disabled: PropTypes.bool
 };
 
+DeleteConfirmation.defaultProps = {
+  disabled: false
+};
 
 export default DeleteConfirmation;

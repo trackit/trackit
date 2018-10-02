@@ -1,10 +1,10 @@
 import { combineReducers } from 'redux';
-import account from './accountReducer';
+import dates from './datesReducer';
 import EC2 from './EC2Reducer';
 import RDS from './RDSReducer';
 
 export default combineReducers({
-  account,
+  dates,
   EC2,
   RDS
 });
