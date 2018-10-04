@@ -33,33 +33,48 @@ import (
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/util"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
 const (
 	RDSStsSessionName = "fetch-rds"
 )
 
-type RDSInstance struct {
-	DBInstanceIdentifier string  `json:"dbInstanceIdentifier"`
-	DBInstanceClass      string  `json:"dbInstanceClass"`
-	AllocatedStorage     int64   `json:"allocatedStorage"`
-	Engine               string  `json:"engine"`
-	AvailabilityZone     string  `json:"availabilityZone"`
-	MultiAZ              bool    `json:"multiAZ"`
-	Cost                 float64 `json:"cost"`
-}
+type (
+	RDSInstance struct {
+		DBInstanceIdentifier string  `json:"dbInstanceIdentifier"`
+		DBInstanceClass      string  `json:"dbInstanceClass"`
+		AllocatedStorage     int64   `json:"allocatedStorage"`
+		Engine               string  `json:"engine"`
+		AvailabilityZone     string  `json:"availabilityZone"`
+		MultiAZ              bool    `json:"multiAZ"`
+		Cost                 float64 `json:"cost"`
+		CpuAverage           float64 `json:"cpuAverage"`
+		CpuPeak              float64 `json:"cpuPeak"`
+		FreeSpaceMin         float64 `json:"freeSpaceMinimum"`
+		FreeSpaceMax         float64 `json:"freeSpaceMaximum"`
+		FreeSpaceAve         float64 `json:"freeSpaceAverage"`
+	}
 
-type RDSReport struct {
-	Account    string        `json:"account"`
-	ReportDate time.Time     `json:"reportDate"`
-	ReportType string        `json:"reportType"`
-	Instances  []RDSInstance `json:"instances"`
-}
+	RDSReport struct {
+		Account    string        `json:"account"`
+		ReportDate time.Time     `json:"reportDate"`
+		ReportType string        `json:"reportType"`
+		Instances  []RDSInstance `json:"instances"`
+	}
+
+	InstanceStats struct {
+		CpuAverage   float64
+		CpuPeak      float64
+		FreeSpaceMin float64
+		FreeSpaceMax float64
+		FreeSpaceAve float64
+	}
+)
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan RDSInstance) <-chan RDSInstance {
+func Merge(cs ...<-chan RDSInstance) <-chan RDSInstance {
 	var wg sync.WaitGroup
 	out := make(chan RDSInstance)
 
@@ -85,8 +100,15 @@ func merge(cs ...<-chan RDSInstance) <-chan RDSInstance {
 	return out
 }
 
-// getAccountId gets the AWS Account ID for the given credentials
-func getAccountId(ctx context.Context, sess *session.Session) (string, error) {
+func getCurrentCheckedDay() (start time.Time, end time.Time) {
+	now := time.Now()
+	end = time.Date(now.Year(), now.Month(), now.Day()-1, 24, 0, 0, 0, now.Location())
+	start = time.Date(now.Year(), now.Month(), now.Day()-31, 0, 0, 0, 0, now.Location())
+	return start, end
+}
+
+// GetAccountId gets the AWS Account ID for the given credentials
+func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := sts.New(sess)
 	res, err := svc.GetCallerIdentity(nil)
@@ -133,7 +155,7 @@ func ingestRDSReport(ctx context.Context, aa taws.AwsAccount, report RDSReport) 
 }
 
 // fetchRegionsList fetchs the regions list from AWS and returns an array of their name.
-func fetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
+func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := ec2.New(sess)
 	regions, err := svc.DescribeRegions(nil)
@@ -148,6 +170,79 @@ func fetchRegionsList(ctx context.Context, sess *session.Session) ([]string, err
 	return res, nil
 }
 
+// getInstanceCPUStats gets the CPU average and the CPU peak from CloudWatch
+func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension) (float64, float64, error) {
+	start, end := getCurrentCheckedDay()
+	stats, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String("AWS/RDS"),
+		MetricName: aws.String("CPUUtilization"),
+		StartTime:  aws.Time(start),
+		EndTime:    aws.Time(end),
+		Period:     aws.Int64(int64(60*60*24) * 30), // Period of thirty days expressed in seconds
+		Statistics: []*string{aws.String("Average"), aws.String("Maximum")},
+		Dimensions: dimensions,
+	})
+	if err != nil {
+		return 0, 0, err
+	} else if len(stats.Datapoints) > 0 {
+		return aws.Float64Value(stats.Datapoints[0].Average), aws.Float64Value(stats.Datapoints[0].Maximum), nil
+	} else {
+		return 0, 0, nil
+	}
+}
+
+// getInstanceFreeSpaceStats gets the free space stats from CloudWatch
+func getInstanceFreeSpaceStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension) (float64, float64, float64, error) {
+	start, end := getCurrentCheckedDay()
+	freeSpace, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
+		Namespace:  aws.String("AWS/RDS"),
+		MetricName: aws.String("FreeStorageSpace"),
+		StartTime:  aws.Time(start),
+		EndTime:    aws.Time(end),
+		Period:     aws.Int64(int64(60*60*24) * 30), // Period of thirty days expressed in seconds
+		Statistics: []*string{aws.String("Minimum"), aws.String("Maximum"), aws.String("Average")},
+		Dimensions: dimensions,
+	})
+	if err != nil {
+		return 0, 0, 0, err
+	} else if len(freeSpace.Datapoints) > 0 {
+		return aws.Float64Value(freeSpace.Datapoints[0].Minimum),
+		aws.Float64Value(freeSpace.Datapoints[0].Maximum),
+		aws.Float64Value(freeSpace.Datapoints[0].Average), nil
+	} else {
+		return 0, 0, 0, nil
+	}
+}
+
+// getInstanceStats gets the instance stats from CloudWatch
+func getInstanceStats(ctx context.Context, instance *rds.DBInstance, sess *session.Session) (InstanceStats) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	svc := cloudwatch.New(sess)
+	dimensions := []*cloudwatch.Dimension{
+		&cloudwatch.Dimension{
+			Name:  aws.String("DBInstanceIdentifier"),
+			Value: aws.String(aws.StringValue(instance.DBInstanceIdentifier)),
+		},
+	}
+	CpuAverage, CpuPeak, err := getInstanceCPUStats(svc, dimensions)
+	if err != nil {
+		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
+		return InstanceStats{}
+	}
+	freeSpaceMin, freeSpaceMax, freeSpaceAve, err := getInstanceFreeSpaceStats(svc, dimensions)
+	if err != nil {
+		logger.Error("Error when fetching IO stats from CloudWatch", err.Error())
+		return InstanceStats{}
+	}
+	return InstanceStats{
+		CpuAverage,
+		CpuPeak,
+		freeSpaceMin,
+		freeSpaceMax,
+		freeSpaceAve,
+	}
+}
+
 // fetchRDSInstancesList fetches the list of instances for a specific region
 func fetchRDSInstancesList(ctx context.Context, creds *credentials.Credentials, region string, RDSInstanceChan chan RDSInstance) error {
 	defer close(RDSInstanceChan)
@@ -157,25 +252,28 @@ func fetchRDSInstancesList(ctx context.Context, creds *credentials.Credentials, 
 		Region:      aws.String(region),
 	}))
 	svc := rds.New(sess)
-	params := rds.DescribeDBInstancesInput{}
-	err := svc.DescribeDBInstancesPages(&params,
-		func(page *rds.DescribeDBInstancesOutput, lastPage bool) bool {
-			for _, DBInstance := range page.DBInstances {
-				RDSInstanceChan <- RDSInstance{
-					DBInstanceIdentifier: util.SafeStringFromPtr(DBInstance.DBInstanceIdentifier),
-					DBInstanceClass:      util.SafeStringFromPtr(DBInstance.DBInstanceClass),
-					AllocatedStorage:     util.SafeInt64FromPtr(DBInstance.AllocatedStorage),
-					Engine:               util.SafeStringFromPtr(DBInstance.Engine),
-					AvailabilityZone:     util.SafeStringFromPtr(DBInstance.AvailabilityZone),
-					MultiAZ:              util.SafeBoolFromPtr(DBInstance.MultiAZ),
-					Cost:                 0,
-				}
-			}
-			return lastPage == true
-		})
+	desc := rds.DescribeDBInstancesInput{}
+	instances, err := svc.DescribeDBInstances(&desc)
 	if err != nil {
 		logger.Error("Error when getting DB instances pages", err.Error())
 		return err
+	}
+	for _, DBInstance := range instances.DBInstances {
+		stats := getInstanceStats(ctx, DBInstance, sess)
+		RDSInstanceChan <- RDSInstance{
+			DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
+			DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
+			AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
+			Engine:               aws.StringValue(DBInstance.Engine),
+			AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
+			MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
+			Cost:                 0,
+			CpuAverage:           stats.CpuAverage,
+			CpuPeak:              stats.CpuPeak,
+			FreeSpaceMin:         stats.FreeSpaceMin,
+			FreeSpaceMax:         stats.FreeSpaceMax,
+			FreeSpaceAve:         stats.FreeSpaceAve,
+		}
 	}
 	return nil
 }
@@ -193,12 +291,12 @@ func FetchRDSInfos(ctx context.Context, aa taws.AwsAccount) error {
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
-	account, err := getAccountId(ctx, defaultSession)
+	account, err := GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
 		return err
 	}
-	regions, err := fetchRegionsList(ctx, defaultSession)
+	regions, err := FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
@@ -215,7 +313,7 @@ func FetchRDSInfos(ctx context.Context, aa taws.AwsAccount) error {
 		go fetchRDSInstancesList(ctx, creds, region, RDSInstanceChan)
 		RDSInstanceChans = append(RDSInstanceChans, RDSInstanceChan)
 	}
-	for instance := range merge(RDSInstanceChans...) {
+	for instance := range Merge(RDSInstanceChans...) {
 		report.Instances = append(report.Instances, instance)
 	}
 	return ingestRDSReport(ctx, aa, report)

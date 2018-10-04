@@ -15,131 +15,131 @@
 package rds
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
-	"strings"
+	"errors"
 
-	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
-
-	"github.com/trackit/trackit-server/aws/rds"
 	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
+	"time"
 )
 
-// rdsQueryParams will store the parsed query params
-type rdsQueryParams struct {
-	accountList []string
-	indexList   []string
-}
+type (
+	// rdsQueryParams will store the parsed query params
+	rdsQueryParams struct {
+		accountList []string
+		indexList   []string
+		date        time.Time
+	}
 
-// rdsQueryArgs allows to get required queryArgs params
-var rdsQueryArgs = []routes.QueryArg{
-	routes.AwsAccountsOptionalQueryArg,
-}
+	// rdsUnusedQueryParams will store the parsed query params
+	rdsUnusedQueryParams struct {
+		accountList []string
+		indexList   []string
+		date        time.Time
+		count       int
+		by          string
+	}
+)
+
+var (
+	// rdsQueryArgs allows to get required queryArgs params
+	rdsQueryArgs = []routes.QueryArg{
+		routes.AwsAccountsOptionalQueryArg,
+		routes.DateQueryArg,
+	}
+
+	// rdsUnusedQueryArgs allows to get required queryArgs params
+	rdsUnusedQueryArgs = []routes.QueryArg{
+		routes.AwsAccountsOptionalQueryArg,
+		routes.DateQueryArg,
+		routes.QueryArg{
+			Name:        "count",
+			Type:        routes.QueryArgInt{},
+			Description: "Number of element in the response, all if not precised or negative",
+			Optional:    true,
+		},
+		routes.QueryArg{
+			Name:        "by",
+			Type:        routes.QueryArgString{},
+			Description: "Element choose to sort unused data, (cpu, freespace), default cpu",
+			Optional:    true,
+		},
+	}
+)
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getRDSReport).With(
+		http.MethodGet: routes.H(getRdsReport).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(rdsQueryArgs),
 			routes.Documentation{
-				Summary:     "get the latest RDS report",
-				Description: "Responds with the latest RDS report for the account specified in the request",
+				Summary:     "get a RDS report of a month",
+				Description: "Responds with the a RDS report for the account and date specified in the request",
 			},
 		),
 	}.H().Register("/rds")
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getRdsUnusedInstances).With(
+			db.RequestTransaction{Db: db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(rdsUnusedQueryArgs),
+			routes.Documentation{
+				Summary:     "get the list of the most unused RDS instances of a month",
+				Description: "Responds with the list of the most unused RDS instances of a month based on the queryparams passed to it",
+			},
+		),
+	}.H().Register("/rds/unused")
 }
 
-// makeElasticSearchRdsRequest prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
-func makeElasticSearchRdsRequest(ctx context.Context, parsedParams rdsQueryParams) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchRdsParams(
-		parsedParams.accountList,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
-		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
-	}
-	return res, http.StatusOK, nil
-}
-
-// makeElasticSearchRdsRequest prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
-func makeElasticSearchCostRequest(ctx context.Context, parsedParams rdsQueryParams) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchCostParams(
-		parsedParams.accountList,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
-		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
-	}
-	return res, http.StatusOK, nil
-}
-
-// getRDSReport returns the list of rds reports based on the query params, in JSON format.
-func getRDSReport(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getRdsReport returns the list of RDS reports based on the query params, in JSON format.
+func getRdsReport(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
+	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := rdsQueryParams{
 		accountList: []string{},
+		date:        a[rdsQueryArgs[1]].(time.Time),
 	}
 	if a[rdsQueryArgs[0]] != nil {
 		parsedParams.accountList = a[rdsQueryArgs[0]].([]string)
 	}
+	returnCode, report, err := getRdsData(request, parsedParams, user, tx)
+	if err != nil {
+		return returnCode, err
+	} else {
+		return returnCode, report
+	}
+}
+
+
+// getRdsUnusedInstances returns the list of the most unused RDS instances based on the query params, in JSON format.
+func getRdsUnusedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
+	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, rds.IndexPrefixRDSReport)
+	parsedParams := rdsUnusedQueryParams{
+		accountList: []string{},
+		date:        a[rdsUnusedQueryArgs[1]].(time.Time),
+		count:       -1,
+		by:          "cpu",
+	}
+	if a[rdsUnusedQueryArgs[0]] != nil {
+		parsedParams.accountList = a[rdsUnusedQueryArgs[0]].([]string)
+	}
+	if a[rdsUnusedQueryArgs[2]] != nil {
+		parsedParams.count = a[rdsUnusedQueryArgs[2]].(int)
+	}
+	if a[rdsUnusedQueryArgs[3]] != nil {
+		parsedParams.by = a[rdsUnusedQueryArgs[3]].(string)
+		if parsedParams.by != "cpu" && parsedParams.by != "freespace" {
+			return http.StatusBadRequest, errors.New("bad argument for the query arg 'by'")
+		}
+	}
+	returnCode, report, err := getRdsUnusedData(request, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
+	} else {
+		return returnCode, report
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
-	ec2Result, returnCode, err := makeElasticSearchRdsRequest(request.Context(), parsedParams)
-	if err != nil {
-		return returnCode, err
-	}
-	accountsAndIndexes, returnCode, err = es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return returnCode, err
-	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
-	costResult, _, _ := makeElasticSearchCostRequest(request.Context(), parsedParams)
-	res, err := prepareResponse(request.Context(), ec2Result, costResult)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	return http.StatusOK, res
 }

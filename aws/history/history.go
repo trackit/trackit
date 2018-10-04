@@ -84,7 +84,7 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
-	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
+	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch", "AmazonRDS"))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
 	search := client.Search().Index(index).Size(0).Query(query)
@@ -184,8 +184,8 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 
 // getInstanceInfo sort products and call history reports (only ec2 for now)
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) (error) {
-	var ec2Cost []CostPerInstance
-	var cloudWatchCost []CostPerInstance
+	var ec2Cost, cloudWatchCost, rdsCost []CostPerInstance
+	var stringError = ""
 	for _, product := range response {
 		switch product.Product {
 		case "AmazonEC2":
@@ -194,10 +194,23 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 		case "AmazonCloudWatch":
 			cloudWatchCost = product.Instances
 			break
+		case "AmazonRDS":
+			rdsCost = product.Instances
+			break
 		}
 	}
-	err := getEc2HistoryReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
-	return err
+	errEc2 := getEc2HistoryReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+	if errEc2 != nil {
+		stringError += errEc2.Error()
+	}
+	errRds := getRdsHistoryReport(ctx, rdsCost, aa, startDate, endDate)
+	if errRds != nil {
+		stringError += " + " + errRds.Error()
+	}
+	if stringError != "" {
+		return errors.New(stringError)
+	}
+	return nil
 }
 
 // FetchHistoryInfos fetchs billing data and stats of EC2 instances of the last month (only EC2 for now=
@@ -214,7 +227,7 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 	}
 	response, err := getEc2AndRdsCostPerInstance(ctx, aa, startDate, endDate)
 	if err != nil {
-		logger.Error("Error while getting EC2 and RDS cost per instance on ES.", err.Error())
+		logger.Error("Error while getting history cost per instance on ES.", err.Error())
 		return err
 	}
 	err = getInstancesInfo(ctx, aa, response, startDate, endDate)

@@ -42,7 +42,7 @@ func init() {
 const TemplateRDSReport = `
 {
 	"template": "*-rds-reports",
-	"version": 2,
+	"version": 3,
 	"mappings": {
 		"rds-report": {
 			"properties": {
@@ -81,6 +81,26 @@ const TemplateRDSReport = `
 							"type": "boolean"
 						},
 						"cost": {
+							"type": "float",
+							"index": false
+						},
+						"cpuAverage": {
+							"type": "float",
+							"index": false
+						},
+						"cpuPeak": {
+							"type": "float",
+							"index": false
+						},
+						"freeSpaceMinimum": {
+							"type": "float",
+							"index": false
+						},
+						"freeSpaceMaximum": {
+							"type": "float",
+							"index": false
+						},
+						"freeSpaceAverage": {
 							"type": "float",
 							"index": false
 						}

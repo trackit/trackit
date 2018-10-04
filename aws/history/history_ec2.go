@@ -35,8 +35,8 @@ import (
 	tec2 "github.com/trackit/trackit-server/aws/ec2"
 )
 
-// getInstanceCPUStats gets the CPU average and the CPU peak from CloudWatch
-func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
+// getEc2InstanceCPUStats gets the CPU average and the CPU peak from CloudWatch
+func getEc2InstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
 	stats, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String("CPUUtilization"),
@@ -55,8 +55,8 @@ func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Di
 	}
 }
 
-// getInstanceNetworkStats gets the network in and out stats from CloudWatch
-func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
+// getEc2InstanceNetworkStats gets the network in and out stats from CloudWatch
+func getEc2InstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
 	statsIn, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String("NetworkIn"),
@@ -87,8 +87,8 @@ func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatc
 	}
 }
 
-// getInstanceInternalIOStats gets the IO read and write stats from CloudWatch
-func getInstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
+// getEc2InstanceInternalIOStats gets the IO read and write stats from CloudWatch
+func getEc2InstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
 	statsRead, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String("DiskReadBytes"),
@@ -119,8 +119,8 @@ func getInstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudw
 	}
 }
 
-// getInstanceELBIOStats gets the IO read and write stats from CloudWatch
-func getInstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
+// getEc2InstanceELBIOStats gets the IO read and write stats from CloudWatch
+func getEc2InstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, startDate, endDate time.Time) (float64, float64, error) {
 	statsRead, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EBS"),
 		MetricName: aws.String("VolumeReadBytes"),
@@ -152,11 +152,11 @@ func getInstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.
 }
 
 // getInstanceIOStats gets the IO read and write stats from CloudWatch
-func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, volumes []string, startDate, endDate time.Time) (map[tec2.VolumeName]tec2.VolumeValue,
+func getEc2InstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, volumes []string, startDate, endDate time.Time) (map[tec2.VolumeName]tec2.VolumeValue,
 	map[tec2.VolumeName]tec2.VolumeValue, error) {
 	statsRead := make(map[tec2.VolumeName]tec2.VolumeValue, 0)
 	statsWrite := make(map[tec2.VolumeName]tec2.VolumeValue, 0)
-	internalRead, internalWrite, err := getInstanceInternalIOStats(svc, dimensions, startDate, endDate)
+	internalRead, internalWrite, err := getEc2InstanceInternalIOStats(svc, dimensions, startDate, endDate)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -169,7 +169,7 @@ func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dim
 				Value: aws.String(volume),
 			},
 		}
-		read, write, err := getInstanceELBIOStats(svc, dimensionsEBS, startDate, endDate)
+		read, write, err := getEc2InstanceELBIOStats(svc, dimensionsEBS, startDate, endDate)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -179,8 +179,8 @@ func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dim
 	return statsRead, statsWrite, nil
 }
 
-// getInstanceStats gets the instance stats from CloudWatch
-func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session.Session, startDate, endDate time.Time) (tec2.InstanceStats) {
+// getEc2InstanceStats gets the instance stats from CloudWatch
+func getEc2InstanceStats(ctx context.Context, instance *ec2.Instance, sess *session.Session, startDate, endDate time.Time) (tec2.InstanceStats) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
 	dimensions := []*cloudwatch.Dimension{
@@ -189,12 +189,12 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 			Value: aws.String(aws.StringValue(instance.InstanceId)),
 		},
 	}
-	CpuAverage, CpuPeak, err := getInstanceCPUStats(svc, dimensions, startDate, endDate)
+	CpuAverage, CpuPeak, err := getEc2InstanceCPUStats(svc, dimensions, startDate, endDate)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
 		return tec2.InstanceStats{}
 	}
-	NetworkIn, NetworkOut, err := getInstanceNetworkStats(svc, dimensions, startDate, endDate)
+	NetworkIn, NetworkOut, err := getEc2InstanceNetworkStats(svc, dimensions, startDate, endDate)
 	if err != nil {
 		logger.Error("Error when fetching Network stats from CloudWatch", err.Error())
 		return tec2.InstanceStats{}
@@ -203,7 +203,7 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 	for _, volume := range instance.BlockDeviceMappings {
 		volumes = append(volumes, aws.StringValue(volume.Ebs.VolumeId))
 	}
-	IORead, IOWrite, err := getInstanceIOStats(svc, dimensions, volumes, startDate, endDate)
+	IORead, IOWrite, err := getEc2InstanceIOStats(svc, dimensions, volumes, startDate, endDate)
 	if err != nil {
 		logger.Error("Error when fetching IO stats from CloudWatch", err.Error())
 		return tec2.InstanceStats{}
@@ -236,7 +236,7 @@ func fetchEc2InstancesList(ctx context.Context, creds *credentials.Credentials, 
 		}
 		for _, reservation := range instances.Reservations {
 			for _, instance := range reservation.Instances {
-				stats := getInstanceStats(ctx, instance, sess, startDate, endDate)
+				stats := getEc2InstanceStats(ctx, instance, sess, startDate, endDate)
 				instanceInfoChan <- tec2.InstanceInfo{
 					Id:         aws.StringValue(instance.InstanceId),
 					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
@@ -394,6 +394,5 @@ func getEc2HistoryReport(ctx context.Context, ec2Cost []CostPerInstance, cloudwa
 			}
 		}
 	}
-	err = putEc2ReportInEs(ctx, report, aa)
-	return err
+	return putEc2ReportInEs(ctx, report, aa)
 }
