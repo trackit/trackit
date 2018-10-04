@@ -17,10 +17,10 @@ package rds
 import (
 	"strings"
 	"context"
+	"net/http"
 	"encoding/json"
 
 	"gopkg.in/olivere/elastic.v5"
-	"net/http"
 )
 
 type (

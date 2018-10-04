@@ -16,22 +16,24 @@ package history
 
 import (
 	"time"
-	"github.com/trackit/jsonlog"
-	"context"
-	taws "github.com/trackit/trackit-server/aws"
-	trds "github.com/trackit/trackit-server/aws/rds"
 	"strings"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"context"
+	"crypto/md5"
+	"encoding/json"
+	"encoding/base64"
+
+	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/trackit/trackit-server/config"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/rds"
-	"github.com/trackit/trackit-server/util"
-	"github.com/trackit/trackit-server/es"
-	"encoding/json"
-	"crypto/md5"
-	"encoding/base64"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+
+	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/util"
+	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit-server/aws"
+	trds "github.com/trackit/trackit-server/aws/rds"
 )
 
 // getRdsInstanceCPUStats gets the CPU average and the CPU peak from CloudWatch

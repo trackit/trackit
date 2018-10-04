@@ -18,11 +18,11 @@ import (
 	"database/sql"
 	"net/http"
 	"errors"
+	"time"
 
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"time"
 )
 
 type (

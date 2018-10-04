@@ -28,12 +28,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/es"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
 const (
@@ -72,7 +72,7 @@ type (
 	}
 )
 
-// merge function from https://blog.golang.org/pipelines#TOC_4
+// Merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
 func Merge(cs ...<-chan RDSInstance) <-chan RDSInstance {
 	var wg sync.WaitGroup
@@ -154,7 +154,7 @@ func ingestRDSReport(ctx context.Context, aa taws.AwsAccount, report RDSReport) 
 	return nil
 }
 
-// fetchRegionsList fetchs the regions list from AWS and returns an array of their name.
+// FetchRegionsList fetchs the regions list from AWS and returns an array of their name.
 func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := ec2.New(sess)
