@@ -202,17 +202,19 @@ func getTotalCostAnomalies(c ProductsCostAnomalies) map[string]float64 {
 func analyseAnomalies(c ProductsCostAnomalies) ProductsCostAnomalies {
 	totalCostAnomalies := getTotalCostAnomalies(c)
 	for key, costAnomalies := range c {
-		for index := range costAnomalies {
-			if index > 0 {
-				a := &costAnomalies[index]
-				tempSliceSize := min(index, config.AnomalyDetectionBollingerBandPeriod)
-				tempSlice := costAnomalies[index-tempSliceSize : index]
-				avg := average(tempSlice)
-				sigma := sigma(tempSlice, avg)
-				deviation := deviation(sigma, tempSliceSize)
-				a.UpperBand = avg*config.AnomalyDetectionBollingerBandUpperBandCoefficient + (deviation * config.AnomalyDetectionBollingerBandStandardDeviationCoefficient)
-				if a.Cost > a.UpperBand {
-					a.Abnormal = true
+		if len(key) > 0 {
+			for index := range costAnomalies {
+				if index > 0 {
+					a := &costAnomalies[index]
+					tempSliceSize := min(index, config.AnomalyDetectionBollingerBandPeriod)
+					tempSlice := costAnomalies[index-tempSliceSize : index]
+					avg := average(tempSlice)
+					sigma := sigma(tempSlice, avg)
+					deviation := deviation(sigma, tempSliceSize)
+					a.UpperBand = avg*config.AnomalyDetectionBollingerBandUpperBandCoefficient + (deviation * config.AnomalyDetectionBollingerBandStandardDeviationCoefficient)
+					if a.Cost > a.UpperBand {
+						a.Abnormal = true
+					}
 				}
 			}
 		}
