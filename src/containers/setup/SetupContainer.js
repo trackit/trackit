@@ -14,7 +14,6 @@ class SetupContainer extends Component {
     return (
       <div>
         <Panels.AWS.Accounts match={this.props.match}/>
-        <Panels.User.Viewers match={this.props.match}/>
       </div>
     );
   }
