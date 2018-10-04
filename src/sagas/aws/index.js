@@ -2,12 +2,12 @@ import { takeEvery, takeLatest, fork, cancel } from 'redux-saga/effects';
 import * as AccountsSaga from './accountsSaga';
 import * as BillsSaga from './billsSaga';
 import * as AccountViewersSaga from './accountViewersSaga';
-import { getCostsSaga, saveChartsSaga, loadChartsSaga, initChartsSaga } from "./costsSaga";
-import { getS3DataSaga, saveS3DatesSaga, loadS3DatesSaga } from './s3Saga';
+import { getCostsSaga, saveChartsSaga, loadChartsSaga, initChartsSaga, clearChartsSaga } from "./costsSaga";
+import { getS3DataSaga, saveS3DatesSaga, loadS3DatesSaga, cleanS3DatesSaga } from './s3Saga';
 import { getReportsSaga, clearReportsSaga, downloadReportSaga } from './reportsSaga';
 import { getEC2ReportSaga, getRDSReportSaga } from './resourcesSaga';
 import { getMapCostsSaga } from './mapSaga';
-import { getTagsKeysSaga, getTagsValuesSaga, initTagsChartsSaga, loadTagsChartsSaga, saveTagsChartsSaga } from './tagsSaga';
+import { getTagsKeysSaga, getTagsValuesSaga, initTagsChartsSaga, loadTagsChartsSaga, saveTagsChartsSaga, cleanTagsChartsSaga } from './tagsSaga';
 import Constants from '../../constants';
 
 export function* watchGetAccounts() {
@@ -92,13 +92,20 @@ export function* watchInitCharts() {
   yield takeLatest(Constants.AWS_INIT_CHARTS, initChartsSaga);
 }
 
+export function* watchClearCharts() {
+  yield takeEvery(Constants.AWS_CLEAR_CHARTS, clearChartsSaga);
+}
+
 export function* watchGetAwsS3Data() {
   yield takeLatest(Constants.AWS_GET_S3_DATA, getS3DataSaga);
 }
 
 export function* watchSaveS3Dates() {
   yield takeEvery(Constants.AWS_SET_S3_DATES, saveS3DatesSaga);
-  yield takeEvery(Constants.AWS_CLEAR_S3_DATES, saveS3DatesSaga);
+}
+
+export function* watchCleanS3Dates() {
+  yield takeEvery(Constants.AWS_CLEAR_S3_DATES, cleanS3DatesSaga);
 }
 
 export function* watchLoadS3Data() {
@@ -153,6 +160,10 @@ export function* watchSaveTagsCharts() {
   yield takeEvery(Constants.AWS_TAGS_SET_FILTER, saveTagsChartsSaga);
   yield takeEvery(Constants.AWS_TAGS_RESET_FILTERS, saveTagsChartsSaga);
   yield takeEvery(Constants.AWS_TAGS_CLEAR_FILTERS, saveTagsChartsSaga);
+}
+
+export function* watchCleanTagsCharts() {
+  yield takeEvery(Constants.AWS_TAGS_CLEAN_CHARTS, cleanTagsChartsSaga);
 }
 
 export function* watchGetAccountBillStatus() {

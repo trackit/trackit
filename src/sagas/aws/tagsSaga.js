@@ -2,7 +2,7 @@ import {put, call, all} from 'redux-saga/effects';
 import {getToken, getAWSAccounts, initialTagsCharts, getTagsCharts} from '../misc';
 import API from '../../api';
 import Constants from '../../constants';
-import {getTagsCharts as getTagsChartsLS, setTagsCharts} from "../../common/localStorage";
+import {getTagsCharts as getTagsChartsLS, setTagsCharts, unsetTagsCharts} from "../../common/localStorage";
 import Validation from '../../common/forms/AWSAccountForm';
 
 const getAccountIDFromRole = Validation.getAccountIDFromRole;
@@ -114,4 +114,8 @@ export function* loadTagsChartsSaga() {
 export function* saveTagsChartsSaga() {
   const data = yield getTagsCharts();
   setTagsCharts(data);
+}
+
+export function* cleanTagsChartsSaga() {
+  yield call(unsetTagsCharts);
 }
