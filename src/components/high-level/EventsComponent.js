@@ -86,8 +86,8 @@ class EventsComponent extends Component {
             </h4>;
         } else {
             table = (
-                <div className="hl-events-table-wrapper">
-                <table className="hl-events-table">
+                <div className="hl-table-wrapper">
+                <table className="hl-table">
                     <thead>
                         <tr>
                             <th></th>
