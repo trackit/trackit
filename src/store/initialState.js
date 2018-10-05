@@ -109,7 +109,10 @@ export default {
       keys: {},
       selected: null,
       costs: {}
-    }
+    },
+    unused: {
+      ec2: {},
+    },
   },
   auth: {
     token: null,
