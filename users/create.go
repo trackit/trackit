@@ -23,9 +23,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/marketplacemetering"
 	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
@@ -35,6 +33,7 @@ import (
 	"github.com/trackit/trackit-server/mail"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/awsSession"
 )
 
 const (
@@ -111,10 +110,7 @@ type createUserRequestBody struct {
 func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemetering.ResolveCustomerOutput, error) {
 	var awsInput marketplacemetering.ResolveCustomerInput
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	mySession := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(config.AwsRegion),
-	}))
-	svc := marketplacemetering.New(mySession)
+	svc := marketplacemetering.New(awsSession.Session)
 	awsInput.SetRegistrationToken(token)
 	result, err := svc.ResolveCustomer(&awsInput)
 	if err != nil {

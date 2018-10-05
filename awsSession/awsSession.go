@@ -29,6 +29,7 @@ var (
 
 func init() {
 	Session = session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(config.AwsRegion),
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		Region:                        aws.String(config.AwsRegion),
 	}))
 }
