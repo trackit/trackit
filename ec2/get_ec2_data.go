@@ -140,7 +140,7 @@ func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.U
 		return returnCode, nil, err
 	}
 	if searchResult.Hits.TotalHits > 0 {
-		res, err := prepareResponseEc2History(request.Context(), searchResult)
+		res, err := prepareResponseEc2Monthly(request.Context(), searchResult)
 		if err != nil {
 			return http.StatusInternalServerError, nil, err
 		}

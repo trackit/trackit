@@ -16,7 +16,6 @@ package ec2
 
 import (
 	"time"
-	"errors"
 	"net/http"
 	"database/sql"
 
@@ -39,7 +38,6 @@ type (
 		indexList   []string
 		date        time.Time
 		count       int
-		by          string
 	}
 )
 
@@ -58,12 +56,6 @@ var (
 			Name:        "count",
 			Type:        routes.QueryArgInt{},
 			Description: "Number of element in the response, all if not precised or negative",
-			Optional:    true,
-		},
-		routes.QueryArg{
-			Name:        "by",
-			Type:        routes.QueryArgString{},
-			Description: "Element choose to sort unused data, (cpu, network, io), default cpu",
 			Optional:    true,
 		},
 	}
@@ -121,19 +113,12 @@ func getEc2UnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 		accountList: []string{},
 		date:        a[ec2UnusedQueryArgs[1]].(time.Time),
 		count:       -1,
-		by:          "cpu",
 	}
 	if a[ec2UnusedQueryArgs[0]] != nil {
 		parsedParams.accountList = a[ec2UnusedQueryArgs[0]].([]string)
 	}
 	if a[ec2UnusedQueryArgs[2]] != nil {
 		parsedParams.count = a[ec2UnusedQueryArgs[2]].(int)
-	}
-	if a[ec2UnusedQueryArgs[3]] != nil {
-		parsedParams.by = a[ec2UnusedQueryArgs[3]].(string)
-		if parsedParams.by != "cpu" && parsedParams.by != "io" && parsedParams.by != "network" {
-			return http.StatusBadRequest, errors.New("bad argument for the query arg 'by'")
-		}
 	}
 	returnCode, report, err := getEc2UnusedData(request, parsedParams, user, tx)
 	if err != nil {
