@@ -61,3 +61,8 @@ A web UI is available on the https://github.com/trackit/trackit2-client[trackit-
 The API exposes its own documentation on the `GET /docs` route, in JSON format.
 Also, the documentation for each route can be retrieved by an `OPTIONS`
 request. We are working on an actual viewer for this.
+
+= Recommendation plugins
+
+Trackit uses a plugin system to easily implement new recommendation checks.
+Informations on how to write plugins are available in a README in the `plugins` directory.
