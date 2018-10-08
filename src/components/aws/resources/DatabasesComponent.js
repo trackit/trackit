@@ -6,9 +6,72 @@ import Spinner from "react-spinkit";
 import Moment from "moment";
 import Misc from '../../misc';
 import ReactTable from "react-table";
-import {formatGigaBytes, formatPrice} from "../../../common/formatters";
+import {formatGigaBytes, formatPrice, formatBytes, formatPercent} from "../../../common/formatters";
+import Popover from "@material-ui/core/Popover/Popover";
 
 const Tooltip = Misc.Popover;
+
+export class UnusedStorage extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      showPopOver: false
+    };
+    this.handlePopoverOpen = this.handlePopoverOpen.bind(this);
+    this.handlePopoverClose = this.handlePopoverClose.bind(this);
+  }
+
+  handlePopoverOpen = (e) => {
+    e.preventDefault();
+    this.setState({ showPopOver: true });
+  };
+
+  handlePopoverClose = (e) => {
+    e.preventDefault();
+    this.setState({ showPopOver: false });
+  };
+
+  render() {
+    return (
+      <div>
+        <Popover
+          open={this.state.showPopOver}
+          anchorEl={this.anchor}
+          onClose={this.handlePopoverClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <div
+            className="unusedStorage-list"
+            onClick={this.handlePopoverClose}
+          >
+            {Object.keys(this.props.data).map((item, index) => (<div key={index} className="unusedStorage-item">{item} : {this.props.data[item] >= 0 ? formatBytes(this.props.data[item]) : "No data available"}</div>))}
+          </div>
+        </Popover>
+        <div
+          ref={node => {
+            this.anchor = node;
+          }}
+          onClick={this.handlePopoverOpen}
+        >
+          <Tooltip placement="right" info tooltip="Click to see more details"/>
+        </div>
+      </div>
+    );
+  }
+
+}
+
+UnusedStorage.propTypes = {
+  data: PropTypes.object.isRequired
+};
 
 export class DatabasesComponent extends Component {
 
@@ -22,18 +85,6 @@ export class DatabasesComponent extends Component {
   }
 
   render() {
-    if (this.props.dates.startDate.isBefore(Moment().startOf('months')))
-      return (
-        <div className="clearfix resources dbs">
-          <h3 className="white-box-title no-padding inline-block">
-            <i className="menu-icon fa fa-database"/>
-            &nbsp;
-            Databases
-          </h3>
-          <div className="alert alert-warning" role="alert">Report not available for this month</div>
-        </div>
-      );
-
     const loading = (!this.props.data.status ? (<Spinner className="spinner" name='circle'/>) : null);
     const error = (this.props.data.error ? (<div className="alert alert-warning" role="alert">Error while getting data ({this.props.data.error.message})</div>) : null);
 
@@ -104,7 +155,7 @@ export class DatabasesComponent extends Component {
                 <option value="all">Show All</option>
                 {availabilityZones.map((region, index) => (<option key={index} value={region}>{region}</option>))}
               </select>
-            )
+          )
           },
           {
             Header: 'Cost',
@@ -148,9 +199,104 @@ export class DatabasesComponent extends Component {
           },
           {
             Header: 'Storage',
-            accessor: 'allocatedStorage',
-            filterable: false,
-            Cell: row => formatGigaBytes(row.value)
+            columns: [
+              {
+                Header: 'Total',
+                accessor: 'allocatedStorage',
+                filterable: false,
+                Cell: row => formatGigaBytes(row.value)
+              },
+              {
+                Header: 'Unused',
+                accessor: 'freeSpaceAverage',
+                filterable: false,
+                Cell: row => (row.value & row.value >= 0 ? (
+                  <div className="unusedStorageDetails">
+                    <span>
+                      {formatBytes(row.value)}
+                    </span>
+                    <UnusedStorage data={{
+                      Average: row.value,
+                      Minimum: row.original.freeSpaceMinimum,
+                      Maximum: row.original.freeSpaceMaximum
+                    }}/>
+                  </div>
+                ) : "No data available")
+              },
+            ]
+          },
+          {
+            Header: 'CPU',
+            columns: [
+              {
+                Header: 'Average',
+                accessor: 'cpuAverage',
+                filterable: false,
+                Cell: row => (row.value && row.value >= 0 ? (
+                  <div className="cpu-stats">
+                    <Tooltip
+                      placement="left"
+                      icon={(
+                        <div
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#dddddd',
+                            borderRadius: '2px',
+                            flex: 1
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${row.value}%`,
+                              height: '100%',
+                              backgroundColor: row.value > 60 ? '#d6413b'
+                                : row.value > 30 ? '#ff9800'
+                                  : '#4caf50',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        </div>
+                      )}
+                      tooltip={formatPercent(row.value, 2, false)}
+                    />
+                  </div>
+                ) : "No data available")
+              },
+              {
+                Header: 'Peak',
+                accessor: 'cpuPeak',
+                filterable: false,
+                Cell: row => (row.value && row.value >= 0 ? (
+                  <div className="cpu-stats">
+                    <Tooltip
+                      placement="right"
+                      icon={(
+                        <div
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#dddddd',
+                            borderRadius: '2px',
+                            flex: 1
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${row.value}%`,
+                              height: '100%',
+                              backgroundColor: row.value > 80 ? '#d6413b'
+                                : row.value > 60 ? '#ff9800'
+                                  : '#4caf50',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        </div>
+                      )}
+                      tooltip={formatPercent(row.value, 2, false)}
+                    />
+                  </div>
+                ) : "No data available")
+              }
+            ]
           },
         ]}
         defaultSorted={[{

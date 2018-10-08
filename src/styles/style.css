@@ -589,6 +589,7 @@ h4.no-data {
     text-align: center;
     border-bottom: 1px solid #aaa;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
 }
 
 .rt-th select {
@@ -612,6 +613,10 @@ h4.no-data {
     font-size: 1.5em;
     text-align: center;
     width: 100%;
+}
+
+.vms .rt-tr-group .rt-td:last-child {
+    text-align: center;
 }
 
 .rt-td .wrapper .popover-trigger i {
@@ -643,126 +648,41 @@ h4.no-data {
 }
 
 .tags-list,
-.volumes-list {
+.volumes-list,
+.unusedStorage-list {
     padding: 10px;
     border: 1px solid #ddd;
 }
 
 .tags-item,
-.volumes-item {
+.volumes-item,
+.unusedStorage-item {
     padding: 10px 5px;
     border-bottom: 1px solid #ddd;
 }
 
 .tags-item:last-child,
-.volumes-item:last-child {
+.volumes-item:last-child,
+.unusedStorage-item:last-child {
     border-bottom: none;
 }
 
-.ioDetails {
+.ioDetails,
+.unusedStorageDetails {
     position: relative;
 }
 
-.ioDetails > div {
+.ioDetails > div,
+.unusedStorageDetails > div {
     position: absolute;
     right: 0;
     top: 0;
     bottom: 0;
 }
 
-.ioDetails .popover-trigger i {
+.ioDetails .popover-trigger i,
+.unusedStorageDetails .popover-trigger i {
     color: #cccccc !important;
-}
-
-/* Resources */
-.resources h3.white-box-title {
-    margin-bottom: 10px;
-}
-
-.resources i {
-    color: #4885ed;
-}
-
-.resources .wrapper {
-    display: inline-block;
-    margin: 0 10px;
-}
-
-.resources .popover-trigger i {
-    color: #000000;
-    font-size: 0.75em;
-}
-
-.rt-th input {
-    border: none;
-    height: 100%;
-    color: #666;
-    font-size: 1.2em;
-    text-align: center;
-    border-bottom: 1px solid #aaa;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-}
-
-.rt-th select {
-    border: none;
-    margin: 0;
-    color: #666;
-}
-
-.cpu-stats,
-.cpu-stats .wrapper,
-.cpu-stats .wrapper .popover-trigger {
-    width: 100%;
-    height: 100%;
-}
-
-.cpu-stats .wrapper {
-    margin: 0;
-}
-
-.vms .rt-tr-group .rt-td:last-child {
-    text-align: center;
-}
-
-.rt-td .wrapper .popover-trigger i {
-    color: #4885ed;
-    font-size: 1.5em;
-}
-
-.rt-td .wrapper .popover-trigger i.red {
-    color: #d6413b;
-}
-
-.rt-td .wrapper .popover-trigger i.orange {
-    color: #ff9800;
-}
-
-.rt-td .wrapper .popover-trigger i.green {
-    color: #4caf50;
-}
-
-.rt-td .wrapper .popover-trigger i.grey {
-    color: #565656;
-}
-
-.rt-td .wrapper .popover-trigger i.disabled {
-    color: #cccccc;
-    font-size: 1.5em;
-}
-
-.tags-list {
-    padding: 10px;
-    border: 1px solid #ddd;
-}
-
-.tags-item {
-    padding: 10px 5px;
-    border-bottom: 1px solid #ddd;
-}
-
-.tags-item:last-child {
-    border-bottom: none;
 }
 
 .wrapper .popover-trigger i.btn {

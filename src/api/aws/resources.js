@@ -14,15 +14,15 @@ export const getUnusedEC2 = (token, date, accounts=undefined) => {
   return call(route, 'GET', null, token);
 };
 
-export const getRDS = (token, accounts=undefined) => {
-  let route = `/rds`;
+export const getRDS = (token, date, accounts=undefined) => {
+  let route = `/rds?date=${date.format("YYYY-MM-DD")}`;
   if (accounts && accounts.length)
-    route += `?accounts=${accounts.join(',')}`;
+    route += `&accounts=${accounts.join(',')}`;
   return call(route, 'GET', null, token);
 };
 
-export const getRDSHistory = (token, date, accounts=undefined) => {
-  let route = `/rds/history?date=${date.format("YYYY-MM-DD")}`;
+export const getUnusedRDS = (token, date, accounts=undefined) => {
+  let route = `/rds/unused?date=${date.format("YYYY-MM-DD")}`;
   if (accounts && accounts.length)
     route += `&accounts=${accounts.join(',')}`;
   return call(route, 'GET', null, token);
