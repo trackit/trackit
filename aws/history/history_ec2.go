@@ -360,18 +360,18 @@ func filterEc2Instances(ec2Cost, cloudwatchCost []CostPerInstance) ([]CostPerIns
 // getEc2HistoryReport puts a monthly report of EC2 instance in ES
 func getEc2HistoryReport(ctx context.Context, ec2Cost []CostPerInstance, cloudwatchCost []CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting EC2 history report for " + string(aa.Id) + " (" + aa.Pretty + ")", map[string]interface{}{
+	logger.Info("Starting EC2 history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
 	costInstance, costVolume := filterEc2Instances(ec2Cost, cloudwatchCost)
 	if len(costInstance) == 0 {
-		logger.Info("No EC2 instances found in billing data.", aa)
+		logger.Info("No EC2 instances found in billing data.", nil)
 		return nil
 	}
 	if already, err := checkAlreadyHistory(ctx, startDate, aa, tec2.IndexPrefixEC2Report); already || err != nil {
-		logger.Info("There is already an EC2 history report", aa)
+		logger.Info("There is already an EC2 history report", err)
 		return err
 	}
 	report, err := getEc2Metrics(ctx, costInstance, aa, startDate, endDate)

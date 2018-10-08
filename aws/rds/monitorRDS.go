@@ -148,10 +148,11 @@ func ingestRDSReport(ctx context.Context, aa taws.AwsAccount, report RDSReport) 
 		Id(hash64).
 		Do(context.Background()); err != nil {
 		logger.Error("Error when putting RDSReport in ES", err.Error())
+		return err
 	} else {
 		logger.Info("RDSReport put in ES", *res)
+		return nil
 	}
-	return nil
 }
 
 // FetchRegionsList fetchs the regions list from AWS and returns an array of their name.
@@ -281,6 +282,7 @@ func fetchRDSInstancesList(ctx context.Context, creds *credentials.Credentials, 
 // FetchRDSInfos retrieves RDS informations from the AWS API and generates a report
 func FetchRDSInfos(ctx context.Context, aa taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Fetching RDS instance stats", map[string]interface{}{"awsAccountId": aa.Id})
 	instances := []RDSInstance{}
 	creds, err := taws.GetTemporaryCredentials(aa, RDSStsSessionName)
 	if err != nil {

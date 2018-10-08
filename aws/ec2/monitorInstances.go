@@ -427,10 +427,11 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, report ReportI
 		Id(hash64).
 		Do(context.Background()); err != nil {
 		logger.Error("Error when putting InstanceInfo in ES", err.Error())
+		return err
 	} else {
 		logger.Info("Instance put in ES", *res)
+		return nil
 	}
-	return nil
 }
 
 // FetchInstancesStats fetchs the stats of the EC2 instances of an AwsAccount
@@ -438,7 +439,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, report ReportI
 // In this way, FetchInstancesStats should be called every hour.
 func FetchInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching instance stats for "+string(awsAccount.Id)+" ("+awsAccount.Pretty+")", nil)
+	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorInstanceStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())

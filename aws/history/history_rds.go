@@ -234,18 +234,18 @@ func filterRdsInstances(rdsCost []CostPerInstance) ([]CostPerInstance) {
 // getRdsHistoryReport puts a monthly report of RDS in ES
 func getRdsHistoryReport(ctx context.Context, rdsCost []CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting RDS history report for " + string(aa.Id) + " (" + aa.Pretty + ")", map[string]interface{}{
+	logger.Info("Starting RDS history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
 	costInstance := filterRdsInstances(rdsCost)
 	if len(costInstance) == 0 {
-		logger.Info("No RDS instances found in billing data.", aa)
+		logger.Info("No RDS instances found in billing data.", nil)
 		return nil
 	}
 	if already, err := checkAlreadyHistory(ctx, startDate, aa, trds.IndexPrefixRDSReport); already || err != nil {
-		logger.Info("There is already an RDS history report", aa)
+		logger.Info("There is already an RDS history report", err)
 		return err
 	}
 	report, err := getRdsMetrics(ctx, costInstance, aa, startDate, endDate)

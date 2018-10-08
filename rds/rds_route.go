@@ -17,7 +17,6 @@ package rds
 import (
 	"database/sql"
 	"net/http"
-	"errors"
 	"time"
 
 	"github.com/trackit/trackit-server/db"
@@ -39,7 +38,6 @@ type (
 		indexList   []string
 		date        time.Time
 		count       int
-		by          string
 	}
 )
 
@@ -58,12 +56,6 @@ var (
 			Name:        "count",
 			Type:        routes.QueryArgInt{},
 			Description: "Number of element in the response, all if not precised or negative",
-			Optional:    true,
-		},
-		routes.QueryArg{
-			Name:        "by",
-			Type:        routes.QueryArgString{},
-			Description: "Element choose to sort unused data, (cpu, freespace), default cpu",
 			Optional:    true,
 		},
 	}
@@ -122,19 +114,12 @@ func getRdsUnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 		accountList: []string{},
 		date:        a[rdsUnusedQueryArgs[1]].(time.Time),
 		count:       -1,
-		by:          "cpu",
 	}
 	if a[rdsUnusedQueryArgs[0]] != nil {
 		parsedParams.accountList = a[rdsUnusedQueryArgs[0]].([]string)
 	}
 	if a[rdsUnusedQueryArgs[2]] != nil {
 		parsedParams.count = a[rdsUnusedQueryArgs[2]].(int)
-	}
-	if a[rdsUnusedQueryArgs[3]] != nil {
-		parsedParams.by = a[rdsUnusedQueryArgs[3]].(string)
-		if parsedParams.by != "cpu" && parsedParams.by != "freespace" {
-			return http.StatusBadRequest, errors.New("bad argument for the query arg 'by'")
-		}
 	}
 	returnCode, report, err := getRdsUnusedData(request, parsedParams, user, tx)
 	if err != nil {

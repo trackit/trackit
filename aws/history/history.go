@@ -103,9 +103,9 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 	return result, http.StatusOK, nil
 }
 
-// getEc2AndRdsCostPerInstance returns the parsed result of ES
+// getCostPerInstance returns the parsed result of ES
 // This response contains the list of the instances of products and the cost associated
-func getEc2AndRdsCostPerInstance(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (Response, error) {
+func getCostPerInstance(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (Response, error) {
 	var parsedResult EsInstancePerProductResult
 	var response     Response
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -217,7 +217,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := getHistoryDate()
-	logger.Info("Starting history report for " + string(aa.Id) + " (" + aa.Pretty + ")", map[string]interface{}{
+	logger.Info("Starting history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
@@ -225,11 +225,9 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 	if complete, err := checkBillingDataCompleted(ctx, startDate, endDate, aa); !complete || err != nil {
 		return err
 	}
-	response, err := getEc2AndRdsCostPerInstance(ctx, aa, startDate, endDate)
+	response, err := getCostPerInstance(ctx, aa, startDate, endDate)
 	if err != nil {
-		logger.Error("Error while getting history cost per instance on ES.", err.Error())
 		return err
 	}
-	err = getInstancesInfo(ctx, aa, response, startDate, endDate)
-	return err
+	return getInstancesInfo(ctx, aa, response, startDate, endDate)
 }
