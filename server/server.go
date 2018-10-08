@@ -30,17 +30,18 @@ import (
 	_ "github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/config"
 	_ "github.com/trackit/trackit-server/costs"
-	_ "github.com/trackit/trackit-server/costs/diff"
 	_ "github.com/trackit/trackit-server/costs/anomalies"
+	_ "github.com/trackit/trackit-server/costs/diff"
+	_ "github.com/trackit/trackit-server/costs/tags"
 	_ "github.com/trackit/trackit-server/ec2"
 	"github.com/trackit/trackit-server/periodic"
+	_ "github.com/trackit/trackit-server/plugins"
 	_ "github.com/trackit/trackit-server/rds"
 	_ "github.com/trackit/trackit-server/reports"
 	"github.com/trackit/trackit-server/routes"
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/users"
 	_ "github.com/trackit/trackit-server/users/shared_account"
-	_ "github.com/trackit/trackit-server/costs/tags"
 )
 
 var buildNumber string = "unknown-build"
@@ -51,12 +52,13 @@ func init() {
 }
 
 var tasks = map[string]func(context.Context) error{
-	"server":                 taskServer,
-	"ingest":                 taskIngest,
-	"ingest-due":             taskIngestDue,
-	"process-account":        taskProcessAccount,
-	"anomalies-detection":    taskAnomaliesDetection,
-	"check-user-entitlement": taskCheckEntitlement,
+	"server":                  taskServer,
+	"ingest":                  taskIngest,
+	"ingest-due":              taskIngestDue,
+	"process-account":         taskProcessAccount,
+	"process-account-plugins": taskProcessAccountPlugins,
+	"anomalies-detection":     taskAnomaliesDetection,
+	"check-user-entitlement":  taskCheckEntitlement,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when

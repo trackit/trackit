@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,24 +12,21 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package awsSession
+package plugins_utils
 
 import (
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-
-	"github.com/trackit/trackit-server/config"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-var (
-	// Session is an AWS API session.
-	Session client.ConfigProvider
-)
-
-func init() {
-	Session = session.Must(session.NewSession(&aws.Config{
-		CredentialsChainVerboseErrors: aws.Bool(true),
-		Region:                        aws.String(config.AwsRegion),
+// GetEc2ClientSession is a utility function to create an ec2 sessions
+// it takes credentials and a region and returns an ec2 session
+func GetEc2ClientSession(creds *credentials.Credentials, region *string) *ec2.EC2 {
+	sess := session.Must(session.NewSession(&aws.Config{
+		Credentials: creds,
+		Region:      region,
 	}))
+	return ec2.New(sess)
 }

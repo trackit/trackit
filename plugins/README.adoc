@@ -1,0 +1,81 @@
+[#trackit-logo]
+image::https://s3-us-west-2.amazonaws.com/trackit-public-artifacts/github-page/logo.png[]
+
+= TrackIt recommendation plugins
+
+TrackIt uses a simple recommendation plugin system aimed at making the creation of new checks easier.
+
+It allows you to focus on writing only the logic for your check, all the rest is taken care of by TrackIt.
+
+= How to create a new recommendation plugin
+
+== #1 Create a new folder for your plugin
+
+Create a new folder in the `plugins/account` directory.
+
+== #2 Write your plugin
+
+A simple example of plugin is available at `plugins/account/unusedEBS`.
+
+There are a few rules a plugin must respect in order to work:
+
+=== A plugin should have an init function in which it registers itself
+
+[source,go]
+----
+func init() {
+	core.AccountPlugin{
+		Name:        "my_unique_plugin_name",
+		Description: "My plugin description",
+		Func:        myHandlerFunction,
+	}.Register()
+}
+----
+
+=== The handler function should take a core.PluginParams parameter
+
+[source,go]
+----
+type PluginParams struct {
+	Context            context.Context
+	User               users.User
+	AwsAccount         aws.AwsAccount
+	AccountId          string
+	AccountCredentials *credentials.Credentials
+	ESClient           *elastic.Client
+}
+----
+- `Context` is a standard GO context that you should use when needed
+- `User` is the current user, see `users/users.go` for more details
+- `AwsAccount` is the current AWS account, see `aws/aws.go` for more details
+- `AccountId` is the current AWS account id
+- `AccountCredentials` are AWS credentials for the current account that you can use to reach the AWS API
+- `ESClient` is an ElasticSearch client that you can use to retrieve data from our ElasticSearch (for example billing data)
+
+=== The handler function should return a core.PluginResult struct
+
+[source,go]
+----
+type PluginResult struct {
+	Result  string
+	Details string
+	Error   string
+}
+----
+- `Result` should contain a short summary of the result of your check
+- `Details` can be used to give more insight about the result
+- `Error` should expose an error message if your plugin was not able to generate a result
+
+== #3 Import your plugin
+
+Your plugin must be imported in `plugins/plugins.go` in order to be loaded at startup.
+
+== #4 Update the policies permissions if needed
+
+If you use API calls that are not yet allowed in our policies, you should add them in `policies/all_policies.json` and `policies/tool_policies/monitor_ressources.json`
+
+= How to contribute
+
+All contributions are appreciated, feel free to create a pull request against the `stg` branch, the trackit team will make it available to everyone after review.
+
+Some utilities functions are available in `plugins/utils`, feel free to add new functions if you think they could be useful for other plugins.

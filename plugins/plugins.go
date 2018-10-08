@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,24 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package awsSession
+package plugins
 
 import (
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/client"
-	"github.com/aws/aws-sdk-go/aws/session"
-
-	"github.com/trackit/trackit-server/config"
+	_ "github.com/trackit/trackit-server/plugins/account/unusedEBS"
 )
-
-var (
-	// Session is an AWS API session.
-	Session client.ConfigProvider
-)
-
-func init() {
-	Session = session.Must(session.NewSession(&aws.Config{
-		CredentialsChainVerboseErrors: aws.Bool(true),
-		Region:                        aws.String(config.AwsRegion),
-	}))
-}
