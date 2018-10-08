@@ -18,3 +18,7 @@ export function* watchHighLevelTagsValues() {
   yield takeLatest(Constants.HIGHLEVEL_TAGS_COST_REQUEST, highlevelSaga.getTagsValuesSaga);
 }
 
+export function* watchUnusedEC2() {
+  yield takeLatest(Constants.HIGHLEVEL_UNUSED_EC2_REQUEST, highlevelSaga.getUnusedEC2Saga);
+}
+

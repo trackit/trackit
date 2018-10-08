@@ -19,6 +19,10 @@ export default {
 		begin: startDate,
 		end: endDate
 	}),
+	getUnusedEC2: (date) => ({
+		type: Constants.HIGHLEVEL_UNUSED_EC2_REQUEST,
+		date,
+	}),
 	getTagsKeys: (startDate, endDate) => ({
 		type: Constants.HIGHLEVEL_TAGS_KEYS_REQUEST,
 		begin: startDate,

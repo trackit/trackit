@@ -478,7 +478,8 @@ export class StepPolicy extends Component {
                     "ec2:DescribeInstances",
                     "ec2:DescribeReservedInstancesListings",
                     "ec2:DescribeReservedInstancesModifications",
-                    "ec2:DescribeReservedInstancesOfferings"
+                    "ec2:DescribeReservedInstancesOfferings",
+                    "ec2:DescribeVolumes"
                 ],
                 "Resource": "*"
             }

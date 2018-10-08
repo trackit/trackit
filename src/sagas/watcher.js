@@ -5,7 +5,7 @@ import * as User from './user';
 import * as Events from './events';
 import * as Highlevel from './highlevel';
 import { takeEvery, takeLatest, fork, cancel } from 'redux-saga/effects';
-import {getDataSaga, saveDashboardSaga, loadDashboardSaga, initDashboardSaga} from "./dashboardSaga";
+import {getDataSaga, saveDashboardSaga, loadDashboardSaga, initDashboardSaga, cleanDashboardSaga} from "./dashboardSaga";
 import Constants from "../constants";
 
 // To manage concurrency when multiple calls are fired for the same id
@@ -42,6 +42,9 @@ const Dashboard = {
   },
   watchInitDashboard: function*() {
     yield takeLatest(Constants.DASHBOARD_INIT_ITEMS, initDashboardSaga);
+  },
+  watchCleanDashboard: function*() {
+    yield takeEvery(Constants.DASHBOARD_CLEAN_ITEMS, cleanDashboardSaga);
   }
 };
 

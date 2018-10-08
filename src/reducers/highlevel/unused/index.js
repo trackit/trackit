@@ -1,6 +1,6 @@
 import { combineReducers } from 'redux';
-import viewers from './viewers';
+import ec2 from './ec2Reducer';
 
 export default combineReducers({
-  viewers,
+    ec2
 });

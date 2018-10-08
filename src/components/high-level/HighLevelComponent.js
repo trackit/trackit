@@ -13,6 +13,7 @@ import TopSpendings from './TopSpendingsComponent';
 import TopTags from './TopTagsComponent';
 import History from './HistoryComponent';
 //import Events from './EventsComponent';
+import Unused from './TopUnusedComponent';
 
 const defaultDates = {
   startDate: moment().startOf('month'),
@@ -36,6 +37,7 @@ export class HighLevelComponent extends Component {
     if (this.props.dates) {
       this.props.getData(this.props.dates.startDate, this.props.dates.endDate);
       this.props.getEvents(this.props.dates.startDate, this.props.dates.endDate);
+      this.props.getUnusedEC2(this.props.dates.startDate);
       this.props.getTagsKeys(this.props.dates.startDate, this.props.dates.endDate);
     }
     else
@@ -46,6 +48,7 @@ export class HighLevelComponent extends Component {
     if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts)) {
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
       nextProps.getEvents(nextProps.dates.startDate, nextProps.dates.endDate);
+      nextProps.getUnusedEC2(nextProps.dates.startDate);
       nextProps.getTagsKeys(nextProps.dates.startDate, nextProps.dates.endDate);
     }
   }
@@ -151,14 +154,33 @@ export class HighLevelComponent extends Component {
     }
     */
 
+   let unusedLoader;
+   let unusedError;
+   let unused;
+   if (this.props.unused) {
+     if (!this.props.unused.ec2.status)
+       unusedLoader = <Spinner className="spinner" name='circle'/>;
+     else if (this.props.unused.ec2.hasOwnProperty("error"))
+       unusedError = <div className="alert alert-warning" role="alert">Error while getting data
+         ({this.props.unused.ec2.error.message})</div>;
+     else if (this.props.unused.ec2.values)
+       unused = <Unused
+         unused={this.props.unused}
+         date={this.props.dates.startDate}
+       />;
+   }
+
+
     // Add support for eventsLoader & eventsError once API is fixed
-    const status = ((costLoader || costError || tagsLoader || tagsError) ? (
+    const status = ((costLoader || costError || tagsLoader || tagsError || unusedLoader || unusedError) ? (
       <div className="col-md-12">
         <div className="white-box">
           {costLoader}
           {costError}
           {tagsLoader}
           {tagsError}
+          {unusedLoader}
+          {unusedError}
         </div>
       </div>
     ) : null);
@@ -186,6 +208,7 @@ export class HighLevelComponent extends Component {
         {history}
         {topSpendings}
         {tags}
+        {unused}
       </div>
 
     );
@@ -207,6 +230,7 @@ const mapStateToProps = ({highlevel, aws}) => ({
   costs: highlevel.costs,
   events: highlevel.events,
   tags: highlevel.tags,
+  unused: highlevel.unused,
   accounts: aws.accounts.selection,
 });
 
@@ -217,6 +241,9 @@ const mapDispatchToProps = (dispatch) => ({
   },
   getEvents: (begin, end) => {
     dispatch(Actions.Highlevel.getEvents(begin, end))
+  },
+  getUnusedEC2: (date) => {
+    dispatch(Actions.Highlevel.getUnusedEC2(date))
   },
   getTagsKeys: (begin, end) => {
     dispatch(Actions.Highlevel.getTagsKeys(begin, end))

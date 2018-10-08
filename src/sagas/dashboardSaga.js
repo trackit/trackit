@@ -1,6 +1,6 @@
 import { all, put, call } from 'redux-saga/effects';
 import { getToken, getAWSAccounts, getDashboard, initialDashboard } from './misc';
-import { setDashboard, getDashboard as getDashboardLS } from '../common/localStorage';
+import { setDashboard, getDashboard as getDashboardLS, unsetDashboard } from '../common/localStorage';
 import API from '../api';
 import Constants from '../constants';
 import Validation from '../common/forms/AWSAccountForm';
@@ -101,4 +101,8 @@ export function* initDashboardSaga() {
   } catch (error) {
     yield put({ type: Constants.DASHBOARD_INIT_ITEMS_ERROR, error });
   }
+}
+
+export function* cleanDashboardSaga() {
+  yield call(unsetDashboard);
 }

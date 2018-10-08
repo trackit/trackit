@@ -1,6 +1,6 @@
 import { all, put, call } from 'redux-saga/effects';
 import { getToken, getAWSAccounts, getCostBreakdownCharts, initialCostBreakdownCharts } from '../misc';
-import { setCostBreakdownCharts, getCostBreakdownCharts as getCostBreakdownChartsLS } from '../../common/localStorage';
+import { setCostBreakdownCharts, getCostBreakdownCharts as getCostBreakdownChartsLS, unsetCostBreakdownCharts } from '../../common/localStorage';
 import API from '../../api';
 import Constants from '../../constants';
 import Validation from '../../common/forms/AWSAccountForm';
@@ -97,4 +97,8 @@ export function* initChartsSaga() {
   } catch (error) {
     yield put({ type: Constants.AWS_INIT_CHARTS_ERROR, error });
   }
+}
+
+export function* clearChartsSaga() {
+  yield call(unsetCostBreakdownCharts);
 }
