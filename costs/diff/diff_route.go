@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -19,12 +19,14 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
@@ -66,7 +68,7 @@ var diffQueryArgs = []routes.QueryArg{
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getDiffData).With(
+		http.MethodGet: routes.H(prepareGetDiffData).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(diffQueryArgs),
@@ -117,7 +119,48 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams) (
 }
 
 // getDiffData returns the cost diff based on the query params, in JSON or CSV format.
-func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
+func getDiffData(ctx context.Context, parsedParams esQueryParams) (int, interface{}) {
+	sr, returnCode, err := makeElasticSearchRequest(ctx, parsedParams)
+	if err != nil {
+		if returnCode == http.StatusOK {
+			return returnCode, nil
+		} else {
+			return returnCode, err
+		}
+	}
+	res, err := prepareDiffData(ctx, sr)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, res
+}
+
+func convertDiffData(ctx context.Context, diffData interface{}) (data costDiff, err error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Convert running", nil)
+	fmt.Print(reflect.TypeOf(diffData))
+	report, ok := diffData.(costDiff)
+	if ok == false {
+		logger.Error("An error occured", err)
+	}
+	return report, err
+}
+
+func TaskDiffData(ctx context.Context, aa aws.AwsAccount) (data costDiff, err error) {
+	now := time.Now()
+	dateBegin := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
+	dateEnd := time.Date(now.Year(), now.Month(), 1, 23, 59, 59, 999999999, now.Location()).UTC().AddDate(0, 0, -1)
+	parsedParams := esQueryParams{
+		accountList:       []string{es.GetAccountIdFromRoleArn(aa.RoleArn)},
+		dateBegin: dateBegin,
+		dateEnd: dateEnd,
+		aggregationPeriod: "day",
+	}
+	_, diffData := getDiffData(ctx, parsedParams)
+	return convertDiffData(ctx, diffData)
+}
+
+func prepareGetDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
 		accountList:       []string{},
@@ -146,9 +189,9 @@ func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 			return returnCode, err
 		}
 	}
-	res, err := prepareDiffData(request.Context(), sr)
+	_, err = prepareDiffData(request.Context(), sr)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return http.StatusOK, res
+	return getDiffData(request.Context(), parsedParams)
 }

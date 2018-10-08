@@ -175,16 +175,16 @@
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
-			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
-			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
-			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
-			"revisionTime": "2018-07-25T21:42:05Z"
-		},
-		{
 			"checksumSHA1": "CTsp/h3FbFg9QizH4bH1abLwljg=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
 			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
 			"revisionTime": "2018-08-09T22:26:03Z"
+		},
+		{
+			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
+			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
+			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
 			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
@@ -401,6 +401,12 @@
 			"path": "github.com/sha1sum/aws_signing_client",
 			"revision": "9088e4c7b34b3174ae879fc975deb18ac62ac8d3",
 			"revisionTime": "2017-05-14T20:27:02Z"
+		},
+		{
+			"checksumSHA1": "UpwKp6oFSNQbJTwaN3oRD/amXLI=",
+			"path": "github.com/tealeg/xlsx",
+			"revision": "f1917addaa283ecd881e40b48173544d4145ea67",
+			"revisionTime": "2018-09-19T08:39:35Z"
 		},
 		{
 			"checksumSHA1": "fXENG3ndXoSruFRlAH+HnfAiN3g=",

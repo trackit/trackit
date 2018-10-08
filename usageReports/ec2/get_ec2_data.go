@@ -120,7 +120,7 @@ func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams Ec2Que
 }
 
 // GetEc2MonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetEc2MonthlyInstances(ctx context.Context, params Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+func GetEc2MonthlyInstances(ctx context.Context, params Ec2QueryParams) (int, []InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchEc2MonthlyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
@@ -138,11 +138,11 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.accountList, user, tx, es.IndexPrefixLineItems)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	params.accountList = accountsAndIndexes.Accounts
+	params.AccountList = accountsAndIndexes.Accounts
 	params.indexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchCostRequest(ctx, params)
 	instances, err := prepareResponseEc2Daily(ctx, res, costRes)
@@ -154,13 +154,13 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 
 // GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it calls getEc2DailyInstances
 func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2.IndexPrefixEC2Report)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams, user, tx)
+	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {

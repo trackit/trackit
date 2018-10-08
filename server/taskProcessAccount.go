@@ -168,5 +168,6 @@ func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 			"error":        err.Error(),
 		})
 	}
+	err = generateReport(ctx, aa.Id)
 	return err
 }

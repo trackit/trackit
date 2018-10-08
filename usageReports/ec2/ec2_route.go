@@ -27,9 +27,9 @@ import (
 type (
 	// Ec2QueryParams will store the parsed query params
 	Ec2QueryParams struct {
-		accountList []string
+		AccountList []string
 		indexList   []string
-		date        time.Time
+		Date        time.Time
 	}
 
 	// Ec2UnusedQueryParams will store the parsed query params
@@ -91,11 +91,11 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := Ec2QueryParams{
-		accountList: []string{},
-		date:        a[routes.DateQueryArg].(time.Time),
+		AccountList: []string{},
+		Date:        a[routes.DateQueryArg].(time.Time),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
-		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
+		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	returnCode, report, err := GetEc2Data(request.Context(), parsedParams, user, tx)
 	if err != nil {
