@@ -208,6 +208,9 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 		stringError += " + " + errRds.Error()
 	}
 	if stringError != "" {
+		if len(stringError) > 254 {
+			stringError = stringError[0:254]
+		}
 		return errors.New(stringError)
 	}
 	return nil
