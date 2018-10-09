@@ -39,8 +39,8 @@ export class NavbarHeader extends Component {
 
               <div className="top-right-part pull-right">
                  <span style={{ display: 'inline-block', marginTop: '19px' }}><SelectedIndicator longVersion={true} icon={true} /></span>
-                 <div className={this.state.userMenuExpanded ? 'open dropdown-trigger' : 'dropdown-trigger'}>
-                   <button className="navbar-user-dropdown-toggle" onClick={this.toggleUserMenu.bind(this)}>
+                 <div className={'dropdown-trigger'}>
+                   <button className="navbar-user-dropdown-toggle">
                      <span className="fa-stack red-color">
                        <i className="fa fa-circle fa-stack-2x"></i>
                        <i className="fa fa-user fa-stack-1x fa-inverse"></i>
