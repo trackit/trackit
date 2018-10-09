@@ -30,11 +30,4 @@ describe('<NavbarHeader />', () => {
     expect(wrapper.state('userMenuExpanded')).toBe(false);
   });
 
-  it('can expand user menu', () => {
-    const wrapper = shallow(<NavbarHeader {...props}/>);
-    expect(wrapper.state('userMenuExpanded')).toBe(false);
-    wrapper.find('button.navbar-user-dropdown-toggle').prop('onClick')();
-    expect(wrapper.state('userMenuExpanded')).toBe(true);
-  });
-
 });
