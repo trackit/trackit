@@ -1,6 +1,13 @@
 var express = require('express');
 var app = express();
 
+var cacheControl = require('express-cache-controller');
+
+app.use(cacheControl({
+  noCache: true
+}));
+
+
 app.use(express.static(__dirname + '/build')); // set the static files location /public/img will be /img for users
 
 // This route deals enables HTML5Mode by forwarding missing files to the index.html
