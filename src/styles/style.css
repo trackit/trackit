@@ -592,12 +592,16 @@ h4.no-data {
 
 .cpu-stats,
 .cpu-stats .wrapper,
-.cpu-stats .wrapper .popover-trigger {
+.cpu-stats .wrapper .popover-trigger,
+.jvm-memory-pressure-stats,
+.jvm-memory-pressure-stats .wrapper,
+.jvm-memory-pressure-stats .wrapper .popover-trigger {
     width: 100%;
     height: 100%;
 }
 
-.cpu-stats .wrapper {
+.cpu-stats .wrapper,
+.jvm-memory-pressure-stats .wrapper {
     margin: 0;
 }
 

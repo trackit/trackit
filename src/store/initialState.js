@@ -77,6 +77,10 @@ export default {
       RDS: {
         status: true,
         value: null
+      },
+      ES: {
+        status: true,
+        value: null
       }
     },
   },
