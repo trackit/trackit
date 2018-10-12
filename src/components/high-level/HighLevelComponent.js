@@ -12,7 +12,7 @@ import Summary from './SummaryComponent';
 import TopSpendings from './TopSpendingsComponent';
 import TopTags from './TopTagsComponent';
 import History from './HistoryComponent';
-//import Events from './EventsComponent';
+import Events from './EventsComponent';
 import Unused from './TopUnusedComponent';
 
 const defaultDates = {
@@ -136,8 +136,6 @@ export class HighLevelComponent extends Component {
         />;
     }
 
-
-    /* Uncomment this block once API is fixed
     let eventsLoader;
     let eventsError;
     let events;
@@ -153,7 +151,6 @@ export class HighLevelComponent extends Component {
           date={this.props.dates.startDate}
         />;
     }
-    */
 
    let unusedLoader;
    let unusedError;
@@ -171,11 +168,11 @@ export class HighLevelComponent extends Component {
        />;
    }
 
-
-    // Add support for eventsLoader & eventsError once API is fixed
-    const status = ((costLoader || costError || tagsLoader || tagsError || unusedLoader || unusedError) ? (
+    const status = ((eventsLoader || eventsError || costLoader || costError || tagsLoader || tagsError || unusedLoader || unusedError) ? (
       <div className="col-md-12">
         <div className="white-box">
+          {eventsLoader}
+          {eventsError}
           {costLoader}
           {costError}
           {tagsLoader}
@@ -186,7 +183,6 @@ export class HighLevelComponent extends Component {
       </div>
     ) : null);
 
-    // Add events once API is fixed
     return (
       <div>
         <div className="col-md-12">
@@ -209,6 +205,7 @@ export class HighLevelComponent extends Component {
         {history}
         {topSpendings}
         {tags}
+        {events}
         {unused}
       </div>
 
