@@ -260,12 +260,23 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 		if updates, err = BillRepositoryUpdates(tx, aa.UserId); err != nil {
 			return
 		}
+		referenceTime, err := time.Parse(time.RFC3339, "0001-01-01T00:00:00Z")
+		if err != nil {
+			return nil, err
+		}
 		for _, br := range brs {
 			brwp := s3.BillRepositoryWithPending{br, false}
 			for _, update := range updates {
 				if update.BillRepositoryId == br.Id {
 					brwp.NextPending = *update.NextPending
 				}
+			}
+			dbBillRepository, err := models.AwsBillRepositoryByID(tx, br.Id)
+			if err != nil {
+				return nil, err
+			}
+			if dbBillRepository.LastImportedManifest == referenceTime {
+				brwp.NextPending = true
 			}
 			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
 		}
