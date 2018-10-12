@@ -15,6 +15,18 @@ class SummaryComponent extends Component {
     return res;
   }
 
+  getPotentialsSavings(unused ) {
+    let res = 0;
+
+    if (unused.ec2 && unused.ec2.status && unused.ec2.values) {
+        for (let i = 0; i < unused.ec2.values.length; i++) {
+            const element = unused.ec2.values[i];
+            res += element.cost;
+        }
+    }
+    return res;
+  }
+
   render() {
     let message;
     let monthCost;
@@ -87,12 +99,39 @@ class SummaryComponent extends Component {
       } else
         message = (<h4 className="no-data">No data available for this timerange</h4>);
     }
+
+    let savingsElement
+    if (this.props.unused
+      && this.props.unused.ec2
+      && this.props.unused.ec2.status) {
+      let savings = this.getPotentialsSavings(this.props.unused);
+
+      savingsElement = (
+        <div className="hl-card">
+          <ul className="in-col">
+            <li>
+              <i className="fa fa-power-off card-icon blue-color"/>
+            </li>
+            <li>
+              <h3 className={`no-margin no-padding font-light`}>
+                {formatPrice(savings.toFixed(2))}
+              </h3>
+            </li>
+          </ul>
+          <h4 className="card-label p-l-10 m-b-0">
+            potential savings
+          </h4>
+        </div>
+      );
+    }
+
     return (
       <div className="col-md-12">
         <div className="white-box">
           {message}
           {monthCost}
           {variation}
+          {savingsElement}
           <div className="clearfix"/>
         </div>
       </div>

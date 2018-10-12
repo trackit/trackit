@@ -101,6 +101,7 @@ export class HighLevelComponent extends Component {
             costs={this.props.costs.values}
             date={this.props.dates.startDate}
             currentInterval={this.state.currentInterval}
+            unused={this.props.unused}
           />;
           topSpendings = <TopSpendings
             costs={this.props.costs.values}
