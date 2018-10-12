@@ -182,6 +182,22 @@ class FormComponent extends Component {
          <div className="alert alert-warning" role="alert">{this.props.status.error.message}</div>
      ) : null);
 
+     const hidePolicy = (
+      <div className="alert alert-info">
+        <i className="fa fa-arrow-up"></i>
+        &nbsp;
+        Please enter your bucket name in step 3 to see the policy
+      </div>
+    );
+
+    const policyElement = (
+      <pre style={{ height: '85px', marginTop: '10px' }}>
+        {this.getBucketPolicy()}
+      </pre>
+    );
+
+      
+
     const tutorial = (
       <div className="tutorial">
 
@@ -228,14 +244,15 @@ class FormComponent extends Component {
           <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
           <li>
             Paste the following into the Bucket policy Editor and <strong>Save</strong>:
+            {this.state.bucket.length ? (
             <CopyToClipboard text={this.getBucketPolicy()}>
                   <div className="badge">
                     <i className="fa fa-clipboard" aria-hidden="true"/>
                   </div>
             </CopyToClipboard>
-            <pre style={{ height: '85px', marginTop: '10px' }}>
-              {this.getBucketPolicy()}
-            </pre>
+
+            ): null}
+            {this.state.bucket.length ? policyElement : hidePolicy}
           </li>
           <li>Then go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/billing/home#/reports">Billing Reports setup page</a> and click <strong>Create report</strong></li>
           <li>
@@ -269,6 +286,11 @@ class FormComponent extends Component {
           <br/>
           To do that, go to your <a href="https://console.aws.amazon.com/iam/home#/policies">AWS Policies List</a>, select TrackIt policy and Edit it.
           Paste the following policy into the JSON Editor and submit.
+          <br/>
+          <br/>
+          <strong>
+            If you used AWS ReadOnlyAccess policy when setting up your account please ignore this step
+          </strong>
         </div>
         <h5>
           Updated policy

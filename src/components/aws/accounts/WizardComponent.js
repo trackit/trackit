@@ -318,6 +318,20 @@ export class StepBucket extends Component {
 
   render() {
 
+    const hidePolicy = (
+      <div className="alert alert-info">
+        <i className="fa fa-arrow-up"></i>
+        &nbsp;
+        Please enter your bucket name in step 3 to see the policy
+      </div>
+    );
+
+    const policyElement = (
+      <pre style={{ height: '85px', marginTop: '10px' }}>
+        {this.getBucketPolicy()}
+      </pre>
+    );
+
     const tutorial = (
       <div className="tutorial">
 
@@ -347,15 +361,15 @@ export class StepBucket extends Component {
           <li>Go to the <strong>Permissions</strong> tab and select <strong>Bucket Policy</strong></li>
           <li>
             Paste the following into the Bucket policy Editor and <strong>Save</strong>:
-            <CopyToClipboard text={this.getBucketPolicy()} onCopy={this.toggleCopied}>
-                  <div className="badge">
-                    <i className="fa fa-clipboard" aria-hidden="true"/>
-                    {this.state.copied && ' Copied'}
-                  </div>
-            </CopyToClipboard>
-            <pre style={{ height: '85px', marginTop: '10px' }}>
-              {this.getBucketPolicy()}
-            </pre>
+            {this.state.bucketName.length ? (
+                <CopyToClipboard text={this.getBucketPolicy()} onCopy={this.toggleCopied}>
+                      <div className="badge">
+                        <i className="fa fa-clipboard" aria-hidden="true"/>
+                        {this.state.copied && ' Copied'}
+                      </div>
+                </CopyToClipboard>
+            ) : null}
+            {this.state.bucketName.length ? policyElement : hidePolicy}
           </li>
           <li>Then go to your <a rel="noopener noreferrer" target="_blank" href="https://console.aws.amazon.com/billing/home#/reports">Billing Reports setup page</a> and click <strong>Create report</strong></li>
           <li>
