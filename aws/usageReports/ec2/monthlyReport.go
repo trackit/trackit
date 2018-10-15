@@ -18,6 +18,7 @@ import (
 	"time"
 	"strings"
 	"context"
+
 	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -29,7 +30,7 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
-// fetchMonthlyInstancesList sent in instanceInfoChan the instances fetched from DescribeInstances
+// fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances, getAccountID and getInstanceStats.
 func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, instList []utils.CostPerInstance,
 	region string, instanceChan chan Instance, startDate, endDate time.Time) error {

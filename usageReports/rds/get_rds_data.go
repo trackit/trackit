@@ -109,6 +109,7 @@ func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams rdsQue
 	return res, http.StatusOK, nil
 }
 
+// getRdsDailyData gets RDS daily reports and parse them based on query params
 func getRdsDailyData(ctx context.Context, params rdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.Report, error) {
 	searchResult, returnCode, err := makeElasticSearchRdsDailyRequest(ctx, params)
 	if err != nil {
@@ -128,6 +129,7 @@ func getRdsDailyData(ctx context.Context, params rdsQueryParams, user users.User
 	return http.StatusOK, res, nil
 }
 
+// getRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyData
 func getRdsData(request *http.Request, parsedParams rdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.Report, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, rds.IndexPrefixRDSReport)
 	if err != nil {
@@ -150,6 +152,7 @@ func getRdsData(request *http.Request, parsedParams rdsQueryParams, user users.U
 	}
 }
 
+// getRdsUnusedData gets RDS reports and parse them based on query params to have an array of unused instances
 func getRdsUnusedData(request *http.Request, params rdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []rds.Instance, error) {
 	returnCode, reports, err := getRdsData(request, rdsQueryParams{params.accountList, nil, params.date}, user, tx)
 	if err != nil {

@@ -15,13 +15,14 @@
 package ec2
 
 import (
-	"context"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
-	"github.com/aws/aws-sdk-go/aws"
 	"time"
-	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"context"
+
 	"github.com/trackit/jsonlog"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 )
 
 // getPurchasingOption returns a string that describes how the instance given as parameter have been purchased

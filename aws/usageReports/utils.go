@@ -15,14 +15,16 @@
 package utils
 
 import (
-	"context"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/trackit/jsonlog"
-	"github.com/aws/aws-sdk-go/service/sts"
-	"github.com/aws/aws-sdk-go/aws"
 	"time"
-	"github.com/aws/aws-sdk-go/service/ec2"
+	"context"
+
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/trackit/trackit-server/es"
 	taws "github.com/trackit/trackit-server/aws"
 )
@@ -52,7 +54,7 @@ func GetCurrentCheckedDay() (start time.Time, end time.Time) {
 	return start, end
 }
 
-// FetchRegionsList fetchs the regions list from AWS and returns an array of their name.
+// FetchRegionsList fetches the regions list from AWS and returns an array of their name.
 func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := ec2.New(sess)

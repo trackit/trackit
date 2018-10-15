@@ -15,14 +15,16 @@
 package ec2
 
 import (
-	"context"
-	"sync"
-	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/es"
-	"encoding/json"
 	"time"
+	"sync"
+	"context"
 	"crypto/md5"
+	"encoding/json"
 	"encoding/base64"
+
+	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit-server/es"
 	taws "github.com/trackit/trackit-server/aws"
 )
 

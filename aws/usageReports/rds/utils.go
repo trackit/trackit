@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -18,11 +18,13 @@ import (
 	"time"
 	"sync"
 	"context"
-	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/es"
-	"encoding/json"
 	"crypto/md5"
+	"encoding/json"
 	"encoding/base64"
+
+	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit-server/es"
 	taws "github.com/trackit/trackit-server/aws"
 )
 

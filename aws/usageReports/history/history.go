@@ -26,9 +26,9 @@ import (
 
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 type (
@@ -189,7 +189,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 	return nil
 }
 
-// FetchHistoryInfos fetchs billing data and stats of EC2 and RDS instances of the last month
+// FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
 func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := getHistoryDate()

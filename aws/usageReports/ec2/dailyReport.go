@@ -15,20 +15,21 @@
 package ec2
 
 import (
-	"context"
 	"time"
+	"context"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/trackit/jsonlog"
-	taws "github.com/trackit/trackit-server/aws"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
-// fetchDailyInstancesList sent in instanceInfoChan the instances fetched from DescribeInstances
+// fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances, getAccountID and getInstanceStats.
 func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
 	defer close(instanceChan)
@@ -69,7 +70,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	return nil
 }
 
-// FetchDailyInstancesStats fetchs the stats of the EC2 instances of an AwsAccount
+// FetchDailyInstancesStats fetches the stats of the EC2 instances of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchInstancesStats should be called every hour.
 func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
