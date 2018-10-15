@@ -24,9 +24,9 @@ import (
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/rds"
-	"github.com/trackit/trackit-server/aws/ec2"
-	"github.com/trackit/trackit-server/aws/history"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
+	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/db"
 )
 
@@ -134,7 +134,7 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 
 // processAccountRDS processes all the RDS data for an AwsAccount
 func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
-	err := rds.FetchRDSInfos(ctx, aa)
+	err := rds.FetchDailyInstancesStats(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest RDS data.", map[string]interface{}{
@@ -147,7 +147,7 @@ func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
 
 // processAccountEC2 processes all the EC2 data for an AwsAccount
 func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
-	err := ec2.FetchInstancesStats(ctx, aa)
+	err := ec2.FetchDailyInstancesStats(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest EC2 data.", map[string]interface{}{

@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package rds
+package ec2
 
 import (
 	"strings"
@@ -21,6 +21,8 @@ import (
 	"encoding/json"
 
 	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/trackit-server/aws/usageReports/ec2"
 )
 
 type (
@@ -42,57 +44,52 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for RDS usage report
-	ResponseRds struct {
+	// Structure that allow to parse ES response for EC2 usage report
+	ResponseEc2 struct {
 		TopReports struct {
 			Buckets []struct {
 				TopReportsHits struct {
 					Hits struct {
 						Hits []struct {
-							Source Report `json:"_source"`
+							Source ec2.Report `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"top_reports_hits"`
 			} `json:"buckets"`
 		} `json:"top_reports"`
 	}
-
-	// Report format for RDS usage
-	Report struct {
-		Account    string     `json:"account"`
-		ReportDate string     `json:"reportDate"`
-		ReportType string     `json:"reportType"`
-		Instances  []Instance `json:"instances"`
-	}
-
-	// Instance contains stats of an RDS instance
-	Instance  struct {
-		DBInstanceIdentifier string  `json:"dbInstanceIdentifier"`
-		DBInstanceClass      string  `json:"dbInstanceClass"`
-		AllocatedStorage     int64   `json:"allocatedStorage"`
-		Engine               string  `json:"engine"`
-		AvailabilityZone     string  `json:"availabilityZone"`
-		MultiAZ              bool    `json:"multiAZ"`
-		Cost                 float64 `json:"cost"`
-		CpuAverage           float64 `json:"cpuAverage"`
-		CpuPeak              float64 `json:"cpuPeak"`
-		FreeSpaceMin         float64 `json:"freeSpaceMinimum"`
-		FreeSpaceMax         float64 `json:"freeSpaceMaximum"`
-		FreeSpaceAve         float64 `json:"freeSpaceAverage"`
-	}
 )
 
 // addCostToReport adds cost for each instance based on billing data
-func addCostToReport(report Report, costs ResponseCost) (Report) {
+func addCostToReport(report ec2.Report, costs ResponseCost) (ec2.Report) {
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != report.Account {
 			continue
 		}
 		for _, instance := range accounts.Instances.Buckets {
 			for i := range report.Instances {
-				split := strings.Split(instance.Key, ":")
-				if len(split) == 7 && split[6] == report.Instances[i].DBInstanceIdentifier {
+				if report.Instances[i].CostDetail == nil {
+					report.Instances[i].CostDetail = make(map[string]float64, 0)
+				}
+				if strings.Contains(instance.Key, report.Instances[i].Id) {
 					report.Instances[i].Cost += instance.Cost.Value
+					if len(instance.Key) == 19 && strings.HasPrefix(instance.Key, "i-") {
+						report.Instances[i].CostDetail["instance"] += instance.Cost.Value
+					} else {
+						report.Instances[i].CostDetail["CloudWatch"] += instance.Cost.Value
+					}
+				}
+				for volume := range report.Instances[i].IOWrite {
+					if volume == instance.Key {
+						report.Instances[i].Cost += instance.Cost.Value
+						report.Instances[i].CostDetail[volume] += instance.Cost.Value
+					}
+				}
+				for volume := range report.Instances[i].IORead {
+					if volume == instance.Key {
+						report.Instances[i].Cost += instance.Cost.Value
+						report.Instances[i].CostDetail[volume] += instance.Cost.Value
+					}
 				}
 			}
 		}
@@ -100,33 +97,33 @@ func addCostToReport(report Report, costs ResponseCost) (Report) {
 	return report
 }
 
-// prepareResponseRdsDaily parses the results from elasticsearch and returns the RDS report
-func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, resCost *elastic.SearchResult) ([]Report, error) {
-	rds  := ResponseRds{}
-	cost := ResponseCost{}
-	reports := []Report{}
-	err := json.Unmarshal(*resRds.Aggregations["top_reports"], &rds.TopReports)
+// prepareResponseEc2 parses the results from elasticsearch and returns the EC2 usage report
+func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) ([]ec2.Report, error) {
+	parsedEc2  := ResponseEc2{}
+	parsedCost := ResponseCost{}
+	reports := []ec2.Report{}
+	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &parsedEc2.TopReports)
 	if err != nil {
 		return nil, err
 	}
 	if resCost != nil {
-		json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
+		json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
 	}
-	for _, account := range rds.TopReports.Buckets {
+	for _, account := range parsedEc2.TopReports.Buckets {
 		if len(account.TopReportsHits.Hits.Hits) > 0 {
 			report := account.TopReportsHits.Hits.Hits[0].Source
-			report = addCostToReport(report, cost)
+			report = addCostToReport(report, parsedCost)
 			reports = append(reports, report)
 		}
 	}
 	return reports, nil
 }
 
-// prepareResponseRdsMonthly parses the results from elasticsearch and returns the RDS usage report
-func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult) ([]Report, error) {
-	response := ResponseRds{}
-	reports := []Report{}
-	err := json.Unmarshal(*resRds.Aggregations["top_reports"], &response.TopReports)
+// prepareResponseEc2Monthly parses the results from elasticsearch and returns the EC2 usage report
+func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult) ([]ec2.Report, error) {
+	response := ResponseEc2{}
+	reports := []ec2.Report{}
+	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +135,7 @@ func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult
 	return reports, nil
 }
 
-func isInstanceUnused(instance Instance) bool {
+func isInstanceUnused(instance ec2.Instance) bool {
 	average := instance.CpuAverage
 	peak    := instance.CpuPeak
 	if peak >= 60.0 {
@@ -149,9 +146,9 @@ func isInstanceUnused(instance Instance) bool {
 	return true
 }
 
-// prepareResponseRdsUnused filter reports to get the top instances
-func prepareResponseRdsUnused(params rdsUnusedQueryParams, reports []Report) (int, []Instance, error) {
-	instances := []Instance{}
+// prepareResponseEc2Unused filter reports to get the top instances
+func prepareResponseEc2Unused(params ec2UnusedQueryParams, reports []ec2.Report) (int, []ec2.Instance, error) {
+	instances := []ec2.Instance{}
 	for _, report := range reports {
 		for _, instance := range report.Instances {
 			if isInstanceUnused(instance) {

@@ -100,6 +100,9 @@ const TemplateLineItem = `
 						"cost": {
 							"type": "float",
 							"index": false
+						},
+						"costDetail": {
+							"type": "nested"
 						}
 					}
 				}

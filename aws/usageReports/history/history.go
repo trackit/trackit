@@ -26,10 +26,13 @@ import (
 
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/rds"
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 type (
-	// structs that allows to parse ES result
+	// structures that allows to parse ES result
 	EsInstancePerProductResult struct {
 		Products struct {
 			Buckets []struct {
@@ -48,16 +51,10 @@ type (
 		} `json:"buckets"`
 	}
 
-	// struct which contain the cost of an instance
-	CostPerInstance struct {
-		Instance string
-		Cost     float64
-	}
-
 	// struct which contain the instance list for a product
 	InstancePerProduct struct {
 		Product   string
-		Instances []CostPerInstance
+		Instances []utils.CostPerInstance
 	}
 
 	// type that define the parsed response of ES
@@ -123,37 +120,13 @@ func getCostPerInstance(ctx context.Context, aa aws.AwsAccount, startDate time.T
 		return nil, errors.New("Internal server error")
 	}
 	for _, product := range parsedResult.Products.Buckets {
-		res := InstancePerProduct{product.Product, []CostPerInstance{}}
+		res := InstancePerProduct{product.Product, []utils.CostPerInstance{}}
 		for _, instance := range product.Instances.Buckets {
-			res.Instances = append(res.Instances, CostPerInstance{instance.Instance, instance.Cost.Value})
+			res.Instances = append(res.Instances, utils.CostPerInstance{instance.Instance, instance.Cost.Value})
 		}
 		response = append(response, res)
 	}
 	return response, nil
-}
-
-// checkAlreadyHistory checks if there is already an history report in ES.
-// If there is already one it returns true, otherwise it returns false.
-func checkAlreadyHistory(ctx context.Context, date time.Time, aa aws.AwsAccount, prefix string) (bool, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("account", es.GetAccountIdFromRoleArn(aa.RoleArn)))
-	query = query.Filter(elastic.NewTermQuery("reportDate", date))
-	index := es.IndexNameForUserId(aa.UserId, prefix)
-	result, err := es.Client.Search().Index(index).Size(1).Query(query).Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
-			return false, nil
-		}
-		logger.Error("Query execution failed", err.Error())
-		return false, err
-	}
-	if result.Hits.TotalHits == 0 {
-		return false, nil
-	} else {
-		return true, nil
-	}
 }
 
 // checkBillingDataCompleted checks if billing data in ES are complete.
@@ -184,7 +157,7 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 
 // getInstanceInfo sort products and call history reports (only ec2 for now)
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) (error) {
-	var ec2Cost, cloudWatchCost, rdsCost []CostPerInstance
+	var ec2Cost, cloudWatchCost, rdsCost []utils.CostPerInstance
 	var stringError = ""
 	for _, product := range response {
 		switch product.Product {
@@ -199,11 +172,11 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 			break
 		}
 	}
-	errEc2 := getEc2HistoryReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+	errEc2 := ec2.GetEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
 	if errEc2 != nil {
 		stringError += errEc2.Error()
 	}
-	errRds := getRdsHistoryReport(ctx, rdsCost, aa, startDate, endDate)
+	errRds := rds.GetRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
 	if errRds != nil {
 		stringError += " + " + errRds.Error()
 	}
@@ -216,7 +189,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 	return nil
 }
 
-// FetchHistoryInfos fetchs billing data and stats of EC2 instances of the last month (only EC2 for now=
+// FetchHistoryInfos fetchs billing data and stats of EC2 and RDS instances of the last month
 func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := getHistoryDate()
@@ -226,6 +199,7 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
 	if complete, err := checkBillingDataCompleted(ctx, startDate, endDate, aa); !complete || err != nil {
+		logger.Info("Billing data are not completed", err)
 		return err
 	}
 	response, err := getCostPerInstance(ctx, aa, startDate, endDate)

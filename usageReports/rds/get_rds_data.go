@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ec2
+package rds
 
 import (
 	"fmt"
@@ -26,7 +26,7 @@ import (
 
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/rds"
 )
 
 // makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
@@ -35,7 +35,7 @@ import (
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchCostRequest(ctx context.Context, params ec2QueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchCostRequest(ctx context.Context, params rdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(params.indexList, ",")
 	searchService := GetElasticSearchCostParams(
@@ -55,17 +55,17 @@ func makeElasticSearchCostRequest(ctx context.Context, params ec2QueryParams) (*
 	return res, http.StatusOK, nil
 }
 
-// makeElasticSearchEc2DailyRequest prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
+// makeElasticSearchRdsDailyRequest prepares and run the request to retrieve the latest reports
+// based on the rdsQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEc2DailyRequest(ctx context.Context, parsedParams ec2QueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRdsDailyRequest(ctx context.Context, parsedParams rdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchEc2DailyParams(
+	searchService := GetElasticSearchRdsDailyParams(
 		parsedParams,
 		es.Client,
 		index,
@@ -82,17 +82,17 @@ func makeElasticSearchEc2DailyRequest(ctx context.Context, parsedParams ec2Query
 	return res, http.StatusOK, nil
 }
 
-// makeElasticSearchEc2MonthlyRequest prepares and run the request to retrieve a month report
+// makeElasticSearchRdsMonthlyRequest prepares and run the request to retrieve a month report
 // based on the esQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams ec2QueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams rdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchEc2MonthlyParams(
+	searchService := GetElasticSearchRdsMonthlyParams(
 		parsedParams,
 		es.Client,
 		index,
@@ -109,8 +109,8 @@ func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams ec2Que
 	return res, http.StatusOK, nil
 }
 
-func getEc2DailyData(ctx context.Context, params ec2QueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
-	searchResult, returnCode, err := makeElasticSearchEc2DailyRequest(ctx, params)
+func getRdsDailyData(ctx context.Context, params rdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.Report, error) {
+	searchResult, returnCode, err := makeElasticSearchRdsDailyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -121,39 +121,39 @@ func getEc2DailyData(ctx context.Context, params ec2QueryParams, user users.User
 	params.accountList = accountsAndIndexes.Accounts
 	params.indexList = accountsAndIndexes.Indexes
 	costResult, _, _ := makeElasticSearchCostRequest(ctx, params)
-	res, err := prepareResponseEc2(ctx, searchResult, costResult)
+	res, err := prepareResponseRdsDaily(ctx, searchResult, costResult)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
 	return http.StatusOK, res, nil
 }
 
-func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
+func getRdsData(request *http.Request, parsedParams rdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.Report, error) {
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, rds.IndexPrefixRDSReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
 	parsedParams.accountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	searchResult, returnCode, err := makeElasticSearchEc2MonthlyRequest(request.Context(), parsedParams)
+	searchResult, returnCode, err := makeElasticSearchRdsMonthlyRequest(request.Context(), parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
 	if searchResult.Hits.TotalHits > 0 {
-		res, err := prepareResponseEc2Monthly(request.Context(), searchResult)
+		res, err := prepareResponseRdsMonthly(request.Context(), searchResult)
 		if err != nil {
 			return http.StatusInternalServerError, nil, err
 		}
 		return http.StatusOK, res, nil
 	} else {
-		return getEc2DailyData(request.Context(), parsedParams, user, tx)
+		return getRdsDailyData(request.Context(), parsedParams, user, tx)
 	}
 }
 
-func getEc2UnusedData(request *http.Request, params ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []Instance, error) {
-	returnCode, reports, err := getEc2Data(request, ec2QueryParams{params.accountList, nil, params.date}, user, tx)
+func getRdsUnusedData(request *http.Request, params rdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []rds.Instance, error) {
+	returnCode, reports, err := getRdsData(request, rdsQueryParams{params.accountList, nil, params.date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	return prepareResponseEc2Unused(params, reports)
+	return prepareResponseRdsUnused(params, reports)
 }

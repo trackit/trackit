@@ -103,6 +103,9 @@ const TemplateRDSReport = `
 						"freeSpaceAverage": {
 							"type": "float",
 							"index": false
+						},
+						"costDetail": {
+							"type": "nested"
 						}
 					}
 				}
