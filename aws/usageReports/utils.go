@@ -15,21 +15,21 @@
 package utils
 
 import (
-	"time"
 	"context"
+	"time"
 
-	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/sts"
+	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/es"
 	taws "github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/es"
 )
 
-// struct which contain the cost of an instance
+// CostPerInstance associates a cost (float64) to an aws instance (string)
 type CostPerInstance struct {
 	Instance string
 	Cost     float64
@@ -47,8 +47,9 @@ func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	return aws.StringValue(res.Account), nil
 }
 
+// GetCurrentCheckDay returns the actual date at midnight and this date the month before
 func GetCurrentCheckedDay() (start time.Time, end time.Time) {
-	now := time.Now()
+	now := time.Now().UTC()
 	end = time.Date(now.Year(), now.Month(), now.Day()-1, 24, 0, 0, 0, now.Location())
 	start = time.Date(now.Year(), now.Month(), now.Day()-31, 0, 0, 0, 0, now.Location())
 	return start, end
@@ -70,9 +71,9 @@ func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, err
 	return res, nil
 }
 
-// CheckAlreadyHistory checks if there is already an history report in ES.
+// CheckMonthlyReportExists checks if there is already a monthly report in ES based on the prefix.
 // If there is already one it returns true, otherwise it returns false.
-func CheckAlreadyHistory(ctx context.Context, date time.Time, aa taws.AwsAccount, prefix string) (bool, error) {
+func CheckMonthlyReportExists(ctx context.Context, date time.Time, aa taws.AwsAccount, prefix string) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("account", es.GetAccountIdFromRoleArn(aa.RoleArn)))

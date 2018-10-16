@@ -15,19 +15,19 @@
 package ec2
 
 import (
-	"time"
-	"strings"
 	"context"
+	"strings"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit-server/config"
 )
 
 // fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
@@ -116,8 +116,8 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerIn
 
 // filterInstancesCosts filters instances, cloudwatch and volumes of EC2 instances costs
 func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerInstance) ([]utils.CostPerInstance, []utils.CostPerInstance, []utils.CostPerInstance) {
-	newInstance   := make([]utils.CostPerInstance, 0)
-	newVolume     := make([]utils.CostPerInstance, 0)
+	newInstance := make([]utils.CostPerInstance, 0)
+	newVolume := make([]utils.CostPerInstance, 0)
 	newCloudWatch := make([]utils.CostPerInstance, 0)
 	for _, instance := range ec2Cost {
 		if len(instance.Instance) == 19 && strings.HasPrefix(instance.Instance, "i-") {
@@ -165,10 +165,10 @@ func addCostToInstances(report Report, costVolume, costCloudWatch []utils.CostPe
 	return report
 }
 
-// GetEc2MonthlyReport puts a monthly report of EC2 instance in ES
-func GetEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (error) {
+// PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
+func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting EC2 utils report", map[string]interface{}{
+	logger.Info("Starting EC2 monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
@@ -178,9 +178,12 @@ func GetEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.Co
 		logger.Info("No EC2 instances found in billing data.", nil)
 		return nil
 	}
-	if already, err := utils.CheckAlreadyHistory(ctx, startDate, aa, IndexPrefixEC2Report); already || err != nil {
-		logger.Info("There is already an EC2 monthly report", err)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEC2Report)
+	if err != nil {
 		return err
+	} else if already {
+		logger.Info("There is already an EC2 monthly report", nil)
+		return nil
 	}
 	report, err := fetchMonthlyInstancesStats(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {

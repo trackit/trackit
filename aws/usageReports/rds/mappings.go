@@ -43,6 +43,9 @@ const TemplateRDSReport = `
 {
 	"template": "*-rds-reports",
 	"version": 3,
+	"settings": {
+		"index.mapping.total_fields.limit": 3000
+	},
 	"mappings": {
 		"rds-report": {
 			"properties": {

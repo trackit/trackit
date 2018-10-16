@@ -24,8 +24,8 @@ import (
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/db"
 )
@@ -159,7 +159,7 @@ func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountHistoryRDS processes EC2 and RDS data with billing data for an AwsAccount
-func processAccountHistory(ctx context.Context, aa aws.AwsAccount) (error) {
+func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 	err := history.FetchHistoryInfos(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)

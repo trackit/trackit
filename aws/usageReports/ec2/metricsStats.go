@@ -15,21 +15,21 @@
 package ec2
 
 import (
-	"time"
 	"context"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/trackit/jsonlog"
 )
 
 // getPurchasingOption returns a string that describes how the instance given as parameter have been purchased
 func getPurchasingOption(instance *ec2.Instance) string {
 	var purchasing string
 	lifeCycle := aws.StringValue(instance.InstanceLifecycle)
-	tenancy   := aws.StringValue(instance.Placement.Tenancy)
+	tenancy := aws.StringValue(instance.Placement.Tenancy)
 	if tenancy == "" || tenancy == "default" {
 		if lifeCycle == "" {
 			purchasing = "on demand"
@@ -195,7 +195,7 @@ func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dim
 }
 
 // getInstanceStats gets the instance stats from CloudWatch
-func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session.Session, start, end time.Time) (InstanceStats) {
+func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session.Session, start, end time.Time) instanceStats {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
 	dimensions := []*cloudwatch.Dimension{{
@@ -219,7 +219,7 @@ func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session
 	if err != nil {
 		logger.Error("Error when fetching IO stats from CloudWatch", err.Error())
 	}
-	return InstanceStats{
+	return instanceStats{
 		CpuAverage,
 		CpuPeak,
 		NetworkIn,

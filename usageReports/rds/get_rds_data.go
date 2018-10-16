@@ -15,18 +15,18 @@
 package rds
 
 import (
-	"fmt"
 	"context"
-	"strings"
-	"net/http"
 	"database/sql"
+	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws/usageReports/rds"
 )
 
 // makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance

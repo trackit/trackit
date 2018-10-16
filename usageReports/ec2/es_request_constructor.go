@@ -21,6 +21,8 @@ import (
 )
 
 // getDateForDailyReport returns the end and the begin of the date of the report based on a date
+// if the date given as parameter is in the actual month, it returns the the the begin of the month et now at midnight
+// if the date is before the actual month, it returns the begin and the end of the month given as parameter
 func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 	now := time.Now().UTC()
 	if date.Year() == now.Year() && date.Month() == now.Month() {
@@ -29,7 +31,7 @@ func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 		return
 	} else {
 		begin = date
-		end = time.Date(date.Year(), date.Month() + 1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
+		end = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
 		return
 	}
 }
@@ -122,8 +124,8 @@ func GetElasticSearchCostParams(params ec2QueryParams, client *elastic.Client, i
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("accounts",  elastic.NewTermsAggregation().Field("usageAccountId").Size(len(params.accountList)).
+	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(len(params.accountList)).
 		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
-			SubAggregation("cost",  elastic.NewSumAggregation().Field("unblendedCost"))))
+			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search
 }

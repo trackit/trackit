@@ -15,23 +15,23 @@
 package rds
 
 import (
-	"time"
-	"sync"
 	"context"
 	"crypto/md5"
-	"encoding/json"
 	"encoding/base64"
+	"encoding/json"
+	"sync"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/es"
 	taws "github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/es"
 )
 
 const RDSStsSessionName = "fetch-rds"
 
 type (
-
+	// Report represents the report with all the information for RDS instances.
 	Report struct {
 		Account    string     `json:"account"`
 		ReportDate time.Time  `json:"reportDate"`
@@ -39,6 +39,7 @@ type (
 		Instances  []Instance `json:"instances"`
 	}
 
+	// Instance represents all the information of a RDS instance.
 	Instance struct {
 		DBInstanceIdentifier string             `json:"dbInstanceIdentifier"`
 		DBInstanceClass      string             `json:"dbInstanceClass"`
@@ -55,7 +56,8 @@ type (
 		FreeSpaceAve         float64            `json:"freeSpaceAverage"`
 	}
 
-	InstanceStats struct {
+	// instanceStats contains statistics of an instance get by CloudWatch
+	instanceStats struct {
 		CpuAverage   float64
 		CpuPeak      float64
 		FreeSpaceMin float64

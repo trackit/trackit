@@ -15,19 +15,19 @@
 package rds
 
 import (
-	"time"
-	"strings"
 	"context"
+	"strings"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit-server/config"
 )
 
 // fetchMonthlyInstancesList fetches instances based on billing data
@@ -109,10 +109,12 @@ func getRdsMetrics(ctx context.Context, instances []utils.CostPerInstance, aa ta
 	return report, nil
 }
 
-// filterRdsInstances filters instances
-func filterRdsInstances(rdsCost []utils.CostPerInstance) ([]utils.CostPerInstance) {
+// filterRdsInstances filters cost per instance to get only costs associated to a RDS instance
+func filterRdsInstances(rdsCost []utils.CostPerInstance) []utils.CostPerInstance {
 	costInstances := []utils.CostPerInstance{}
 	for _, instance := range rdsCost {
+		// format in billing data for an RDS instance is: "arn:aws:rds:us-west-2:394125495069:db:instancename"
+		// so i get the 7th element of the split by ":"
 		split := strings.Split(instance.Instance, ":")
 		if len(split) == 7 || split[2] != "rds" {
 			costInstances = append(costInstances, utils.CostPerInstance{split[6], instance.Cost})
@@ -121,10 +123,10 @@ func filterRdsInstances(rdsCost []utils.CostPerInstance) ([]utils.CostPerInstanc
 	return costInstances
 }
 
-// GetRdsMonthlyReport puts a monthly report of RDS in ES
-func GetRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (error) {
+// PutRdsMonthlyReport puts a monthly report of RDS in ES
+func PutRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting RDS utils report", map[string]interface{}{
+	logger.Info("Starting RDS monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
@@ -134,9 +136,12 @@ func GetRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerInstance, a
 		logger.Info("No RDS instances found in billing data.", nil)
 		return nil
 	}
-	if already, err := utils.CheckAlreadyHistory(ctx, startDate, aa, IndexPrefixRDSReport); already || err != nil {
-		logger.Info("There is already an RDS monthly report", err)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixRDSReport)
+	if err != nil {
 		return err
+	} else if already {
+		logger.Info("There is already an RDS monthly report", nil)
+		return nil
 	}
 	report, err := getRdsMetrics(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {

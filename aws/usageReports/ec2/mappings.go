@@ -43,6 +43,9 @@ const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
 	"version": 4,
+	"settings": {
+		"index.mapping.total_fields.limit": 3000
+	},
 	"mappings": {
 		"ec2-report": {
 			"properties": {

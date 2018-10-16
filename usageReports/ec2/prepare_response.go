@@ -15,14 +15,16 @@
 package ec2
 
 import (
-	"strings"
 	"context"
-	"net/http"
 	"encoding/json"
+	"net/http"
+	"strings"
 
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"sort"
 )
 
 type (
@@ -31,10 +33,10 @@ type (
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
-				Key string `json:"key"`
+				Key       string `json:"key"`
 				Instances struct {
 					Buckets []struct {
-						Key string `json:"key"`
+						Key  string `json:"key"`
 						Cost struct {
 							Value float64 `json:"value"`
 						} `json:"cost"`
@@ -61,7 +63,7 @@ type (
 )
 
 // addCostToReport adds cost for each instance based on billing data
-func addCostToReport(report ec2.Report, costs ResponseCost) (ec2.Report) {
+func addCostToReport(report ec2.Report, costs ResponseCost) ec2.Report {
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != report.Account {
 			continue
@@ -99,15 +101,20 @@ func addCostToReport(report ec2.Report, costs ResponseCost) (ec2.Report) {
 
 // prepareResponseEc2 parses the results from elasticsearch and returns the EC2 usage report
 func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) ([]ec2.Report, error) {
-	parsedEc2  := ResponseEc2{}
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	parsedEc2 := ResponseEc2{}
 	parsedCost := ResponseCost{}
 	reports := []ec2.Report{}
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &parsedEc2.TopReports)
 	if err != nil {
+		logger.Error("Error while unmarshaling ES EC2 response", err)
 		return nil, err
 	}
 	if resCost != nil {
-		json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
+		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
+		if err != nil {
+			logger.Error("Error while unmarshaling ES cost response", err)
+		}
 	}
 	for _, account := range parsedEc2.TopReports.Buckets {
 		if len(account.TopReportsHits.Hits.Hits) > 0 {
@@ -121,10 +128,12 @@ func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCo
 
 // prepareResponseEc2Monthly parses the results from elasticsearch and returns the EC2 usage report
 func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult) ([]ec2.Report, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	response := ResponseEc2{}
 	reports := []ec2.Report{}
 	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
 	if err != nil {
+		logger.Error("Error while unmarshaling ES EC2 response", err)
 		return nil, err
 	}
 	for _, account := range response.TopReports.Buckets {
@@ -137,7 +146,7 @@ func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult
 
 func isInstanceUnused(instance ec2.Instance) bool {
 	average := instance.CpuAverage
-	peak    := instance.CpuPeak
+	peak := instance.CpuPeak
 	if peak >= 60.0 {
 		return false
 	} else if average >= 10.0 {
@@ -156,17 +165,7 @@ func prepareResponseEc2Unused(params ec2UnusedQueryParams, reports []ec2.Report)
 			}
 		}
 	}
-	for i := 0; i < len(instances) - 1; i++ {
-		if instances[i].Cost < instances[i + 1].Cost {
-			tmp := instances[i]
-			instances[i] = instances[i + 1]
-			instances[i + 1] = tmp
-			i -= 2
-			if i < -1 {
-				i = -1
-			}
-		}
-	}
+	sort.SliceStable(instances, func(i, j int) bool { return instances[i].Cost > instances[j].Cost })
 	if params.count >= 0 && params.count <= len(instances) {
 		return http.StatusOK, instances[0:params.count], nil
 	}

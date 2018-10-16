@@ -15,17 +15,17 @@
 package ec2
 
 import (
-	"time"
-	"sync"
 	"context"
 	"crypto/md5"
-	"encoding/json"
 	"encoding/base64"
+	"encoding/json"
+	"sync"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/es"
 	taws "github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/es"
 )
 
 const MonitorInstanceStsSessionName = "monitor-instance"
@@ -33,10 +33,10 @@ const MonitorInstanceStsSessionName = "monitor-instance"
 type (
 	// Report represents the report with all the information for EC2 instances.
 	Report struct {
-		Account    string         `json:"account"`
-		ReportDate time.Time      `json:"reportDate"`
-		ReportType string         `json:"reportType"`
-		Instances  []Instance     `json:"instances"`
+		Account    string     `json:"account"`
+		ReportDate time.Time  `json:"reportDate"`
+		ReportType string     `json:"reportType"`
+		Instances  []Instance `json:"instances"`
 	}
 
 	// Instance represents all the information of an EC2 instance.
@@ -58,7 +58,8 @@ type (
 		CostDetail map[string]float64 `json:"costDetail"`
 	}
 
-	InstanceStats struct {
+	// instanceStats contains statistics of an instance get by CloudWatch
+	instanceStats struct {
 		CpuAverage float64
 		CpuPeak    float64
 		NetworkIn  float64
@@ -105,7 +106,7 @@ func importReportToEs(ctx context.Context, aa taws.AwsAccount, report Report) er
 	}
 }
 
-// Merge function from https://blog.golang.org/pipelines#TOC_4
+// merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
 func merge(cs ...<-chan Instance) <-chan Instance {
 	var wg sync.WaitGroup

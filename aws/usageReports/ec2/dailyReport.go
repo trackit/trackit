@@ -15,18 +15,18 @@
 package ec2
 
 import (
-	"time"
 	"context"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit-server/config"
 )
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances

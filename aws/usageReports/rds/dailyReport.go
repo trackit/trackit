@@ -15,18 +15,18 @@
 package rds
 
 import (
-	"time"
 	"context"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
+	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit-server/config"
 )
 
 // fetchDailyInstancesList fetches the list of instances for a specific region

@@ -15,15 +15,14 @@
 package rds
 
 import (
-	"time"
 	"context"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/rds"
-
+	"github.com/trackit/jsonlog"
 )
 
 // getInstanceCPUStats gets the CPU average and the CPU peak from CloudWatch
@@ -38,11 +37,11 @@ func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Di
 		Dimensions: dimensions,
 	})
 	if err != nil {
-		return 0, 0, err
+		return -1, -1, err
 	} else if len(stats.Datapoints) > 0 {
 		return aws.Float64Value(stats.Datapoints[0].Average), aws.Float64Value(stats.Datapoints[0].Maximum), nil
 	} else {
-		return 0, 0, nil
+		return -1, -1, nil
 	}
 }
 
@@ -58,37 +57,34 @@ func getInstanceFreeSpaceStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwa
 		Dimensions: dimensions,
 	})
 	if err != nil {
-		return 0, 0, 0, err
+		return -1, -1, -1, err
 	} else if len(freeSpace.Datapoints) > 0 {
 		return aws.Float64Value(freeSpace.Datapoints[0].Minimum),
 			aws.Float64Value(freeSpace.Datapoints[0].Maximum),
 			aws.Float64Value(freeSpace.Datapoints[0].Average), nil
 	} else {
-		return 0, 0, 0, nil
+		return -1, -1, -1, nil
 	}
 }
 
 // getInstanceStats gets the instance stats from CloudWatch
-func getInstanceStats(ctx context.Context, instance *rds.DBInstance, sess *session.Session, start, end time.Time) (InstanceStats) {
+func getInstanceStats(ctx context.Context, instance *rds.DBInstance, sess *session.Session, start, end time.Time) instanceStats {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
-	dimensions := []*cloudwatch.Dimension{
-		&cloudwatch.Dimension{
-			Name:  aws.String("DBInstanceIdentifier"),
-			Value: aws.String(aws.StringValue(instance.DBInstanceIdentifier)),
-		},
+	dimensions := []*cloudwatch.Dimension{{
+		Name:  aws.String("DBInstanceIdentifier"),
+		Value: aws.String(aws.StringValue(instance.DBInstanceIdentifier)),
+	},
 	}
 	CpuAverage, CpuPeak, err := getInstanceCPUStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
-		return InstanceStats{}
 	}
 	freeSpaceMin, freeSpaceMax, freeSpaceAve, err := getInstanceFreeSpaceStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching IO stats from CloudWatch", err.Error())
-		return InstanceStats{}
 	}
-	return InstanceStats{
+	return instanceStats{
 		CpuAverage,
 		CpuPeak,
 		freeSpaceMin,

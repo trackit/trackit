@@ -92,10 +92,10 @@ func getRdsReport(request *http.Request, a routes.Arguments) (int, interface{}) 
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := rdsQueryParams{
 		accountList: []string{},
-		date:        a[rdsQueryArgs[1]].(time.Time),
+		date:        a[routes.DateQueryArg].(time.Time),
 	}
-	if a[rdsQueryArgs[0]] != nil {
-		parsedParams.accountList = a[rdsQueryArgs[0]].([]string)
+	if a[routes.AwsAccountsOptionalQueryArg] != nil {
+		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	returnCode, report, err := getRdsData(request, parsedParams, user, tx)
 	if err != nil {
@@ -105,18 +105,17 @@ func getRdsReport(request *http.Request, a routes.Arguments) (int, interface{}) 
 	}
 }
 
-
 // getRdsUnusedInstances returns the list of the most unused RDS instances based on the query params, in JSON format.
 func getRdsUnusedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := rdsUnusedQueryParams{
 		accountList: []string{},
-		date:        a[rdsUnusedQueryArgs[1]].(time.Time),
+		date:        a[routes.DateQueryArg].(time.Time),
 		count:       -1,
 	}
-	if a[rdsUnusedQueryArgs[0]] != nil {
-		parsedParams.accountList = a[rdsUnusedQueryArgs[0]].([]string)
+	if a[routes.AwsAccountsOptionalQueryArg] != nil {
+		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	if a[rdsUnusedQueryArgs[2]] != nil {
 		parsedParams.count = a[rdsUnusedQueryArgs[2]].(int)

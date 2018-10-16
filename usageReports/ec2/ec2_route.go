@@ -15,13 +15,13 @@
 package ec2
 
 import (
-	"time"
-	"net/http"
 	"database/sql"
+	"net/http"
+	"time"
 
 	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit-server/users"
 )
 
 type (
@@ -92,10 +92,10 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := ec2QueryParams{
 		accountList: []string{},
-		date:        a[ec2QueryArgs[1]].(time.Time),
+		date:        a[routes.DateQueryArg].(time.Time),
 	}
-	if a[ec2QueryArgs[0]] != nil {
-		parsedParams.accountList = a[ec2QueryArgs[0]].([]string)
+	if a[routes.AwsAccountsOptionalQueryArg] != nil {
+		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	returnCode, report, err := getEc2Data(request, parsedParams, user, tx)
 	if err != nil {
@@ -111,11 +111,11 @@ func getEc2UnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := ec2UnusedQueryParams{
 		accountList: []string{},
-		date:        a[ec2UnusedQueryArgs[1]].(time.Time),
+		date:        a[routes.DateQueryArg].(time.Time),
 		count:       -1,
 	}
-	if a[ec2UnusedQueryArgs[0]] != nil {
-		parsedParams.accountList = a[ec2UnusedQueryArgs[0]].([]string)
+	if a[routes.AwsAccountsOptionalQueryArg] != nil {
+		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	if a[ec2UnusedQueryArgs[2]] != nil {
 		parsedParams.count = a[ec2UnusedQueryArgs[2]].(int)

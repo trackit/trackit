@@ -15,20 +15,20 @@
 package history
 
 import (
-	"time"
-	"errors"
 	"context"
-	"net/http"
 	"encoding/json"
+	"errors"
+	"net/http"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
+	"github.com/trackit/trackit-server/es"
 )
 
 type (
@@ -64,7 +64,7 @@ type (
 // getHistoryDate return the begin and the end date of the last month
 func getHistoryDate() (time.Time, time.Time) {
 	now := time.Now().UTC()
-	start := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
+	start := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, now.Location()).UTC()
 	end := time.Date(now.Year(), now.Month(), 0, 23, 59, 59, 999999999, now.Location()).UTC()
 	return start, end
 }
@@ -104,7 +104,7 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 // This response contains the list of the instances of products and the cost associated
 func getCostPerInstance(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (Response, error) {
 	var parsedResult EsInstancePerProductResult
-	var response     Response
+	var response Response
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate)
 	if err != nil {
@@ -155,8 +155,8 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 	}
 }
 
-// getInstanceInfo sort products and call history reports (only ec2 for now)
-func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) (error) {
+// getInstanceInfo sort products and call history reports
+func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) error {
 	var ec2Cost, cloudWatchCost, rdsCost []utils.CostPerInstance
 	var stringError = ""
 	for _, product := range response {
@@ -172,11 +172,11 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 			break
 		}
 	}
-	errEc2 := ec2.GetEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+	errEc2 := ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
 	if errEc2 != nil {
 		stringError += errEc2.Error()
 	}
-	errRds := rds.GetRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
+	errRds := rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
 	if errRds != nil {
 		stringError += " + " + errRds.Error()
 	}
@@ -190,7 +190,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response,
 }
 
 // FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
-func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
+func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := getHistoryDate()
 	logger.Info("Starting history report", map[string]interface{}{
@@ -198,9 +198,12 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (error) {
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	if complete, err := checkBillingDataCompleted(ctx, startDate, endDate, aa); !complete || err != nil {
-		logger.Info("Billing data are not completed", err)
+	complete, err := checkBillingDataCompleted(ctx, startDate, endDate, aa)
+	if err != nil {
 		return err
+	} else if complete == false {
+		logger.Info("Billing data are not completed", nil)
+		return nil
 	}
 	response, err := getCostPerInstance(ctx, aa, startDate, endDate)
 	if err != nil {
