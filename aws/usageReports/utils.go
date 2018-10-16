@@ -29,10 +29,11 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-// CostPerInstance associates a cost (float64) to an aws instance (string)
-type CostPerInstance struct {
-	Instance string
+// CostPerResource associates a cost (float64) to an aws instance (string)
+type CostPerResource struct {
+	Resource string
 	Cost     float64
+	Region   string
 }
 
 // GetAccountId gets the AWS Account ID for the given credentials

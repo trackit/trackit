@@ -52,13 +52,13 @@ type (
 	}
 
 	// struct which contain the instance list for a product
-	InstancePerProduct struct {
+	ResourcePerProduct struct {
 		Product   string
-		Instances []utils.CostPerInstance
+		Resources []utils.CostPerResource
 	}
 
 	// type that define the parsed response of ES
-	Response []InstancePerProduct
+	Response []ResourcePerProduct
 )
 
 // getHistoryDate return the begin and the end date of the last month
@@ -120,9 +120,9 @@ func getCostPerInstance(ctx context.Context, aa aws.AwsAccount, startDate time.T
 		return nil, errors.New("Internal server error")
 	}
 	for _, product := range parsedResult.Products.Buckets {
-		res := InstancePerProduct{product.Product, []utils.CostPerInstance{}}
+		res := ResourcePerProduct{product.Product, []utils.CostPerResource{}}
 		for _, instance := range product.Instances.Buckets {
-			res.Instances = append(res.Instances, utils.CostPerInstance{instance.Instance, instance.Cost.Value})
+			res.Resources = append(res.Resources, utils.CostPerResource{instance.Instance, instance.Cost.Value, ""})
 		}
 		response = append(response, res)
 	}
@@ -157,18 +157,18 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) error {
-	var ec2Cost, cloudWatchCost, rdsCost []utils.CostPerInstance
+	var ec2Cost, cloudWatchCost, rdsCost []utils.CostPerResource
 	var stringError = ""
 	for _, product := range response {
 		switch product.Product {
 		case "AmazonEC2":
-			ec2Cost = product.Instances
+			ec2Cost = product.Resources
 			break
 		case "AmazonCloudWatch":
-			cloudWatchCost = product.Instances
+			cloudWatchCost = product.Resources
 			break
 		case "AmazonRDS":
-			rdsCost = product.Instances
+			rdsCost = product.Resources
 			break
 		}
 	}

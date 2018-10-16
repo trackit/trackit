@@ -32,7 +32,7 @@ import (
 
 // fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances, getAccountID and getInstanceStats.
-func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, instList []utils.CostPerInstance,
+func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, instList []utils.CostPerResource,
 	region string, instanceChan chan Instance, startDate, endDate time.Time) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -41,7 +41,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 	}))
 	svc := ec2.New(sess)
 	for _, inst := range instList {
-		desc := ec2.DescribeInstancesInput{InstanceIds: aws.StringSlice([]string{inst.Instance})}
+		desc := ec2.DescribeInstancesInput{InstanceIds: aws.StringSlice([]string{inst.Resource})}
 		instances, err := svc.DescribeInstances(&desc)
 		if err != nil {
 			continue
@@ -75,7 +75,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 }
 
 // getEc2Metrics gets credentials, accounts and region to fetch EC2 instances stats
-func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) (Report, error) {
+func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (Report, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorInstanceStsSessionName)
 	if err != nil {
@@ -115,21 +115,21 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerIn
 }
 
 // filterInstancesCosts filters instances, cloudwatch and volumes of EC2 instances costs
-func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerInstance) ([]utils.CostPerInstance, []utils.CostPerInstance, []utils.CostPerInstance) {
-	newInstance := make([]utils.CostPerInstance, 0)
-	newVolume := make([]utils.CostPerInstance, 0)
-	newCloudWatch := make([]utils.CostPerInstance, 0)
+func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerResource) ([]utils.CostPerResource, []utils.CostPerResource, []utils.CostPerResource) {
+	newInstance := make([]utils.CostPerResource, 0)
+	newVolume := make([]utils.CostPerResource, 0)
+	newCloudWatch := make([]utils.CostPerResource, 0)
 	for _, instance := range ec2Cost {
-		if len(instance.Instance) == 19 && strings.HasPrefix(instance.Instance, "i-") {
+		if len(instance.Resource) == 19 && strings.HasPrefix(instance.Resource, "i-") {
 			newInstance = append(newInstance, instance)
 		}
-		if len(instance.Instance) == 21 && strings.HasPrefix(instance.Instance, "vol-") {
+		if len(instance.Resource) == 21 && strings.HasPrefix(instance.Resource, "vol-") {
 			newVolume = append(newVolume, instance)
 		}
 	}
 	for _, instance := range cloudwatchCost {
 		for _, cost := range newInstance {
-			if strings.Contains(instance.Instance, cost.Instance) {
+			if strings.Contains(instance.Resource, cost.Resource) {
 				newCloudWatch = append(newCloudWatch, instance)
 			}
 		}
@@ -137,11 +137,11 @@ func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerInstance) ([]ut
 	return newInstance, newVolume, newCloudWatch
 }
 
-func addCostToInstances(report Report, costVolume, costCloudWatch []utils.CostPerInstance) Report {
+func addCostToInstances(report Report, costVolume, costCloudWatch []utils.CostPerResource) Report {
 	for i, instance := range report.Instances {
 		for volume := range instance.IORead {
 			for _, costPerVolume := range costVolume {
-				if volume == costPerVolume.Instance {
+				if volume == costPerVolume.Resource {
 					report.Instances[i].Cost += costPerVolume.Cost
 					report.Instances[i].CostDetail[volume] += costPerVolume.Cost
 				}
@@ -149,14 +149,14 @@ func addCostToInstances(report Report, costVolume, costCloudWatch []utils.CostPe
 		}
 		for volume := range instance.IOWrite {
 			for _, costPerVolume := range costVolume {
-				if volume == costPerVolume.Instance {
+				if volume == costPerVolume.Resource {
 					report.Instances[i].Cost += costPerVolume.Cost
 					report.Instances[i].CostDetail[volume] += costPerVolume.Cost
 				}
 			}
 		}
 		for _, cloudWatch := range costCloudWatch {
-			if strings.Contains(cloudWatch.Instance, instance.Id) {
+			if strings.Contains(cloudWatch.Resource, instance.Id) {
 				report.Instances[i].Cost += cloudWatch.Cost
 				report.Instances[i].CostDetail["cloudWatch"] += cloudWatch.Cost
 			}
@@ -166,7 +166,7 @@ func addCostToInstances(report Report, costVolume, costCloudWatch []utils.CostPe
 }
 
 // PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
-func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerInstance, aa taws.AwsAccount, startDate, endDate time.Time) error {
+func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting EC2 monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
