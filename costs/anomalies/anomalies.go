@@ -30,18 +30,21 @@ import (
 )
 
 type (
+	// esDatesBucket is used to store the raw ElasticSearch response.
+	esDatesBucket struct {
+		Key string `json:"key_as_string"`
+		Cost struct {
+			Value float64 `json:"value"`
+		} `json:"cost"`
+	}
+
 	// esTypedResult is	used to store the raw ElasticSearch response.
 	esTypedResult struct {
 		Products struct {
 			Buckets []struct {
 				Key string `json:"key"`
 				Dates struct {
-					Buckets []struct {
-						Key string `json:"key_as_string"`
-						Cost struct {
-							Value float64 `json:"value"`
-						} `json:"cost"`
-					} `json:"buckets"`
+					Buckets []esDatesBucket `json:"buckets"`
 				} `json:"dates"`
 			} `json:"buckets"`
 		}
@@ -245,6 +248,36 @@ func parseAnomalies(typedDocument esTypedResult) ProductsCostAnomalies {
 	return analyseAnomalies(c)
 }
 
+// addPadding adds a padding if we ask from 10 to 15
+// but ES has only from 12 to 15. So 10 11 will be padded.
+func addPadding(typedDocument esTypedResult) esTypedResult {
+	date := func() (minDate time.Time) {
+		minDate = time.Unix(1<<31-1, 0)
+		for _, product := range typedDocument.Products.Buckets {
+			if len(product.Dates.Buckets) > 0 {
+				if cd, err := time.Parse("2006-01-02T15:04:05.000Z", product.Dates.Buckets[0].Key); err == nil && minDate.After(cd) {
+					minDate = cd
+				}
+			}
+		}
+		return
+	}()
+	for idx := range typedDocument.Products.Buckets {
+		if len(typedDocument.Products.Buckets[idx].Dates.Buckets) > 0 {
+			if cd, err := time.Parse("2006-01-02T15:04:05.000Z", typedDocument.Products.Buckets[idx].Dates.Buckets[0].Key); err == nil && date.Before(cd) {
+				for i := int(cd.Sub(date).Hours()/24); i > 0; i-- {
+					cd = cd.AddDate(0, 0, -1)
+					var pad esDatesBucket
+					pad.Key = cd.Format("2006-01-02T15:04:05.000Z")
+					pad.Cost.Value = 0
+					typedDocument.Products.Buckets[idx].Dates.Buckets = append([]esDatesBucket{pad}, typedDocument.Products.Buckets[idx].Dates.Buckets...)
+				}
+			}
+		}
+	}
+	return typedDocument
+}
+
 // prepareAnomalyData calls ElasticSearch and stores
 // the result in a esTypedResult type. It calls parseAnomalies
 // then.
@@ -256,5 +289,6 @@ func prepareAnomalyData(ctx context.Context, sr *elastic.SearchResult) (Products
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
 		return ProductsCostAnomalies{}, err
 	}
+	typedDocument = addPadding(typedDocument)
 	return parseAnomalies(typedDocument), nil
 }
