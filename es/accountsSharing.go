@@ -104,6 +104,11 @@ func getAllAccountsAndIndexes(user users.User, tx *sql.Tx, indexPrefix string) (
 			accountsAndIndexes.addIndex(IndexNameForUserId(sharedAccount.OwnerID, indexPrefix))
 		}
 	}
+	// temporary fix to handle an account with sub accounts (healthline)
+	if len(sharedAccounts) == 0 {
+		accountsAndIndexes.Accounts = []string{}
+		accountsAndIndexes.addIndex(IndexNameForUserId(user.Id, indexPrefix))
+	}
 	// If no indexes where found, return an error to prevent giving access to all indexes
 	if len(accountsAndIndexes.Indexes) == 0 {
 		return accountsAndIndexes, http.StatusBadRequest, fmt.Errorf("No aws account found")
