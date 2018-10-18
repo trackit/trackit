@@ -445,8 +445,8 @@ ALTER TABLE aws_bill_update_job MODIFY COLUMN error VARCHAR(2000) NOT NULL;
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_account ADD next_update_user_entitlement DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE user ADD next_update_user_entitlement DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
 
 CREATE VIEW aws_account_user_entitlement_due_update AS
-	SELECT * FROM aws_account WHERE next_update_user_entitlement <= NOW()
+	SELECT * FROM user WHERE next_update_user_entitlement <= NOW()
 ;
