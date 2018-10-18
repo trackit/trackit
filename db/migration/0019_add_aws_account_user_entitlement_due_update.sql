@@ -12,8 +12,8 @@
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_account ADD next_update_user_entitlement DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE user ADD next_update_entitlement DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
 
-CREATE VIEW aws_account_user_entitlement_due_update AS
-	SELECT * FROM aws_account WHERE next_update_user_entitlement <= NOW()
+CREATE VIEW user_entitlement_due_update AS
+	SELECT * FROM user WHERE next_update_entitlement <= NOW()
 ;
