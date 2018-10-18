@@ -98,8 +98,10 @@ func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, 
 		return nil, err
 	}
 	if resCost != nil {
-		json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
-		logger.Error("Error while unmarshaling ES cost response", err)
+		err = json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
+		if err != nil {
+			logger.Error("Error while unmarshaling ES cost response", err)
+		}
 	}
 	for _, account := range parsedRds.TopReports.Buckets {
 		if len(account.TopReportsHits.Hits.Hits) > 0 {

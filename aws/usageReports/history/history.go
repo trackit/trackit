@@ -95,7 +95,7 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 			return nil, http.StatusOK, err
 		}
 		logger.Error("Query execution failed", err.Error())
-		return nil, http.StatusInternalServerError, nil
+		return nil, http.StatusInternalServerError, err
 	}
 	return result, http.StatusOK, nil
 }
