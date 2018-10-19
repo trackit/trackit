@@ -27,6 +27,7 @@ import (
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/es"
 )
