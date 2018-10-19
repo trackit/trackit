@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -42,7 +42,10 @@ func init() {
 const TemplateRDSReport = `
 {
 	"template": "*-rds-reports",
-	"version": 2,
+	"version": 3,
+	"settings": {
+		"index.mapping.total_fields.limit": 3000
+	},
 	"mappings": {
 		"rds-report": {
 			"properties": {
@@ -83,6 +86,29 @@ const TemplateRDSReport = `
 						"cost": {
 							"type": "float",
 							"index": false
+						},
+						"cpuAverage": {
+							"type": "float",
+							"index": false
+						},
+						"cpuPeak": {
+							"type": "float",
+							"index": false
+						},
+						"freeSpaceMinimum": {
+							"type": "float",
+							"index": false
+						},
+						"freeSpaceMaximum": {
+							"type": "float",
+							"index": false
+						},
+						"freeSpaceAverage": {
+							"type": "float",
+							"index": false
+						},
+						"costDetail": {
+							"type": "nested"
 						}
 					}
 				}

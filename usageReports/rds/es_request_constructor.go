@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ec2
+package rds
 
 import (
 	"time"
@@ -21,6 +21,8 @@ import (
 )
 
 // getDateForDailyReport returns the end and the begin of the date of the report based on a date
+// if the date given as parameter is in the actual month, it returns the the the begin of the month et now at midnight
+// if the date is before the actual month, it returns the begin and the end of the month given as parameter
 func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 	now := time.Now().UTC()
 	if date.Year() == now.Year() && date.Month() == now.Month() {
@@ -29,13 +31,13 @@ func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 		return
 	} else {
 		begin = date
-		end = time.Date(date.Year(), date.Month() + 1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
+		end = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
 		return
 	}
 }
 
-// createQueryAccountFilterEc2 creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilterEc2(accountList []string) *elastic.TermsQuery {
+// createQueryAccountFilterRds creates and return a new *elastic.TermsQuery on the accountList array
+func createQueryAccountFilterRds(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
 		accountListFormatted[i] = v
@@ -43,21 +45,21 @@ func createQueryAccountFilterEc2(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// GetElasticSearchEc2DailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as parameters :
-// 	- params ec2QueryParams : contains the list of accounts and the date
+// GetElasticSearchRdsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// It takes as paramters :
+// 	- params rdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on which to execute the query. In this context the default value
-//	should be "ec2-reports"
+//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	should be "rds-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEc2DailyParams(params ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchRdsDailyParams(params rdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEc2(params.accountList))
+		query = query.Filter(createQueryAccountFilterRds(params.accountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
 	dateStart, dateEnd := getDateForDailyReport(params.date)
@@ -69,21 +71,21 @@ func GetElasticSearchEc2DailyParams(params ec2QueryParams, client *elastic.Clien
 	return search
 }
 
-// GetElasticSearchEc2MonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// GetElasticSearchRdsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- params ec2QueryParams : contains the list of accounts and the date
+// 	- params rdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
-//	should be "ec2-reports"
+//	should be "rds-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEc2MonthlyParams(params ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchRdsMonthlyParams(params rdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEc2(params.accountList))
+		query = query.Filter(createQueryAccountFilterRds(params.accountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
 	query = query.Filter(elastic.NewTermQuery("reportDate", params.date))
@@ -103,27 +105,28 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 }
 
 // GetElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as parameters :
-// 	- params ec2QueryParams : contains the list of accounts and the date
+// It takes as paramters :
+// 	- params rdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on which to execute the query
+//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	should be "rds-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchCostParams(params ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func GetElasticSearchCostParams(params rdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.accountList) > 0 {
 		query = query.Filter(createQueryAccountFilterBill(params.accountList))
 	}
-	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
+	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonRDS"))
 	dateStart, dateEnd := getDateForDailyReport(params.date)
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("accounts",  elastic.NewTermsAggregation().Field("usageAccountId").Size(len(params.accountList)).
+	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(len(params.accountList)).
 		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
-			SubAggregation("cost",  elastic.NewSumAggregation().Field("unblendedCost"))))
+			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search
 }

@@ -15,18 +15,18 @@
 package ec2
 
 import (
-	"fmt"
 	"context"
-	"strings"
-	"net/http"
 	"database/sql"
+	"fmt"
+	"net/http"
+	"strings"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit-server/aws/usageReports/ec2"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws/ec2"
 )
 
 // makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
@@ -109,7 +109,8 @@ func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams ec2Que
 	return res, http.StatusOK, nil
 }
 
-func getEc2DailyData(ctx context.Context, params ec2QueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
+// getEc2DailyData gets EC2 daily reports and parse them based on query params
+func getEc2DailyData(ctx context.Context, params ec2QueryParams, user users.User, tx *sql.Tx) (int, []ec2.Report, error) {
 	searchResult, returnCode, err := makeElasticSearchEc2DailyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
@@ -128,7 +129,8 @@ func getEc2DailyData(ctx context.Context, params ec2QueryParams, user users.User
 	return http.StatusOK, res, nil
 }
 
-func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.User, tx *sql.Tx) (int, []Report, error) {
+// getEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it calls getEc2DailyData
+func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.User, tx *sql.Tx) (int, []ec2.Report, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
 	if err != nil {
 		return returnCode, nil, err
@@ -150,7 +152,8 @@ func getEc2Data(request *http.Request, parsedParams ec2QueryParams, user users.U
 	}
 }
 
-func getEc2UnusedData(request *http.Request, params ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []Instance, error) {
+// getEc2UnusedData gets EC2 reports and parse them based on query params to have an array of unused instances
+func getEc2UnusedData(request *http.Request, params ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []ec2.Instance, error) {
 	returnCode, reports, err := getEc2Data(request, ec2QueryParams{params.accountList, nil, params.date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err

@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -43,6 +43,9 @@ const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
 	"version": 4,
+	"settings": {
+		"index.mapping.total_fields.limit": 3000
+	},
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -100,6 +103,9 @@ const TemplateLineItem = `
 						"cost": {
 							"type": "float",
 							"index": false
+						},
+						"costDetail": {
+							"type": "nested"
 						}
 					}
 				}
