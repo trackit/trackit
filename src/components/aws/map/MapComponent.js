@@ -41,7 +41,7 @@ const generateTooltip = (region, data) => {
 
   const costValue = document.createElement("div");
   costValue.classList.add("tooltip-cost-value");
-  costValue.innerHTML = parseFloat(data.total.toFixed(2)).toLocaleString();
+  costValue.innerHTML = (data.total < 0.01 && data.total > 0 ? "<0.01" : parseFloat(data.total.toFixed(2)).toLocaleString());
 
   cost.appendChild(costIcon);
   cost.appendChild(costValue);
