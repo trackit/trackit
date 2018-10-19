@@ -87,7 +87,7 @@ func getUnusedEBsRecommendation(pluginParams core.PluginParams, pluginRes *core.
 	prepareResult(unusedByAZ, pluginRes)
 }
 
-// processUnusedEBS is the handler function for the unused_ebs plugin
+// processUnusedEBS is the handler function for the Unused EBS plugin
 // it takes a core.PluginParams struct and returns a core.PluginResult struct
 func processUnusedEBS(params core.PluginParams) core.PluginResult {
 	res := core.PluginResult{}
