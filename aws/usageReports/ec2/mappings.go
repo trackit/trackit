@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
-	"version": 4,
+	"version": 5,
 	"settings": {
 		"index.mapping.total_fields.limit": 3000
 	},
