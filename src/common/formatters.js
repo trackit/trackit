@@ -10,7 +10,11 @@ export const capitalizeFirstLetter = (value) => (value.charAt(0).toUpperCase() +
 export const formatBytes = (a,d = 2) => {if(0===a)return"0 Bytes";var c=1024,e=["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"],f=Math.floor(Math.log(a)/Math.log(c));return parseFloat((a/Math.pow(c,f)).toFixed(d))+""+e[f]};
 export const formatGigaBytes = (a,d = 2) => (formatBytes(a * Math.pow(1024,3), d));
 
-export const formatPrice = (value, decimals = 2) => (<span><span className="dollar-sign">$</span>{parseFloat(value).toFixed(decimals).toLocaleString()}</span>);
+export const formatPrice = (value, decimals = 2) => {
+  value = parseFloat(value);
+  return (<span><span className="dollar-sign">$</span>{(value < 0.01 && value > 0 ? "<0.01" : value.toFixed(decimals).toLocaleString())}</span>);
+};
+
 export const formatChartPrice = (value) => {
   if (value >= 1000000) {
     return `$${d3.format(',.0f')(value / 1000000)}M`;
