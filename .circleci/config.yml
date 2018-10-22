@@ -47,7 +47,7 @@ jobs:
           command: npm run build
       - deploy:
           name: Deploying
-          command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION
+          command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION --cache-control "max-age=3600"
       - run:
           name: Setup CloudFront
           command: aws configure set preview.cloudfront true
@@ -81,7 +81,7 @@ jobs:
           command: API_URL=$API_URL_STG npm run build
       - deploy:
           name: Deploying
-          command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION_STG
+          command: aws s3 sync --delete build/ $S3_DEPLOYMENT_DESTINATION_STG --cache-control "max-age=3600"
       - run:
           name: Setup CloudFront
           command: aws configure set preview.cloudfront true

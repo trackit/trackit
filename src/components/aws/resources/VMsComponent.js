@@ -265,7 +265,7 @@ export class VMsComponent extends Component {
                 Header: 'Average',
                 accessor: 'cpuAverage',
                 filterable: false,
-                Cell: row => (
+                Cell: row => (row.value && row.value >= 0 ? (
                   <div className="cpu-stats">
                     <Tooltip
                       placement="left"
@@ -293,13 +293,13 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                )
+                ) : "No data available")
               },
               {
                 Header: 'Peak',
                 accessor: 'cpuPeak',
                 filterable: false,
-                Cell: row => (
+                Cell: row => (row.value && row.value >= 0 ? (
                   <div className="cpu-stats">
                     <Tooltip
                       placement="right"
@@ -327,7 +327,7 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                )
+                ) : "No data available")
               }
             ]
           },
@@ -340,14 +340,14 @@ export class VMsComponent extends Component {
                 minWidth: 120,
                 filterable: false,
                 sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
-                Cell: row => (row.value ? (
+                Cell: row => (row.value ? (row.value.total >= 0 ? (
                   <div className="ioDetails">
                     <span>
                       {formatBytes(row.value.total)}
                     </span>
                     <Volumes volumes={row.value}/>
                   </div>
-                ) : null)
+                ) : "No data available") : null)
               },
               {
                 Header: 'Write',
@@ -355,14 +355,14 @@ export class VMsComponent extends Component {
                 minWidth: 120,
                 filterable: false,
                 sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
-                Cell: row => (row.value ? (
+                Cell: row => (row.value ? (row.value.total >= 0 ? (
                   <div className="ioDetails">
                     <span>
                       {formatBytes(row.value.total)}
                     </span>
                     <Volumes volumes={row.value}/>
                   </div>
-                ) : null)
+                ) : "No data available") : null)
               }
             ]
           },
@@ -373,13 +373,13 @@ export class VMsComponent extends Component {
                 Header: 'In',
                 accessor: 'networkIn',
                 filterable: false,
-                Cell: row => formatBytes(row.value)
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "No data available")
               },
               {
                 Header: 'Out',
                 accessor: 'networkOut',
                 filterable: false,
-                Cell: row => formatBytes(row.value)
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "No data available")
               }
             ]
           },
