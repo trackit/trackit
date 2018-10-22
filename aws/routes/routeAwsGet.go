@@ -247,6 +247,7 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 }
 
 func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAccount, tx *sql.Tx) (awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, err error){
+	timeLimit := time.Now().AddDate(0, 0, -7)
 	for _, aa := range awsAccounts {
 		aawbr := AwsAccountWithBillRepositories{
 			aa,
@@ -266,6 +267,13 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 				if update.BillRepositoryId == br.Id {
 					brwp.NextPending = *update.NextPending
 				}
+			}
+			dbBillRepository, err := models.AwsBillRepositoryByID(tx, br.Id)
+			if err != nil {
+				return nil, err
+			}
+			if dbBillRepository.LastImportedManifest.Before(timeLimit) {
+				brwp.NextPending = true
 			}
 			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
 		}

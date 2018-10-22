@@ -24,13 +24,13 @@ import (
 
 	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/service/marketplaceentitlementservice"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
 
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/awsSession"
 )
 
 // taskCheckEntitlement checks the user Entitlement for AWS Marketplace users
@@ -65,10 +65,7 @@ func taskCheckEntitlement(ctx context.Context) error {
 
 // getUserEntitlement calls getEntitlements function to retrieve specific user entitlement from AWS marketplace.
 func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement, error){
-	mySession := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(config.AwsRegion),
-	}))
-	svc := marketplaceentitlementservice.New(mySession)
+	svc := marketplaceentitlementservice.New(awsSession.Session)
 	var awsInput marketplaceentitlementservice.GetEntitlementsInput
 	var filter = make(map[string][]*string)
 	filter["CUSTOMER_IDENTIFIER"] = []*string{aws.String(customerIdentifier)}
@@ -89,13 +86,13 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 
 // checkUserEntitlement enables entitlement to be checked.
 func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) {
-	var expirationDate *time.Time
+	var expirationDate time.Time
 	res, err := getUserEntitlement(ctx, cuId)
 	if err != nil {
 		return err
 	}
 	for _, key := range res {
-		expirationDate = key.ExpirationDate
+		expirationDate = aws.TimeValue(key.ExpirationDate)
 	}
 	err = checkExpirationDate(expirationDate, ctx, db.Db, userId)
 	return err
@@ -103,7 +100,7 @@ func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) 
 
 // checkExpirationDate compares expiration date given by AWS to current time.
 // According to result, an update is pushed to db.
-func checkExpirationDate(expirationDate *time.Time, ctx context.Context, db *sql.DB, userId int) (error) {
+func checkExpirationDate(expirationDate time.Time, ctx context.Context, db *sql.DB, userId int) (error) {
 	var err error
 	currentTime := time.Now()
 	if expirationDate.After(currentTime) {
