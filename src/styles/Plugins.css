@@ -1,0 +1,26 @@
+.conformity-account .conformity-result {
+    padding: 20px;
+    border-top: 1px solid #efefef;
+}
+
+.conformity-account-header {
+    padding: 20px;
+}
+
+.conformity-account h4.conformity-account-title.white-box-title {
+    padding : 6px;
+}
+
+.conformity-account .progress {
+    height: 10px;
+    margin-bottom: 7px;
+}
+
+.conformity-account .conformity-result pre.details-pre {
+    max-height:120px;
+    overflow-y: scroll;
+}
+
+.conformity-account .conformity-result .icon-col {
+    text-align: center;
+}

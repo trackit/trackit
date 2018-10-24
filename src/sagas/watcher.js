@@ -3,6 +3,7 @@ import * as GCP from './gcp';
 import * as Auth from './auth';
 import * as User from './user';
 import * as Events from './events';
+import * as Plugins from './plugins';
 import * as Highlevel from './highlevel';
 import { takeEvery, takeLatest, fork, cancel } from 'redux-saga/effects';
 import {getDataSaga, saveDashboardSaga, loadDashboardSaga, initDashboardSaga, cleanDashboardSaga} from "./dashboardSaga";
@@ -55,5 +56,6 @@ export default {
   ...Dashboard,
   ...User,
   ...Events,
-  ...Highlevel
+  ...Highlevel,
+  ...Plugins,
 };
