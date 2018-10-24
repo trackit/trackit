@@ -27,6 +27,9 @@ type StatusPercentSteps struct {
 
 // GetStatus returns the status based on the parameters and on the configured steps
 func (steps StatusPercentSteps) GetStatus(checked, passed int) string {
+	if checked == 0 {
+		return "green"
+	}
 	percentSuccess := int(float64(passed) / float64(checked) * 100.0)
 	if percentSuccess >= steps.MinGreen && percentSuccess <= 100 {
 		return "green"
