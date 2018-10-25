@@ -65,6 +65,24 @@ func processEIP(pluginRes *core.PluginResult, region *string, eipRes *ec2.Descri
 	}
 }
 
+// fetchEIPInfos fetches EIP address infos for a given region
+func fetchEIPInfos(pluginParams core.PluginParams, region *string, eipChan chan EIP) error {
+	defer close(eipChan)
+	svc := utils.GetEc2ClientSession(pluginParams.AccountCredentials, region)
+	result, err := svc.DescribeAddresses(&ec2.DescribeAddressesInput{})
+	eip := EIP{
+		Region: region,
+	}
+	if err != nil {
+		eip.Err = err
+		eipChan <- eip
+		return err
+	}
+	eip.EIPRes = result
+	eipChan <- eip
+	return nil
+}
+
 // getUnattachedEIP searches for unused EIP in every region available
 // It takes a core.PluginParams struct and a *core.PluginResult as parameters
 func getUnattachedEIP(pluginParams core.PluginParams, pluginRes *core.PluginResult) {
@@ -75,15 +93,19 @@ func getUnattachedEIP(pluginParams core.PluginParams, pluginRes *core.PluginResu
 		pluginRes.Error = fmt.Sprintf("Unable to retrieve the list of regions: %s", err.Error())
 		return
 	}
+	EIPChans := make([]<-chan EIP, 0, len(regionsOutput.Regions))
 	for _, region := range regionsOutput.Regions {
-		svc = utils.GetEc2ClientSession(pluginParams.AccountCredentials, region.RegionName)
-		result, err := svc.DescribeAddresses(&ec2.DescribeAddressesInput{})
-		if err != nil {
+		eipChan := make(chan EIP)
+		go fetchEIPInfos(pluginParams, region.RegionName, eipChan)
+		EIPChans = append(EIPChans, eipChan)
+	}
+	for eip := range merge(EIPChans...) {
+		if eip.Err != nil {
 			pluginRes.Status = "red"
 			pluginRes.Error = fmt.Sprintf("Unable to list addresses: %s", err.Error())
 			return
 		}
-		processEIP(pluginRes, region.RegionName, result)
+		processEIP(pluginRes, eip.Region, eip.EIPRes)
 	}
 	prepareResult(pluginRes)
 }
