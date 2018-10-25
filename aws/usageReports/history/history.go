@@ -31,34 +31,27 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
+const numPartition = 5
+
 type (
 	// structures that allows to parse ES result
-	EsInstancePerProductResult struct {
-		Products struct {
+	EsRegionPerResourceResult struct {
+		Resources struct {
 			Buckets []struct {
-				Product   string                  `json:"key"`
-				Instances EsCostPerInstanceResult `json:"instances"`
+				Resource string                `json:"key"`
+				Regions  EsCostPerRegionResult `json:"regions"`
 			} `json:"buckets"`
 		} `json:"products"`
 	}
 
-	EsCostPerInstanceResult struct {
+	EsCostPerRegionResult struct {
 		Buckets []struct {
-			Instance string `json:"key"`
-			Cost     struct {
+			Region string `json:"key"`
+			Cost   struct {
 				Value float64 `json:"value"`
 			} `json:"cost"`
 		} `json:"buckets"`
 	}
-
-	// struct which contain the instance list for a product
-	ResourcePerProduct struct {
-		Product   string
-		Resources []utils.CostPerResource
-	}
-
-	// type that define the parsed response of ES
-	Response []ResourcePerProduct
 )
 
 // getHistoryDate return the begin and the end date of the last month
@@ -76,17 +69,17 @@ func getHistoryDate() (time.Time, time.Time) {
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client, aa aws.AwsAccount,
-	startDate time.Time, endDate time.Time) (*elastic.SearchResult, int, error) {
+	startDate, endDate time.Time, product string, partition int) (*elastic.SearchResult, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
-	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch", "AmazonRDS"))
+	query = query.Filter(elastic.NewTermQuery("productCode", product))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("products", elastic.NewTermsAggregation().Field("productCode").Size(0x7FFFFFFF).
-		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
+	search.Aggregation("resources", elastic.NewTermsAggregation().Field("resourceId").Size(utils.MaxAggregationSize).Partition(partition).NumPartitions(numPartition).
+		SubAggregation("regions", elastic.NewTermsAggregation().Field("availabilityZone").Size(utils.MaxAggregationSize).
 			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	result, err := search.Do(ctx)
 	if err != nil {
@@ -100,33 +93,72 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 	return result, http.StatusOK, nil
 }
 
-// getCostPerInstance returns the parsed result of ES
-// This response contains the list of the instances of products and the cost associated
-func getCostPerInstance(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (Response, error) {
-	var parsedResult EsInstancePerProductResult
-	var response Response
+// getCostPerResource returns the parsed result of ES
+// This response contains the list of the resources of the specified product with the cost and region associated
+func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time,
+	product string) ([]utils.CostPerResource, error) {
+	var parsedResult EsRegionPerResourceResult
+	response := make([]utils.CostPerResource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate)
-	if err != nil {
-		if returnCode != http.StatusOK {
-			return nil, err
-		} else {
-			return nil, nil
+	for i := 0; i < numPartition; i++ {
+		result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate, product, i)
+		if err != nil {
+			if returnCode != http.StatusOK {
+				return response, err
+			} else {
+				return response, nil
+			}
 		}
-	}
-	err = json.Unmarshal(*result.Aggregations["products"], &parsedResult.Products)
-	if err != nil {
-		logger.Error("Error while unmarshaling", err)
-		return nil, errors.New("Internal server error")
-	}
-	for _, product := range parsedResult.Products.Buckets {
-		res := ResourcePerProduct{product.Product, []utils.CostPerResource{}}
-		for _, instance := range product.Instances.Buckets {
-			res.Resources = append(res.Resources, utils.CostPerResource{instance.Instance, instance.Cost.Value, ""})
+		err = json.Unmarshal(*result.Aggregations["resources"], &parsedResult.Resources)
+		if err != nil {
+			logger.Error("Error while unmarshaling", err)
+			return response, errors.New("Internal server error")
 		}
-		response = append(response, res)
+		for _, resource := range parsedResult.Resources.Buckets {
+			element := utils.CostPerResource{resource.Resource, 0, ""}
+			for _, region := range resource.Regions.Buckets {
+				if region.Region != "" {
+					element.Region = region.Region
+				}
+				element.Cost += region.Cost.Value
+			}
+			response = append(response, element)
+		}
 	}
 	return response, nil
+}
+
+func concatErrors(tabError []error) error {
+	var stringError = ""
+	for _, err := range tabError {
+		if err != nil {
+			if stringError != "" {
+				stringError += " + "
+			}
+			stringError += err.Error()
+		}
+	}
+	if stringError != "" {
+		if len(stringError) > 254 {
+			stringError = stringError[0:254]
+		}
+		return errors.New(stringError)
+	}
+	return nil
+}
+
+// getInstanceInfo sort products and call history reports
+func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) error {
+	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
+	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
+	if ec2Err == nil && cloudWatchErr == nil {
+		ec2Err = ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+	}
+	rdsCost, rdsErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonRDS")
+	if rdsErr == nil {
+		rdsErr = rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
+	}
+	return concatErrors([]error{ec2Err, cloudWatchErr, rdsErr})
 }
 
 // checkBillingDataCompleted checks if billing data in ES are complete.
@@ -155,40 +187,6 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 	}
 }
 
-// getInstanceInfo sort products and call history reports
-func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, response Response, startDate time.Time, endDate time.Time) error {
-	var ec2Cost, cloudWatchCost, rdsCost []utils.CostPerResource
-	var stringError = ""
-	for _, product := range response {
-		switch product.Product {
-		case "AmazonEC2":
-			ec2Cost = product.Resources
-			break
-		case "AmazonCloudWatch":
-			cloudWatchCost = product.Resources
-			break
-		case "AmazonRDS":
-			rdsCost = product.Resources
-			break
-		}
-	}
-	errEc2 := ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
-	if errEc2 != nil {
-		stringError += errEc2.Error()
-	}
-	errRds := rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
-	if errRds != nil {
-		stringError += " + " + errRds.Error()
-	}
-	if stringError != "" {
-		if len(stringError) > 254 {
-			stringError = stringError[0:254]
-		}
-		return errors.New(stringError)
-	}
-	return nil
-}
-
 // FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
 func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -205,9 +203,5 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 		logger.Info("Billing data are not completed", nil)
 		return nil
 	}
-	response, err := getCostPerInstance(ctx, aa, startDate, endDate)
-	if err != nil {
-		return err
-	}
-	return getInstancesInfo(ctx, aa, response, startDate, endDate)
+	return getInstancesInfo(ctx, aa, startDate, endDate)
 }

@@ -25,81 +25,100 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/es"
 )
 
 const RDSStsSessionName = "fetch-rds"
 
 type (
-	// Report represents the report with all the information for RDS instances.
-	Report struct {
-		Account    string     `json:"account"`
-		ReportDate time.Time  `json:"reportDate"`
-		ReportType string     `json:"reportType"`
-		Instances  []Instance `json:"instances"`
+	// InstanceReport is saved in ES to have all the information of an RDS instance
+	InstanceReport struct {
+		Account    string    `json:"account"`
+		ReportDate time.Time `json:"reportDate"`
+		ReportType string    `json:"reportType"`
+		Instance   Instance  `json:"instance"`
 	}
 
-	// Instance represents all the information of a RDS instance.
+	// Instance contains the information of an RDS instance
 	Instance struct {
-		DBInstanceIdentifier string             `json:"dbInstanceIdentifier"`
-		DBInstanceClass      string             `json:"dbInstanceClass"`
-		AllocatedStorage     int64              `json:"allocatedStorage"`
-		Engine               string             `json:"engine"`
+		DBInstanceIdentifier string             `json:"id"`
 		AvailabilityZone     string             `json:"availabilityZone"`
+		DBInstanceClass      string             `json:"type"`
+		Engine               string             `json:"engine"`
+		AllocatedStorage     int64              `json:"allocatedStorage"`
 		MultiAZ              bool               `json:"multiAZ"`
-		Cost                 float64            `json:"cost"`
-		CostDetail           map[string]float64 `json:"costDetail"`
-		CpuAverage           float64            `json:"cpuAverage"`
-		CpuPeak              float64            `json:"cpuPeak"`
-		FreeSpaceMin         float64            `json:"freeSpaceMinimum"`
-		FreeSpaceMax         float64            `json:"freeSpaceMaximum"`
-		FreeSpaceAve         float64            `json:"freeSpaceAverage"`
+		Costs                map[string]float64 `json:"costs"`
+		Stats                Stats              `json:"stats"`
 	}
 
-	// instanceStats contains statistics of an instance get by CloudWatch
-	instanceStats struct {
-		CpuAverage   float64
-		CpuPeak      float64
-		FreeSpaceMin float64
-		FreeSpaceMax float64
-		FreeSpaceAve float64
+	// Stats contains statistics of an instance get on CloudWatch
+	Stats struct {
+		Cpu       Cpu       `json:"cpu"`
+		FreeSpace FreeSpace `json:"freeSpace"`
+	}
+
+	// Cpu contains cpu statistics of an instance
+	Cpu struct {
+		Average float64 `json:"average"`
+		Peak    float64 `json:"peak"`
+	}
+
+	// FreeSpace contains free space statistics of an instance
+	FreeSpace struct {
+		Minimum float64 `json:"minimum"`
+		Maximum float64 `json:"maximum"`
+		Average float64 `json:"average"`
 	}
 )
 
-// importReportToEs saves a report into elasticsearch
-func importReportToEs(ctx context.Context, aa taws.AwsAccount, report Report) error {
+// importInstancesToEs imports RDS instances in ElasticSearch.
+// It calls createIndexEs if the index doesn't exist.
+func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating RDS report for AWS account.", map[string]interface{}{
+	logger.Info("Updating RDS instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	client := es.Client
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixRDSReport)
+	bp, err := utils.GetBulkProcessor(ctx)
+	if err != nil {
+		logger.Error("Failed to get bulk processor.", err.Error())
+		return err
+	}
+	for _, instance := range instances {
+		id, err := generateId(instance)
+		if err != nil {
+			logger.Error("Error when marshaling instance var", err.Error())
+			return err
+		}
+		bp = utils.AddDocToBulkProcessor(bp, instance, TypeRDSReport, index, id)
+	}
+	bp.Flush()
+	err = bp.Close()
+	if err != nil {
+		logger.Error("Fail to put RDS instances in ES", err.Error())
+		return err
+	}
+	logger.Info("RDS instances put in ES", nil)
+	return nil
+}
+
+func generateId(instance InstanceReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
+		Id         string    `json:"id"`
 	}{
-		report.Account,
-		report.ReportDate,
+		instance.Account,
+		instance.ReportDate,
+		instance.Instance.DBInstanceIdentifier,
 	})
 	if err != nil {
-		logger.Error("Error when marshaling instance var", err.Error())
-		return err
+		return "", err
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixRDSReport)
-	if res, err := client.
-		Index().
-		Index(index).
-		Type(TypeRDSReport).
-		BodyJson(report).
-		Id(hash64).
-		Do(context.Background()); err != nil {
-		logger.Error("Error when putting RDSReport in ES", err.Error())
-		return err
-	} else {
-		logger.Info("RDSReport put in ES", *res)
-		return nil
-	}
+	return hash64, nil
 }
 
 // merge function from https://blog.golang.org/pipelines#TOC_4

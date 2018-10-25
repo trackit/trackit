@@ -68,27 +68,23 @@ func getInstanceFreeSpaceStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwa
 }
 
 // getInstanceStats gets the instance stats from CloudWatch
-func getInstanceStats(ctx context.Context, instance *rds.DBInstance, sess *session.Session, start, end time.Time) instanceStats {
+func getInstanceStats(ctx context.Context, instance *rds.DBInstance, sess *session.Session, start, end time.Time) Stats {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
 	dimensions := []*cloudwatch.Dimension{{
 		Name:  aws.String("DBInstanceIdentifier"),
 		Value: aws.String(aws.StringValue(instance.DBInstanceIdentifier)),
-	},
-	}
-	CpuAverage, CpuPeak, err := getInstanceCPUStats(svc, dimensions, start, end)
+	}}
+	var stats Stats
+	var err error
+	stats.Cpu.Peak, stats.Cpu.Average, err = getInstanceCPUStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
 	}
-	freeSpaceMin, freeSpaceMax, freeSpaceAve, err := getInstanceFreeSpaceStats(svc, dimensions, start, end)
+	stats.FreeSpace.Minimum, stats.FreeSpace.Maximum,
+		stats.FreeSpace.Average, err = getInstanceFreeSpaceStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching IO stats from CloudWatch", err.Error())
 	}
-	return instanceStats{
-		CpuAverage,
-		CpuPeak,
-		freeSpaceMin,
-		freeSpaceMax,
-		freeSpaceAve,
-	}
+	return stats
 }
