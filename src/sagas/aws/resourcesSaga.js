@@ -1,5 +1,4 @@
 import { put, call } from 'redux-saga/effects';
-import Moment from 'moment';
 import API from '../../api';
 import Constants from '../../constants';
 import {getAWSAccounts, getToken} from "../misc";
@@ -24,14 +23,8 @@ export function* getRDSReportSaga({date}) {
   try {
     const token = yield getToken();
     const accounts = yield getAWSAccounts();
-    let res;
-    if (date.isSameOrAfter(Moment().startOf('months')))
-      res = yield call(API.AWS.Resources.getRDS, token, accounts);
-    else {
-//      res = yield call(API.AWS.Resources.getRDSHistory, token, date, accounts);
-      yield put({ type: Constants.AWS_RESOURCES_GET_RDS_SUCCESS, report: [] });
-      return;
-    }
+    const res = yield call(API.AWS.Resources.getRDS, token, date, accounts);
+    yield put({ type: Constants.AWS_RESOURCES_GET_RDS_SUCCESS, report: [] });
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_RESOURCES_GET_RDS_SUCCESS, report: res.data });
     else if (res.success && res.data.hasOwnProperty("error"))
