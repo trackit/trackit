@@ -66,7 +66,7 @@ export class Item extends Component {
     if (this.hasError())
       return (<ListItem divider className="account-alert"><div className="alert alert-danger account-badge-information-banner">Import failed, please check your bills locations.</div></ListItem>);
     else if (this.hasNextPending())
-      return (<ListItem divider className="account-alert"><div className="alert alert-warning account-badge-information-banner">Import may take 2-3 minutes, please wait.</div></ListItem>);
+      return (<ListItem divider className="account-alert"><div className="alert alert-warning account-badge-information-banner">Import may take up to 24 hours, please wait.</div></ListItem>);
     return null;
   };
 
