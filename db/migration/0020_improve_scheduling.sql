@@ -12,9 +12,6 @@
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_bill_repository DROP COLUMN grace_update;
-ALTER TABLE aws_account DROP COLUMN grace_update, DROP COLUMN grace_update_plugins;
-
 CREATE OR REPLACE VIEW aws_bill_repository_due_update AS
 	SELECT * FROM aws_bill_repository WHERE next_update <= NOW()
 ;
@@ -26,3 +23,6 @@ CREATE OR REPLACE VIEW aws_account_due_update AS
 CREATE OR REPLACE VIEW aws_account_plugins_due_update AS
 	SELECT * FROM aws_account WHERE next_update_plugins <= NOW()
 ;
+
+ALTER TABLE aws_bill_repository DROP COLUMN grace_update;
+ALTER TABLE aws_account DROP COLUMN grace_update, DROP COLUMN grace_update_plugins;
