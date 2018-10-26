@@ -7,6 +7,8 @@ import { Route } from 'react-router-dom';
 import Containers from './containers';
 import Actions from "./actions";
 import SnackBar from './components/misc/Snackbar';
+import Config from './config';
+
 // Use named export for unconnected component (for tests)
 export class App extends Component {
 
@@ -76,6 +78,15 @@ export class App extends Component {
         );
       }
     }
+
+    if (this.props.userMail && Config.intercomId) {
+      window.intercomSettings = {
+        app_id: Config.intercomId,
+        name: this.props.userMail, // Full name
+        email: this.props.userMail, // Email address
+      };  
+    }
+  
 
     return (
       <div>
@@ -154,7 +165,8 @@ App.propTypes = {
 /* istanbul ignore next */
 const mapStateToProps = ({aws, auth}) => ({
   accounts: aws.accounts.all,
-  token: auth.token
+  token: auth.token,
+  userMail: auth.mail,
 });
 
 /* istanbul ignore next */
