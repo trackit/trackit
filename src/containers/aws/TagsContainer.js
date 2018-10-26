@@ -8,6 +8,7 @@ import Actions from '../../actions';
 
 const Panel = Components.Misc.Panel;
 const Chart = Components.AWS.Tags.Chart;
+const SetupHelp = Components.AWS.Tags.SetupHelp;
 
 // This function will hide NVD3 tooltips to avoid ghost tooltips to stay on screen when chart they are linked to is updated or deleted
 // Similar issue : https://github.com/novus/nvd3/issues/1262
@@ -85,6 +86,7 @@ export class TagsContainer extends Component {
           &nbsp;
           Tags
         </h3>
+        <SetupHelp />
         <div className="inline-block pull-right">
           <button className="btn btn-default inline-block" onClick={this.addChart}>
             <i className="menu-icon fa fa-pie-chart"/>
