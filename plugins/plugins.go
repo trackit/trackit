@@ -15,5 +15,6 @@
 package plugins
 
 import (
+	_ "github.com/trackit/trackit-server/plugins/account/unattachedEIP"
 	_ "github.com/trackit/trackit-server/plugins/account/unusedEBS"
 )
