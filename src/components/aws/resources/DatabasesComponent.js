@@ -162,7 +162,16 @@ export class DatabasesComponent extends Component {
             id: 'cost',
             accessor: d => d.cost || 0,
             filterable: false,
-            Cell: row => (formatPrice(row.value))
+            Cell: row => {
+              if (row.value === 0 && Object.keys(row.original.costDetail).length === 0) {
+                return <span>
+                  N/A
+                  <Tooltip tooltip='Cost data are unavailable for this timerange. Please check again later.' info triggerStyle={{ fontSize: '0.9em', color: 'inherit' }} />
+                </span>;
+              } else {
+                return (formatPrice(row.value));
+              }
+            }
           },
           {
             Header: 'Engine',
