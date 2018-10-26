@@ -18,4 +18,5 @@ package plugins_utils
 // Any new category should be added in the map
 var PluginsCategories = map[string]string{
 	"EC2": "EC2",
+	"S3":  "S3",
 }
