@@ -86,6 +86,9 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccount) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, plugin := range core.RegisteredAccountPlugins {
+		if plugin.PayerAccountOnly == true && aa.Payer == false {
+			continue
+		}
 		accountId := es.GetAccountIdFromRoleArn(aa.RoleArn)
 		pluginResultES := core.PluginResultES{
 			Account:    accountId,
