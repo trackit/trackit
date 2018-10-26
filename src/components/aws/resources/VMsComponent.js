@@ -302,7 +302,7 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               },
               {
                 Header: 'Peak',
@@ -336,7 +336,7 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               }
             ]
           },
@@ -356,7 +356,7 @@ export class VMsComponent extends Component {
                     </span>
                     <Volumes volumes={row.value}/>
                   </div>
-                ) : "No data available") : null)
+                ) : "N/A") : null)
               },
               {
                 Header: 'Write',
@@ -371,7 +371,7 @@ export class VMsComponent extends Component {
                     </span>
                     <Volumes volumes={row.value}/>
                   </div>
-                ) : "No data available") : null)
+                ) : "N/A") : null)
               }
             ]
           },
@@ -382,13 +382,13 @@ export class VMsComponent extends Component {
                 Header: 'In',
                 accessor: 'networkIn',
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "No data available")
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
               },
               {
                 Header: 'Out',
                 accessor: 'networkOut',
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "No data available")
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
               }
             ]
           },

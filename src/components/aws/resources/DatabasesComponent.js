@@ -52,7 +52,7 @@ export class UnusedStorage extends Component {
             className="unusedStorage-list"
             onClick={this.handlePopoverClose}
           >
-            {Object.keys(this.props.data).map((item, index) => (<div key={index} className="unusedStorage-item">{item} : {this.props.data[item] >= 0 ? formatBytes(this.props.data[item]) : "No data available"}</div>))}
+            {Object.keys(this.props.data).map((item, index) => (<div key={index} className="unusedStorage-item">{item} : {this.props.data[item] >= 0 ? formatBytes(this.props.data[item]) : "N/A"}</div>))}
           </div>
         </Popover>
         <div
@@ -219,7 +219,7 @@ export class DatabasesComponent extends Component {
                 Header: 'Unused',
                 accessor: 'freeSpaceAverage',
                 filterable: false,
-                Cell: row => (row.value & row.value >= 0 ? (
+                Cell: row => (row.value && row.value >= 0 ? (
                   <div className="unusedStorageDetails">
                     <span>
                       {formatBytes(row.value)}
@@ -230,7 +230,7 @@ export class DatabasesComponent extends Component {
                       Maximum: row.original.freeSpaceMaximum
                     }}/>
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               },
             ]
           },
@@ -269,7 +269,7 @@ export class DatabasesComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               },
               {
                 Header: 'Peak',
@@ -303,7 +303,7 @@ export class DatabasesComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               }
             ]
           },
