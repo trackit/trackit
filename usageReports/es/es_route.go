@@ -42,12 +42,12 @@ type (
 
 var (
 	esQueryArgs = []routes.QueryArg{
-		routes.AwsAccountIdsOptionalQueryArg,
+		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
 	}
 
 	esUnusedQueryArgs = []routes.QueryArg{
-		routes.AwsAccountIdsOptionalQueryArg,
+		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
 		routes.QueryArg{
 			Name:        "count",

@@ -45,7 +45,7 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 		return err
 	}
 	domains, err := svc.DescribeElasticsearchDomains(&elasticsearchservice.DescribeElasticsearchDomainsInput{
-		DomainNames: transformDomainsListToSting(domainNames.DomainNames),
+		DomainNames: transformDomainsListToString(domainNames.DomainNames),
 	})
 	if err != nil {
 		logger.Error("Error when describing domains", err.Error())
@@ -87,7 +87,7 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 // FetchDomainsStats retrieces ES information from the AWS API and generate a report
 func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching domain stats for "+string(awsAccount.Id)+" ("+awsAccount.Pretty+")", nil)
+	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorDomainStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
@@ -97,7 +97,7 @@ func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
-	account, err := GetAccountId(ctx, defaultSession)
+	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
 		return err
@@ -108,7 +108,7 @@ func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		"daily",
 		make([]Domain, 0),
 	}
-	regions, err := fetchRegionsList(ctx, defaultSession)
+	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
 		return err

@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 // getDomainCPUStats gets the CPU average and the CPU peak from CloudWatch
@@ -88,9 +89,10 @@ func getDomainJVMMemoryPressure(svc *cloudwatch.CloudWatch, dimensions []*cloudw
 func getDomainStats(ctx context.Context, domain string, sess *session.Session, start, end time.Time) (DomainStats, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
-	accountId, err := GetAccountId(ctx, sess)
+	accountId, err := utils.GetAccountId(ctx, sess)
 	if err != nil {
 		logger.Error("Error while getting the account id", err.Error())
+		return DomainStats{}, err
 	}
 	dimensions := []*cloudwatch.Dimension{
 		{
@@ -105,17 +107,14 @@ func getDomainStats(ctx context.Context, domain string, sess *session.Session, s
 	CPUUtilizationAverage, CPUUtilizationPeak, err := getDomainCPUStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
-		return DomainStats{}, nil
 	}
 	FreeStorageSpace, err := getDomainFreeStorage(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching storage stats from CloudWatch", err.Error())
-		return DomainStats{}, nil
 	}
 	JVMMemoryPressurePeak, JVMMemoryPressureAverage, err := getDomainJVMMemoryPressure(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching JVM Memory stats from CloudWatch", err.Error())
-		return DomainStats{}, nil
 	}
 	return DomainStats{
 		CPUUtilizationAverage,

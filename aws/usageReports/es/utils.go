@@ -23,10 +23,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
-	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit-server/aws"
@@ -65,6 +62,7 @@ type (
 		CostDetail               map[string]float64 `json:"costDetail"`
 	}
 
+	// DomainStats contains statistic of a domain gotten by CloudWatch
 	DomainStats struct {
 		CPUUtilizationAverage    float64
 		CPUUtiliztionPeak        float64
@@ -74,7 +72,7 @@ type (
 	}
 )
 
-func transformDomainsListToSting(domainNames []*elasticsearchservice.DomainInfo) []*string {
+func transformDomainsListToString(domainNames []*elasticsearchservice.DomainInfo) []*string {
 	res := make([]*string, 0)
 	for _, domain := range domainNames {
 		res = append(res, domain.DomainName)
@@ -82,7 +80,7 @@ func transformDomainsListToSting(domainNames []*elasticsearchservice.DomainInfo)
 	return res
 }
 
-// importDomainsToEs imports an array of Domain in ElasticSearch.
+// importReportToEs imports an Report in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
 func importReportToEs(ctx context.Context, aa taws.AwsAccount, report Report) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -118,18 +116,6 @@ func importReportToEs(ctx context.Context, aa taws.AwsAccount, report Report) er
 	return nil
 }
 
-// GetAccountId gets the AWS Account ID for the given credentials
-func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	svc := sts.New(sess)
-	res, err := svc.GetCallerIdentity(nil)
-	if err != nil {
-		logger.Error("Error when getting caller identity", err.Error())
-		return "", err
-	}
-	return aws.StringValue(res.Account), nil
-}
-
 // getDomainTag formats []*elasticsearchservice.Tag to map[string]string
 func getDomainTag(tags []*elasticsearchservice.Tag) map[string]string {
 	res := make(map[string]string)
@@ -137,22 +123,6 @@ func getDomainTag(tags []*elasticsearchservice.Tag) map[string]string {
 		res[aws.StringValue(tag.Key)] = aws.StringValue(tag.Value)
 	}
 	return res
-}
-
-// fetchRegionsList fetchs the regions list from AWS and returns an array of their name.
-func fetchRegionsList(ctx context.Context, sess *session.Session) ([]string, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	svc := ec2.New(sess)
-	regions, err := svc.DescribeRegions(nil)
-	if err != nil {
-		logger.Error("Error when describing regions", err.Error())
-		return []string{}, err
-	}
-	res := make([]string, 0)
-	for _, region := range regions.Regions {
-		res = append(res, aws.StringValue(region.RegionName))
-	}
-	return res, nil
 }
 
 // merge function from https://blog.golang.org/pipelines#TOC_4

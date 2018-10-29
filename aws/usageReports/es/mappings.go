@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-es-reports",
-	"version": 4,
+	"version": 1,
 	"mappings": {
 		"es-report": {
 			"properties": {

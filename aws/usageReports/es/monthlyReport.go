@@ -16,7 +16,6 @@ package es
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -59,7 +58,6 @@ func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials
 			logger.Error("Error while getting Domain stats", err.Error())
 			return err
 		}
-		logger.Info(fmt.Sprintf("Domain report : \n%+#v\nStats : \n%+#v\n", domain, stats), nil)
 		detail := make(map[string]float64, 0)
 		detail["domain"] = domainCost.Cost
 		domainChan <- Domain{
@@ -157,7 +155,6 @@ func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa 
 		logger.Info("There is already an ES monthly report", nil)
 		return nil
 	}
-	logger.Info(fmt.Sprintf("costInstances : \n%+#v\n", costInstance), nil)
 	report, err := getEsMetrics(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {
 		return err

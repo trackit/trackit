@@ -36,33 +36,6 @@ import (
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empy data
-// func makeElasticSearchEsRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
-// 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-// 	index := strings.Join(parsedParams.indexList, ",")
-// 	searchService := GetElasticSearchEsParams(
-// 		parsedParams.accountList,
-// 		es.Client,
-// 		index,
-// 	)
-// 	res, err := searchService.Do(ctx)
-// 	if err != nil {
-// 		if elastic.IsNotFound(err) {
-// 			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-// 			return nil, http.StatusOK, err
-// 		}
-// 		l.Error("Query execution failed : "+err.Error(), nil)
-// 		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
-// 	}
-// 	return res, http.StatusOK, nil
-// }
-
-// makeElasticSearchEsRequest prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
 func makeElasticSearchCostRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")

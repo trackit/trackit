@@ -174,7 +174,7 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 	return nil
 }
 
-// processAccountHistoryRDS processes aEC2 data with billing data for an AwsAccount (only EC2 for now)
+// processAccountHistoryRDS processes EC2, RDS and ES data with billing data for an AwsAccount
 func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 	err := history.FetchHistoryInfos(ctx, aa)
 	if err != nil {
