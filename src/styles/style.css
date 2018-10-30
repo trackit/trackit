@@ -649,6 +649,7 @@ h4.no-data {
 
 .tags-list,
 .volumes-list,
+.costs-list,
 .unusedStorage-list {
     padding: 10px;
     border: 1px solid #ddd;
@@ -656,6 +657,7 @@ h4.no-data {
 
 .tags-item,
 .volumes-item,
+.costs-item,
 .unusedStorage-item {
     padding: 10px 5px;
     border-bottom: 1px solid #ddd;
@@ -663,6 +665,7 @@ h4.no-data {
 
 .tags-item:last-child,
 .volumes-item:last-child,
+.costs-item:last-child,
 .unusedStorage-item:last-child {
     border-bottom: none;
 }

@@ -7,70 +7,15 @@ import Moment from "moment";
 import Misc from '../../misc';
 import ReactTable from "react-table";
 import {formatGigaBytes, formatPrice, formatBytes, formatPercent} from "../../../common/formatters";
-import Popover from "@material-ui/core/Popover/Popover";
+import UnusedStorage from './misc/UnusedStorage';
+import Costs from "./misc/Costs";
 
 const Tooltip = Misc.Popover;
 
-export class UnusedStorage extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      showPopOver: false
-    };
-    this.handlePopoverOpen = this.handlePopoverOpen.bind(this);
-    this.handlePopoverClose = this.handlePopoverClose.bind(this);
-  }
-
-  handlePopoverOpen = (e) => {
-    e.preventDefault();
-    this.setState({ showPopOver: true });
-  };
-
-  handlePopoverClose = (e) => {
-    e.preventDefault();
-    this.setState({ showPopOver: false });
-  };
-
-  render() {
-    return (
-      <div>
-        <Popover
-          open={this.state.showPopOver}
-          anchorEl={this.anchor}
-          onClose={this.handlePopoverClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
-          <div
-            className="unusedStorage-list"
-            onClick={this.handlePopoverClose}
-          >
-            {Object.keys(this.props.data).map((item, index) => (<div key={index} className="unusedStorage-item">{item} : {this.props.data[item] >= 0 ? formatBytes(this.props.data[item]) : "N/A"}</div>))}
-          </div>
-        </Popover>
-        <div
-          ref={node => {
-            this.anchor = node;
-          }}
-          onClick={this.handlePopoverOpen}
-        >
-          <Tooltip placement="right" info tooltip="Click to see more details"/>
-        </div>
-      </div>
-    );
-  }
-
-}
-
-UnusedStorage.propTypes = {
-  data: PropTypes.object.isRequired
+const getTotalCost = (costs) => {
+  let total = 0;
+  Object.keys(costs).forEach((key) => total += costs[key]);
+  return total;
 };
 
 export class DatabasesComponent extends Component {
@@ -91,27 +36,27 @@ export class DatabasesComponent extends Component {
     let reportDate = null;
     let instances = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
+      instances = this.props.data.value.map((item) => item.instance);
+      const reportsDates = this.props.data.value.map((item) => (Moment(item.reportDate)));
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
       reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd D MMM HH:mm") + " and " + newestReport.format("ddd D MMM HH:mm")}/>);
-      instances = [].concat.apply([], this.props.data.value.map((account) => (account.instances)));
     }
 
     const availabilityZones = [];
-    const dbInstanceClasses = [];
+    const types = [];
     const engines = [];
     if (instances)
       instances.forEach((instance) => {
         if (availabilityZones.indexOf(instance.availabilityZone) === -1)
           availabilityZones.push(instance.availabilityZone);
-        if (dbInstanceClasses.indexOf(instance.dbInstanceClass) === -1)
-          dbInstanceClasses.push(instance.dbInstanceClass);
+        if (types.indexOf(instance.type) === -1)
+          types.push(instance.type);
         if (engines.indexOf(instance.engine) === -1)
           engines.push(instance.engine);
       });
     availabilityZones.sort();
-    dbInstanceClasses.sort();
+    types.sort();
     engines.sort();
 
     const list = (!loading && !error ? (
@@ -123,13 +68,13 @@ export class DatabasesComponent extends Component {
         columns={[
           {
             Header: 'Name',
-            accessor: 'dbInstanceIdentifier',
+            accessor: 'id',
             minWidth: 150,
             Cell: row => (<strong>{row.value}</strong>)
           },
           {
             Header: 'Type',
-            accessor: 'dbInstanceClass',
+            accessor: 'type',
             filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
             Filter: ({ filter, onChange }) => (
               <select
@@ -138,7 +83,7 @@ export class DatabasesComponent extends Component {
                 value={filter ? filter.value : "all"}
               >
                 <option value="all">Show All</option>
-                {dbInstanceClasses.map((type, index) => (<option key={index} value={type}>{type}</option>))}
+                {types.map((type, index) => (<option key={index} value={type}>{type}</option>))}
               </select>
             )
           },
@@ -159,19 +104,23 @@ export class DatabasesComponent extends Component {
           },
           {
             Header: 'Cost',
-            id: 'cost',
-            accessor: d => d.cost || 0,
+            accessor: 'costs',
             filterable: false,
-            Cell: row => {
-              if (row.value === 0 && Object.keys(row.original.costDetail).length === 0) {
-                return <span>
+            sortMethod: (a, b) => (a && b && getTotalCost(a) > getTotalCost(b) ? 1 : -1),
+            Cell: row => (row.value && Object.keys(row.value).length !== 0 ? (
+                <div className="unusedStorageDetails">
+                    <span>
+                      {formatPrice(getTotalCost(row.value))}
+                    </span>
+                  <Costs costs={row.value}/>
+                </div>
+              ) : (
+                <span>
                   N/A
                   <Tooltip tooltip='Cost data are unavailable for this timerange. Please check again later.' info triggerStyle={{ fontSize: '0.9em', color: 'inherit' }} />
-                </span>;
-              } else {
-                return (formatPrice(row.value));
-              }
-            }
+                </span>
+              )
+            )
           },
           {
             Header: 'Engine',
@@ -217,18 +166,15 @@ export class DatabasesComponent extends Component {
               },
               {
                 Header: 'Unused',
-                accessor: 'freeSpaceAverage',
+                id: 'unusedStorage',
+                accessor: d => d.stats.freeSpace || null,
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? (
+                Cell: row => (row.value && row.value.average !== undefined && row.value.average >= 0 ? (
                   <div className="unusedStorageDetails">
                     <span>
-                      {formatBytes(row.value)}
+                      {formatBytes(row.value.average)}
                     </span>
-                    <UnusedStorage data={{
-                      Average: row.value,
-                      Minimum: row.original.freeSpaceMinimum,
-                      Maximum: row.original.freeSpaceMaximum
-                    }}/>
+                    <UnusedStorage data={row.value}/>
                   </div>
                 ) : "N/A")
               },
@@ -239,7 +185,8 @@ export class DatabasesComponent extends Component {
             columns: [
               {
                 Header: 'Average',
-                accessor: 'cpuAverage',
+                id: 'averageCPU',
+                accessor: d => d.stats.cpu.average || null,
                 filterable: false,
                 Cell: row => (row.value && row.value >= 0 ? (
                   <div className="cpu-stats">
@@ -273,7 +220,8 @@ export class DatabasesComponent extends Component {
               },
               {
                 Header: 'Peak',
-                accessor: 'cpuPeak',
+                id: 'peakCPU',
+                accessor: d => d.stats.cpu.peak || null,
                 filterable: false,
                 Cell: row => (row.value && row.value >= 0 ? (
                   <div className="cpu-stats">
@@ -341,14 +289,26 @@ DatabasesComponent.propTypes = {
     value: PropTypes.arrayOf(PropTypes.shape({
       account: PropTypes.string.isRequired,
       reportDate: PropTypes.string.isRequired,
-      instances: PropTypes.arrayOf(PropTypes.shape({
-        dbInstanceIdentifier: PropTypes.string.isRequired,
-        dbInstanceClass: PropTypes.string.isRequired,
+      instance: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        type: PropTypes.string.isRequired,
         availabilityZone: PropTypes.string.isRequired,
         engine: PropTypes.string.isRequired,
         multiAZ: PropTypes.bool.isRequired,
-        allocatedStorage: PropTypes.number.isRequired
-      }))
+        allocatedStorage: PropTypes.number.isRequired,
+        costs: PropTypes.object,
+        stats: PropTypes.shape({
+          cpu: PropTypes.shape({
+            average: PropTypes.number,
+            peak: PropTypes.number
+          }),
+          freeSpace: PropTypes.shape({
+            minimum: PropTypes.number,
+            maximum: PropTypes.number,
+            average: PropTypes.number
+          })
+        })
+      })
     }))
   }),
   getData: PropTypes.func.isRequired,

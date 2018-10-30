@@ -4,6 +4,11 @@ import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { formatPrice } from '../../common/formatters';
 
+const getTotalCost = (costs) => {
+  let total = 0;
+  Object.keys(costs).forEach((key) => total += costs[key]);
+  return total;
+};
 
 class TopUnusedComponent extends Component {
     getTotalItemsNB(unused) {
@@ -14,13 +19,13 @@ class TopUnusedComponent extends Component {
         return res;
     }
 
-    getPotentialsSavings(unused ) {
+    getPotentialsSavings(unused) {
         let res = 0;
 
         if (unused.ec2 && unused.ec2.status && unused.ec2.values) {
             for (let i = 0; i < unused.ec2.values.length; i++) {
                 const element = unused.ec2.values[i];
-                res += element.cost;
+                res += getTotalCost(element.instance.costs);
             }
         }
         return res;
@@ -35,15 +40,15 @@ class TopUnusedComponent extends Component {
             for (let i = 0; i < ec2.values.length; i++) {
                 const element = ec2.values[i];
                 unused.push(
-                    <tr key={element.id}>
+                    <tr key={element.instance.id}>
                         <td className="badge-cell">
                             <span className="badge blue-bg">
                                 EC2
                             </span>
                         </td>
-                        <td>{element.tags.Name ? element.tags.Name : element.id}</td>
-                        <td><strong>{formatPrice(element.cost)}</strong></td>
-                        <td><i className="fa fa-microchip blue-color"></i> CPU avg is low : {element.cpuAverage.toFixed(1)}%</td>
+                        <td>{element.instance.tags.Name ? element.instance.tags.Name : element.instance.id}</td>
+                        <td><strong>{formatPrice(getTotalCost(element.instance.costs))}</strong></td>
+                        <td><i className="fa fa-microchip blue-color"></i> CPU avg is low : {element.instance.stats.cpu.average.toFixed(1)}%</td>
                     </tr>
                 );
             }

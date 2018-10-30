@@ -25,28 +25,38 @@ const propsWithData = {
       {
         account: '420',
         reportDate: Moment().toISOString(),
-        instances: [
-          {
-            id: '42',
-            state: 'running',
-            region: 'us-west-1',
-            cpuAverage: 42,
-            cpuPeak: 42,
-            ioRead: {
-              internal: 42
+        instance: {
+          id: '42',
+          state: 'running',
+          region: 'us-west-1',
+          keyPair: 'key',
+          type: 'type',
+          purchasing: 'value',
+          tags: {
+            Name: 'name'
+          },
+          costs: {
+            instance: 42
+          },
+          stats: {
+            cpu: {
+              average: 42,
+              peak: 42
             },
-            ioWrite: {
-              internal: 42
+            network: {
+              in: 42,
+              out: 42
             },
-            networkIn: 42,
-            networkOut: 42,
-            keyPair: 'key',
-            type: 'type',
-            tags: {
-              Name: 'name'
+            volumes: {
+              read: {
+                internal: 42
+              },
+              write: {
+                internal: 42
+              }
             }
           }
-        ]
+        }
       }
     ]
   }
