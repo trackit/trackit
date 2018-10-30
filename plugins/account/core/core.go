@@ -27,11 +27,12 @@ import (
 // AccountPlugin is the struct that defines the variables and functions a plugin
 // needs to use
 type AccountPlugin struct {
-	Name        string
-	Description string
-	Category    string
-	Label       string
-	Func        PluginFunc
+	Name             string
+	Description      string
+	Category         string
+	Label            string
+	Func             PluginFunc
+	PayerAccountOnly bool
 }
 
 // PluginParams is the struct that is passed as a parameter for each plugin
