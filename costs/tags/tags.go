@@ -132,8 +132,8 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	parsedParams := tagsKeysQueryParams{
 		AccountList: []string{},
 		IndexList:   []string{},
-		DateBegin:   a[tagsValuesQueryArgs[1]].(time.Time),
-		DateEnd:     a[tagsValuesQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
+		DateBegin:   a[tagsKeysQueryArgs[1]].(time.Time),
+		DateEnd:     a[tagsKeysQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 	}
 	if a[tagsKeysQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsKeysQueryArgs[0]].([]string)
