@@ -5,24 +5,51 @@ import { shallow } from "enzyme";
 
 const UnusedComponent = Components.HighLevel.TopUnused;
 
+const instance = {
+  account: '420',
+  reportDate: moment().toISOString(),
+  instance: {
+    id: '42',
+    state: 'running',
+    region: 'us-west-1',
+    keyPair: 'key',
+    type: 'type',
+    purchasing: 'value',
+    tags: {
+      Name: 'name'
+    },
+    costs: {
+      instance: 42
+    },
+    stats: {
+      cpu: {
+        average: 42,
+        peak: 42
+      },
+      network: {
+        in: 42,
+        out: 42
+      },
+      volumes: {
+        read: {
+          internal: 42
+        },
+        write: {
+          internal: 42
+        }
+      }
+    }
+  }
+};
+
 const props = {
     date: moment().startOf('month'),
     unused: {
         ec2: {
             status: true,
             values: [
-                {
-                    id: "1234",
-                    cost: 123,
-                    cpuAverage: 2,
-                    tags: {},
-                },
-                {
-                    id: "2234",
-                    cost: 223,
-                    cpuAverage: 3,
-                    tags: {},
-                }
+              instance,
+              instance
             ],
         },      
     }
@@ -40,7 +67,7 @@ const propsNoData = {
 
 
 
-describe('<S3AnalyticsContainer />', () => {
+describe('<UnusedComponent />', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
