@@ -55,9 +55,9 @@ type dbAccessor interface {
 }
 
 type BillRepositoryUpdateInfo struct {
-	BillRepositoryId int        `json:"billRepositoryId`
-	AwsAccountPretty string     `json:"awsAccountPretty`
-	AwsAccountId     int        `json:"awsAccountId`
+	BillRepositoryId int        `json:"billRepositoryId"`
+	AwsAccountPretty string     `json:"awsAccountPretty"`
+	AwsAccountId     int        `json:"awsAccountId"`
 	Bucket           string     `json:"bucket"`
 	Prefix           string     `json:"prefix"`
 	NextStarted      *time.Time `json:"nextStarted"`
@@ -211,6 +211,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 type AwsAccountWithBillRepositories struct {
 	aws.AwsAccount
 	BillRepositories []s3.BillRepositoryWithPending `json:"billRepositories"`
+	SubAccounts      []aws.SubAccount               `json:"subAccounts"`
 }
 
 // getAwsAccount is a route handler which returns the caller's list of
@@ -252,6 +253,7 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 		aawbr := AwsAccountWithBillRepositories{
 			aa,
 			[]s3.BillRepositoryWithPending{},
+			[]aws.SubAccount{},
 		}
 		var brs []s3.BillRepository
 		if brs, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
@@ -277,6 +279,11 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 			}
 			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
 		}
+		var subAccounts []aws.SubAccount
+		if subAccounts, err = aws.GetSubAccountsByAwsAccountId(aa.Id, tx); err != nil {
+			return
+		}
+		aawbr.SubAccounts = subAccounts
 		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
 	}
 	return

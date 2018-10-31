@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
@@ -86,7 +85,7 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *aws.AwsAccount, user *users.User) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if _, err := aws.GetTemporaryCredentials(*account, "validityTest"); err != nil {
-		fmt.Print(err)
+		logger.Error("failed to get temporary credentials", err)
 		return errInvalidAccount
 	}
 	if err := account.CreateAwsAccount(ctx, tx); err != nil {
