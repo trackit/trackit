@@ -30,7 +30,7 @@ import (
 )
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
-// and filled by DescribeInstances, getAccountID and getInstanceStats.
+// and filled by DescribeInstances and getInstanceStats.
 func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
 	defer close(instanceChan)
 	start, end := utils.GetCurrentCheckedDay()
@@ -48,22 +48,17 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	for _, reservation := range instances.Reservations {
 		for _, instance := range reservation.Instances {
 			stats := getInstanceStats(ctx, instance, sess, start, end)
+			costs := make(map[string]float64, 0)
 			instanceChan <- Instance{
 				Id:         aws.StringValue(instance.InstanceId),
 				Region:     aws.StringValue(instance.Placement.AvailabilityZone),
+				State:      aws.StringValue(instance.State.Name),
+				Purchasing: getPurchasingOption(instance),
 				KeyPair:    aws.StringValue(instance.KeyName),
 				Tags:       getInstanceTag(instance.Tags),
 				Type:       aws.StringValue(instance.InstanceType),
-				State:      aws.StringValue(instance.State.Name),
-				Purchasing: getPurchasingOption(instance),
-				CpuAverage: stats.CpuAverage,
-				CpuPeak:    stats.CpuPeak,
-				NetworkIn:  stats.NetworkIn,
-				NetworkOut: stats.NetworkOut,
-				IORead:     stats.IORead,
-				IOWrite:    stats.IOWrite,
-				Cost:       0,
-				CostDetail: make(map[string]float64, 0),
+				Costs:      costs,
+				Stats:      stats,
 			}
 		}
 	}
@@ -85,16 +80,11 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
+	now := time.Now().UTC()
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
 		return err
-	}
-	report := Report{
-		account,
-		time.Now().UTC(),
-		"daily",
-		make([]Instance, 0),
 	}
 	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
@@ -107,8 +97,14 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		go fetchDailyInstancesList(ctx, creds, region, instanceChan)
 		instanceChans = append(instanceChans, instanceChan)
 	}
+	instances := make([]InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
-		report.Instances = append(report.Instances, instance)
+		instances = append(instances, InstanceReport{
+			Account:    account,
+			ReportDate: now,
+			ReportType: "daily",
+			Instance:   instance,
+		})
 	}
-	return importReportToEs(ctx, awsAccount, report)
+	return importInstancesToEs(ctx, awsAccount, instances)
 }

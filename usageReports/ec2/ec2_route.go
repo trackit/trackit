@@ -25,15 +25,15 @@ import (
 )
 
 type (
-	// ec2QueryParams will store the parsed query params
-	ec2QueryParams struct {
+	// Ec2QueryParams will store the parsed query params
+	Ec2QueryParams struct {
 		accountList []string
 		indexList   []string
 		date        time.Time
 	}
 
-	// ec2UnusedQueryParams will store the parsed query params
-	ec2UnusedQueryParams struct {
+	// Ec2UnusedQueryParams will store the parsed query params
+	Ec2UnusedQueryParams struct {
 		accountList []string
 		indexList   []string
 		date        time.Time
@@ -90,14 +90,14 @@ func init() {
 func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := ec2QueryParams{
+	parsedParams := Ec2QueryParams{
 		accountList: []string{},
 		date:        a[routes.DateQueryArg].(time.Time),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
 		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
-	returnCode, report, err := getEc2Data(request, parsedParams, user, tx)
+	returnCode, report, err := GetEc2Data(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {
@@ -109,7 +109,7 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 func getEc2UnusedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := ec2UnusedQueryParams{
+	parsedParams := Ec2UnusedQueryParams{
 		accountList: []string{},
 		date:        a[routes.DateQueryArg].(time.Time),
 		count:       -1,
@@ -120,7 +120,7 @@ func getEc2UnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 	if a[ec2UnusedQueryArgs[2]] != nil {
 		parsedParams.count = a[ec2UnusedQueryArgs[2]].(int)
 	}
-	returnCode, report, err := getEc2UnusedData(request, parsedParams, user, tx)
+	returnCode, report, err := GetEc2UnusedData(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {

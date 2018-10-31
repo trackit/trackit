@@ -42,10 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ec2-reports",
-	"version": 5,
-	"settings": {
-		"index.mapping.total_fields.limit": 3000
-	},
+	"version": 6,
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -58,8 +55,7 @@ const TemplateLineItem = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instances" : {
-					"type": "nested",
+				"instance": {
 					"properties": {
 						"id": {
 							"type": "keyword"
@@ -73,24 +69,6 @@ const TemplateLineItem = `
 						"purchasing": {
 							"type": "keyword"
 						},
-						"cpuAverage": {
-							"type": "double"
-						},
-						"cpuPeak": {
-							"type": "double"
-						},
-						"networkIn": {
-							"type": "double"
-						},
-						"networkOut": {
-							"type": "double"
-						},
-						"ioRead": {
-							"type": "nested"
-						},
-						"ioWrite": {
-							"type": "nested"
-						},
 						"keyPair": {
 							"type": "keyword"
 						},
@@ -98,14 +76,59 @@ const TemplateLineItem = `
 							"type": "keyword"
 						},
 						"tags": {
-							"type": "nested"
+							"type": "nested",
+							"properties": {
+								"key": {
+									"type": "keyword"
+								},
+								"value": {
+									"type": "keyword"
+								}
+							}
 						},
-						"cost": {
-							"type": "float",
-							"index": false
+						"costs": {
+							"type": "object"
 						},
-						"costDetail": {
-							"type": "nested"
+						"stats": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": "object",
+									"properties": {
+											"average": {
+												"type": "double"
+											},
+											"peak": {
+												"type": "double"
+											}
+									}
+								},
+								"network": {
+									"type": "object",
+									"properties": {
+											"in": {
+												"type": "double"
+											},
+											"out": {
+												"type": "double"
+											}
+									}
+								},
+								"volumes": {
+									"type": "nested",
+									"properties": {
+										"id": {
+											"type": "keyword"
+										},
+										"read": {
+											"type": "double"
+										},
+										"write": {
+											"type": "double"
+										}
+									}
+								}
+							}
 						}
 					}
 				}

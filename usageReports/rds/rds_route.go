@@ -25,15 +25,15 @@ import (
 )
 
 type (
-	// rdsQueryParams will store the parsed query params
-	rdsQueryParams struct {
+	// RdsQueryParams will store the parsed query params
+	RdsQueryParams struct {
 		accountList []string
 		indexList   []string
 		date        time.Time
 	}
 
-	// rdsUnusedQueryParams will store the parsed query params
-	rdsUnusedQueryParams struct {
+	// RdsUnusedQueryParams will store the parsed query params
+	RdsUnusedQueryParams struct {
 		accountList []string
 		indexList   []string
 		date        time.Time
@@ -90,14 +90,14 @@ func init() {
 func getRdsReport(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := rdsQueryParams{
+	parsedParams := RdsQueryParams{
 		accountList: []string{},
 		date:        a[routes.DateQueryArg].(time.Time),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
 		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
-	returnCode, report, err := getRdsData(request, parsedParams, user, tx)
+	returnCode, report, err := GetRdsData(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {
@@ -109,7 +109,7 @@ func getRdsReport(request *http.Request, a routes.Arguments) (int, interface{}) 
 func getRdsUnusedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := rdsUnusedQueryParams{
+	parsedParams := RdsUnusedQueryParams{
 		accountList: []string{},
 		date:        a[routes.DateQueryArg].(time.Time),
 		count:       -1,
@@ -120,7 +120,7 @@ func getRdsUnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 	if a[rdsUnusedQueryArgs[2]] != nil {
 		parsedParams.count = a[rdsUnusedQueryArgs[2]].(int)
 	}
-	returnCode, report, err := getRdsUnusedData(request, parsedParams, user, tx)
+	returnCode, report, err := GetRdsUnusedData(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {
