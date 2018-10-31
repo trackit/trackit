@@ -77,7 +77,7 @@ func getInstanceStats(ctx context.Context, instance *rds.DBInstance, sess *sessi
 	}}
 	var stats Stats
 	var err error
-	stats.Cpu.Peak, stats.Cpu.Average, err = getInstanceCPUStats(svc, dimensions, start, end)
+	stats.Cpu.Average, stats.Cpu.Peak, err = getInstanceCPUStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
 	}
