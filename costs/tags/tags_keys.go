@@ -41,6 +41,8 @@ type (
 	TagsKeys []string
 )
 
+const maxAggregationSize = 0x7FFFFFFF
+
 // getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
 func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams) (int, interface{}) {
 	var typedDocument esTagsKeysResult
@@ -77,7 +79,7 @@ func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQue
 	index := strings.Join(params.IndexList, ",")
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
-		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key")))
+		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").Size(maxAggregationSize)))
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
