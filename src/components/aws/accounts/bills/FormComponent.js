@@ -315,7 +315,7 @@ class FormComponent extends Component {
           {this.props.bill !== undefined ? "Edit" : "Add a bill location"}
         </button>
 
-        <Dialog open={this.state.open} fullWidth>
+        <Dialog open={this.state.open} fullWidth maxWidth="md">
 
           <DialogTitle disableTypography><h1>
             <i className="fa fa-shopping-basket red-color"/>

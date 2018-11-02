@@ -79,7 +79,7 @@ class EventsComponent extends Component {
         let noEventsMessage;
         let table;
         if (!events.length) {
-            noEventsMessage= <h4 className="hl-panel-title">
+            noEventsMessage= <h4 className="hl-panel-title m-t-20">
                 <i className="fa fa-check"></i>
                 &nbsp;
                 All good. No detected events.

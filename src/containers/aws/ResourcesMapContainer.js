@@ -114,52 +114,54 @@ const regionDetails = (key, region, data, double, close) => {
       title = region;
   }
   return (
-    <div key={key} className={"region-details white-box " + colWidth}>
-      <div className="header">
-        <div className="close" onClick={close}>
-          <i className="fa fa-times"/>
-        </div>
-      </div>
-      <div className="region-name">
-        <h3>{title}</h3>
-        <h4>{regions[region]}</h4>
-      </div>
-      <div className="region-info">
-        <div>
-          <div className="col-md-6 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs info">
-            <ul className="in-col">
-              <li>
-                <i className="fa fa-credit-card fa-2x blue-color"/>
-              </li>
-              <li>
-                <h3 className="no-margin no-padding font-light">
-                  {formatPrice(data.total)}
-                </h3>
-              </li>
-            </ul>
-            <h4 className="card-label p-l-10 m-b-0">
-              total cost
-            </h4>
+    <div key={key} className={"region-details " + colWidth}>
+      <div className="white-box">
+        <div className="header">
+          <div className="close" onClick={close}>
+            <i className="fa fa-times"/>
           </div>
-          <div className="col-md-6 col-sm-6 p-t-15 p-b-15 info">
-            <ul className="in-col">
-              <li>
-                <i className="fa fa-th-list fa-2x blue-color"/>
-              </li>
-              <li>
-                <h3 className="no-margin no-padding font-light">
-                  {Object.keys(data.zones).map((zone) => (Object.keys(data.zones[zone].products).length)).reduce((a, b) => (a + b), 0)}
-                </h3>
-              </li>
-            </ul>
-            <h4 className="card-label p-l-10 m-b-0">
-              products
-            </h4>
-          </div>
-          <span className="clearfix"/>
         </div>
-        <div className="region-info-zones">
-          {zones}
+        <div className="region-name">
+          <h3>{title}</h3>
+          <h4>{regions[region]}</h4>
+        </div>
+        <div className="region-info">
+          <div className="row">
+            <div className="col-md-6 col-sm-6 p-t-15 p-b-15 br-sm br-md bb-xs info">
+              <ul className="in-col">
+                <li>
+                  <i className="fa fa-credit-card fa-2x blue-color"/>
+                </li>
+                <li>
+                  <h3 className="no-margin no-padding font-light">
+                    {formatPrice(data.total)}
+                  </h3>
+                </li>
+              </ul>
+              <h4 className="card-label p-l-10 m-b-0">
+                total cost
+              </h4>
+            </div>
+            <div className="col-md-6 col-sm-6 p-t-15 p-b-15 info">
+              <ul className="in-col">
+                <li>
+                  <i className="fa fa-th-list fa-2x blue-color"/>
+                </li>
+                <li>
+                  <h3 className="no-margin no-padding font-light">
+                    {Object.keys(data.zones).map((zone) => (Object.keys(data.zones[zone].products).length)).reduce((a, b) => (a + b), 0)}
+                  </h3>
+                </li>
+              </ul>
+              <h4 className="card-label p-l-10 m-b-0">
+                products
+              </h4>
+            </div>
+            <span className="clearfix"/>
+          </div>
+          <div className="region-info-zones">
+            {zones}
+          </div>
         </div>
       </div>
     </div>
@@ -228,11 +230,13 @@ export class ResourcesMapContainer extends Component {
     ) : null);
 
     const emptySelection = (
-      <div className="white-box">
-        <div className="map-empty-selection">
-          <i className="fa fa-map-o"/>
-          &nbsp;
-          Select a region to see more details (You can select up to 2 regions)
+      <div className="col-md-12">
+        <div className="white-box">
+          <div className="map-empty-selection">
+            <i className="fa fa-map-o"/>
+            &nbsp;
+            Select a region to see more details (You can select up to 2 regions)
+          </div>
         </div>
       </div>
     );
@@ -261,38 +265,42 @@ export class ResourcesMapContainer extends Component {
 
     return (
       <div className="container-fluid">
+        <div className="row">
+          <div className="col-md-12">
+            <div className="clearfix white-box">
+              <div className="inline-block">
+                <h3 className="white-box-title no-padding inline-block">
+                  <i className="fa fa-globe"/>
+                  &nbsp;
+                  Resources Map
+                  {badges}
+                </h3>
+              </div>
+              <div className="inline-block pull-right">
+                <TimerangeSelector
+                  startDate={this.props.dates.startDate}
+                  endDate={this.props.dates.endDate}
+                  setDatesFunc={this.props.setDates}
+                />
+              </div>
+              <div className="inline-block pull-right">
+                <Selector
+                  values={filters}
+                  selected={this.props.filter}
+                  selectValue={this.props.setFilter}
+                />
+              </div>
+            </div>
 
-        <div className="clearfix white-box">
-          <div className="inline-block">
-            <h3 className="white-box-title no-padding inline-block">
-              <i className="fa fa-globe"/>
-              &nbsp;
-              Resources Map
-              {badges}
-            </h3>
-          </div>
-          <div className="inline-block pull-right">
-            <TimerangeSelector
-              startDate={this.props.dates.startDate}
-              endDate={this.props.dates.endDate}
-              setDatesFunc={this.props.setDates}
-            />
-          </div>
-          <div className="inline-block pull-right">
-            <Selector
-              values={filters}
-              selected={this.props.filter}
-              selectValue={this.props.setFilter}
-            />
           </div>
         </div>
-
+        
         <div className="white-box">
           {loading || error || map}
         </div>
-
-        {selectionDetails}
-
+        <div className="row">
+          {selectionDetails}
+        </div>
       </div>
     );
   }
