@@ -19,8 +19,10 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/errors"
 )
 
 // S3BucketCost represents the detail of the costs for a given bucket
@@ -120,7 +122,7 @@ func parseESResult(ctx context.Context, buckets bucketsInfo, res *elastic.Search
 	err := json.Unmarshal(*res.Aggregations["buckets"], &parsedDocument)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return buckets, err
+		return buckets, errors.GetErrorMessage(ctx, err)
 	}
 	buckets = parseBuckets(buckets, parsedDocument, resultType)
 	return buckets, nil

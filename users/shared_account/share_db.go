@@ -15,8 +15,9 @@
 package shared_account
 
 import (
-	"database/sql"
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/trackit/jsonlog"
 
@@ -40,13 +41,13 @@ func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]Share
 		return response, nil
 	} else if err != nil {
 		logger.Error("Error getting shared account from database.", err.Error())
-		return nil, err
+		return nil, errors.New("Error while getting data from database")
 	} else {
 		for _, key := range dbSharedAccounts {
 			dbUser, err := models.UserByID(db, key.UserID)
 			if err != nil {
 				logger.Error("Error getting users from database.", err.Error())
-				return nil, err
+				return nil, errors.New("Error while getting data from database")
 			}
 			response = append(response, SharedResults{key.ID, dbUser.Email,key.UserPermission,key.UserID,key.SharingAccepted})
 		}

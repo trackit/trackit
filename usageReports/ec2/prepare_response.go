@@ -26,6 +26,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type (
@@ -244,7 +245,7 @@ func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult
 	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EC2 response", err)
-		return nil, err
+		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	for _, account := range response.Accounts.Buckets {
 		for _, instance := range account.Instances.Hits.Hits {

@@ -17,13 +17,14 @@ package tags
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 )
 
@@ -88,12 +89,12 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		if returnCode == http.StatusOK {
 			return returnCode, response
 		}
-		return returnCode, errors.New("Internal server error")
+		return returnCode, errors.GetErrorMessage(ctx, err)
 	}
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
-		return http.StatusInternalServerError, errors.New("Internal server error")
+		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	for _, key := range typedDocument.Keys.Buckets {
 		var values []TagsValues
@@ -143,10 +144,19 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
 			return nil, http.StatusOK, err
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type": fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	return res, http.StatusOK, nil
@@ -173,7 +183,7 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 }
 
 // getTagsValuesFilter returns a string of the field to filter
-func getTagsValuesFilter(filter string) (FilterType) {
+func getTagsValuesFilter(filter string) FilterType {
 	var filters = map[string]FilterType{
 		"product":          {"productCode",     "term"},
 		"region":           {"region",          "term"},

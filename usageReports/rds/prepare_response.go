@@ -25,6 +25,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type (
@@ -113,7 +114,7 @@ func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, 
 	err := json.Unmarshal(*resRds.Aggregations["accounts"], &parsedRds.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES RDS response", err)
-		return nil, err
+		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	if resCost != nil {
 		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
@@ -148,7 +149,7 @@ func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult
 	err := json.Unmarshal(*resRds.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES RDS response", err)
-		return nil, err
+		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	for _, account := range response.Accounts.Buckets {
 		for _, instance := range account.Instances.Hits.Hits {

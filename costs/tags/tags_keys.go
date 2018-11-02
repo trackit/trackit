@@ -17,13 +17,14 @@ package tags
 import (
 	"context"
 	"encoding/json"
-	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 )
 
@@ -53,12 +54,12 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 		if returnCode == http.StatusOK {
 			return returnCode, response
 		}
-		return returnCode, errors.New("Internal server error")
+		return returnCode, errors.GetErrorMessage(ctx, err)
 	}
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
-		return http.StatusInternalServerError, errors.New("Internal server error")
+		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	for _, key := range typedDocument.Keys.Buckets {
 		response = append(response, key.Key)
@@ -83,10 +84,19 @@ func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQue
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
 			return nil, http.StatusOK, err
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type": fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	return res, http.StatusOK, nil
