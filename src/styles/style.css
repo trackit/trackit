@@ -93,6 +93,7 @@ select,
 
 .row-eq-height {
     display: flex;
+    width: 100%;
 }
 
 /* BORDERS */
@@ -239,7 +240,7 @@ button {
     display: inline-block;
     vertical-align: top;
     margin: 0px 7px;
-    margin-top: 2px;
+    margin-top: 9px;
 }
 
 .white-box-title > i.fa {
@@ -398,6 +399,7 @@ h4.no-data {
 
 .hl-panel-title {
     text-align: center;
+    font-size: 19px;
 }
 
 .hl-panel-title span {
@@ -515,16 +517,6 @@ h4.no-data {
 
 .row-regions-details {
     margin: 0;
-}
-
-.region-details:first-child {
-    margin-left: 0 !important;
-    margin-right: 15px;
-}
-
-.region-details:last-child {
-    margin-left: 15px;
-    margin-right: 0;
 }
 
 .region-details .header {

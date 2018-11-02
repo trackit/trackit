@@ -161,7 +161,7 @@ class ChartComponent extends Component {
     const chart = (error === null && this.props.values && this.props.values.status && this.props.values.hasOwnProperty("values") ? (
       <TagsChart
         values={this.props.values.values}
-        legend
+        legend={false}
         height={450}
         filter={filters[this.props.filter]}
       />

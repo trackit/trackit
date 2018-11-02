@@ -26,7 +26,7 @@ export class NavbarHeader extends Component {
     return(
       <div>
 
-        <nav className="navbar navbar-default navbar-static-top">
+        <nav className="navbar navbar-light navbar-static-top">
             <div className="navbar-header">
 
               <div className="top-left-part">
@@ -47,24 +47,17 @@ export class NavbarHeader extends Component {
                      </span>
                      <i className="fa fa-caret-down" />
                    </button>
-                   <ul className="dropdown-menu">
-                     <li>
-                       <h5 className="dropdown-title"><strong>{this.props.mail}</strong></h5>
-                     </li>
-                     <hr className="m-b-0"/>
-                     <li>
-                       <Link to='/app/setup'>
+                   <div className="dropdown-menu">
+                       <h5 className="dropdown-title dropdown-item"><strong>{this.props.mail}</strong></h5>
+                       <Link to='/app/setup' className="dropdown-item">
                          <i className="fa fa-cog"/>
                          &nbsp;Setup
                        </Link>
-                     </li>
-                     <li>
-                       <a href="" onClick={this.props.signOut}>
+                       <a className="dropdown-item" href="" onClick={this.props.signOut}>
                          <i className="fa fa-sign-out"/>
                          &nbsp;Sign out
                        </a>
-                     </li>
-                   </ul>
+                   </div>
 
                  </div>
               </div>

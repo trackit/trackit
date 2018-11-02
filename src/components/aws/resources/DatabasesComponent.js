@@ -266,12 +266,12 @@ export class DatabasesComponent extends Component {
 
     return (
       <div className="clearfix resources dbs">
-        <h3 className="white-box-title no-padding inline-block">
+        <h4 className="white-box-title no-padding inline-block">
           <i className="menu-icon fa fa-database"/>
           &nbsp;
           Databases
           {reportDate}
-        </h3>
+        </h4>
         {loading}
         {error}
         {list}

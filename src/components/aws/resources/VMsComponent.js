@@ -10,7 +10,6 @@ import Misc from '../../misc';
 import Tags from './misc/Tags';
 import Volumes from './misc/Volumes';
 import Costs from './misc/Costs';
-import UnusedStorage from "./misc/UnusedStorage";
 
 const Tooltip = Misc.Popover;
 
@@ -305,12 +304,12 @@ export class VMsComponent extends Component {
 
     return (
       <div className="clearfix resources vms">
-        <h3 className="white-box-title no-padding inline-block">
+        <h4 className="white-box-title no-padding inline-block">
           <i className="menu-icon fa fa-desktop"/>
           &nbsp;
           VMs
           {reportDate}
-        </h3>
+        </h4>
         {loading}
         {error}
         {list}
