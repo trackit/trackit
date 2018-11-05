@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 
@@ -138,14 +137,14 @@ func getDiffData(ctx context.Context, parsedParams esQueryParams) (int, interfac
 func convertDiffData(ctx context.Context, diffData interface{}) (data costDiff, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Convert running", nil)
-	fmt.Print(reflect.TypeOf(diffData))
 	report, ok := diffData.(costDiff)
 	if ok == false {
-		logger.Error("An error occured", err)
+		logger.Error("An error occured while converting to diffData", err)
 	}
 	return report, err
 }
 
+// TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
 func TaskDiffData(ctx context.Context, aa aws.AwsAccount) (data costDiff, err error) {
 	now := time.Now()
 	dateBegin := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()

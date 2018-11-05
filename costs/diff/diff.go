@@ -27,6 +27,7 @@ import (
 	"github.com/trackit/trackit-server/errors"
 )
 
+// PricePoint struct stores elements for cost differentiator
 type PricePoint struct {
 	Date             string
 	Cost             float64

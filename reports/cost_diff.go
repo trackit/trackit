@@ -84,6 +84,7 @@ func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]s
 
 	report, err := diff.TaskDiffData(ctx, aa)
 	if err != nil {
+		logger.Error("An error occured while generating a cost differentiator report", err)
 		return
 	}
 	for product, data := range report {
