@@ -22,10 +22,10 @@ import (
 
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws"
 )
 
 // postAwsAccountRequestBody is the expected request body for the
@@ -85,7 +85,7 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *aws.AwsAccount, user *users.User) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if _, err := aws.GetTemporaryCredentials(*account, "validityTest"); err != nil {
-		logger.Error("failed to get temporary credentials", err)
+		logger.Error("failed to get temporary credentials", newTestAndCreateAwsAccountError(err, *account, *user))
 		return errInvalidAccount
 	}
 	if err := account.CreateAwsAccount(ctx, tx); err != nil {
@@ -96,6 +96,9 @@ func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *aws.AwsAc
 	if err := user.UpdateNextExternal(ctx, tx); err != nil {
 		logger.Error("failed to update external", newTestAndCreateAwsAccountError(err, *account, *user))
 		return errFailUpdateExternal
+	}
+	if err := aws.UpdateSubAccounts(*account, tx); err != nil {
+		logger.Warning("failed to update sub accounts", newTestAndCreateAwsAccountError(err, *account, *user))
 	}
 	return nil
 }

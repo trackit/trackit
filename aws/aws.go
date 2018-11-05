@@ -40,11 +40,6 @@ type AwsAccount struct {
 	UserPermission int    `json:"permissionLevel"`
 }
 
-type SubAccount struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
 const (
 	// assumeRoleDuration is the duration in seconds assumed-role
 	// credentials are requested to last. 3600 seconds is the maximum valid
@@ -204,19 +199,4 @@ func AwsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 		External: dbAwsAccount.External,
 		Payer:    dbAwsAccount.Payer,
 	}
-}
-
-func GetSubAccountsByAwsAccountId(aaId int, tx *sql.Tx) ([]SubAccount, error) {
-	subAccounts, err := models.AwsSubAccountsByAwsAccountID(tx, aaId)
-	if err != nil {
-		return nil, err
-	}
-	response := make([]SubAccount, 0)
-	for _, subAccount := range subAccounts {
-		response = append(response, SubAccount{
-			Id:   subAccount.AwsID,
-			Name: subAccount.Name,
-		})
-	}
-	return response, nil
 }

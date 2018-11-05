@@ -88,6 +88,19 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 			"error":            err.Error(),
 		})
 	}
+	if errSubAccounts := aws.UpdateSubAccounts(aa, tx); errSubAccounts != nil {
+		logger.Error("Failed to update sub accounts", map[string]interface{}{
+			"awsAccountId": aaId,
+			"error":        errSubAccounts.Error(),
+		})
+		if err == nil {
+			err = errors.New(errSubAccounts.Error())
+		} else {
+			err = errors.New(err.Error() + " + " + errSubAccounts.Error())
+		}
+	} else {
+		logger.Info("Sub accounts updated", nil)
+	}
 	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	return
 }
