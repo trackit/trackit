@@ -31,7 +31,7 @@ import (
 )
 
 // fetchMonthlyInstancesList fetches instances based on billing data
-func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, instList []utils.CostPerResource,
+func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst utils.CostPerResource,
 	region string, instanceChan chan Instance, startDate, endDate time.Time) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -39,43 +39,36 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 		Region:      aws.String(region),
 	}))
 	svc := rds.New(sess)
-	for _, inst := range instList {
-		desc := rds.DescribeDBInstancesInput{DBInstanceIdentifier: aws.String(inst.Resource)}
-		instances, err := svc.DescribeDBInstances(&desc)
-		if err != nil {
-			continue
-		}
-		for _, DBInstance := range instances.DBInstances {
-			stats := getInstanceStats(ctx, DBInstance, sess, startDate, endDate)
-			detail := make(map[string]float64, 0)
-			detail["instance"] = inst.Cost
-			instanceChan <- Instance{
-				DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
-				DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
-				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
-				Engine:               aws.StringValue(DBInstance.Engine),
-				AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
-				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
-				Cost:                 inst.Cost,
-				CpuAverage:           stats.CpuAverage,
-				CpuPeak:              stats.CpuPeak,
-				FreeSpaceMin:         stats.FreeSpaceMin,
-				FreeSpaceMax:         stats.FreeSpaceMax,
-				FreeSpaceAve:         stats.FreeSpaceAve,
-				CostDetail:           detail,
-			}
+	desc := rds.DescribeDBInstancesInput{DBInstanceIdentifier: aws.String(inst.Resource)}
+	instances, err := svc.DescribeDBInstances(&desc)
+	if err != nil {
+		return err
+	}
+	for _, DBInstance := range instances.DBInstances {
+		stats := getInstanceStats(ctx, DBInstance, sess, startDate, endDate)
+		costs := make(map[string]float64, 0)
+		costs["instance"] = inst.Cost
+		instanceChan <- Instance{
+			DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
+			AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
+			DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
+			Engine:               aws.StringValue(DBInstance.Engine),
+			AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
+			MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
+			Costs:                costs,
+			Stats:                stats,
 		}
 	}
 	return nil
 }
 
 // getRdsMetrics gets credentials, accounts and region to fetch RDS instances stats
-func getRdsMetrics(ctx context.Context, instances []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (Report, error) {
+func getRdsMetrics(ctx context.Context, instancesList []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, RDSStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
-		return Report{}, err
+		return nil, err
 	}
 	defaultSession := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -84,29 +77,33 @@ func getRdsMetrics(ctx context.Context, instances []utils.CostPerResource, aa ta
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
-		return Report{}, err
-	}
-	report := Report{
-		Account:    account,
-		ReportDate: startDate,
-		ReportType: "monthly",
-		Instances:  make([]Instance, 0),
+		return nil, err
 	}
 	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
-		return Report{}, err
+		return nil, err
 	}
 	instanceChans := make([]<-chan Instance, 0, len(regions))
-	for _, region := range regions {
-		instanceChan := make(chan Instance)
-		go fetchMonthlyInstancesList(ctx, creds, instances, region, instanceChan, startDate, endDate)
-		instanceChans = append(instanceChans, instanceChan)
+	for _, instance := range instancesList {
+		for _, region := range regions {
+			if strings.Contains(instance.Region, region) {
+				instanceChan := make(chan Instance)
+				go fetchMonthlyInstancesList(ctx, creds, instance, region, instanceChan, startDate, endDate)
+				instanceChans = append(instanceChans, instanceChan)
+			}
+		}
 	}
+	instances := make([]InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
-		report.Instances = append(report.Instances, instance)
+		instances = append(instances, InstanceReport{
+			Account:    account,
+			ReportDate: startDate,
+			ReportType: "monthly",
+			Instance:   instance,
+		})
 	}
-	return report, nil
+	return instances, nil
 }
 
 // filterRdsInstances filters cost per instance to get only costs associated to a RDS instance
@@ -117,7 +114,7 @@ func filterRdsInstances(rdsCost []utils.CostPerResource) []utils.CostPerResource
 		// so i get the 7th element of the split by ":"
 		split := strings.Split(instance.Resource, ":")
 		if len(split) == 7 && split[2] == "rds" {
-			costInstances = append(costInstances, utils.CostPerResource{split[6], instance.Cost, ""})
+			costInstances = append(costInstances, utils.CostPerResource{split[6], instance.Cost, instance.Region})
 		}
 	}
 	return costInstances
@@ -143,9 +140,9 @@ func PutRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerResource, a
 		logger.Info("There is already an RDS monthly report", nil)
 		return nil
 	}
-	report, err := getRdsMetrics(ctx, costInstance, aa, startDate, endDate)
+	instances, err := getRdsMetrics(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {
 		return err
 	}
-	return importReportToEs(ctx, aa, report)
+	return importInstancesToEs(ctx, aa, instances)
 }

@@ -21,9 +21,10 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/trackit/jsonlog"
-
 	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type pricePoint struct {
@@ -107,7 +108,7 @@ func prepareDiffData(ctx context.Context, sr *elastic.SearchResult) (costDiff, e
 	err := json.Unmarshal(*sr.Aggregations["usageType"], &parsedDocument)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return costDiff{}, err
+		return costDiff{}, errors.GetErrorMessage(ctx, err)
 	}
 	return parseDiffUsageTypes(parsedDocument), nil
 }

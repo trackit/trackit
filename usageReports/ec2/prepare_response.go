@@ -18,13 +18,15 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
-
-	"gopkg.in/olivere/elastic.v5"
+	"time"
 
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
+
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
-	"sort"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type (
@@ -46,66 +48,166 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EC2 usage report
-	ResponseEc2 struct {
-		TopReports struct {
+	// Structure that allow to parse ES response for EC2 Monthly instances
+	ResponseEc2Monthly struct {
+		Accounts struct {
 			Buckets []struct {
-				TopReportsHits struct {
+				Instances struct {
 					Hits struct {
 						Hits []struct {
-							Source ec2.Report `json:"_source"`
+							Instance ec2.InstanceReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"top_reports_hits"`
+				} `json:"instances"`
 			} `json:"buckets"`
-		} `json:"top_reports"`
+		} `json:"accounts"`
+	}
+
+	// Structure that allow to parse ES response for EC2 Daily instances
+	ResponseEc2Daily struct {
+		Accounts struct {
+			Buckets []struct {
+				Dates struct {
+					Buckets []struct {
+						Time      string `json:"key_as_string"`
+						Instances struct {
+							Hits struct {
+								Hits []struct {
+									Instance ec2.InstanceReport `json:"_source"`
+								} `json:"hits"`
+							} `json:"hits"`
+						} `json:"instances"`
+					} `json:"buckets"`
+				} `json:"dates"`
+			} `json:"buckets"`
+		} `json:"accounts"`
+	}
+
+	// InstanceReport has all the information of an EC2 instance
+	InstanceReport struct {
+		Account    string    `json:"account"`
+		ReportDate time.Time `json:"reportDate"`
+		ReportType string    `json:"reportType"`
+		Instance   Instance  `json:"instance"`
+	}
+
+	// Instance contains the information of an EC2 instance
+	Instance struct {
+		Id         string             `json:"id"`
+		Region     string             `json:"region"`
+		State      string             `json:"state"`
+		Purchasing string             `json:"purchasing"`
+		KeyPair    string             `json:"keyPair"`
+		Type       string             `json:"type"`
+		Tags       map[string]string  `json:"tags"`
+		Costs      map[string]float64 `json:"costs"`
+		Stats      Stats              `json:"stats"`
+	}
+
+	// Stats contains statistics of an instance get on CloudWatch
+	Stats struct {
+		Cpu     Cpu     `json:"cpu"`
+		Network Network `json:"network"`
+		Volumes Volumes `json:"volumes"`
+	}
+
+	// Cpu contains cpu statistics of an instance
+	Cpu struct {
+		Average float64 `json:"average"`
+		Peak    float64 `json:"peak"`
+	}
+
+	// Network contains network statistics of an instance
+	Network struct {
+		In  float64 `json:"in"`
+		Out float64 `json:"out"`
+	}
+
+	// Volume contains information about EBS volumes
+	Volumes struct {
+		Read  map[string]float64 `json:"read"`
+		Write map[string]float64 `json:"write"`
 	}
 )
 
-// addCostToReport adds cost for each instance based on billing data
-func addCostToReport(report ec2.Report, costs ResponseCost) ec2.Report {
+func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport {
+	tags := make(map[string]string, 0)
+	for _, tag := range oldInstance.Instance.Tags {
+		tags[tag.Key] = tag.Value
+	}
+	read := make(map[string]float64, 0)
+	write := make(map[string]float64, 0)
+	for _, volume := range oldInstance.Instance.Stats.Volumes {
+		read[volume.Id] = volume.Read
+		write[volume.Id] = volume.Write
+	}
+	newInstance := InstanceReport{
+		Account:    oldInstance.Account,
+		ReportType: oldInstance.ReportType,
+		ReportDate: oldInstance.ReportDate,
+		Instance: Instance{
+			Id:         oldInstance.Instance.Id,
+			Region:     oldInstance.Instance.Region,
+			State:      oldInstance.Instance.State,
+			Purchasing: oldInstance.Instance.Purchasing,
+			KeyPair:    oldInstance.Instance.KeyPair,
+			Type:       oldInstance.Instance.Type,
+			Tags:       tags,
+			Costs:      oldInstance.Instance.Costs,
+			Stats: Stats{
+				Cpu: Cpu{
+					Average: oldInstance.Instance.Stats.Cpu.Average,
+					Peak:    oldInstance.Instance.Stats.Cpu.Peak,
+				},
+				Network: Network{
+					In:  oldInstance.Instance.Stats.Network.In,
+					Out: oldInstance.Instance.Stats.Network.Out,
+				},
+				Volumes: Volumes{
+					Read:  read,
+					Write: write,
+				},
+			},
+		},
+	}
+	return newInstance
+}
+
+// addCostToInstance adds a cost for an instance based on billing data
+func addCostToInstance(instance ec2.InstanceReport, costs ResponseCost) ec2.InstanceReport {
+	if instance.Instance.Costs == nil {
+		instance.Instance.Costs = make(map[string]float64, 0)
+	}
 	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != report.Account {
+		if accounts.Key != instance.Account {
 			continue
 		}
-		for _, instance := range accounts.Instances.Buckets {
-			for i := range report.Instances {
-				if report.Instances[i].CostDetail == nil {
-					report.Instances[i].CostDetail = make(map[string]float64, 0)
+		for _, instanceCost := range accounts.Instances.Buckets {
+			if strings.Contains(instanceCost.Key, instance.Instance.Id) {
+				if len(instanceCost.Key) == 19 && strings.HasPrefix(instanceCost.Key, "i-") {
+					instance.Instance.Costs["instance"] += instanceCost.Cost.Value
+				} else {
+					instance.Instance.Costs["cloudwatch"] += instanceCost.Cost.Value
 				}
-				if strings.Contains(instance.Key, report.Instances[i].Id) {
-					report.Instances[i].Cost += instance.Cost.Value
-					if len(instance.Key) == 19 && strings.HasPrefix(instance.Key, "i-") {
-						report.Instances[i].CostDetail["instance"] += instance.Cost.Value
-					} else {
-						report.Instances[i].CostDetail["CloudWatch"] += instance.Cost.Value
-					}
-				}
-				for volume := range report.Instances[i].IOWrite {
-					if volume == instance.Key {
-						report.Instances[i].Cost += instance.Cost.Value
-						report.Instances[i].CostDetail[volume] += instance.Cost.Value
-					}
-				}
-				for volume := range report.Instances[i].IORead {
-					if volume == instance.Key {
-						report.Instances[i].Cost += instance.Cost.Value
-						report.Instances[i].CostDetail[volume] += instance.Cost.Value
-					}
+			}
+			for _, volume := range instance.Instance.Stats.Volumes {
+				if volume.Id == instanceCost.Key {
+					instance.Instance.Costs[volume.Id] += instanceCost.Cost.Value
 				}
 			}
 		}
+		return instance
 	}
-	return report
+	return instance
 }
 
-// prepareResponseEc2 parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) ([]ec2.Report, error) {
+// prepareResponseEc2Daily parses the results from elasticsearch and returns an array of EC2 daily instances report
+func prepareResponseEc2Daily(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	parsedEc2 := ResponseEc2{}
-	parsedCost := ResponseCost{}
-	reports := []ec2.Report{}
-	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &parsedEc2.TopReports)
+	var parsedEc2 ResponseEc2Daily
+	var parsedCost ResponseCost
+	instances := make([]InstanceReport, 0)
+	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &parsedEc2.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EC2 response", err)
 		return nil, err
@@ -116,37 +218,46 @@ func prepareResponseEc2(ctx context.Context, resEc2 *elastic.SearchResult, resCo
 			logger.Error("Error while unmarshaling ES cost response", err)
 		}
 	}
-	for _, account := range parsedEc2.TopReports.Buckets {
-		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			report := account.TopReportsHits.Hits.Hits[0].Source
-			report = addCostToReport(report, parsedCost)
-			reports = append(reports, report)
+	for _, account := range parsedEc2.Accounts.Buckets {
+		var lastDate = ""
+		for _, date := range account.Dates.Buckets {
+			if date.Time > lastDate {
+				lastDate = date.Time
+			}
+		}
+		for _, date := range account.Dates.Buckets {
+			if date.Time == lastDate {
+				for _, instance := range date.Instances.Hits.Hits {
+					instance.Instance = addCostToInstance(instance.Instance, parsedCost)
+					instances = append(instances, getEc2InstanceReportResponse(instance.Instance))
+				}
+			}
 		}
 	}
-	return reports, nil
+	return instances, nil
 }
 
-// prepareResponseEc2Monthly parses the results from elasticsearch and returns the EC2 usage report
-func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult) ([]ec2.Report, error) {
+// prepareResponseEc2Monthly parses the results from elasticsearch and returns an array of EC2 monthly instances report
+func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult) ([]InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	response := ResponseEc2{}
-	reports := []ec2.Report{}
-	err := json.Unmarshal(*resEc2.Aggregations["top_reports"], &response.TopReports)
+	var response ResponseEc2Monthly
+	instances := make([]InstanceReport, 0)
+	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EC2 response", err)
-		return nil, err
+		return nil, errors.GetErrorMessage(ctx, err)
 	}
-	for _, account := range response.TopReports.Buckets {
-		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			reports = append(reports, account.TopReportsHits.Hits.Hits[0].Source)
+	for _, account := range response.Accounts.Buckets {
+		for _, instance := range account.Instances.Hits.Hits {
+			instances = append(instances, getEc2InstanceReportResponse(instance.Instance))
 		}
 	}
-	return reports, nil
+	return instances, nil
 }
 
-func isInstanceUnused(instance ec2.Instance) bool {
-	average := instance.CpuAverage
-	peak := instance.CpuPeak
+func isInstanceUnused(instance Instance) bool {
+	average := instance.Stats.Cpu.Average
+	peak := instance.Stats.Cpu.Peak
 	if peak >= 60.0 {
 		return false
 	} else if average >= 10.0 {
@@ -155,19 +266,26 @@ func isInstanceUnused(instance ec2.Instance) bool {
 	return true
 }
 
-// prepareResponseEc2Unused filter reports to get the top instances
-func prepareResponseEc2Unused(params ec2UnusedQueryParams, reports []ec2.Report) (int, []ec2.Instance, error) {
-	instances := []ec2.Instance{}
-	for _, report := range reports {
-		for _, instance := range report.Instances {
-			if isInstanceUnused(instance) {
-				instances = append(instances, instance)
-			}
+// prepareResponseEc2Unused filter reports to get the unused instances sorted by cost
+func prepareResponseEc2Unused(params Ec2UnusedQueryParams, instances []InstanceReport) (int, []InstanceReport, error) {
+	unusedInstances := make([]InstanceReport, 0)
+	for _, instance := range instances {
+		if isInstanceUnused(instance.Instance) {
+			unusedInstances = append(unusedInstances, instance)
 		}
 	}
-	sort.SliceStable(instances, func(i, j int) bool { return instances[i].Cost > instances[j].Cost })
-	if params.count >= 0 && params.count <= len(instances) {
-		return http.StatusOK, instances[0:params.count], nil
+	sort.SliceStable(unusedInstances, func(i, j int) bool {
+		var cost1, cost2 float64
+		for _, cost := range unusedInstances[i].Instance.Costs {
+			cost1 += cost
+		}
+		for _, cost := range unusedInstances[j].Instance.Costs {
+			cost2 += cost
+		}
+		return cost1 > cost2
+	})
+	if params.count >= 0 && params.count <= len(unusedInstances) {
+		return http.StatusOK, unusedInstances[0:params.count], nil
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, unusedInstances, nil
 }

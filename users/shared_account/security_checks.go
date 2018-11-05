@@ -1,20 +1,21 @@
 package shared_account
 
 import (
-	"database/sql"
-	"errors"
 	"context"
+	"database/sql"
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/users"
 )
 
 const (
 	AdminLevel = 0
 	StandardLevel = 1
 	ReadLevel = 2
+	DatabaseError = "Error while getting data from database"
 )
 
 // safetyCheckByAccountId checks by AccountId if the user have a high enough
@@ -23,10 +24,10 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount, err := models.AwsAccountByID(tx, AccountId)
 	if err == sql.ErrNoRows {
-		return false, errors.New("This AWS Account does not exist")
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseItemNotFound, "This AWS Account does not exist"})
 	} else if err != nil {
 		logger.Error("Error while retrieving AWS account from DB", err)
-		return false, err
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
@@ -34,13 +35,16 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
 	if err == nil {
 		for _, key := range dbSharedAccount {
-			if key.UserID == user.Id  && (key.UserPermission == AdminLevel || key.UserPermission == StandardLevel){
+			if key.UserID == user.Id && (key.UserPermission == AdminLevel || key.UserPermission == StandardLevel) {
 				return true, nil
 			}
 		}
 	}
+	if err == sql.ErrNoRows {
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseItemNotFound, "This Shared Account does not exist"})
+	}
 	logger.Error("Error while retrieving shared account by account ID from DB", err)
-	return false, errors.New("Unable to ensure user have enough rights to do this action")
+	return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, "Unable to ensure user have enough rights to do this action"})
 }
 
 // checkLevel checks if the current user permission level is high enough to perform an action
@@ -62,10 +66,10 @@ func safetyCheckByAccountIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, A
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount, err := models.AwsAccountByID(tx, AccountId)
 	if err == sql.ErrNoRows {
-		return false, errors.New("This AWS Account does not exist")
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseItemNotFound, "This AWS Account does not exist"})
 	} else if err != nil {
 		logger.Error("Error while retrieving AWS account from DB", err)
-		return false, err
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
@@ -78,8 +82,11 @@ func safetyCheckByAccountIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, A
 			}
 		}
 	}
+	if err == sql.ErrNoRows {
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseItemNotFound, "This Shared Account does not exist"})
+	}
 	logger.Error("Error while retrieving shared account by account ID from DB", err)
-	return false, errors.New("Unable to ensure user have enough rights to do this action")
+	return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, "Unable to ensure user have enough rights to do this action"})
 }
 
 // safetyCheckByShareId checks by ShareId if the user have a high enough
@@ -91,7 +98,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 		return false, nil
 	} else if err != nil {
 		logger.Error("Error while retrieving Shared Accounts" , err)
-		return false, err
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	dbAwsAccount, err := models.AwsAccountByID(tx, dbShareAccount.AccountID)
 	if dbAwsAccount.UserID == user.Id {
@@ -106,7 +113,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 		}
 	}
 	logger.Error("Error while retrieving shared account by account ID from DB", err)
-	return false, err
+	return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 }
 
 // safetyCheckByShareIdAndPermissionLevel checks by ShareId if the user have a high enough
@@ -119,7 +126,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 		return false, nil
 	} else if err != nil {
 		logger.Error("Error while retrieving Shared Accounts from DB" , err)
-		return false, err
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	dbAwsAccount, err := models.AwsAccountByID(tx, dbShareAccount.AccountID)
 	if dbAwsAccount.UserID == user.Id {
@@ -137,7 +144,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 		}
 	}
 	logger.Error("Error while retrieving shared account by account ID from DB", err)
-	return false, err
+	return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 }
 
 // checkPermissionLevel checks user permission level
