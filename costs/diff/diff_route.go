@@ -134,14 +134,13 @@ func getDiffData(ctx context.Context, parsedParams esQueryParams) (int, interfac
 	return http.StatusOK, res
 }
 
-func convertDiffData(ctx context.Context, diffData interface{}) (data costDiff, err error) {
+func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Convert running", nil)
-	report, ok := diffData.(costDiff)
-	if ok == false {
-		logger.Error("An error occured while converting to diffData", err)
+	if report, ok := diffData.(costDiff); ok {
+		return report, nil
 	}
-	return report, err
+	logger.Error("An error occured while converting to diffData", nil)
+	return nil, fmt.Errorf("Error durint cast")
 }
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
@@ -180,17 +179,5 @@ func prepareGetDiffData(request *http.Request, a routes.Arguments) (int, interfa
 	}
 	parsedParams.accountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	sr, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams)
-	if err != nil {
-		if returnCode == http.StatusOK {
-			return returnCode, nil
-		} else {
-			return returnCode, err
-		}
-	}
-	_, err = prepareDiffData(request.Context(), sr)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
 	return getDiffData(request.Context(), parsedParams)
 }
