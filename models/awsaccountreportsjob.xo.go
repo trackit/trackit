@@ -14,6 +14,8 @@ type AwsAccountReportsJob struct {
 	AwsAccountID        int       `json:"aws_account_id"`      // aws_account_id
 	Completed           time.Time `json:"completed"`           // completed
 	WorkerID            string    `json:"worker_id"`           // worker_id
+	Joberror            string    `json:"jobError"`            // jobError
+	Spreadsheeterror    string    `json:"spreadsheetError"`    // spreadsheetError
 	Costdifferror       string    `json:"costDiffError"`       // costDiffError
 	Ec2usagereporterror string    `json:"ec2UsageReportError"` // ec2UsageReportError
 	Rdsusagereporterror string    `json:"rdsUsageReportError"` // rdsUsageReportError
@@ -43,14 +45,14 @@ func (aarj *AwsAccountReportsJob) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_account_reports_job (` +
-		`aws_account_id, completed, worker_id, costDiffError, ec2UsageReportError, rdsUsageReportError` +
+		`aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror)
-	res, err := db.Exec(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror)
+	XOLog(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Joberror, aarj.Spreadsheeterror, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror)
+	res, err := db.Exec(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Joberror, aarj.Spreadsheeterror, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror)
 	if err != nil {
 		return err
 	}
@@ -84,12 +86,12 @@ func (aarj *AwsAccountReportsJob) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_account_reports_job SET ` +
-		`aws_account_id = ?, completed = ?, worker_id = ?, costDiffError = ?, ec2UsageReportError = ?, rdsUsageReportError = ?` +
+		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, costDiffError = ?, ec2UsageReportError = ?, rdsUsageReportError = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror, aarj.ID)
-	_, err = db.Exec(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror, aarj.ID)
+	XOLog(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Joberror, aarj.Spreadsheeterror, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror, aarj.ID)
+	_, err = db.Exec(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.Joberror, aarj.Spreadsheeterror, aarj.Costdifferror, aarj.Ec2usagereporterror, aarj.Rdsusagereporterror, aarj.ID)
 	return err
 }
 
@@ -147,7 +149,7 @@ func AwsAccountReportsJobByID(db XODB, id int) (*AwsAccountReportsJob, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, costDiffError, ec2UsageReportError, rdsUsageReportError ` +
+		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError ` +
 		`FROM trackit.aws_account_reports_job ` +
 		`WHERE id = ?`
 
@@ -157,7 +159,7 @@ func AwsAccountReportsJobByID(db XODB, id int) (*AwsAccountReportsJob, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&aarj.ID, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.Costdifferror, &aarj.Ec2usagereporterror, &aarj.Rdsusagereporterror)
+	err = db.QueryRow(sqlstr, id).Scan(&aarj.ID, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.Joberror, &aarj.Spreadsheeterror, &aarj.Costdifferror, &aarj.Ec2usagereporterror, &aarj.Rdsusagereporterror)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +175,7 @@ func AwsAccountReportsJobsByAwsAccountID(db XODB, awsAccountID int) ([]*AwsAccou
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, costDiffError, ec2UsageReportError, rdsUsageReportError ` +
+		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError ` +
 		`FROM trackit.aws_account_reports_job ` +
 		`WHERE aws_account_id = ?`
 
@@ -193,7 +195,7 @@ func AwsAccountReportsJobsByAwsAccountID(db XODB, awsAccountID int) ([]*AwsAccou
 		}
 
 		// scan
-		err = q.Scan(&aarj.ID, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.Costdifferror, &aarj.Ec2usagereporterror, &aarj.Rdsusagereporterror)
+		err = q.Scan(&aarj.ID, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.Joberror, &aarj.Spreadsheeterror, &aarj.Costdifferror, &aarj.Ec2usagereporterror, &aarj.Rdsusagereporterror)
 		if err != nil {
 			return nil, err
 		}
