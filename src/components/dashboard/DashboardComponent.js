@@ -35,7 +35,7 @@ const defaultValues = {
 };
 
 const itemsSize = {
-  header: [6, 2],
+  header: [6, 3],
   cb_infos: [6,2],
   cb_pie: [3,6],
   cb_bar: [3,6],

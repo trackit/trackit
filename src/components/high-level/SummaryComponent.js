@@ -3,6 +3,12 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import { formatPrice } from '../../common/formatters';
 
+const getTotalCost = (costs) => {
+  let total = 0;
+  Object.keys(costs).forEach((key) => total += costs[key]);
+  return total;
+};
+
 class SummaryComponent extends Component {
   getMonthTotal(products) {
     let res = 0;
@@ -15,14 +21,14 @@ class SummaryComponent extends Component {
     return res;
   }
 
-  getPotentialsSavings(unused ) {
+  getPotentialsSavings(unused) {
     let res = 0;
 
     if (unused.ec2 && unused.ec2.status && unused.ec2.values) {
-        for (let i = 0; i < unused.ec2.values.length; i++) {
-            const element = unused.ec2.values[i];
-            res += element.cost;
-        }
+      for (let i = 0; i < unused.ec2.values.length; i++) {
+        const element = unused.ec2.values[i];
+        res += getTotalCost(element.instance.costs);
+      }
     }
     return res;
   }

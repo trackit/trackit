@@ -43,7 +43,7 @@
     float: right;
 }
 
-.navbar-header .top-right-part>div.dropdown-trigger ul.dropdown-menu {
+.navbar-header .top-right-part>div.dropdown-trigger .dropdown-menu {
     right: 0;
     left: auto;
 }
@@ -191,6 +191,7 @@ div.dropdown-trigger:hover  .dropdown-menu {
 
 #account-selection {
     height: auto;
+    max-height: 210px;
     overflow-y: scroll;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
@@ -222,6 +223,7 @@ div.dropdown-trigger:hover  .dropdown-menu {
 
 @media (min-width: 768px) {
     .navbar-static-top {
+        padding: 0px;
         padding-left: 60px;
     }
     .navbar-default {
@@ -241,6 +243,8 @@ div.dropdown-trigger:hover  .dropdown-menu {
         width: 60px;
         padding-top: 0;
         height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
         /*transition: .05s ease-in;*/
     }
     .sidebar #side-menu {

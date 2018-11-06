@@ -185,28 +185,36 @@ export class HighLevelComponent extends Component {
 
     return (
       <div>
-        <div className="col-md-12">
-          <div className="white-box">
-            <div className="clearfix">
-              <h3 className="white-box-title no-padding inline-block">
-                <i className="fa fa-home"></i>
-                &nbsp;
-                Home
-                {badges}
-              </h3>
-              <div className="inline-block pull-right">
-                {timerange}
+        <div className="row">
+          <div className="col-md-12">
+            <div className="white-box">
+              <div className="clearfix">
+                <h3 className="white-box-title no-padding inline-block">
+                  <i className="fa fa-home"></i>
+                  &nbsp;
+                  Home
+                  {badges}
+                </h3>
+                <div className="inline-block pull-right">
+                  {timerange}
+                </div>
               </div>
             </div>
           </div>
         </div>
-        {status}
-        {summary}
-        {history}
-        {topSpendings}
-        {tags}
-        {events}
-        {unused}
+        <div className="row">
+          {status}
+          {summary}
+          {history}
+        </div>
+        <div className="row">
+          {topSpendings}
+          {tags}
+        </div>
+        <div className="row">
+          {events}
+          {unused}
+        </div>
       </div>
 
     );

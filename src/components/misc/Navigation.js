@@ -88,7 +88,6 @@ export class Navigation extends Component {
             <h3>
               <span className="open-close">
                 <i className="fa fa-bars hidden-xs"></i>
-                <i className="fa fa-times visible-xs"></i>
               </span>
               <span className="hide-menu">
                 Navigation
@@ -96,7 +95,7 @@ export class Navigation extends Component {
             </h3>
           </div>
 
-          <ul className="nav" id="side-menu">
+          <ul className="nav flex-column" id="side-menu">
             <li className="user-menu-item">
               <button onClick={this.toggleUserMenu.bind(this)}>
                 <span className="fa-stack fa-lg red-color">
@@ -111,26 +110,26 @@ export class Navigation extends Component {
               {userMenu || <hr className="m-b-0"/>}
             </li>
 
-            <li>
-              <NavLink exact to='/app' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" exact to='/app' activeClassName="active">
                 <i className="menu-icon fa fa-home"/>
                 <span className="hide-menu">Home</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/dashboard' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/dashboard' activeClassName="active">
                 <i className="menu-icon fa fa-tachometer"/>
                 <span className="hide-menu">Dashboard</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/costbreakdown' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/costbreakdown' activeClassName="active">
                 <i className="menu-icon fa fa-area-chart"/>
                 <span className="hide-menu">Cost Breakdown</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/events' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/events' activeClassName="active">
                 <div className="menu-icon inline-block">
                 <i className="menu-icon fa fa-exclamation-triangle"/>
                 {eventsBadge}
@@ -138,52 +137,52 @@ export class Navigation extends Component {
                 <span className="hide-menu">Events</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/tags' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/tags' activeClassName="active">
                 <i className="menu-icon fa fa-tags"/>
                 <span className="hide-menu">Tags</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/map' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/map' activeClassName="active">
                 <i className="menu-icon fa fa-map-o"/>
                 <span className="hide-menu">Resources Map</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/resources' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/resources' activeClassName="active">
                 <i className="menu-icon fa fa-list-alt"/>
                 <span className="hide-menu">AWS Resources</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/s3' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/s3' activeClassName="active">
                 <i className="menu-icon fa fa-bar-chart"/>
                 <span className="hide-menu">AWS S3 Analytics</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/reports' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/reports' activeClassName="active">
                 <i className="menu-icon fa fa-file-text"/>
                 <span className="hide-menu">AWS Reports</span>
               </NavLink>
             </li>
             {/*
-            <li>
-              <NavLink to='/app/optimize' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/optimize' activeClassName="active">
                 <i className="menu-icon fa fa-area-chart"/>
                 <span className="hide-menu">Compute Optimizer</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/ressources' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/ressources' activeClassName="active">
                 <i className="menu-icon fa fa-pie-chart"/>
                 <span className="hide-menu">Ressources Monitoring</span>
               </NavLink>
             </li>
             */}
-            <li>
-              <NavLink to='/app/setup' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/setup' activeClassName="active">
                 <i className="menu-icon fa fa-cog"/>
                 <span className="hide-menu">Setup</span>
               </NavLink>

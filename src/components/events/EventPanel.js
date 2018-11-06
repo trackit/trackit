@@ -111,14 +111,14 @@ class EventPanel extends Component {
         const anomalyLevel = this.getAnomalyLevel(abnormalElement);
         return (
             <div className="white-box">
-                <h4 className="inline-block">
+                <h5 className="inline-block">
                     <i className="fa fa-exclamation-circle"></i>
                     &nbsp;
                     {service.length ? service : "Unknown service"}
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
-                </h4>
-                <h4 className="inline-block pull-right">{moment(abnormalElement.date).format("ddd, MMM Do Y")}</h4>
+                </h5>
+                <h5 className="inline-block pull-right">{moment(abnormalElement.date).format("ddd, MMM Do Y")}</h5>
                 <div className="clearfix"></div>
                 <p>On {moment(abnormalElement.date).format("ddd, MMM Do Y")}, <strong>{service.length ? service : "Unknown service"}</strong> exceeded the maximum expected cost for this service by <strong>${exceededCost}</strong></p>
                 <hr />

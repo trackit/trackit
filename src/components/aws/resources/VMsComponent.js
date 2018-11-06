@@ -5,134 +5,18 @@ import Actions from "../../../actions";
 import Spinner from "react-spinkit";
 import Moment from 'moment';
 import ReactTable from 'react-table';
-import Popover from '@material-ui/core/Popover';
 import {formatPercent, formatBytes, formatPrice} from '../../../common/formatters';
 import Misc from '../../misc';
+import Tags from './misc/Tags';
+import Volumes from './misc/Volumes';
+import Costs from './misc/Costs';
 
 const Tooltip = Misc.Popover;
 
-export class Volumes extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      showPopOver: false
-    };
-    this.handlePopoverOpen = this.handlePopoverOpen.bind(this);
-    this.handlePopoverClose = this.handlePopoverClose.bind(this);
-  }
-
-  handlePopoverOpen = (e) => {
-    e.preventDefault();
-    this.setState({ showPopOver: true });
-  };
-
-  handlePopoverClose = (e) => {
-    e.preventDefault();
-    this.setState({ showPopOver: false });
-  };
-
-  render() {
-    return (
-      <div>
-        <Popover
-          open={this.state.showPopOver}
-          anchorEl={this.anchor}
-          onClose={this.handlePopoverClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'center',
-          }}
-        >
-          <div
-            className="volumes-list"
-            onClick={this.handlePopoverClose}
-          >
-            {Object.keys(this.props.volumes).filter(key => (key !== "total")).map((volume, index) => (<div key={index} className="volumes-item">{volume} : {formatBytes(this.props.volumes[volume])}</div>))}
-          </div>
-        </Popover>
-        <div
-          ref={node => {
-            this.anchor = node;
-          }}
-          onClick={this.handlePopoverOpen}
-        >
-          <Tooltip placement="right" info tooltip="Click to see more details"/>
-        </div>
-      </div>
-    );
-  }
-
-}
-
-Volumes.propTypes = {
-  volumes: PropTypes.object.isRequired
-};
-
-export class Tags extends Component {
-
-  constructor(props) {
-    super(props);
-    this.state = {
-      showPopOver: false
-    };
-    this.handlePopoverOpen = this.handlePopoverOpen.bind(this);
-    this.handlePopoverClose = this.handlePopoverClose.bind(this);
-  }
-
-  handlePopoverOpen = (e) => {
-    e.preventDefault();
-    this.setState({ showPopOver: true });
-  };
-
-  handlePopoverClose = (e) => {
-    e.preventDefault();
-    this.setState({ showPopOver: false });
-  };
-
-  render() {
-    return (
-      <div>
-        <Popover
-          open={this.state.showPopOver}
-          anchorEl={this.anchor}
-          onClose={this.handlePopoverClose}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'center',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-        >
-          <div
-            className="tags-list"
-            onClick={this.handlePopoverClose}
-          >
-            {Object.keys(this.props.tags).map((tag, index) => (<div key={index} className="tags-item">{tag} : {this.props.tags[tag]}</div>))}
-          </div>
-        </Popover>
-        <div
-          ref={node => {
-            this.anchor = node;
-          }}
-          onClick={this.handlePopoverOpen}
-        >
-          <Tooltip placement="left" icon={<i className="fa fa-tags"/>} tooltip="Click to show tags"/>
-        </div>
-      </div>
-    );
-  }
-
-}
-
-Tags.propTypes = {
-  tags: PropTypes.object.isRequired
+const getTotalCost = (costs) => {
+  let total = 0;
+  Object.keys(costs).forEach((key) => total += costs[key]);
+  return total;
 };
 
 export class VMsComponent extends Component {
@@ -153,11 +37,11 @@ export class VMsComponent extends Component {
     let reportDate = null;
     let instances = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
+      instances = this.props.data.value.map((item) => item.instance);
+      const reportsDates = this.props.data.value.map((item) => (Moment(item.reportDate)));
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
       reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd D MMM HH:mm") + " and " + newestReport.format("ddd D MMM HH:mm")}/>);
-      instances = [].concat.apply([], this.props.data.value.map((account) => (account.instances)));
     }
 
     const regions = [];
@@ -165,8 +49,10 @@ export class VMsComponent extends Component {
     const purchasings = [];
     if (instances)
       instances.forEach((instance) => {
-        instance.ioRead.total = Object.keys(instance.ioRead).map((volume) => (instance.ioRead[volume])).reduce((a, b) => (a+b));
-        instance.ioWrite.total = Object.keys(instance.ioWrite).map((volume) => (instance.ioWrite[volume])).reduce((a, b) => (a+b));
+        if (instance.stats && instance.stats.volumes) {
+          instance.stats.volumes.read.total = Object.keys(instance.stats.volumes.read).map((volume) => (instance.stats.volumes.read[volume])).reduce((a, b) => (a + b));
+          instance.stats.volumes.write.total = Object.keys(instance.stats.volumes.write).map((volume) => (instance.stats.volumes.write[volume])).reduce((a, b) => (a + b));
+        }
         if (regions.indexOf(instance.region) === -1)
           regions.push(instance.region);
         if (types.indexOf(instance.type) === -1)
@@ -239,9 +125,23 @@ export class VMsComponent extends Component {
           },
           {
             Header: 'Cost',
-            accessor: 'cost',
+            accessor: 'costs',
             filterable: false,
-            Cell: row => (formatPrice(row.value))
+            sortMethod: (a, b) => (a && b && getTotalCost(a) > getTotalCost(b) ? 1 : -1),
+            Cell: row => (row.value && Object.keys(row.value).length !== 0 ? (
+                <div className="unusedStorageDetails">
+                    <span>
+                      {formatPrice(getTotalCost(row.value))}
+                    </span>
+                  <Costs costs={row.value}/>
+                </div>
+              ) : (
+                <span>
+                  N/A
+                  <Tooltip tooltip='Cost data are unavailable for this timerange. Please check again later.' info triggerStyle={{ fontSize: '0.9em', color: 'inherit' }} />
+                </span>
+              )
+            )
           },
           {
             Header: 'Purchasing Option',
@@ -263,7 +163,8 @@ export class VMsComponent extends Component {
             columns: [
               {
                 Header: 'Average',
-                accessor: 'cpuAverage',
+                id: 'cpuAverage',
+                accessor: d => d.stats.cpu.average,
                 filterable: false,
                 Cell: row => (row.value && row.value >= 0 ? (
                   <div className="cpu-stats">
@@ -293,11 +194,12 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               },
               {
                 Header: 'Peak',
-                accessor: 'cpuPeak',
+                id: 'cpuPeak',
+                accessor: d => d.stats.cpu.peak,
                 filterable: false,
                 Cell: row => (row.value && row.value >= 0 ? (
                   <div className="cpu-stats">
@@ -327,7 +229,7 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "No data available")
+                ) : "N/A")
               }
             ]
           },
@@ -336,7 +238,8 @@ export class VMsComponent extends Component {
             columns: [
               {
                 Header: 'Read',
-                accessor: 'ioRead',
+                id: 'ioRead',
+                accessor: d => d.stats.volumes.read || null,
                 minWidth: 120,
                 filterable: false,
                 sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
@@ -347,11 +250,12 @@ export class VMsComponent extends Component {
                     </span>
                     <Volumes volumes={row.value}/>
                   </div>
-                ) : "No data available") : null)
+                ) : "N/A") : null)
               },
               {
                 Header: 'Write',
-                accessor: 'ioWrite',
+                id: 'ioWrite',
+                accessor: d => d.stats.volumes.write || null,
                 minWidth: 120,
                 filterable: false,
                 sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
@@ -362,7 +266,7 @@ export class VMsComponent extends Component {
                     </span>
                     <Volumes volumes={row.value}/>
                   </div>
-                ) : "No data available") : null)
+                ) : "N/A") : null)
               }
             ]
           },
@@ -371,15 +275,17 @@ export class VMsComponent extends Component {
             columns: [
               {
                 Header: 'In',
-                accessor: 'networkIn',
+                id: 'networkIn',
+                accessor: d => d.stats.network.in,
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "No data available")
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
               },
               {
                 Header: 'Out',
-                accessor: 'networkOut',
+                id: 'networkOut',
+                accessor: d => d.stats.network.out,
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "No data available")
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
               }
             ]
           },
@@ -398,12 +304,12 @@ export class VMsComponent extends Component {
 
     return (
       <div className="clearfix resources vms">
-        <h3 className="white-box-title no-padding inline-block">
+        <h4 className="white-box-title no-padding inline-block">
           <i className="menu-icon fa fa-desktop"/>
           &nbsp;
           VMs
           {reportDate}
-        </h3>
+        </h4>
         {loading}
         {error}
         {list}
@@ -421,22 +327,30 @@ VMsComponent.propTypes = {
     value: PropTypes.arrayOf(PropTypes.shape({
       account: PropTypes.string.isRequired,
       reportDate: PropTypes.string.isRequired,
-      instances: PropTypes.arrayOf(
-        PropTypes.shape({
-          id: PropTypes.string.isRequired,
-          state: PropTypes.string.isRequired,
-          region: PropTypes.string.isRequired,
-          cpuAverage: PropTypes.number.isRequired,
-          cpuPeak: PropTypes.number.isRequired,
-          ioRead: PropTypes.object.isRequired,
-          ioWrite: PropTypes.object.isRequired,
-          networkIn: PropTypes.number.isRequired,
-          networkOut: PropTypes.number.isRequired,
-          keyPair: PropTypes.string.isRequired,
-          type: PropTypes.string.isRequired,
-          tags: PropTypes.object.isRequired
+      instance: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        state: PropTypes.string.isRequired,
+        region: PropTypes.string.isRequired,
+        keyPair: PropTypes.string.isRequired,
+        type: PropTypes.string.isRequired,
+        purchasing: PropTypes.string.isRequired,
+        tags: PropTypes.object.isRequired,
+        costs: PropTypes.object,
+        stats: PropTypes.shape({
+          cpu: PropTypes.shape({
+            average: PropTypes.number,
+            peak: PropTypes.number
+          }),
+          network: PropTypes.shape({
+            in: PropTypes.number,
+            out: PropTypes.number
+          }),
+          volumes: PropTypes.shape({
+            read: PropTypes.object,
+            write: PropTypes.object
+          }),
         })
-      )
+      })
     }))
   }),
   getData: PropTypes.func.isRequired,

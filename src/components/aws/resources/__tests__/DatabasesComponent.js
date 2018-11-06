@@ -5,6 +5,7 @@ import Spinner from "react-spinkit";
 import ReactTable from 'react-table';
 import Moment from 'moment';
 import Misc from '../../../misc';
+import PropTypes from "prop-types";
 
 const Tooltip = Misc.Popover;
 
@@ -25,16 +26,28 @@ const propsWithData = {
       {
         account: '420',
         reportDate: Moment().toISOString(),
-        instances: [
-          {
-            dbInstanceIdentifier: 'name',
-            dbInstanceClass: 'type',
-            availabilityZone: 'us-west-1',
-            engine: 'engine',
-            multiAZ: 'yes',
-            allocatedStorage: 42
+        instance: {
+          id: 'name',
+          type: 'type',
+          availabilityZone: 'us-west-1',
+          engine: 'engine',
+          multiAZ: 'yes',
+          allocatedStorage: 42,
+          costs: {
+            instance: 42
+          },
+          stats: {
+            cpu: {
+              average: 42,
+              peak: 42
+            },
+            freeSpace: {
+              minimum: 42,
+              maximum: 42,
+              average: 42
+            }
           }
-        ]
+        }
       }
     ]
   }

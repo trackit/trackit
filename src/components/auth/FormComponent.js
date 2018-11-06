@@ -172,7 +172,7 @@ export class FormComponent extends Component {
       <div className="login">
         <div className="row">
           <div
-            className="col-lg-4 col-lg-offset-4 col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 parent"
+            className="col-lg-4 offset-4 col-md-4 col-sm-6 parent"
           >
             <div className="white-box vertCentered">
 

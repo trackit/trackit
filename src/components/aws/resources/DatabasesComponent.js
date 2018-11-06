@@ -6,9 +6,17 @@ import Spinner from "react-spinkit";
 import Moment from "moment";
 import Misc from '../../misc';
 import ReactTable from "react-table";
-import {formatGigaBytes, formatPrice} from "../../../common/formatters";
+import {formatGigaBytes, formatPrice, formatBytes, formatPercent} from "../../../common/formatters";
+import UnusedStorage from './misc/UnusedStorage';
+import Costs from "./misc/Costs";
 
 const Tooltip = Misc.Popover;
+
+const getTotalCost = (costs) => {
+  let total = 0;
+  Object.keys(costs).forEach((key) => total += costs[key]);
+  return total;
+};
 
 export class DatabasesComponent extends Component {
 
@@ -22,45 +30,33 @@ export class DatabasesComponent extends Component {
   }
 
   render() {
-    if (this.props.dates.startDate.isBefore(Moment().startOf('months')))
-      return (
-        <div className="clearfix resources dbs">
-          <h3 className="white-box-title no-padding inline-block">
-            <i className="menu-icon fa fa-database"/>
-            &nbsp;
-            Databases
-          </h3>
-          <div className="alert alert-warning" role="alert">Report not available for this month</div>
-        </div>
-      );
-
     const loading = (!this.props.data.status ? (<Spinner className="spinner" name='circle'/>) : null);
     const error = (this.props.data.error ? (<div className="alert alert-warning" role="alert">Error while getting data ({this.props.data.error.message})</div>) : null);
 
     let reportDate = null;
     let instances = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
+      instances = this.props.data.value.map((item) => item.instance);
+      const reportsDates = this.props.data.value.map((item) => (Moment(item.reportDate)));
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
       reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd D MMM HH:mm") + " and " + newestReport.format("ddd D MMM HH:mm")}/>);
-      instances = [].concat.apply([], this.props.data.value.map((account) => (account.instances)));
     }
 
     const availabilityZones = [];
-    const dbInstanceClasses = [];
+    const types = [];
     const engines = [];
     if (instances)
       instances.forEach((instance) => {
         if (availabilityZones.indexOf(instance.availabilityZone) === -1)
           availabilityZones.push(instance.availabilityZone);
-        if (dbInstanceClasses.indexOf(instance.dbInstanceClass) === -1)
-          dbInstanceClasses.push(instance.dbInstanceClass);
+        if (types.indexOf(instance.type) === -1)
+          types.push(instance.type);
         if (engines.indexOf(instance.engine) === -1)
           engines.push(instance.engine);
       });
     availabilityZones.sort();
-    dbInstanceClasses.sort();
+    types.sort();
     engines.sort();
 
     const list = (!loading && !error ? (
@@ -72,13 +68,13 @@ export class DatabasesComponent extends Component {
         columns={[
           {
             Header: 'Name',
-            accessor: 'dbInstanceIdentifier',
+            accessor: 'id',
             minWidth: 150,
             Cell: row => (<strong>{row.value}</strong>)
           },
           {
             Header: 'Type',
-            accessor: 'dbInstanceClass',
+            accessor: 'type',
             filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
             Filter: ({ filter, onChange }) => (
               <select
@@ -87,7 +83,7 @@ export class DatabasesComponent extends Component {
                 value={filter ? filter.value : "all"}
               >
                 <option value="all">Show All</option>
-                {dbInstanceClasses.map((type, index) => (<option key={index} value={type}>{type}</option>))}
+                {types.map((type, index) => (<option key={index} value={type}>{type}</option>))}
               </select>
             )
           },
@@ -104,14 +100,27 @@ export class DatabasesComponent extends Component {
                 <option value="all">Show All</option>
                 {availabilityZones.map((region, index) => (<option key={index} value={region}>{region}</option>))}
               </select>
-            )
+          )
           },
           {
             Header: 'Cost',
-            id: 'cost',
-            accessor: d => d.cost || 0,
+            accessor: 'costs',
             filterable: false,
-            Cell: row => (formatPrice(row.value))
+            sortMethod: (a, b) => (a && b && getTotalCost(a) > getTotalCost(b) ? 1 : -1),
+            Cell: row => (row.value && Object.keys(row.value).length !== 0 ? (
+                <div className="unusedStorageDetails">
+                    <span>
+                      {formatPrice(getTotalCost(row.value))}
+                    </span>
+                  <Costs costs={row.value}/>
+                </div>
+              ) : (
+                <span>
+                  N/A
+                  <Tooltip tooltip='Cost data are unavailable for this timerange. Please check again later.' info triggerStyle={{ fontSize: '0.9em', color: 'inherit' }} />
+                </span>
+              )
+            )
           },
           {
             Header: 'Engine',
@@ -148,9 +157,103 @@ export class DatabasesComponent extends Component {
           },
           {
             Header: 'Storage',
-            accessor: 'allocatedStorage',
-            filterable: false,
-            Cell: row => formatGigaBytes(row.value)
+            columns: [
+              {
+                Header: 'Total',
+                accessor: 'allocatedStorage',
+                filterable: false,
+                Cell: row => formatGigaBytes(row.value)
+              },
+              {
+                Header: 'Unused',
+                id: 'unusedStorage',
+                accessor: d => d.stats.freeSpace || null,
+                filterable: false,
+                Cell: row => (row.value && row.value.average !== undefined && row.value.average >= 0 ? (
+                  <div className="unusedStorageDetails">
+                    <span>
+                      {formatBytes(row.value.average)}
+                    </span>
+                    <UnusedStorage data={row.value}/>
+                  </div>
+                ) : "N/A")
+              },
+            ]
+          },
+          {
+            Header: 'CPU',
+            columns: [
+              {
+                Header: 'Average',
+                id: 'averageCPU',
+                accessor: d => d.stats.cpu.average || null,
+                filterable: false,
+                Cell: row => (row.value && row.value >= 0 ? (
+                  <div className="cpu-stats">
+                    <Tooltip
+                      placement="left"
+                      icon={(
+                        <div
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#dddddd',
+                            borderRadius: '2px',
+                            flex: 1
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${row.value}%`,
+                              height: '100%',
+                              backgroundColor: row.value > 60 ? '#d6413b'
+                                : row.value > 30 ? '#ff9800'
+                                  : '#4caf50',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        </div>
+                      )}
+                      tooltip={formatPercent(row.value, 2, false)}
+                    />
+                  </div>
+                ) : "N/A")
+              },
+              {
+                Header: 'Peak',
+                id: 'peakCPU',
+                accessor: d => d.stats.cpu.peak || null,
+                filterable: false,
+                Cell: row => (row.value && row.value >= 0 ? (
+                  <div className="cpu-stats">
+                    <Tooltip
+                      placement="right"
+                      icon={(
+                        <div
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#dddddd',
+                            borderRadius: '2px',
+                            flex: 1
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${row.value}%`,
+                              height: '100%',
+                              backgroundColor: row.value > 80 ? '#d6413b'
+                                : row.value > 60 ? '#ff9800'
+                                  : '#4caf50',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        </div>
+                      )}
+                      tooltip={formatPercent(row.value, 2, false)}
+                    />
+                  </div>
+                ) : "N/A")
+              }
+            ]
           },
         ]}
         defaultSorted={[{
@@ -163,12 +266,12 @@ export class DatabasesComponent extends Component {
 
     return (
       <div className="clearfix resources dbs">
-        <h3 className="white-box-title no-padding inline-block">
+        <h4 className="white-box-title no-padding inline-block">
           <i className="menu-icon fa fa-database"/>
           &nbsp;
           Databases
           {reportDate}
-        </h3>
+        </h4>
         {loading}
         {error}
         {list}
@@ -186,14 +289,26 @@ DatabasesComponent.propTypes = {
     value: PropTypes.arrayOf(PropTypes.shape({
       account: PropTypes.string.isRequired,
       reportDate: PropTypes.string.isRequired,
-      instances: PropTypes.arrayOf(PropTypes.shape({
-        dbInstanceIdentifier: PropTypes.string.isRequired,
-        dbInstanceClass: PropTypes.string.isRequired,
+      instance: PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        type: PropTypes.string.isRequired,
         availabilityZone: PropTypes.string.isRequired,
         engine: PropTypes.string.isRequired,
         multiAZ: PropTypes.bool.isRequired,
-        allocatedStorage: PropTypes.number.isRequired
-      }))
+        allocatedStorage: PropTypes.number.isRequired,
+        costs: PropTypes.object,
+        stats: PropTypes.shape({
+          cpu: PropTypes.shape({
+            average: PropTypes.number,
+            peak: PropTypes.number
+          }),
+          freeSpace: PropTypes.shape({
+            minimum: PropTypes.number,
+            maximum: PropTypes.number,
+            average: PropTypes.number
+          })
+        })
+      })
     }))
   }),
   getData: PropTypes.func.isRequired,
