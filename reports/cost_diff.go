@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/costs/diff"
 )
@@ -74,7 +75,9 @@ func formatCostDiff(data []diff.PricePoint) (values costDiffProduct) {
 
 func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]string, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("Getting Cost Differentiator Report for account " + strconv.Itoa(aa.Id), nil)
+	logger.Debug("Getting Cost Differentiator Report for account", map[string]interface{}{
+		"account": aa,
+	})
 
 	data = make([][]string, 0)
 	header := make([]string, 0)

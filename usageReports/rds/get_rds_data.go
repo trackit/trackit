@@ -22,8 +22,8 @@ import (
 	"strings"
 
 	"gopkg.in/olivere/elastic.v5"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"

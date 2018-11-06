@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/db"
 )
@@ -52,7 +53,9 @@ var modules = []module{
 
 func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Generating spreadsheet for account", aa)
+	logger.Info("Generating spreadsheet for account", map[string]interface{}{
+		"account": aa,
+	})
 	now := time.Now()
 	date := fmt.Sprintf("%s%s", (now.Month()-1).String(), strconv.Itoa(now.Year()))
 	errs = make(map[string]error)

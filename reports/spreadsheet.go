@@ -24,8 +24,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/tealeg/xlsx"
-
 	"github.com/trackit/jsonlog"
+
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/awsSession"
 	"github.com/trackit/trackit-server/config"
@@ -65,7 +65,10 @@ func generateSpreadsheet(ctx context.Context, aa taws.AwsAccount, date string, s
 		sheet := convertToSheet(rawSheet)
 		_, err := file.AppendSheet(sheet, rawSheet.name)
 		if err != nil {
-			logger.Error("Error while adding sheet " + rawSheet.name, err.Error())
+			logger.Error("Error while adding sheet", map[string]interface{}{
+				"sheet": rawSheet.name,
+				"error": err.Error(),
+			})
 			errors[rawSheet.name] = err
 		}
 	}
@@ -78,7 +81,7 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 	filename := fmt.Sprintf("%s.xlsx", file.date)
 	reportPath := path.Join(strconv.Itoa(file.account.Id), "generated-report", filename)
 
-	logger.Info("Uploading spreadsheet ", reportPath)
+	logger.Info("Uploading spreadsheet", reportPath)
 
 	reader, writer := io.Pipe()
 
@@ -86,7 +89,10 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 		defer writer.Close()
 		err := file.file.Write(writer)
 		if err != nil {
-			logger.Error("Error while saving report " + reportPath, err.Error())
+			logger.Error("Error while saving report", map[string]interface{}{
+				"report": reportPath,
+				"error": err.Error(),
+			})
 		}
 	}()
 
@@ -97,9 +103,12 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 		Key:    aws.String(reportPath),
 	})
 	if err != nil {
-		logger.Error("Failed to upload report " + reportPath, err.Error())
+		logger.Error("Failed to upload report", map[string]interface{}{
+			"report": reportPath,
+			"error": err.Error(),
+		})
 	} else {
-		logger.Info("Successfully uploaded to", result.Location)
+		logger.Info("Spreadsheet successfully uploaded", result.Location)
 	}
 	return
 }

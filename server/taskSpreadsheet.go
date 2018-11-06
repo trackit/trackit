@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"database/sql"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/reports"

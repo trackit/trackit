@@ -140,7 +140,7 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 		return report, nil
 	}
 	logger.Error("An error occured while converting to diffData", nil)
-	return nil, fmt.Errorf("Error durint cast")
+	return nil, fmt.Errorf("Error when casting")
 }
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data

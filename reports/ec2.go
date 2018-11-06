@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/usageReports/ec2"
 	"github.com/trackit/trackit-server/users"
@@ -115,7 +116,9 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 		Date: date,
 	}
 
-	logger.Debug("Getting EC2 Usage Report for account " + strconv.Itoa(aa.Id), nil)
+	logger.Debug("Getting EC2 Usage Report for account", map[string]interface{}{
+		"account": aa,
+	})
 	_, reports, err := ec2.GetEc2Data(ctx, parameters, user, tx)
 	if err != nil {
 		return
