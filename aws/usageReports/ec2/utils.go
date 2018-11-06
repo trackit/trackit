@@ -25,85 +25,114 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/es"
 )
 
 const MonitorInstanceStsSessionName = "monitor-instance"
 
 type (
-	// Report represents the report with all the information for EC2 instances.
-	Report struct {
-		Account    string     `json:"account"`
-		ReportDate time.Time  `json:"reportDate"`
-		ReportType string     `json:"reportType"`
-		Instances  []Instance `json:"instances"`
+	// InstanceReport is saved in ES to have all the information of an EC2 instance
+	InstanceReport struct {
+		Account    string    `json:"account"`
+		ReportDate time.Time `json:"reportDate"`
+		ReportType string    `json:"reportType"`
+		Instance   Instance  `json:"instance"`
 	}
 
-	// Instance represents all the information of an EC2 instance.
+	// Instance contains the information of an EC2 instance
 	Instance struct {
 		Id         string             `json:"id"`
 		Region     string             `json:"region"`
 		State      string             `json:"state"`
 		Purchasing string             `json:"purchasing"`
-		CpuAverage float64            `json:"cpuAverage"`
-		CpuPeak    float64            `json:"cpuPeak"`
-		NetworkIn  float64            `json:"networkIn"`
-		NetworkOut float64            `json:"networkOut"`
-		IORead     map[string]float64 `json:"ioRead"`
-		IOWrite    map[string]float64 `json:"ioWrite"`
 		KeyPair    string             `json:"keyPair"`
 		Type       string             `json:"type"`
-		Tags       map[string]string  `json:"tags"`
-		Cost       float64            `json:"cost"`
-		CostDetail map[string]float64 `json:"costDetail"`
+		Tags       []Tag              `json:"tags"`
+		Costs      map[string]float64 `json:"costs"`
+		Stats      Stats              `json:"stats"`
 	}
 
-	// instanceStats contains statistics of an instance get by CloudWatch
-	instanceStats struct {
-		CpuAverage float64
-		CpuPeak    float64
-		NetworkIn  float64
-		NetworkOut float64
-		IORead     map[string]float64
-		IOWrite    map[string]float64
+	// Stats contains statistics of an instance get on CloudWatch
+	Stats struct {
+		Cpu     Cpu      `json:"cpu"`
+		Network Network  `json:"network"`
+		Volumes []Volume `json:"volumes"`
+	}
+
+	// Cpu contains cpu statistics of an instance
+	Cpu struct {
+		Average float64 `json:"average"`
+		Peak    float64 `json:"peak"`
+	}
+
+	// Network contains network statistics of an instance
+	Network struct {
+		In  float64 `json:"in"`
+		Out float64 `json:"out"`
+	}
+
+	// Volume contains information about an EBS volume
+	Volume struct {
+		Id    string  `json:"id"`
+		Read  float64 `json:"read"`
+		Write float64 `json:"write"`
+	}
+
+	// Tag contains the key of a tag and his value
+	Tag struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
 	}
 )
 
-// importReportToEs imports an EC2 report in ElasticSearch.
+// importInstancesToEs imports EC2 instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importReportToEs(ctx context.Context, aa taws.AwsAccount, report Report) error {
+func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EC2 instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	client := es.Client
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2Report)
+	bp, err := utils.GetBulkProcessor(ctx)
+	if err != nil {
+		logger.Error("Failed to get bulk processor.", err.Error())
+		return err
+	}
+	for _, instance := range instances {
+		id, err := generateId(instance)
+		if err != nil {
+			logger.Error("Error when marshaling instance var", err.Error())
+			return err
+		}
+		bp = utils.AddDocToBulkProcessor(bp, instance, TypeEC2Report, index, id)
+	}
+	bp.Flush()
+	err = bp.Close()
+	if err != nil {
+		logger.Error("Fail to put EC2 instances in ES", err.Error())
+		return err
+	}
+	logger.Info("EC2 instances put in ES", nil)
+	return nil
+}
+
+func generateId(instance InstanceReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
+		Id         string    `json:"id"`
 	}{
-		report.Account,
-		report.ReportDate,
+		instance.Account,
+		instance.ReportDate,
+		instance.Instance.Id,
 	})
 	if err != nil {
-		logger.Error("Error when marshaling instance var", err.Error())
-		return err
+		return "", err
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2Report)
-	if res, err := client.
-		Index().
-		Index(index).
-		Type(TypeEC2Report).
-		BodyJson(report).
-		Id(hash64).
-		Do(context.Background()); err != nil {
-		logger.Error("Error when putting InstanceInfo in ES", err.Error())
-		return err
-	} else {
-		logger.Info("Instance put in ES", *res)
-		return nil
-	}
+	return hash64, nil
 }
 
 // merge function from https://blog.golang.org/pipelines#TOC_4

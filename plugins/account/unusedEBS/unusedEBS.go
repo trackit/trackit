@@ -15,79 +15,82 @@
 package plugins_account_unused_ebs
 
 import (
-	"bytes"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 
 	"github.com/trackit/trackit-server/config"
 	core "github.com/trackit/trackit-server/plugins/account/core"
-	"github.com/trackit/trackit-server/plugins/utils"
+	utils "github.com/trackit/trackit-server/plugins/utils"
 )
 
 func init() {
 	// Register the plugin
 	core.AccountPlugin{
-		Name:        "unused_ebs",
+		Name:        "Unused EBS",
 		Description: "unused ebs plugin",
+		Category:    utils.PluginsCategories["EC2"],
+		Label:       "attached EBS volume(s)",
 		Func:        processUnusedEBS,
 	}.Register()
 }
 
-// formatResult takes a map of unused EBS and returns 3 strings to fill the
-// core.PluginResult struct
-func formatResult(unusedByAZ map[string]int) (string, string, string) {
+// prepareResult takes a map of unused EBS and a *core.PluginResult as parameters
+// and fills the PluginResult
+func prepareResult(unusedByAZ map[string]int, pluginRes *core.PluginResult) {
 	total := 0
-	detail := new(bytes.Buffer)
 	for az, totalAz := range unusedByAZ {
-		if total == 0 {
-			fmt.Fprintf(detail, fmt.Sprintf("%s(%d)", az, totalAz))
-		} else {
-			fmt.Fprintf(detail, fmt.Sprintf(", %s(%d)", az, totalAz))
-		}
+		pluginRes.Details = append(pluginRes.Details, fmt.Sprintf("%s: %d unused volume(s)", az, totalAz))
 		total += totalAz
 	}
 	if total == 0 {
-		return "You don't have any unused EBS", "", ""
+		pluginRes.Result = "You don't have any unused EBS"
+		pluginRes.Status = "green"
+		return
 	}
-	return fmt.Sprintf("You have %d unused EBS", total), detail.String(), ""
+	pluginRes.Result = fmt.Sprintf("You have %d unused EBS", total)
+	pluginRes.Status = utils.StatusPercentSteps{50, 95}.GetStatus(pluginRes.Checked, pluginRes.Passed)
 }
 
 // getUnusedEBsRecommendation searches for unused ebs in every region available
-// It takes a core.PluginParams struct and returns 3 strings (result, details, error)
-func getUnusedEBsRecommendation(pluginParams core.PluginParams) (string, string, string) {
-	svc := plugins_utils.GetEc2ClientSession(pluginParams.AccountCredentials, &config.AwsRegion)
+// It takes a core.PluginParams struct and a *core.PluginResult as parameters
+func getUnusedEBsRecommendation(pluginParams core.PluginParams, pluginRes *core.PluginResult) {
+	svc := utils.GetEc2ClientSession(pluginParams.AccountCredentials, &config.AwsRegion)
 	regionsOutput, err := svc.DescribeRegions(&ec2.DescribeRegionsInput{})
 	if err != nil {
-		return "", "", fmt.Sprintf("Unable to retrieve the list of regions: %s", err.Error())
+		pluginRes.Status = "red"
+		pluginRes.Error = fmt.Sprintf("Unable to retrieve the list of regions: %s", err.Error())
+		return
 	}
 
 	unusedByAZ := make(map[string]int)
 	for _, region := range regionsOutput.Regions {
-		svc = plugins_utils.GetEc2ClientSession(pluginParams.AccountCredentials, region.RegionName)
+		svc = utils.GetEc2ClientSession(pluginParams.AccountCredentials, region.RegionName)
 		err = svc.DescribeVolumesPages(&ec2.DescribeVolumesInput{},
 			func(page *ec2.DescribeVolumesOutput, lastPage bool) bool {
 				for _, volume := range page.Volumes {
+					pluginRes.Checked += 1
 					if volume != nil && *volume.State == "available" {
 						unusedByAZ[*volume.AvailabilityZone] = unusedByAZ[*volume.AvailabilityZone] + 1
+					} else {
+						pluginRes.Passed += 1
 					}
 				}
 				return lastPage
 			})
 		if err != nil {
-			return "", "", fmt.Sprintf("Unable to list volumes: %s", err.Error())
+			pluginRes.Status = "red"
+			pluginRes.Error = fmt.Sprintf("Unable to list volumes: %s", err.Error())
+			return
 		}
 	}
-	return formatResult(unusedByAZ)
+	prepareResult(unusedByAZ, pluginRes)
 }
 
-// processUnusedEBS is the handler function for the unused_ebs plugin
+// processUnusedEBS is the handler function for the Unused EBS plugin
 // it takes a core.PluginParams struct and returns a core.PluginResult struct
 func processUnusedEBS(params core.PluginParams) core.PluginResult {
-	result, details, err := getUnusedEBsRecommendation(params)
-	return core.PluginResult{
-		Result:  result,
-		Details: details,
-		Error:   err,
-	}
+	res := core.PluginResult{}
+	getUnusedEBsRecommendation(params, &res)
+	return res
 }

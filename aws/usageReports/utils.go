@@ -36,6 +36,70 @@ type CostPerResource struct {
 	Region   string
 }
 
+const (
+	mebibyte = 1 << 20
+
+	esBulkInsertSize    = 8 * mebibyte
+	esBulkInsertWorkers = 4
+
+	opTypeCreate = "create"
+
+	MaxAggregationSize = 0x7FFFFFFF
+)
+
+// AddDocToBulkProcessor adds a document in a bulk processor to ingest them in ES
+func AddDocToBulkProcessor(bp *elastic.BulkProcessor, doc interface{}, docType, index, id string) *elastic.BulkProcessor {
+	rq := elastic.NewBulkIndexRequest()
+	rq = rq.Index(index)
+	rq = rq.OpType(opTypeCreate)
+	rq = rq.Type(docType)
+	rq = rq.Id(id)
+	rq = rq.Doc(doc)
+	bp.Add(rq)
+	return bp
+}
+
+// GetBulkProcessor builds a bulk processor for ElasticSearch.
+func GetBulkProcessor(ctx context.Context) (*elastic.BulkProcessor, error) {
+	bps := elastic.NewBulkProcessorService(es.Client)
+	bps = bps.BulkActions(-1)
+	bps = bps.BulkSize(esBulkInsertSize)
+	bps = bps.Workers(esBulkInsertWorkers)
+	bps = bps.Before(beforeBulk(ctx))
+	bps = bps.After(afterBulk(ctx))
+	return bps.Do(context.Background()) // use of background context is not an error
+}
+
+// beforeBulk returns a function that will be called before a bulk to log it
+func beforeBulk(ctx context.Context) func(int64, []elastic.BulkableRequest) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	return func(execId int64, reqs []elastic.BulkableRequest) {
+		logger.Info("Performing bulk ElasticSearch requests.", map[string]interface{}{
+			"executionId":   execId,
+			"requestsCount": len(reqs),
+		})
+	}
+}
+
+// beforeBulk returns a function that will be called after a bulk to log it
+func afterBulk(ctx context.Context) func(int64, []elastic.BulkableRequest, *elastic.BulkResponse, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	return func(execId int64, reqs []elastic.BulkableRequest, resp *elastic.BulkResponse, err error) {
+		if err != nil {
+			logger.Error("Failed bulk ElasticSearch requests.", map[string]interface{}{
+				"executionId": execId,
+				"error":       err.Error(),
+			})
+		} else {
+			logger.Info("Finished bulk ElasticSearch requests.", map[string]interface{}{
+				"executionId": execId,
+				"took":        resp.Took,
+			})
+		}
+
+	}
+}
+
 // GetAccountId gets the AWS Account ID for the given credentials
 func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)

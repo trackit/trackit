@@ -12,10 +12,11 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package plugins
+package plugins_utils
 
-import (
-	_ "github.com/trackit/trackit-server/plugins/account/s3Traffic"
-	_ "github.com/trackit/trackit-server/plugins/account/unattachedEIP"
-	_ "github.com/trackit/trackit-server/plugins/account/unusedEBS"
-)
+// PluginsCategories defines the categories that can be used for the plugins
+// Any new category should be added in the map
+var PluginsCategories = map[string]string{
+	"EC2": "EC2",
+	"S3":  "S3",
+}

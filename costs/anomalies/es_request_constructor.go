@@ -39,7 +39,7 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 // durationBegin is reduced by period. This offset is deleted later.
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
 	periodDuration := time.Duration(config.AnomalyDetectionBollingerBandPeriod) * 24 * time.Hour
-	durationBegin = durationBegin.Add(-periodDuration)
+	durationBegin = durationBegin.Add(-periodDuration-1)
 	return elastic.NewRangeQuery("usageStartDate").
 		From(durationBegin).To(durationEnd)
 }

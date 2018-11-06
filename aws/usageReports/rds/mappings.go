@@ -42,15 +42,12 @@ func init() {
 const TemplateRDSReport = `
 {
 	"template": "*-rds-reports",
-	"version": 3,
-	"settings": {
-		"index.mapping.total_fields.limit": 3000
-	},
+	"version": 4,
 	"mappings": {
 		"rds-report": {
 			"properties": {
 				"account": {
- 					"type": "keyword"
+					"type": "keyword"
 				},
 				"reportDate": {
 					"type": "date"
@@ -58,57 +55,59 @@ const TemplateRDSReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instances": {
-					"type": "nested",
+				"instance": {
+					"type": "object",
 					"properties": {
-						"dbInstanceIdentifier": {
-							"type": "keyword",
-							"norms": false
+						"id": {
+							"type": "keyword"
 						},
-						"dbInstanceClass": {
-							"type": "keyword",
-							"norms": false
+						"availabilityZone": {
+							"type": "keyword"
+						},
+						"type": {
+							"type": "keyword"
+						},
+						"engine": {
+							"type": "keyword"
 						},
 						"allocatedStorage": {
 							"type": "integer"
 						},
-						"engine": {
-							"type": "keyword",
-							"norms": false
-						},
-						"availabilityZone": {
-							"type": "keyword",
-							"norms": false
-						},
 						"multiAZ": {
 							"type": "boolean"
 						},
-						"cost": {
-							"type": "float",
-							"index": false
+						"costs": {
+							"type": "object"
 						},
-						"cpuAverage": {
-							"type": "float",
-							"index": false
-						},
-						"cpuPeak": {
-							"type": "float",
-							"index": false
-						},
-						"freeSpaceMinimum": {
-							"type": "float",
-							"index": false
-						},
-						"freeSpaceMaximum": {
-							"type": "float",
-							"index": false
-						},
-						"freeSpaceAverage": {
-							"type": "float",
-							"index": false
-						},
-						"costDetail": {
-							"type": "nested"
+						"stats": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": "object",
+									"properties": {
+											"average": {
+												"type": "double"
+											},
+											"peak": {
+												"type": "double"
+											}
+									}
+								},
+								"freeSpace": {
+									"type": "object",
+									"properties": {
+											"minimum": {
+												"type": "double"
+											},
+											"maximum": {
+												"type": "double"
+											},
+											"average": {
+												"type": "double"
+											}
+									}
+								}
+							}
 						}
 					}
 				}

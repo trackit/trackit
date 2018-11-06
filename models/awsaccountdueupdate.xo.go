@@ -9,11 +9,12 @@ import (
 
 // AwsAccountDueUpdate represents a row from 'trackit.aws_account_due_update'.
 type AwsAccountDueUpdate struct {
-	ID          int       `json:"id"`           // id
-	UserID      int       `json:"user_id"`      // user_id
-	Pretty      string    `json:"pretty"`       // pretty
-	RoleArn     string    `json:"role_arn"`     // role_arn
-	External    string    `json:"external"`     // external
-	NextUpdate  time.Time `json:"next_update"`  // next_update
-	GraceUpdate time.Time `json:"grace_update"` // grace_update
+	ID                int       `json:"id"`                  // id
+	UserID            int       `json:"user_id"`             // user_id
+	Pretty            string    `json:"pretty"`              // pretty
+	RoleArn           string    `json:"role_arn"`            // role_arn
+	External          string    `json:"external"`            // external
+	NextUpdate        time.Time `json:"next_update"`         // next_update
+	Payer             bool      `json:"payer"`               // payer
+	NextUpdatePlugins time.Time `json:"next_update_plugins"` // next_update_plugins
 }

@@ -42,7 +42,7 @@ func init() {
 const TemplateAccountPlugin = `
 {
   "template": "*-account-plugins",
-  "version": 2,
+  "version": 3,
   "mappings": {
     "account-plugin": {
       "properties": {
@@ -58,7 +58,16 @@ const TemplateAccountPlugin = `
         "pluginName": {
           "type": "keyword"
         },
+        "category": {
+          "type": "keyword"
+        },
+        "label": {
+          "type": "keyword"
+        },
         "result": {
+          "type": "keyword"
+        },
+        "status": {
           "type": "keyword"
         },
         "details": {
@@ -66,6 +75,12 @@ const TemplateAccountPlugin = `
         },
         "error": {
           "type": "keyword"
+        },
+        "checked": {
+          "type": "integer"
+        },
+        "passed": {
+          "type": "integer"
         }
       },
       "_all": {

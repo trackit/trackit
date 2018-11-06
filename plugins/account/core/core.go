@@ -27,9 +27,12 @@ import (
 // AccountPlugin is the struct that defines the variables and functions a plugin
 // needs to use
 type AccountPlugin struct {
-	Name        string
-	Description string
-	Func        PluginFunc
+	Name             string
+	Description      string
+	Category         string
+	Label            string
+	Func             PluginFunc
+	PayerAccountOnly bool
 }
 
 // PluginParams is the struct that is passed as a parameter for each plugin
@@ -45,19 +48,27 @@ type PluginParams struct {
 // PluginResult is the struct that each plugin should return
 type PluginResult struct {
 	Result  string
-	Details string
+	Status  string
+	Details []string
 	Error   string
+	Checked int
+	Passed  int
 }
 
 // PluginResultES is the struct used to save a plugin result into elaticsearch
 type PluginResultES struct {
 	AccountPluginIdx string    `json:"accountPluginIdx"`
+	Account          string    `json:"account"`
 	ReportDate       time.Time `json:"reportDate"`
 	PluginName       string    `json:"pluginName"`
-	Account          string    `json:"account"`
+	Category         string    `json:"category"`
+	Label            string    `json:"label"`
 	Result           string    `json:"result"`
-	Details          string    `json:"details"`
+	Status           string    `json:"status"`
+	Details          []string  `json:"details"`
 	Error            string    `json:"error"`
+	Checked          int       `json:"checked"`
+	Passed           int       `json:"passed"`
 }
 
 // PluginFunc is the type that should be implemented by the plugin's function

@@ -86,11 +86,16 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccount) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, plugin := range core.RegisteredAccountPlugins {
+		if plugin.PayerAccountOnly == true && aa.Payer == false {
+			continue
+		}
 		accountId := es.GetAccountIdFromRoleArn(aa.RoleArn)
 		pluginResultES := core.PluginResultES{
+			Account:    accountId,
 			ReportDate: time.Now().UTC(),
 			PluginName: plugin.Name,
-			Account:    accountId,
+			Category:   plugin.Category,
+			Label:      plugin.Label,
 		}
 		creds, err := aws.GetTemporaryCredentials(aa, fmt.Sprintf("trackit-%s-plugin", plugin.Name))
 		if err != nil {
@@ -107,8 +112,11 @@ func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccoun
 			}
 			res := plugin.Func(params)
 			pluginResultES.Result = res.Result
+			pluginResultES.Status = res.Status
 			pluginResultES.Details = res.Details
 			pluginResultES.Error = res.Error
+			pluginResultES.Checked = res.Checked
+			pluginResultES.Passed = res.Passed
 		}
 		core.IngestPluginResult(ctx, aa, pluginResultES)
 	}

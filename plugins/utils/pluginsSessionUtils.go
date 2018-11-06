@@ -19,9 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-// GetEc2ClientSession is a utility function to create an ec2 sessions
+// GetEc2ClientSession is a utility function to create an ec2 session
 // it takes credentials and a region and returns an ec2 session
 func GetEc2ClientSession(creds *credentials.Credentials, region *string) *ec2.EC2 {
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -29,4 +30,13 @@ func GetEc2ClientSession(creds *credentials.Credentials, region *string) *ec2.EC
 		Region:      region,
 	}))
 	return ec2.New(sess)
+}
+
+// GetS3ClientSession is a utility function to create an S3 session
+// it takes credentials returns an S3 session
+func GetS3ClientSession(creds *credentials.Credentials) *s3.S3 {
+	sess := session.Must(session.NewSession(&aws.Config{
+		Credentials: creds,
+	}))
+	return s3.New(sess)
 }

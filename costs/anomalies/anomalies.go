@@ -27,6 +27,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type (
@@ -287,7 +288,7 @@ func prepareAnomalyData(ctx context.Context, sr *elastic.SearchResult) (Products
 	err := json.Unmarshal(*sr.Aggregations["products"], &typedDocument.Products)
 	if err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
-		return ProductsCostAnomalies{}, err
+		return ProductsCostAnomalies{}, errors.GetErrorMessage(ctx, err)
 	}
 	typedDocument = addPadding(typedDocument)
 	return parseAnomalies(typedDocument), nil

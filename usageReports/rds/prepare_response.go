@@ -18,13 +18,14 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"sort"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type (
@@ -46,94 +47,121 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for RDS usage report
-	ResponseRds struct {
-		TopReports struct {
+	// Structure that allow to parse ES response for RDS Monthly instances
+	ResponseRdsMonthly struct {
+		Accounts struct {
 			Buckets []struct {
-				TopReportsHits struct {
+				Instances struct {
 					Hits struct {
 						Hits []struct {
-							Source rds.Report `json:"_source"`
+							Instance rds.InstanceReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"top_reports_hits"`
+				} `json:"instances"`
 			} `json:"buckets"`
-		} `json:"top_reports"`
+		} `json:"accounts"`
+	}
+
+	// Structure that allow to parse ES response for RDS Daily instances
+	ResponseRdsDaily struct {
+		Accounts struct {
+			Buckets []struct {
+				Dates struct {
+					Buckets []struct {
+						Time      string `json:"key_as_string"`
+						Instances struct {
+							Hits struct {
+								Hits []struct {
+									Instance rds.InstanceReport `json:"_source"`
+								} `json:"hits"`
+							} `json:"hits"`
+						} `json:"instances"`
+					} `json:"buckets"`
+				} `json:"dates"`
+			} `json:"buckets"`
+		} `json:"accounts"`
 	}
 )
 
-// addCostToReport adds cost for each instance based on billing data
-func addCostToReport(report rds.Report, costs ResponseCost) rds.Report {
+// addCostToInstance adds cost for an instance based on billing data
+func addCostToInstance(instance rds.InstanceReport, costs ResponseCost) rds.InstanceReport {
+	if instance.Instance.Costs == nil {
+		instance.Instance.Costs = make(map[string]float64, 0)
+	}
 	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != report.Account {
+		if accounts.Key != instance.Account {
 			continue
 		}
-		for _, instance := range accounts.Instances.Buckets {
-			for i := range report.Instances {
-				if report.Instances[i].CostDetail == nil {
-					report.Instances[i].CostDetail = make(map[string]float64, 0)
-				}
-				// format in billing data for an RDS instance is: "arn:aws:rds:us-west-2:394125495069:db:instancename"
-				// so i get the 7th element of the split by ":"
-				split := strings.Split(instance.Key, ":")
-				if len(split) == 7 && split[6] == report.Instances[i].DBInstanceIdentifier {
-					report.Instances[i].Cost += instance.Cost.Value
-					report.Instances[i].CostDetail["instance"] += instance.Cost.Value
-				}
+		for _, instanceCost := range accounts.Instances.Buckets {
+			// format in billing data for an RDS instance is: "arn:aws:rds:us-west-2:394125495069:db:instancename"
+			// so i get the 7th element of the split by ":"
+			split := strings.Split(instanceCost.Key, ":")
+			if len(split) == 7 && split[6] == instance.Instance.DBInstanceIdentifier {
+				instance.Instance.Costs["instance"] += instanceCost.Cost.Value
 			}
 		}
+		return instance
 	}
-	return report
+	return instance
 }
 
-// prepareResponseRdsDaily parses the results from elasticsearch and returns the RDS report
-func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, resCost *elastic.SearchResult) ([]rds.Report, error) {
+// prepareResponseRdsMonthly parses the results from elasticsearch and returns an array of RDS daily instances report
+func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, resCost *elastic.SearchResult) ([]rds.InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	parsedRds := ResponseRds{}
-	cost := ResponseCost{}
-	reports := []rds.Report{}
-	err := json.Unmarshal(*resRds.Aggregations["top_reports"], &parsedRds.TopReports)
+	var parsedRds ResponseRdsDaily
+	var parsedCost ResponseCost
+	instances := make([]rds.InstanceReport, 0)
+	err := json.Unmarshal(*resRds.Aggregations["accounts"], &parsedRds.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES RDS response", err)
-		return nil, err
+		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	if resCost != nil {
-		err = json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
+		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
 		if err != nil {
 			logger.Error("Error while unmarshaling ES cost response", err)
 		}
 	}
-	for _, account := range parsedRds.TopReports.Buckets {
-		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			report := account.TopReportsHits.Hits.Hits[0].Source
-			report = addCostToReport(report, cost)
-			reports = append(reports, report)
+	for _, account := range parsedRds.Accounts.Buckets {
+		var lastDate = ""
+		for _, date := range account.Dates.Buckets {
+			if date.Time > lastDate {
+				lastDate = date.Time
+			}
+		}
+		for _, date := range account.Dates.Buckets {
+			if date.Time == lastDate {
+				for _, instance := range date.Instances.Hits.Hits {
+					instance.Instance = addCostToInstance(instance.Instance, parsedCost)
+					instances = append(instances, instance.Instance)
+				}
+			}
 		}
 	}
-	return reports, nil
+	return instances, nil
 }
 
-// prepareResponseRdsMonthly parses the results from elasticsearch and returns the RDS usage report
-func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult) ([]rds.Report, error) {
+// prepareResponseRdsMonthly parses the results from elasticsearch and returns an array of RDS monthly instances report
+func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult) ([]rds.InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	response := ResponseRds{}
-	reports := []rds.Report{}
-	err := json.Unmarshal(*resRds.Aggregations["top_reports"], &response.TopReports)
+	var response ResponseRdsMonthly
+	instances := make([]rds.InstanceReport, 0)
+	err := json.Unmarshal(*resRds.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES RDS response", err)
-		return nil, err
+		return nil, errors.GetErrorMessage(ctx, err)
 	}
-	for _, account := range response.TopReports.Buckets {
-		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			reports = append(reports, account.TopReportsHits.Hits.Hits[0].Source)
+	for _, account := range response.Accounts.Buckets {
+		for _, instance := range account.Instances.Hits.Hits {
+			instances = append(instances, instance.Instance)
 		}
 	}
-	return reports, nil
+	return instances, nil
 }
 
 func isInstanceUnused(instance rds.Instance) bool {
-	average := instance.CpuAverage
-	peak := instance.CpuPeak
+	average := instance.Stats.Cpu.Average
+	peak := instance.Stats.Cpu.Peak
 	if peak >= 60.0 {
 		return false
 	} else if average >= 10.0 {
@@ -142,19 +170,26 @@ func isInstanceUnused(instance rds.Instance) bool {
 	return true
 }
 
-// prepareResponseRdsUnused filter reports to get the top instances
-func prepareResponseRdsUnused(params rdsUnusedQueryParams, reports []rds.Report) (int, []rds.Instance, error) {
-	instances := []rds.Instance{}
-	for _, report := range reports {
-		for _, instance := range report.Instances {
-			if isInstanceUnused(instance) {
-				instances = append(instances, instance)
-			}
+// prepareResponseRdsUnused filter reports to get the unused instances sorted by cost
+func prepareResponseRdsUnused(params RdsUnusedQueryParams, instances []rds.InstanceReport) (int, []rds.InstanceReport, error) {
+	unusedInstances := make([]rds.InstanceReport, 0)
+	for _, instance := range instances {
+		if isInstanceUnused(instance.Instance) {
+			unusedInstances = append(unusedInstances, instance)
 		}
 	}
-	sort.SliceStable(instances, func(i, j int) bool { return instances[i].Cost > instances[j].Cost })
-	if params.count >= 0 && params.count <= len(instances) {
-		return http.StatusOK, instances[0:params.count], nil
+	sort.SliceStable(unusedInstances, func(i, j int) bool {
+		var cost1, cost2 float64
+		for _, cost := range unusedInstances[i].Instance.Costs {
+			cost1 += cost
+		}
+		for _, cost := range unusedInstances[j].Instance.Costs {
+			cost2 += cost
+		}
+		return cost1 > cost2
+	})
+	if params.count >= 0 && params.count <= len(unusedInstances) {
+		return http.StatusOK, unusedInstances[0:params.count], nil
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, unusedInstances, nil
 }

@@ -22,13 +22,15 @@ import (
 	"strings"
 	"time"
 
+	"gopkg.in/olivere/elastic.v5"
+
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"gopkg.in/olivere/elastic.v5"
 )
 
 // esQueryParams will store the parsed query params
@@ -113,7 +115,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 	if err != nil {
 		if elastic.IsNotFound(err) {
 			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
+			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		}
 		l.Error("Query execution failed : "+err.Error(), nil)
 		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
