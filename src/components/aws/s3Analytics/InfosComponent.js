@@ -58,7 +58,7 @@ class InfosComponent extends Component {
             </li>
           </ul>
           <h4 className="card-label p-l-10 m-b-0">
-            total size
+            billable size
           </h4>
         </div>
         <div className="s3-card">

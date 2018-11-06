@@ -34,7 +34,7 @@ class TableComponent extends Component {
                 accessor: 'id',
                 Cell: row => (<strong>{row.value}</strong>)
               }, {
-                Header: 'Size',
+                Header: 'Billable Size',
                 accessor: 'GbMonth',
                 Cell: row => (formatGigaBytes(row.value, 1))
               }, {
