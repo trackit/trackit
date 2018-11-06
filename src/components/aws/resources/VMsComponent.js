@@ -49,7 +49,7 @@ export class VMsComponent extends Component {
     const purchasings = [];
     if (instances)
       instances.forEach((instance) => {
-        if (instance.stats && instance.stats.volumes) {
+        if (instance.stats && instance.stats.volumes && instance.stats.volumes.length) {
           instance.stats.volumes.read.total = Object.keys(instance.stats.volumes.read).map((volume) => (instance.stats.volumes.read[volume])).reduce((a, b) => (a + b));
           instance.stats.volumes.write.total = Object.keys(instance.stats.volumes.write).map((volume) => (instance.stats.volumes.write[volume])).reduce((a, b) => (a + b));
         }
