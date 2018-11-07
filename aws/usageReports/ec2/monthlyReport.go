@@ -16,6 +16,8 @@ package ec2
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -24,16 +26,88 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit-server/es"
 )
+
+// getElasticSearchEc2Instance prepares and run the request to retrieve the a report of an instance
+// It will return the data and an error.
+func getElasticSearchEc2Instance(ctx context.Context, account, instance string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	query := elastic.NewBoolQuery()
+	query = query.Filter(elastic.NewTermQuery("account", account))
+	query = query.Filter(elastic.NewTermQuery("instance.id", instance))
+	search := client.Search().Index(index).Size(1).Query(query)
+	res, err := search.Do(ctx)
+	if err != nil {
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, errors.GetErrorMessage(ctx, err)
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
+		}
+		return nil, errors.GetErrorMessage(ctx, err)
+	}
+	return res, nil
+}
+
+// getInstanceInfoFromEs gets information about an instance from previous report to put it in the new report
+func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, account string, userId int) Instance {
+	var docType InstanceReport
+	var inst = Instance{
+		Id:         instance.Resource,
+		Region:     "N/A",
+		State:      "N/A",
+		Purchasing: "N/A",
+		KeyPair:    "",
+		Tags:       make([]Tag, 0),
+		Type:       "N/A",
+		Costs:      make(map[string]float64, 0),
+		Stats: Stats{
+			Cpu: Cpu{
+				Average: -1,
+				Peak:    -1,
+			},
+			Network: Network{
+				In:  -1,
+				Out: -1,
+			},
+			Volumes: make([]Volume, 0),
+		},
+	}
+	inst.Costs["instance"] = instance.Cost
+	res, err := getElasticSearchEc2Instance(ctx, account, instance.Resource,
+		es.Client, es.IndexNameForUserId(userId, IndexPrefixEC2Report))
+	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
+		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
+		if err == nil {
+			inst.Region = docType.Instance.Region
+			inst.Purchasing = docType.Instance.Purchasing
+			inst.KeyPair = docType.Instance.KeyPair
+			inst.Type = docType.Instance.Type
+			inst.Tags = docType.Instance.Tags
+		}
+	}
+	return inst
+}
 
 // fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
 func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst utils.CostPerResource,
-	region string, instanceChan chan Instance, startDate, endDate time.Time) error {
+	account, region string, instanceChan chan Instance, startDate, endDate time.Time, userId int) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -43,6 +117,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 	desc := ec2.DescribeInstancesInput{InstanceIds: aws.StringSlice([]string{inst.Resource})}
 	instances, err := svc.DescribeInstances(&desc)
 	if err != nil {
+		instanceChan <- getInstanceInfoFromES(ctx, inst, account, userId)
 		return err
 	}
 	for _, reservation := range instances.Reservations {
@@ -93,7 +168,7 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 		for _, region := range regions {
 			if strings.Contains(instance.Region, region) {
 				instanceChan := make(chan Instance)
-				go fetchMonthlyInstancesList(ctx, creds, instance, region, instanceChan, startDate, endDate)
+				go fetchMonthlyInstancesList(ctx, creds, instance, account, region, instanceChan, startDate, endDate, aa.UserId)
 				instanceChans = append(instanceChans, instanceChan)
 			}
 		}
