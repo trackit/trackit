@@ -20,13 +20,12 @@ import (
 	"net/http"
 	"sort"
 	"strings"
-	"time"
-
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
 	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 type (
@@ -85,20 +84,13 @@ type (
 
 	// InstanceReport has all the information of an EC2 instance
 	InstanceReport struct {
-		Account    string    `json:"account"`
-		ReportDate time.Time `json:"reportDate"`
-		ReportType string    `json:"reportType"`
+		utils.ReportBase
 		Instance   Instance  `json:"instance"`
 	}
 
 	// Instance contains the information of an EC2 instance
 	Instance struct {
-		Id         string             `json:"id"`
-		Region     string             `json:"region"`
-		State      string             `json:"state"`
-		Purchasing string             `json:"purchasing"`
-		KeyPair    string             `json:"keyPair"`
-		Type       string             `json:"type"`
+		ec2.InstanceBase
 		Tags       map[string]string  `json:"tags"`
 		Costs      map[string]float64 `json:"costs"`
 		Stats      Stats              `json:"stats"`
@@ -106,21 +98,9 @@ type (
 
 	// Stats contains statistics of an instance get on CloudWatch
 	Stats struct {
-		Cpu     Cpu     `json:"cpu"`
-		Network Network `json:"network"`
-		Volumes Volumes `json:"volumes"`
-	}
-
-	// Cpu contains cpu statistics of an instance
-	Cpu struct {
-		Average float64 `json:"average"`
-		Peak    float64 `json:"peak"`
-	}
-
-	// Network contains network statistics of an instance
-	Network struct {
-		In  float64 `json:"in"`
-		Out float64 `json:"out"`
+		Cpu     ec2.Cpu     `json:"cpu"`
+		Network ec2.Network `json:"network"`
+		Volumes Volumes     `json:"volumes"`
 	}
 
 	// Volume contains information about EBS volumes
@@ -142,27 +122,14 @@ func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport
 		write[volume.Id] = volume.Write
 	}
 	newInstance := InstanceReport{
-		Account:    oldInstance.Account,
-		ReportType: oldInstance.ReportType,
-		ReportDate: oldInstance.ReportDate,
-		Instance: Instance{
-			Id:         oldInstance.Instance.Id,
-			Region:     oldInstance.Instance.Region,
-			State:      oldInstance.Instance.State,
-			Purchasing: oldInstance.Instance.Purchasing,
-			KeyPair:    oldInstance.Instance.KeyPair,
-			Type:       oldInstance.Instance.Type,
-			Tags:       tags,
-			Costs:      oldInstance.Instance.Costs,
-			Stats: Stats{
-				Cpu: Cpu{
-					Average: oldInstance.Instance.Stats.Cpu.Average,
-					Peak:    oldInstance.Instance.Stats.Cpu.Peak,
-				},
-				Network: Network{
-					In:  oldInstance.Instance.Stats.Network.In,
-					Out: oldInstance.Instance.Stats.Network.Out,
-				},
+		ReportBase:    oldInstance.ReportBase,
+		Instance:      Instance{
+			InstanceBase: oldInstance.Instance.InstanceBase,
+			Tags:         tags,
+			Costs:        oldInstance.Instance.Costs,
+			Stats:        Stats{
+				Cpu: oldInstance.Instance.Stats.Cpu,
+				Network: oldInstance.Instance.Stats.Network,
 				Volumes: Volumes{
 					Read:  read,
 					Write: write,

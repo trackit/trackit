@@ -21,6 +21,8 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
+const maxAggregationSize = 0x7FFFFFFF
+
 // getDateForDailyReport returns the end and the begining of the date of the report based on a date
 func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 	now := time.Now().UTC()
@@ -44,9 +46,9 @@ func createQueryAccountFilterEs(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// GetElasticSearchEsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchEsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
-// 	- params esQueryParams : contains the list of accounts and the date
+// 	- params EsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on wich to execute the query. In this context the default value
@@ -55,24 +57,25 @@ func createQueryAccountFilterEs(accountList []string) *elastic.TermsQuery {
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEsDailyParams(params esQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchEsDailyParams(params EsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEs(params.accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEs(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
-	dateStart, dateEnd := getDateForDailyReport(params.date)
+	dateStart, dateEnd := getDateForDailyReport(params.Date)
 	query = query.Filter(elastic.NewRangeQuery("reportDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
+	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
+		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
+			SubAggregation("domains", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
 	return search
 }
 
-// GetElasticSearchEsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchEsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- params esQueryParams : contains the list of accounts and the date
+// 	- params EsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
@@ -81,39 +84,16 @@ func GetElasticSearchEsDailyParams(params esQueryParams, client *elastic.Client,
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEsMonthlyParams(params esQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchEsMonthlyParams(params EsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEs(params.accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEs(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
-	query = query.Filter(elastic.NewTermQuery("reportDate", params.date))
+	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
-	return search
-}
-
-// GetElasticSearchEsParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
-// 	- accountList []string : A slice of strings representing aws account number, in the format of the field
-//	'awsdetailedlineitem.linked_account_id'
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
-//	should be "rds-reports"
-// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
-// it crash :
-//	- If the client is nil or malconfigured, it will crash
-//	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchEsParams(accountList []string, client *elastic.Client, index string) *elastic.SearchService {
-	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEs(accountList))
-	}
-	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("top_reports", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
+	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
+		SubAggregation("domains", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
 	return search
 }
 
@@ -126,7 +106,7 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("usageAccountId", accountListFormatted...)
 }
 
-// GetElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
 // 	- params rdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
@@ -137,18 +117,18 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchCostParams(params esQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchCostParams(params EsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterBill(params.accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterBill(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonES"))
-	dateStart, dateEnd := getDateForDailyReport(params.date)
+	dateStart, dateEnd := getDateForDailyReport(params.Date)
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(len(params.accountList)).
-		SubAggregation("domains", elastic.NewTermsAggregation().Field("resourceId").Size(0x7FFFFFFF).
-			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
+	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).
+		SubAggregation("domains", elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize).
+		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search
 }

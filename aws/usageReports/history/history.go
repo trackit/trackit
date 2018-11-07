@@ -27,8 +27,8 @@ import (
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
-	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
+	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/es"
 )
 
@@ -159,7 +159,11 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	if rdsErr == nil {
 		rdsErr = rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
 	}
-	return concatErrors([]error{ec2Err, cloudWatchErr, rdsErr})
+	esCost, esErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonES")
+	if esErr == nil {
+		esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
+	}
+	return concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
 }
 
 // checkBillingDataCompleted checks if billing data in ES are complete.

@@ -21,8 +21,11 @@ import (
 	"sort"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws/usageReports/es"
 	"gopkg.in/olivere/elastic.v5"
+
+	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit-server/aws/usageReports/es"
 )
 
 type (
@@ -44,92 +47,146 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ES usage report
-	ResponseEs struct {
-		TopReports struct {
+	// Structure that allow to parse ES response for ES monthly domains
+	ResponseEsMonthly struct {
+		Accounts struct {
 			Buckets []struct {
-				TopReportsHits struct {
+				Domains struct {
 					Hits struct {
 						Hits []struct {
-							Source es.Report `json:"_source"`
+							Domain es.DomainReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"top_reports_hits"`
+				} `json:"domains"`
 			} `json:"buckets"`
-		} `json:"top_reports"`
+		} `json:"accounts"`
+	}
+
+	// Structure that allow to parse ES response for ES daily domains
+	ResponseEsDaily struct {
+		Accounts struct {
+			Buckets []struct {
+				Dates struct {
+					Buckets []struct {
+						Time    string `json:"key_as_string"`
+						Domains struct {
+							Hits struct {
+								Hits []struct {
+									Domain es.DomainReport `json:"_source"`
+								} `json:"hits"`
+							} `json:"hits"`
+						} `json:"domains"`
+					} `json:"buckets"`
+				} `json:"dates"`
+			} `json:"buckets"`
+		} `json:"accounts"`
+	}
+
+	// DomainReport represents the report with all the information for ES domains.
+	DomainReport struct {
+		utils.ReportBase
+		Domain Domain `json:"domain"`
+	}
+
+	// Domain represents all the informations of an ES domain.
+	Domain struct {
+		es.DomainBase
+		Tags  map[string]string  `json:"tags"`
+		Costs map[string]float64 `json:"costs"`
+		Stats es.Stats           `json:"stats"`
 	}
 )
 
-// prepareResponseEsDaily parses the results from elasticsearch and returns the RDS report
-func prepareResponseEsDaily(ctx context.Context, resEs *elastic.SearchResult, resCost *elastic.SearchResult) ([]es.Report, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	parsedEs := ResponseEs{}
-	cost := ResponseCost{}
-	reports := []es.Report{}
-	err := json.Unmarshal(*resEs.Aggregations["top_reports"], &parsedEs.TopReports)
-	if err != nil {
-		logger.Error("Error while unmarshaling ES elasticsearch response", err)
-		return nil, err
+func getEsDomainReportResponse(oldDomain es.DomainReport) DomainReport {
+	tags := make(map[string]string, 0)
+	for _, tag := range oldDomain.Domain.Tags {
+		tags[tag.Key] = tag.Value
 	}
-	if resCost != nil {
-		err := json.Unmarshal(*resCost.Aggregations["accounts"], &cost.Accounts)
-		if err != nil {
-			logger.Error("Error while unmarshaling ES cost response", err)
-			return nil, err
-		}
+	newDomain := DomainReport{
+		ReportBase:    oldDomain.ReportBase,
+		Domain:        Domain{
+			DomainBase: oldDomain.Domain.DomainBase,
+			Tags:       tags,
+			Costs:      oldDomain.Domain.Costs,
+			Stats:      oldDomain.Domain.Stats,
+		},
 	}
-	for _, account := range parsedEs.TopReports.Buckets {
-		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			report := account.TopReportsHits.Hits.Hits[0].Source
-			report = addCostToReport(report, cost)
-			reports = append(reports, report)
-		}
-	}
-	return reports, nil
+	return newDomain
 }
 
-// prepareResponseEsMonthly parses the results from elasticsearch and returns the RDS usage report
-func prepareResponseEsMonthly(ctx context.Context, resEs *elastic.SearchResult) ([]es.Report, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	response := ResponseEs{}
-	reports := []es.Report{}
-	err := json.Unmarshal(*resEs.Aggregations["top_reports"], &response.TopReports)
-	if err != nil {
-		logger.Error("Error while unmarshaling ES ES response", err)
-		return nil, err
-	}
-	for _, account := range response.TopReports.Buckets {
-		if len(account.TopReportsHits.Hits.Hits) > 0 {
-			reports = append(reports, account.TopReportsHits.Hits.Hits[0].Source)
-		}
-	}
-	return reports, nil
-}
-
-// addCostToReport adds cost for each instance based on billing data
-func addCostToReport(report es.Report, costs ResponseCost) es.Report {
+// addCostToDomain adds cost for each domain based on billing data
+func addCostToDomain(domain es.DomainReport, costs ResponseCost) es.DomainReport {
+	domain.Domain.Costs = make(map[string]float64, 0)
 	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != report.Account {
+		if accounts.Key != domain.Account {
 			continue
 		}
 		for _, domainCost := range accounts.Domains.Buckets {
-			for i := range report.Domains {
-				if report.Domains[i].CostDetail == nil {
-					report.Domains[i].CostDetail = make(map[string]float64, 0)
-				}
-				if domainCost.Key == report.Domains[i].Arn {
-					report.Domains[i].Cost += domainCost.Cost.Value
-					report.Domains[i].CostDetail["domain"] += domainCost.Cost.Value
+			if domainCost.Key == domain.Domain.Arn {
+				domain.Domain.Costs["domain"] += domainCost.Cost.Value
+			}
+		}
+	}
+	return domain
+}
+
+// prepareResponseEsDaily parses the results from elasticsearch and returns an array of ES daily domains report
+func prepareResponseEsDaily(ctx context.Context, resEc2 *elastic.SearchResult, resCost *elastic.SearchResult) ([]DomainReport, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var parsedEc2 ResponseEsDaily
+	var parsedCost ResponseCost
+	domains := make([]DomainReport, 0)
+	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &parsedEc2.Accounts)
+	if err != nil {
+		logger.Error("Error while unmarshaling ES daily response", err)
+		return nil, err
+	}
+	if resCost != nil {
+		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
+		if err != nil {
+			logger.Error("Error while unmarshaling ES cost response", err)
+		}
+	}
+	for _, account := range parsedEc2.Accounts.Buckets {
+		var lastDate = ""
+		for _, date := range account.Dates.Buckets {
+			if date.Time > lastDate {
+				lastDate = date.Time
+			}
+		}
+		for _, date := range account.Dates.Buckets {
+			if date.Time == lastDate {
+				for _, domain := range date.Domains.Hits.Hits {
+					domain.Domain = addCostToDomain(domain.Domain, parsedCost)
+					domains = append(domains, getEsDomainReportResponse(domain.Domain))
 				}
 			}
 		}
 	}
-	return report
+	return domains, nil
 }
 
-func isDomainUnused(domain es.Domain) bool {
-	average := domain.CPUUtilizationAverage
-	peak := domain.CPUUtiliztionPeak
+// prepareResponseEsMonthly parses the results from elasticsearch and returns an array of ES monthly domains report
+func prepareResponseEsMonthly(ctx context.Context, resEc2 *elastic.SearchResult) ([]DomainReport, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var response ResponseEsMonthly
+	domains := make([]DomainReport, 0)
+	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &response.Accounts)
+	if err != nil {
+		logger.Error("Error while unmarshaling ES EC2 response", err)
+		return nil, errors.GetErrorMessage(ctx, err)
+	}
+	for _, account := range response.Accounts.Buckets {
+		for _, domain := range account.Domains.Hits.Hits {
+			domains = append(domains, getEsDomainReportResponse(domain.Domain))
+		}
+	}
+	return domains, nil
+}
+
+func isDomainUnused(domain Domain) bool {
+	average := domain.Stats.Cpu.Average
+	peak := domain.Stats.Cpu.Peak
 	if peak >= 60.0 {
 		return false
 	} else if average >= 10 {
@@ -138,20 +195,25 @@ func isDomainUnused(domain es.Domain) bool {
 	return true
 }
 
-func prepareResponseEsUnused(params esUnusedQueryParams, reports []es.Report) (int, []es.Domain, error) {
-	domains := []es.Domain{}
-	for _, report := range reports {
-		for _, domain := range report.Domains {
-			if isDomainUnused(domain) {
-				domains = append(domains, domain)
-			}
+func prepareResponseEsUnused(params EsUnusedQueryParams, domains []DomainReport) (int, []DomainReport, error) {
+	unusedDomains := make([]DomainReport, 0)
+	for _, domain := range domains {
+		if isDomainUnused(domain.Domain) {
+			unusedDomains = append(unusedDomains, domain)
 		}
 	}
-	sort.SliceStable(domains, func(i, j int) bool {
-		return domains[i].Cost > domains[j].Cost
+	sort.SliceStable(unusedDomains, func(i, j int) bool {
+		var cost1, cost2 float64
+		for _, cost := range unusedDomains[i].Domain.Costs {
+			cost1 += cost
+		}
+		for _, cost := range unusedDomains[j].Domain.Costs {
+			cost2 += cost
+		}
+		return cost1 > cost2
 	})
-	if params.count >= 0 && params.count <= len(domains) {
-		return http.StatusOK, domains[0:params.count], nil
+	if params.Count >= 0 && params.Count <= len(domains) {
+		return http.StatusOK, unusedDomains[0:params.Count], nil
 	}
-	return http.StatusOK, domains, nil
+	return http.StatusOK, unusedDomains, nil
 }

@@ -66,8 +66,8 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
-		rdsErr := processAccountRDS(ctx, aa)
 		ec2Err := processAccountEC2(ctx, aa)
+		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
 		historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr)

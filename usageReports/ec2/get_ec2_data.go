@@ -152,7 +152,7 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	return http.StatusOK, instances, nil
 }
 
-// GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it calls getEc2DailyInstances
+// GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
 	if err != nil {

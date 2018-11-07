@@ -30,37 +30,34 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials, domainList []utils.CostPerResource, region string, domainChan chan Domain, start, end time.Time) error {
+func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials, dom utils.CostPerResource,
+	region string, domainChan chan Domain, start, end time.Time) error {
 	defer close(domainChan)
+	var tags []utils.Tag
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
 	svc := elasticsearchservice.New(sess)
-	for _, domainCost := range domainList {
-		domainStatus, err := svc.DescribeElasticsearchDomain(&elasticsearchservice.DescribeElasticsearchDomainInput{
-			DomainName: &strings.Split(domainCost.Resource, "/")[1],
-		})
-		if err != nil {
-			continue // Error from missing region in domainList, needs removal when region is added to it
-		}
-		domain := domainStatus.DomainStatus
-		tags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{
-			ARN: domain.ARN,
-		})
-		if err != nil {
-			logger.Error("Error while listing Tags for domain", err.Error())
-			return err
-		}
-		stats, err := getDomainStats(ctx, *domain.DomainName, sess, start, end)
-		if err != nil {
-			logger.Error("Error while getting Domain stats", err.Error())
-			return err
-		}
-		detail := make(map[string]float64, 0)
-		detail["domain"] = domainCost.Cost
-		domainChan <- Domain{
+	domainStatus, err := svc.DescribeElasticsearchDomain(&elasticsearchservice.DescribeElasticsearchDomainInput{
+		DomainName: &strings.Split(dom.Resource, "/")[1],
+	})
+	if err != nil {
+		return err
+	}
+	domain := domainStatus.DomainStatus
+	if esTags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{ARN: domain.ARN}); err != nil {
+		logger.Error("Error while listing Tags for domain", err.Error())
+		tags = make([]utils.Tag, 0)
+	} else {
+		tags = getDomainTag(esTags.TagList)
+	}
+	stats := getDomainStats(ctx, *domain.DomainName, sess, start, end)
+	costs := make(map[string]float64, 0)
+	costs["domain"] = dom.Cost
+	domainChan <- Domain{
+		DomainBase: DomainBase{
 			Arn:               aws.StringValue(domain.ARN),
 			InstanceType:      aws.StringValue(domain.ElasticsearchClusterConfig.InstanceType),
 			InstanceCount:     aws.Int64Value(domain.ElasticsearchClusterConfig.InstanceCount),
@@ -68,26 +65,21 @@ func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials
 			DomainName:        aws.StringValue(domain.DomainName),
 			TotalStorageSpace: aws.Int64Value(domain.EBSOptions.VolumeSize),
 			Region:            region,
-			Tags:              getDomainTag(tags.TagList),
-			CPUUtilizationAverage:    stats.CPUUtilizationAverage,
-			CPUUtiliztionPeak:        stats.CPUUtiliztionPeak,
-			FreeStorageSpace:         stats.FreeStorageSpace,
-			JVMMemoryPressureAverage: stats.JVMMemoryPressureAverage,
-			JVMMemoryPressurePeak:    stats.JVMMemoryPressurePeak,
-			Cost:       domainCost.Cost,
-			CostDetail: detail,
-		}
+		},
+		Tags:  tags,
+		Costs: costs,
+		Stats: stats,
 	}
 	return nil
 }
 
 // getEsMetrics gets credentials, accounts and region to fetch RDS instances stats
-func getEsMetrics(ctx context.Context, domains []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (Report, error) {
+func getEsMetrics(ctx context.Context, domainsList []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]DomainReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, ESStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
-		return Report{}, err
+		return nil, err
 	}
 	defaultSession := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -96,31 +88,36 @@ func getEsMetrics(ctx context.Context, domains []utils.CostPerResource, aa taws.
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
-		return Report{}, err
-	}
-	report := Report{
-		Account:    account,
-		ReportDate: startDate,
-		ReportType: "monthly",
-		Domains:    make([]Domain, 0),
+		return nil, err
 	}
 	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
-		return Report{}, err
+		return nil, err
 	}
 	domainChans := make([]<-chan Domain, 0, len(regions))
-	for _, region := range regions {
-		domainChan := make(chan Domain)
-		go fetchMonthlyDomainsList(ctx, creds, domains, region, domainChan, startDate, endDate)
-		domainChans = append(domainChans, domainChan)
+	for _, domain := range domainsList {
+		for _, region := range regions {
+			domainChan := make(chan Domain)
+			go fetchMonthlyDomainsList(ctx, creds, domain, region, domainChan, startDate, endDate)
+			domainChans = append(domainChans, domainChan)
+		}
 	}
+	domains := make([]DomainReport, 0)
 	for domain := range merge(domainChans...) {
-		report.Domains = append(report.Domains, domain)
+		domains = append(domains, DomainReport{
+			ReportBase: utils.ReportBase{
+				Account:    account,
+				ReportDate: startDate,
+				ReportType: "monthly",
+			},
+			Domain:     domain,
+		})
 	}
-	return report, nil
+	return domains, nil
 }
 
+// filterEsDomains filters cost per domain to get only costs associated to an ES domain
 func filterEsDomains(esCost []utils.CostPerResource) []utils.CostPerResource {
 	costDomains := []utils.CostPerResource{}
 	for _, domain := range esCost {
@@ -129,7 +126,8 @@ func filterEsDomains(esCost []utils.CostPerResource) []utils.CostPerResource {
 			costDomains = append(costDomains, utils.CostPerResource{
 				Resource: split[5],
 				Cost:     domain.Cost,
-			})
+				Region:   domain.Region},
+			)
 		}
 	}
 	return costDomains
@@ -159,5 +157,5 @@ func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa 
 	if err != nil {
 		return err
 	}
-	return importReportToEs(ctx, aa, report)
+	return importDomainsToEs(ctx, aa, report)
 }

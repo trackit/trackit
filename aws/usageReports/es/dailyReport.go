@@ -31,6 +31,7 @@ import (
 
 // fetchDailyDomainsList fetches the list of domains for a specific region
 func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, region string, domainChan chan Domain) error {
+	var tags []utils.Tag
 	defer close(domainChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -49,36 +50,29 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 	})
 	if err != nil {
 		logger.Error("Error when describing domains", err.Error())
+		return err
 	}
 	for _, domain := range domains.DomainStatusList {
-		tags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{
-			ARN: domain.ARN,
-		})
-		if err != nil {
+		if esTags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{ARN: domain.ARN}); err != nil {
 			logger.Error("Error while listing Tags for domain", err.Error())
-			return err
+			tags = make([]utils.Tag, 0)
+		} else {
+			tags = getDomainTag(esTags.TagList)
 		}
-		stats, err := getDomainStats(ctx, *domain.DomainName, sess, start, end)
-		if err != nil {
-			logger.Error("Error while getting Domain stats", err.Error())
-			return err
-		}
+		stats := getDomainStats(ctx, *domain.DomainName, sess, start, end)
 		domainChan <- Domain{
-			Arn:               aws.StringValue(domain.ARN),
-			InstanceType:      aws.StringValue(domain.ElasticsearchClusterConfig.InstanceType),
-			InstanceCount:     aws.Int64Value(domain.ElasticsearchClusterConfig.InstanceCount),
-			DomainID:          aws.StringValue(domain.DomainId),
-			DomainName:        aws.StringValue(domain.DomainName),
-			TotalStorageSpace: aws.Int64Value(domain.EBSOptions.VolumeSize),
-			Region:            region,
-			Tags:              getDomainTag(tags.TagList),
-			CPUUtilizationAverage:    stats.CPUUtilizationAverage,
-			CPUUtiliztionPeak:        stats.CPUUtiliztionPeak,
-			FreeStorageSpace:         stats.FreeStorageSpace,
-			JVMMemoryPressureAverage: stats.JVMMemoryPressureAverage,
-			JVMMemoryPressurePeak:    stats.JVMMemoryPressurePeak,
-			Cost:       0,
-			CostDetail: make(map[string]float64, 0),
+			DomainBase: DomainBase{
+				Arn:               aws.StringValue(domain.ARN),
+				InstanceType:      aws.StringValue(domain.ElasticsearchClusterConfig.InstanceType),
+				InstanceCount:     aws.Int64Value(domain.ElasticsearchClusterConfig.InstanceCount),
+				DomainID:          aws.StringValue(domain.DomainId),
+				DomainName:        aws.StringValue(domain.DomainName),
+				TotalStorageSpace: aws.Int64Value(domain.EBSOptions.VolumeSize),
+				Region:            region,
+			},
+			Tags:  tags,
+			Costs: make(map[string]float64, 0),
+			Stats: stats,
 		}
 	}
 	return nil
@@ -87,7 +81,7 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 // FetchDomainsStats retrieces ES information from the AWS API and generate a report
 func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	logger.Info("Fetching ES instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorDomainStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
@@ -97,16 +91,11 @@ func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
+	now := time.Now().UTC()
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
 		return err
-	}
-	report := Report{
-		account,
-		time.Now().UTC(),
-		"daily",
-		make([]Domain, 0),
 	}
 	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
@@ -119,8 +108,16 @@ func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		go fetchDailyDomainsList(ctx, creds, region, domainChan)
 		domainChans = append(domainChans, domainChan)
 	}
+	domains := make([]DomainReport, 0)
 	for domain := range merge(domainChans...) {
-		report.Domains = append(report.Domains, domain)
+		domains = append(domains, DomainReport{
+			ReportBase: utils.ReportBase{
+				Account:    account,
+				ReportDate: now,
+				ReportType: "daily",
+			},
+			Domain: domain,
+		})
 	}
-	return importReportToEs(ctx, awsAccount, report)
+	return importDomainsToEs(ctx, awsAccount, domains)
 }

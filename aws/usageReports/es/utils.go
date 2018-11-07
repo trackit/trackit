@@ -28,47 +28,55 @@ import (
 
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 const ESStsSessionName = "fetch-es"
 const MonitorDomainStsSessionName = "monitor-domain"
 
 type (
-	// Report represents the report with all the information for ES domains.
-	Report struct {
-		Account    string    `json:"account"`
-		ReportDate time.Time `json:"reportDate"`
-		ReportType string    `json:"reportType"`
-		Domains    []Domain  `json:"instances"`
+	// DomainReport represents the report with all the information for ES domains.
+	DomainReport struct {
+		utils.ReportBase
+		Domain Domain `json:"domain"`
 	}
 
-	// Domain represents all the informations of an ES domain.
-	// It will be imported in ElasticSearch thanks to the struct tags.
+	// BaseDomain represents all the basic information of an ES domain.
+	DomainBase struct {
+		Arn               string `json:"arn"`
+		Region            string `json:"region"`
+		DomainID          string `json:"domainId"`
+		DomainName        string `json:"domainName"`
+		InstanceType      string `json:"instanceType"`
+		InstanceCount     int64  `json:"instanceCount"`
+		TotalStorageSpace int64  `json:"totalStorageSpace"`
+	}
+
+	// Domain contains all information of an ES domain that will be save in ES
 	Domain struct {
-		Arn                      string             `json:"arn"`
-		Region                   string             `json:"region"`
-		DomainID                 string             `json:"domainId"`
-		DomainName               string             `json:"domainName"`
-		CPUUtilizationAverage    float64            `json:"cpuUtilizationAverage"`
-		CPUUtiliztionPeak        float64            `json:"cpuUtilizationPeak"`
-		FreeStorageSpace         float64            `json:"freeStorageSpace"`
-		TotalStorageSpace        int64              `json:"totalStorageSpace"`
-		JVMMemoryPressureAverage float64            `json:"jvmMemoryPressureAverage"`
-		JVMMemoryPressurePeak    float64            `json:"jvmMemoryPressurePeak"`
-		InstanceType             string             `json:"instanceType"`
-		InstanceCount            int64              `json:"instanceCount"`
-		Tags                     map[string]string  `json:"tags"`
-		Cost                     float64            `json:"cost"`
-		CostDetail               map[string]float64 `json:"costDetail"`
+		DomainBase
+		Tags  []utils.Tag        `json:"tags"`
+		Costs map[string]float64 `json:"costs"`
+		Stats Stats              `json:"stats"`
 	}
 
-	// DomainStats contains statistic of a domain gotten by CloudWatch
-	DomainStats struct {
-		CPUUtilizationAverage    float64
-		CPUUtiliztionPeak        float64
-		FreeStorageSpace         float64
-		JVMMemoryPressureAverage float64
-		JVMMemoryPressurePeak    float64
+	// Stats contains statistics of a domain get on CloudWatch
+	Stats struct {
+		Cpu               Cpu               `json:"cpu"`
+		FreeSpace         float64           `json:"freeSpace"`
+		JVMMemoryPressure JVMMemoryPressure `json:"JVMMemoryPressure"`
+	}
+
+	// Cpu contains cpu statistics of a domain
+	Cpu struct {
+		Average float64 `json:"average"`
+		Peak    float64 `json:"peak"`
+	}
+
+	// JVMMemoryPressure contains JVMMemoryPressure statistics of a domain
+	JVMMemoryPressure struct {
+		Average float64 `json:"average"`
+		Peak    float64 `json:"peak"`
 	}
 )
 
@@ -80,47 +88,60 @@ func transformDomainsListToString(domainNames []*elasticsearchservice.DomainInfo
 	return res
 }
 
-// importReportToEs imports an Report in ElasticSearch.
+// importInstancesToEs imports EC2 instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importReportToEs(ctx context.Context, aa taws.AwsAccount, report Report) error {
+func importDomainsToEs(ctx context.Context, aa taws.AwsAccount, domains []DomainReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating ES domains for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	client := es.Client
-	ji, err := json.Marshal(struct {
-		Account    string    `json:"account"`
-		ReportDate time.Time `json:"reportDate"`
-	}{
-		report.Account,
-		report.ReportDate,
-	})
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixESReport)
+	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
-		logger.Error("Error when marshaling domain var", err.Error())
+		logger.Error("Failed to get bulk processor.", err.Error())
 		return err
 	}
-	hash := md5.Sum(ji)
-	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixESReport)
-	if res, err := client.
-		Index().
-		Index(index).
-		Type(TypeESReport).
-		BodyJson(report).
-		Id(hash64).
-		Do(context.Background()); err != nil {
-		logger.Error("Error when putting Domain in ES", err.Error())
-	} else {
-		logger.Info("Domain put in ES", *res)
+	for _, domain := range domains {
+		id, err := generateId(domain)
+		if err != nil {
+			logger.Error("Error when marshaling domain var", err.Error())
+			return err
+		}
+		bp = utils.AddDocToBulkProcessor(bp, domain, TypeESReport, index, id)
 	}
+	bp.Flush()
+	err = bp.Close()
+	if err != nil {
+		logger.Error("Fail to put ES domains in ES", err.Error())
+		return err
+	}
+	logger.Info("ES domains put in ES", nil)
 	return nil
 }
 
+func generateId(domain DomainReport) (string, error) {
+	ji, err := json.Marshal(struct {
+		Account    string    `json:"account"`
+		ReportDate time.Time `json:"reportDate"`
+		Id         string    `json:"id"`
+	}{
+		domain.Account,
+		domain.ReportDate,
+		domain.Domain.DomainID,
+	})
+	if err != nil {
+		return "", err
+	}
+	hash := md5.Sum(ji)
+	hash64 := base64.URLEncoding.EncodeToString(hash[:])
+	return hash64, nil
+}
+
 // getDomainTag formats []*elasticsearchservice.Tag to map[string]string
-func getDomainTag(tags []*elasticsearchservice.Tag) map[string]string {
-	res := make(map[string]string)
+func getDomainTag(tags []*elasticsearchservice.Tag) []utils.Tag {
+	res := make([]utils.Tag, 0)
 	for _, tag := range tags {
-		res[aws.StringValue(tag.Key)] = aws.StringValue(tag.Value)
+		res = append(res, utils.Tag{aws.StringValue(tag.Key), aws.StringValue(tag.Value)})
 	}
 	return res
 }

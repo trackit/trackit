@@ -27,19 +27,20 @@ import (
 	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/errors"
 )
 
-// makeElasticSearchEsRequest prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
+// makeElasticSearchCostRequest prepares and run the request to retrieve the costs
+// based on the EsQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
-func makeElasticSearchCostRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
+// with empty data
+func makeElasticSearchCostRequest(ctx context.Context, parsedParams EsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchCostParams(
+	index := strings.Join(parsedParams.IndexList, ",")
+	searchService := getElasticSearchCostParams(
 		parsedParams,
 		es.Client,
 		index,
@@ -47,26 +48,35 @@ func makeElasticSearchCostRequest(ctx context.Context, parsedParams esQueryParam
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type": fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
 
 // makeElasticSearchEsDailyRequest prepares and run the request to retrieve the latest reports
-// based on the esQueryParams
+// based on the EsQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEsDailyRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchEsDailyRequest(ctx context.Context, parsedParams EsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchEsDailyParams(
+	index := strings.Join(parsedParams.IndexList, ",")
+	searchService := getElasticSearchEsDailyParams(
 		parsedParams,
 		es.Client,
 		index,
@@ -74,26 +84,35 @@ func makeElasticSearchEsDailyRequest(ctx context.Context, parsedParams esQueryPa
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type": fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
 
-// makeElasticSearchEsMonthlyRequest prepares and run the request to retrieve a month report
-// based on the esQueryParams
+// makeElasticSearchEsMonthlyRequest prepares and run the request to retrieve a monthly report
+// based on the EsQueryParams
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchEsMonthlyRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchEsMonthlyRequest(ctx context.Context, parsedParams EsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchEsMonthlyParams(
+	index := strings.Join(parsedParams.IndexList, ",")
+	searchService := getElasticSearchEsMonthlyParams(
 		parsedParams,
 		es.Client,
 		index,
@@ -101,60 +120,81 @@ func makeElasticSearchEsMonthlyRequest(ctx context.Context, parsedParams esQuery
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type": fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
 
-// getEsDailyData gets RDS daily reports and parse them based on query params
-func getEsDailyData(ctx context.Context, params esQueryParams, user users.User, tx *sql.Tx) (int, []tes.Report, error) {
-	searchResult, returnCode, err := makeElasticSearchEsDailyRequest(ctx, params)
+// GetEsMonthlyDomains does an elastic request and returns an array of domains monthly report based on query params
+func GetEsMonthlyDomains(ctx context.Context, params EsQueryParams) (int, []DomainReport, error) {
+	res, returnCode, err := makeElasticSearchEsMonthlyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.accountList, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	params.accountList = accountsAndIndexes.Accounts
-	params.indexList = accountsAndIndexes.Indexes
-	costResult, _, _ := makeElasticSearchCostRequest(ctx, params)
-	res, err := prepareResponseEsDaily(ctx, searchResult, costResult)
+	domains, err := prepareResponseEsMonthly(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, res, nil
+	return http.StatusOK, domains, nil
 }
 
-// getEsDailyData gets RDS daily reports and parse them based on query params
-func getEsData(request *http.Request, parsedParams esQueryParams, user users.User, tx *sql.Tx) (int, []tes.Report, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, tes.IndexPrefixESReport)
+// GetEsDailyDomains does an elastic request and returns an array of domains daily report based on query params
+func GetEsDailyDomains(ctx context.Context, params EsQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
+	res, returnCode, err := makeElasticSearchEsDailyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
-	searchResult, returnCode, err := makeElasticSearchEsMonthlyRequest(request.Context(), parsedParams)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	if searchResult.Hits.TotalHits > 0 {
-		res, err := prepareResponseEsMonthly(request.Context(), searchResult)
-		if err != nil {
-			return http.StatusInternalServerError, nil, err
-		}
-		return http.StatusOK, res, nil
-	} else {
-		return getEsDailyData(request.Context(), parsedParams, user, tx)
+	params.AccountList = accountsAndIndexes.Accounts
+	params.IndexList = accountsAndIndexes.Indexes
+	costRes, _, _ := makeElasticSearchCostRequest(ctx, params)
+	domains, err := prepareResponseEsDaily(ctx, res, costRes)
+	if err != nil {
+		return http.StatusInternalServerError, nil, err
 	}
+	return http.StatusOK, domains, nil
 }
 
-func getEsUnusedData(request *http.Request, params esUnusedQueryParams, user users.User, tx *sql.Tx) (int, []tes.Domain, error) {
-	returnCode, reports, err := getEsData(request, esQueryParams{params.accountList, nil, params.date}, user, tx)
+// GetEsData gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
+func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, tes.IndexPrefixESReport)
+	if err != nil {
+		return returnCode, nil, err
+	}
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	returnCode, monthlyDomains, err := GetEsMonthlyDomains(ctx, parsedParams)
+	if err != nil {
+		return returnCode, nil, err
+	} else if monthlyDomains != nil && len(monthlyDomains) > 0 {
+		return returnCode, monthlyDomains, nil
+	}
+	returnCode, dailyDomains, err := GetEsDailyDomains(ctx, parsedParams, user, tx)
+	if err != nil {
+		return returnCode, nil, err
+	}
+	return returnCode, dailyDomains, nil
+}
+
+// GetEsUnusedData gets ES reports and parse them based on query params to have an array of unused domains
+func GetEsUnusedData(ctx context.Context, params EsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
+	returnCode, reports, err := GetEsData(ctx, EsQueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}

@@ -23,6 +23,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/trackit/jsonlog"
+	
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 // getPurchasingOption returns a string that describes how the instance given as parameter have been purchased
@@ -43,10 +45,10 @@ func getPurchasingOption(instance *ec2.Instance) string {
 }
 
 // getInstanceTag formats []*ec2.Tag to map[string]string
-func getInstanceTag(tags []*ec2.Tag) []Tag {
-	res := make([]Tag, 0)
+func getInstanceTag(tags []*ec2.Tag) []utils.Tag {
+	res := make([]utils.Tag, 0)
 	for _, tag := range tags {
-		res = append(res, Tag{
+		res = append(res, utils.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

@@ -24,28 +24,31 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-// esQueryParams will store the parsed query params
 type (
-	esQueryParams struct {
-		accountList []string
-		indexList   []string
-		date        time.Time
+	// EsQueryParams will store the parsed query params
+	EsQueryParams struct {
+		AccountList []string
+		IndexList   []string
+		Date        time.Time
 	}
 
-	esUnusedQueryParams struct {
-		accountList []string
-		indexList   []string
-		date        time.Time
-		count       int
+	// Ec2UnusedQueryParams will store the parsed query params
+	EsUnusedQueryParams struct {
+		AccountList []string
+		IndexList   []string
+		Date        time.Time
+		Count       int
 	}
 )
 
 var (
+	// esQueryArgs allows to get required queryArgs params
 	esQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
 	}
 
+	// esUnusedQueryArgs allows to get required queryArgs params
 	esUnusedQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
@@ -60,7 +63,7 @@ var (
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getESReport).With(
+		http.MethodGet: routes.H(getESDomains).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(esQueryArgs),
@@ -71,7 +74,7 @@ func init() {
 		),
 	}.H().Register("/es")
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getESUnusedInstances).With(
+		http.MethodGet: routes.H(getESUnusedDomains).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(esUnusedQueryArgs),
@@ -83,18 +86,18 @@ func init() {
 	}.H().Register("/es/unused")
 }
 
-// getRdsReport returns the list of RDS reports based on the query params, in JSON format.
-func getESReport(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getESDomains returns the list of ES domains based on the query params, in JSON format.
+func getESDomains(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := esQueryParams{
-		accountList: []string{},
-		date:        a[esQueryArgs[1]].(time.Time),
+	parsedParams := EsQueryParams{
+		AccountList: []string{},
+		Date:        a[esQueryArgs[1]].(time.Time),
 	}
 	if a[esQueryArgs[0]] != nil {
-		parsedParams.accountList = a[esQueryArgs[0]].([]string)
+		parsedParams.AccountList = a[esQueryArgs[0]].([]string)
 	}
-	returnCode, report, err := getEsData(request, parsedParams, user, tx)
+	returnCode, report, err := GetEsData(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {
@@ -102,22 +105,22 @@ func getESReport(request *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 }
 
-// getRdsUnusedInstances returns the list of the most unused RDS instances based on the query params, in JSON format.
-func getESUnusedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getESUnusedDomains returns the list of the most unused ES domains based on the query params, in JSON format.
+func getESUnusedDomains(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := esUnusedQueryParams{
-		accountList: []string{},
-		date:        a[esUnusedQueryArgs[1]].(time.Time),
-		count:       -1,
+	parsedParams := EsUnusedQueryParams{
+		AccountList: []string{},
+		Date:        a[esUnusedQueryArgs[1]].(time.Time),
+		Count:       -1,
 	}
 	if a[esUnusedQueryArgs[0]] != nil {
-		parsedParams.accountList = a[esUnusedQueryArgs[0]].([]string)
+		parsedParams.AccountList = a[esUnusedQueryArgs[0]].([]string)
 	}
 	if a[esUnusedQueryArgs[2]] != nil {
-		parsedParams.count = a[esUnusedQueryArgs[2]].(int)
+		parsedParams.Count = a[esUnusedQueryArgs[2]].(int)
 	}
-	returnCode, report, err := getEsUnusedData(request, parsedParams, user, tx)
+	returnCode, report, err := GetEsUnusedData(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {

@@ -55,8 +55,7 @@ const TemplateLineItem = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"domains" : {
-					"type": "nested",
+				"domain": {
 					"properties": {
 						"arn": {
 							"type": "keyword"
@@ -67,42 +66,58 @@ const TemplateLineItem = `
 						"domainId": {
 							"type": "keyword"
 						},
-						"domainName": {
-							"type": "keyword"
-						},
-						"cpuUtilizationAverage": {
-							"type": "double"
-						},
-						"cpuUtilizationPeak": {
-							"type": "double"
-						},
-						"freeStorageSpace": {
-							"type": "double"
-						},
-						"totalStorageSpace": {
-							"type": "integer"
-						},
-						"jvmMemoryPressureAverage": {
-							"type": "double"
-						},
-						"jvmMemoryPressurePeak": {
-							"type": "double"
-						},
 						"instanceType": {
 							"type": "keyword"
 						},
 						"instanceCount": {
 							"type": "integer"
 						},
+						"totalStorageSpace": {
+							"type": "integer"
+						},
 						"tags": {
-							"type": "nested"
+							"type": "nested",
+							"properties": {
+								"key": {
+									"type": "keyword"
+								},
+								"value": {
+									"type": "keyword"
+								}
+							}
 						},
-						"cost": {
-							"type": "float",
-							"index": false
+						"costs": {
+							"type": "object"
 						},
-						"costDetail": {
-							"type": "nested"
+						"stats": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": "object",
+									"properties": {
+											"average": {
+												"type": "double"
+											},
+											"peak": {
+												"type": "double"
+											}
+									}
+								},
+								"freeSpace": {
+									"type": "double"
+								},
+								"JVMMemoryPressure": {
+									"type": "object",
+									"properties": {
+											"in": {
+												"type": "double"
+											},
+											"out": {
+												"type": "double"
+											}
+									}
+								}
+							}
 						}
 					}
 				}
