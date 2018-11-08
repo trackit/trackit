@@ -98,7 +98,7 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 	data = make([][]string, 0)
 	data = append(data, ec2InstanceFormat)
 
-	now := time.Now()
+	now := time.Now().UTC()
 	date := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
 
 	identity, err := aa.GetAwsAccountIdentity()
