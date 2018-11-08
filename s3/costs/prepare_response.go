@@ -84,7 +84,7 @@ func getBucketRequests(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCos
 // getBucketBandwidthIn gets the bandwidthIn informations from the bucketData
 // and returns an *S3BucketCost filled with these data
 func getBucketBandwidthIn(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCost {
-	bucketInfo.DataOut = bucketData["usage"].(bucket)["value"].(float64)
+	bucketInfo.DataIn = bucketData["usage"].(bucket)["value"].(float64)
 	bucketInfo.BandwidthCost += bucketData["cost"].(bucket)["value"].(float64)
 	return bucketInfo
 }
@@ -92,7 +92,7 @@ func getBucketBandwidthIn(bucketInfo *S3BucketCost, bucketData bucket) *S3Bucket
 // getBucketBandwidthOut gets the bandwidthOut informations from the bucketData
 // and returns an *S3BucketCost filled with these data
 func getBucketBandwidthOut(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCost {
-	bucketInfo.DataIn = bucketData["usage"].(bucket)["value"].(float64)
+	bucketInfo.DataOut = bucketData["usage"].(bucket)["value"].(float64)
 	bucketInfo.BandwidthCost += bucketData["cost"].(bucket)["value"].(float64)
 	return bucketInfo
 }

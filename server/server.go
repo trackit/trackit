@@ -39,6 +39,7 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/usageReports/ec2"
+	_ "github.com/trackit/trackit-server/usageReports/es"
 	_ "github.com/trackit/trackit-server/usageReports/rds"
 	_ "github.com/trackit/trackit-server/users"
 	_ "github.com/trackit/trackit-server/users/shared_account"
@@ -59,6 +60,7 @@ var tasks = map[string]func(context.Context) error{
 	"process-account-plugins": taskProcessAccountPlugins,
 	"anomalies-detection":     taskAnomaliesDetection,
 	"check-user-entitlement":  taskCheckEntitlement,
+	"generate-spreadsheet":    taskSpreadsheet,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
