@@ -138,7 +138,7 @@ func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams RdsQue
 }
 
 // GetRdsMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []rds.InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRdsMonthlyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
@@ -156,11 +156,11 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.accountList, user, tx, es.IndexPrefixLineItems)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	params.accountList = accountsAndIndexes.Accounts
+	params.AccountList = accountsAndIndexes.Accounts
 	params.indexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchCostRequest(ctx, params)
 	instances, err := prepareResponseRdsDaily(ctx, res, costRes)
@@ -172,13 +172,13 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 
 // GetRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyInstances
 func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, rds.IndexPrefixRDSReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rds.IndexPrefixRDSReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetRdsMonthlyInstances(ctx, parsedParams, user, tx)
+	returnCode, monthlyInstances, err := GetRdsMonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {

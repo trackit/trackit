@@ -27,13 +27,14 @@ import (
 	"github.com/trackit/trackit-server/errors"
 )
 
-type pricePoint struct {
+// PricePoint struct stores elements for cost differentiator
+type PricePoint struct {
 	Date             string
 	Cost             float64
 	PercentVariation float64
 }
 
-type costDiff map[string][]pricePoint
+type costDiff map[string][]PricePoint
 
 // ToCSVable generates the CSV content from a costDiff
 func (cd costDiff) ToCSVable() [][]string {
@@ -68,7 +69,7 @@ func (cd costDiff) ToCSVable() [][]string {
 
 // getVariations compute the percentage of variation between each pair of consecutive
 // week/month in the interval selected by the user.
-func getVariations(pricePoints []pricePoint) []pricePoint {
+func getVariations(pricePoints []PricePoint) []PricePoint {
 	for i := 1; i < len(pricePoints); i += 1 {
 		if pricePoints[i-1].Cost == 0.0 {
 			pricePoints[i].PercentVariation = 0.0
@@ -79,11 +80,11 @@ func getVariations(pricePoints []pricePoint) []pricePoint {
 	return pricePoints
 }
 
-func parseDiffPricePoints(bucketData usageType) []pricePoint {
-	pricePoints := []pricePoint{}
+func parseDiffPricePoints(bucketData usageType) []PricePoint {
+	pricePoints := []PricePoint{}
 	dateAgg := bucketData["dateAgg"].(usageType)
 	for _, bucketAgg := range dateAgg["buckets"].([]interface{}) {
-		pricePoints = append(pricePoints, pricePoint{
+		pricePoints = append(pricePoints, PricePoint{
 			Date: bucketAgg.(usageType)["key_as_string"].(string),
 			Cost: bucketAgg.(usageType)["cost"].(map[string]interface{})["value"].(float64),
 		})
