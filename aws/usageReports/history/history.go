@@ -54,8 +54,8 @@ type (
 	}
 )
 
-// getHistoryDate return the begin and the end date of the last month
-func getHistoryDate() (time.Time, time.Time) {
+// GetHistoryDate return the begin and the end date of the last month
+func GetHistoryDate() (time.Time, time.Time) {
 	now := time.Now().UTC()
 	start := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, now.Location()).UTC()
 	end := time.Date(now.Year(), now.Month(), 0, 23, 59, 59, 999999999, now.Location()).UTC()
@@ -190,7 +190,7 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 // FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
 func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	startDate, endDate := getHistoryDate()
+	startDate, endDate := GetHistoryDate()
 	logger.Info("Starting history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
