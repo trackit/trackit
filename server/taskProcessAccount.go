@@ -70,6 +70,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
 		historyErr := processAccountHistory(ctx, aa)
+		processAccountSpreadsheet(ctx, aa, historyErr)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr)
 	}
 	if err != nil {
@@ -177,7 +178,7 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 // processAccountHistoryRDS processes EC2, RDS and ES data with billing data for an AwsAccount
 func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 	err := history.FetchHistoryInfos(ctx, aa)
-	if err != nil {
+	if err != nil && err != history.ErrBillingDataIncomplete {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest History data.", map[string]interface{}{
 			"awsAccountId": aa.Id,
@@ -185,4 +186,11 @@ func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 		})
 	}
 	return err
+}
+
+// processAccountSpreadsheet generate spreasheet report for an AwsAccount
+func processAccountSpreadsheet(ctx context.Context, aa aws.AwsAccount, historyErr error) {
+	if historyErr != nil {
+		_ = generateReport(ctx, aa.Id)
+	}
 }

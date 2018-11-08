@@ -68,7 +68,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2QueryParams,
 }
 
 // GetEc2MonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetEc2MonthlyInstances(ctx context.Context, params Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+func GetEc2MonthlyInstances(ctx context.Context, params Ec2QueryParams) (int, []InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEc2MonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -108,7 +108,7 @@ func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.Use
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams, user, tx)
+	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {

@@ -439,6 +439,12 @@
 			"revisionTime": "2017-05-14T20:27:02Z"
 		},
 		{
+			"checksumSHA1": "UpwKp6oFSNQbJTwaN3oRD/amXLI=",
+			"path": "github.com/tealeg/xlsx",
+			"revision": "f1917addaa283ecd881e40b48173544d4145ea67",
+			"revisionTime": "2018-09-19T08:39:35Z"
+		},
+		{
 			"checksumSHA1": "fXENG3ndXoSruFRlAH+HnfAiN3g=",
 			"path": "github.com/trackit/jsonlog",
 			"revision": "36b6a128f6562df64a87de1e2cb53028ecf32958",

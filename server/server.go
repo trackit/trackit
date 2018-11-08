@@ -60,6 +60,7 @@ var tasks = map[string]func(context.Context) error{
 	"process-account-plugins": taskProcessAccountPlugins,
 	"anomalies-detection":     taskAnomaliesDetection,
 	"check-user-entitlement":  taskCheckEntitlement,
+	"generate-spreadsheet":    taskSpreadsheet,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
