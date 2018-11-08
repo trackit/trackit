@@ -38,7 +38,7 @@ import (
 // with empty data
 func makeElasticSearchCostRequest(ctx context.Context, params Ec2QueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(params.indexList, ",")
+	index := strings.Join(params.IndexList, ",")
 	searchService := GetElasticSearchCostParams(
 		params,
 		es.Client,
@@ -47,11 +47,20 @@ func makeElasticSearchCostRequest(ctx context.Context, params Ec2QueryParams) (*
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
@@ -65,7 +74,7 @@ func makeElasticSearchCostRequest(ctx context.Context, params Ec2QueryParams) (*
 // with empty data
 func makeElasticSearchEc2DailyRequest(ctx context.Context, parsedParams Ec2QueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
+	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := GetElasticSearchEc2DailyParams(
 		parsedParams,
 		es.Client,
@@ -74,11 +83,20 @@ func makeElasticSearchEc2DailyRequest(ctx context.Context, parsedParams Ec2Query
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
-			return nil, http.StatusOK, err
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
+		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
-		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
+		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
@@ -92,7 +110,7 @@ func makeElasticSearchEc2DailyRequest(ctx context.Context, parsedParams Ec2Query
 // with empty data
 func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams Ec2QueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
+	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := GetElasticSearchEc2MonthlyParams(
 		parsedParams,
 		es.Client,
@@ -108,7 +126,7 @@ func makeElasticSearchEc2MonthlyRequest(ctx context.Context, parsedParams Ec2Que
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -138,12 +156,12 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.accountList, user, tx, es.IndexPrefixLineItems)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	params.accountList = accountsAndIndexes.Accounts
-	params.indexList = accountsAndIndexes.Indexes
+	params.AccountList = accountsAndIndexes.Accounts
+	params.IndexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchCostRequest(ctx, params)
 	instances, err := prepareResponseEc2Daily(ctx, res, costRes)
 	if err != nil {
@@ -154,12 +172,12 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 
 // GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, ec2.IndexPrefixEC2Report)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2.IndexPrefixEC2Report)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
 	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, nil, err
@@ -175,7 +193,7 @@ func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.Use
 
 // GetEc2UnusedData gets EC2 reports and parse them based on query params to have an array of unused instances
 func GetEc2UnusedData(ctx context.Context, params Ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	returnCode, instances, err := GetEc2Data(ctx, Ec2QueryParams{params.accountList, nil, params.date}, user, tx)
+	returnCode, instances, err := GetEc2Data(ctx, Ec2QueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}

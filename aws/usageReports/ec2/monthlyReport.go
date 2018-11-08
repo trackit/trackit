@@ -68,13 +68,15 @@ func getElasticSearchEc2Instance(ctx context.Context, account, instance string, 
 func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, account string, userId int) Instance {
 	var docType InstanceReport
 	var inst = Instance{
-		Id:         instance.Resource,
-		Region:     "N/A",
-		State:      "N/A",
-		Purchasing: "N/A",
-		KeyPair:    "",
-		Tags:       make([]Tag, 0),
-		Type:       "N/A",
+		InstanceBase: InstanceBase{
+			Id:         instance.Resource,
+			Region:     "N/A",
+			State:      "N/A",
+			Purchasing: "N/A",
+			KeyPair:    "",
+			Type:       "N/A",
+		},
+		Tags:       make([]utils.Tag, 0),
 		Costs:      make(map[string]float64, 0),
 		Stats: Stats{
 			Cpu: Cpu{

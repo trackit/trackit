@@ -35,9 +35,10 @@ type (
 	// InstanceReport is saved in ES to have all the information of an RDS instance
 	InstanceReport struct {
 		utils.ReportBase
-		Instance   Instance  `json:"instance"`
+		Instance Instance `json:"instance"`
 	}
 
+	// InstanceBase contains basics information of an RDS instance
 	InstanceBase struct {
 		DBInstanceIdentifier string `json:"id"`
 		AvailabilityZone     string `json:"availabilityZone"`
@@ -50,8 +51,8 @@ type (
 	// Instance contains the information of an RDS instance
 	Instance struct {
 		InstanceBase
-		Costs                map[string]float64 `json:"costs"`
-		Stats                Stats              `json:"stats"`
+		Costs map[string]float64 `json:"costs"`
+		Stats Stats              `json:"stats"`
 	}
 
 	// Stats contains statistics of an instance get on CloudWatch

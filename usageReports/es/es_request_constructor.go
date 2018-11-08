@@ -129,6 +129,6 @@ func getElasticSearchCostParams(params EsQueryParams, client *elastic.Client, in
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).
 		SubAggregation("domains", elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize).
-		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
+			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search
 }

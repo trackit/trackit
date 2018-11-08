@@ -27,8 +27,8 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit-server/es"
 )
 
 const ESStsSessionName = "fetch-es"
@@ -41,7 +41,7 @@ type (
 		Domain Domain `json:"domain"`
 	}
 
-	// BaseDomain represents all the basic information of an ES domain.
+	// DomainBase contains basics information of an ES domain
 	DomainBase struct {
 		Arn               string `json:"arn"`
 		Region            string `json:"region"`

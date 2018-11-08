@@ -38,16 +38,17 @@ type (
 		Instance Instance `json:"instance"`
 	}
 
+	// InstanceBase contains basics information of an EC2 instance
 	InstanceBase struct {
-		Id         string             `json:"id"`
-		Region     string             `json:"region"`
-		State      string             `json:"state"`
-		Purchasing string             `json:"purchasing"`
-		KeyPair    string             `json:"keyPair"`
-		Type       string             `json:"type"`
+		Id         string `json:"id"`
+		Region     string `json:"region"`
+		State      string `json:"state"`
+		Purchasing string `json:"purchasing"`
+		KeyPair    string `json:"keyPair"`
+		Type       string `json:"type"`
 	}
 
-	// Instance contains the information of an EC2 instance
+	// Instance contains all the information of an EC2 instance
 	Instance struct {
 		InstanceBase
 		Tags  []utils.Tag        `json:"tags"`

@@ -60,11 +60,11 @@ func createQueryAccountFilterEc2(accountList []string) *elastic.TermsQuery {
 //	- If the index is not an index present in the ES, it will crash
 func GetElasticSearchEc2DailyParams(params Ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEc2(params.accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEc2(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
-	dateStart, dateEnd := getDateForDailyReport(params.date)
+	dateStart, dateEnd := getDateForDailyReport(params.Date)
 	query = query.Filter(elastic.NewRangeQuery("reportDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
@@ -87,11 +87,11 @@ func GetElasticSearchEc2DailyParams(params Ec2QueryParams, client *elastic.Clien
 //	- If the index is not an index present in the ES, it will crash
 func GetElasticSearchEc2MonthlyParams(params Ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterEc2(params.accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEc2(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
-	query = query.Filter(elastic.NewTermQuery("reportDate", params.date))
+	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
@@ -119,11 +119,11 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 //	- If the index is not an index present in the ES, it will crash
 func GetElasticSearchCostParams(params Ec2QueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterBill(params.accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterBill(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonEC2", "AmazonCloudWatch"))
-	dateStart, dateEnd := getDateForDailyReport(params.date)
+	dateStart, dateEnd := getDateForDailyReport(params.Date)
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)

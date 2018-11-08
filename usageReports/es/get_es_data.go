@@ -21,13 +21,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
 	tes "github.com/trackit/trackit-server/aws/usageReports/es"
+	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/errors"
 )
 
 // makeElasticSearchCostRequest prepares and run the request to retrieve the costs
@@ -55,7 +55,7 @@ func makeElasticSearchCostRequest(ctx context.Context, parsedParams EsQueryParam
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -91,7 +91,7 @@ func makeElasticSearchEsDailyRequest(ctx context.Context, parsedParams EsQueryPa
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -127,7 +127,7 @@ func makeElasticSearchEsMonthlyRequest(ctx context.Context, parsedParams EsQuery
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -171,7 +171,7 @@ func GetEsDailyDomains(ctx context.Context, params EsQueryParams, user users.Use
 	return http.StatusOK, domains, nil
 }
 
-// GetEsData gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
+// GetEsData gets ES monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, tes.IndexPrefixESReport)
 	if err != nil {

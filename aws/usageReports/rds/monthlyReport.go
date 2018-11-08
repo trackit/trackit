@@ -57,8 +57,8 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
 				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
 			},
-			Costs:                costs,
-			Stats:                stats,
+			Costs: costs,
+			Stats: stats,
 		}
 	}
 	return nil
@@ -104,7 +104,7 @@ func getRdsMetrics(ctx context.Context, instancesList []utils.CostPerResource, a
 				ReportDate: startDate,
 				ReportType: "monthly",
 			},
-			Instance:   instance,
+			Instance: instance,
 		})
 	}
 	return instances, nil

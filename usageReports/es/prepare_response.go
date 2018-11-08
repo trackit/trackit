@@ -24,8 +24,8 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/aws/usageReports/es"
+	"github.com/trackit/trackit-server/errors"
 )
 
 type (
@@ -82,7 +82,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// DomainReport represents the report with all the information for ES domains.
+	// DomainReport represents the report with all the information for an ES domain report
 	DomainReport struct {
 		utils.ReportBase
 		Domain Domain `json:"domain"`
@@ -103,8 +103,8 @@ func getEsDomainReportResponse(oldDomain es.DomainReport) DomainReport {
 		tags[tag.Key] = tag.Value
 	}
 	newDomain := DomainReport{
-		ReportBase:    oldDomain.ReportBase,
-		Domain:        Domain{
+		ReportBase: oldDomain.ReportBase,
+		Domain: Domain{
 			DomainBase: oldDomain.Domain.DomainBase,
 			Tags:       tags,
 			Costs:      oldDomain.Domain.Costs,

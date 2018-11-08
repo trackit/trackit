@@ -38,7 +38,7 @@ import (
 // with empty data
 func makeElasticSearchCostRequest(ctx context.Context, params RdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(params.indexList, ",")
+	index := strings.Join(params.IndexList, ",")
 	searchService := GetElasticSearchCostParams(
 		params,
 		es.Client,
@@ -54,7 +54,7 @@ func makeElasticSearchCostRequest(ctx context.Context, params RdsQueryParams) (*
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -74,7 +74,7 @@ func makeElasticSearchCostRequest(ctx context.Context, params RdsQueryParams) (*
 // with empty data
 func makeElasticSearchRdsDailyRequest(ctx context.Context, parsedParams RdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
+	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := GetElasticSearchRdsDailyParams(
 		parsedParams,
 		es.Client,
@@ -90,7 +90,7 @@ func makeElasticSearchRdsDailyRequest(ctx context.Context, parsedParams RdsQuery
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -110,7 +110,7 @@ func makeElasticSearchRdsDailyRequest(ctx context.Context, parsedParams RdsQuery
 // with empty data
 func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams RdsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
+	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := GetElasticSearchRdsMonthlyParams(
 		parsedParams,
 		es.Client,
@@ -126,7 +126,7 @@ func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams RdsQue
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -138,7 +138,7 @@ func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams RdsQue
 }
 
 // GetRdsMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []rds.InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRdsMonthlyRequest(ctx, params)
 	if err != nil {
 		return returnCode, nil, err
@@ -156,12 +156,12 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.accountList, user, tx, es.IndexPrefixLineItems)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	params.accountList = accountsAndIndexes.Accounts
-	params.indexList = accountsAndIndexes.Indexes
+	params.AccountList = accountsAndIndexes.Accounts
+	params.IndexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchCostRequest(ctx, params)
 	instances, err := prepareResponseRdsDaily(ctx, res, costRes)
 	if err != nil {
@@ -172,13 +172,13 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 
 // GetRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyInstances
 func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, rds.IndexPrefixRDSReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rds.IndexPrefixRDSReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetRdsMonthlyInstances(ctx, parsedParams, user, tx)
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	returnCode, monthlyInstances, err := GetRdsMonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
@@ -193,7 +193,7 @@ func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.Use
 
 // GetRdsUnusedData gets RDS reports and parse them based on query params to have an array of unused instances
 func GetRdsUnusedData(ctx context.Context, params RdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
-	returnCode, instances, err := GetRdsData(ctx, RdsQueryParams{params.accountList, nil, params.date}, user, tx)
+	returnCode, instances, err := GetRdsData(ctx, RdsQueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}

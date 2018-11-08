@@ -111,7 +111,7 @@ func getEsMetrics(ctx context.Context, domainsList []utils.CostPerResource, aa t
 				ReportDate: startDate,
 				ReportType: "monthly",
 			},
-			Domain:     domain,
+			Domain: domain,
 		})
 	}
 	return domains, nil

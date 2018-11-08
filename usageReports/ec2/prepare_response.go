@@ -20,12 +20,13 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
 	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 type (
@@ -82,18 +83,18 @@ type (
 		} `json:"accounts"`
 	}
 
-	// InstanceReport has all the information of an EC2 instance
+	// InstanceReport has all the information of an EC2 instance report
 	InstanceReport struct {
 		utils.ReportBase
-		Instance   Instance  `json:"instance"`
+		Instance Instance `json:"instance"`
 	}
 
 	// Instance contains the information of an EC2 instance
 	Instance struct {
 		ec2.InstanceBase
-		Tags       map[string]string  `json:"tags"`
-		Costs      map[string]float64 `json:"costs"`
-		Stats      Stats              `json:"stats"`
+		Tags  map[string]string  `json:"tags"`
+		Costs map[string]float64 `json:"costs"`
+		Stats Stats              `json:"stats"`
 	}
 
 	// Stats contains statistics of an instance get on CloudWatch
@@ -122,13 +123,13 @@ func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport
 		write[volume.Id] = volume.Write
 	}
 	newInstance := InstanceReport{
-		ReportBase:    oldInstance.ReportBase,
-		Instance:      Instance{
+		ReportBase: oldInstance.ReportBase,
+		Instance: Instance{
 			InstanceBase: oldInstance.Instance.InstanceBase,
 			Tags:         tags,
 			Costs:        oldInstance.Instance.Costs,
-			Stats:        Stats{
-				Cpu: oldInstance.Instance.Stats.Cpu,
+			Stats: Stats{
+				Cpu:     oldInstance.Instance.Stats.Cpu,
 				Network: oldInstance.Instance.Stats.Network,
 				Volumes: Volumes{
 					Read:  read,
@@ -251,8 +252,8 @@ func prepareResponseEc2Unused(params Ec2UnusedQueryParams, instances []InstanceR
 		}
 		return cost1 > cost2
 	})
-	if params.count >= 0 && params.count <= len(unusedInstances) {
-		return http.StatusOK, unusedInstances[0:params.count], nil
+	if params.Count >= 0 && params.Count <= len(unusedInstances) {
+		return http.StatusOK, unusedInstances[0:params.Count], nil
 	}
 	return http.StatusOK, unusedInstances, nil
 }

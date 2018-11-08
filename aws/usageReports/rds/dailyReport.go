@@ -56,8 +56,8 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
 				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
 			},
-			Costs:                make(map[string]float64, 0),
-			Stats:                stats,
+			Costs: make(map[string]float64, 0),
+			Stats: stats,
 		}
 	}
 	return nil
@@ -101,7 +101,7 @@ func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount) error {
 				ReportDate: now,
 				ReportType: "daily",
 			},
-			Instance:   instance,
+			Instance: instance,
 		})
 	}
 	return importInstancesToEs(ctx, aa, instances)
