@@ -151,7 +151,7 @@
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
-			"checksumSHA1": "1QmQ3FqV37w0Zi44qv8pA1GeR0A=",
+			"checksumSHA1": "GQuRJY72iGQrufDqIaB50zG27u0=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/ec2query",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
 			"revisionTime": "2018-07-25T21:42:05Z"
@@ -211,6 +211,12 @@
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
+			"checksumSHA1": "S7NJNuKPbT+a9/zk9qC1/zZAHLM=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/restjson",
+			"revision": "1accf06a4370ec8a2602ffa86e92fd3a2bea9d6d",
+			"revisionTime": "2018-10-05T21:12:21Z"
+		},
+		{
 			"checksumSHA1": "ODo+ko8D6unAxZuN1jGzMcN4QCc=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/restxml",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
@@ -223,16 +229,22 @@
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
-			"checksumSHA1": "Rx8tIQPEmYZhy1zbRpDmMBmGfvg=",
+			"checksumSHA1": "o+DFxugR5Cy/Wwlv7GSRRilTW4o=",
 			"path": "github.com/aws/aws-sdk-go/service/cloudwatch",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
-			"checksumSHA1": "hGhUGbG0E3RrhhJpfKq6bKUebz4=",
+			"checksumSHA1": "a4Kb3tBW4zaoS8UFrkfU8MNHE8o=",
 			"path": "github.com/aws/aws-sdk-go/service/ec2",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
 			"revisionTime": "2018-07-25T21:42:05Z"
+		},
+		{
+			"checksumSHA1": "V6KcC3YquAo1VcT4OoEX/QQyFUA=",
+			"path": "github.com/aws/aws-sdk-go/service/elasticsearchservice",
+			"revision": "1accf06a4370ec8a2602ffa86e92fd3a2bea9d6d",
+			"revisionTime": "2018-10-05T21:12:21Z"
 		},
 		{
 			"checksumSHA1": "oai1+sRjzYrQqKArrBKx+bJ+t18=",
@@ -379,6 +391,30 @@
 			"revisionTime": "2017-09-22T17:26:34Z"
 		},
 		{
+			"checksumSHA1": "Ckkk75h7Xhrc3b+QJ3oqbIrGsaY=",
+			"path": "github.com/mailru/easyjson",
+			"revision": "60711f1a8329503b04e1c88535f419d0bb440bff",
+			"revisionTime": "2018-08-23T13:54:43Z"
+		},
+		{
+			"checksumSHA1": "T8soMJArSZrYnhmdpAnq1bVxQ6Q=",
+			"path": "github.com/mailru/easyjson/buffer",
+			"revision": "60711f1a8329503b04e1c88535f419d0bb440bff",
+			"revisionTime": "2018-08-23T13:54:43Z"
+		},
+		{
+			"checksumSHA1": "zErZOOMVWCO/Z1WGWBAG9VdccQc=",
+			"path": "github.com/mailru/easyjson/jlexer",
+			"revision": "60711f1a8329503b04e1c88535f419d0bb440bff",
+			"revisionTime": "2018-08-23T13:54:43Z"
+		},
+		{
+			"checksumSHA1": "4BAeeJ7JywEQyR6GqRrxfSfN2/Q=",
+			"path": "github.com/mailru/easyjson/jwriter",
+			"revision": "60711f1a8329503b04e1c88535f419d0bb440bff",
+			"revisionTime": "2018-08-23T13:54:43Z"
+		},
+		{
 			"checksumSHA1": "vJOfjdXbjymKpuay2nyRnGncJUw=",
 			"path": "github.com/mattn/go-sqlite3",
 			"revision": "5160b48509cf5c877bc22c11c373f8c7738cdb38",
@@ -463,10 +499,10 @@
 			"revisionTime": "2017-10-07T15:42:58Z"
 		},
 		{
-			"checksumSHA1": "Uv6a/M9wO8QyNfKOHuQIg1X03Fg=",
+			"checksumSHA1": "GIqQ5CxFwtMrfG3yMVwUYRtKRLM=",
 			"path": "gopkg.in/olivere/elastic.v5",
-			"revision": "2a08d39723b7f4df92b96e2dff891a60952714d6",
-			"revisionTime": "2017-09-26T20:05:24Z"
+			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
+			"revisionTime": "2018-09-20T17:30:04Z"
 		},
 		{
 			"checksumSHA1": "Z/5tTcmNfSOHMkcLDkxN93PQ410=",

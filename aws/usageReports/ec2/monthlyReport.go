@@ -68,13 +68,15 @@ func getElasticSearchEc2Instance(ctx context.Context, account, instance string, 
 func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, account string, userId int) Instance {
 	var docType InstanceReport
 	var inst = Instance{
-		Id:         instance.Resource,
-		Region:     "N/A",
-		State:      "N/A",
-		Purchasing: "N/A",
-		KeyPair:    "",
-		Tags:       make([]Tag, 0),
-		Type:       "N/A",
+		InstanceBase: InstanceBase{
+			Id:         instance.Resource,
+			Region:     "N/A",
+			State:      "N/A",
+			Purchasing: "N/A",
+			KeyPair:    "",
+			Type:       "N/A",
+		},
+		Tags:       make([]utils.Tag, 0),
 		Costs:      make(map[string]float64, 0),
 		Stats: Stats{
 			Cpu: Cpu{
@@ -126,15 +128,17 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 			costs := make(map[string]float64, 0)
 			costs["instance"] = inst.Cost
 			instanceChan <- Instance{
-				Id:         aws.StringValue(instance.InstanceId),
-				Region:     aws.StringValue(instance.Placement.AvailabilityZone),
-				State:      aws.StringValue(instance.State.Name),
-				Purchasing: getPurchasingOption(instance),
-				KeyPair:    aws.StringValue(instance.KeyName),
-				Tags:       getInstanceTag(instance.Tags),
-				Type:       aws.StringValue(instance.InstanceType),
-				Costs:      costs,
-				Stats:      stats,
+				InstanceBase: InstanceBase{
+					Id:         aws.StringValue(instance.InstanceId),
+					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
+					State:      aws.StringValue(instance.State.Name),
+					Purchasing: getPurchasingOption(instance),
+					KeyPair:    aws.StringValue(instance.KeyName),
+					Type:       aws.StringValue(instance.InstanceType),
+				},
+				Tags:  getInstanceTag(instance.Tags),
+				Costs: costs,
+				Stats: stats,
 			}
 		}
 	}
@@ -176,10 +180,12 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 	instancesList := make([]InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
 		instancesList = append(instancesList, InstanceReport{
-			Account:    account,
-			ReportDate: startDate,
-			ReportType: "monthly",
-			Instance:   instance,
+			ReportBase: utils.ReportBase{
+				Account:    account,
+				ReportDate: startDate,
+				ReportType: "monthly",
+			},
+			Instance: instance,
 		})
 	}
 	return instancesList, nil

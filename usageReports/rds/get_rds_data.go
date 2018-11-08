@@ -30,52 +30,18 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-// makeElasticSearchCostRequests prepares and run the request to retrieve the cost per instance
+// makeElasticSearchRequest prepares and run an ES request
+// based on the rdsQueryParams and search params
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchCostRequest(ctx context.Context, params RdsQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, parsedParams RdsQueryParams,
+	esSearchParams func(RdsQueryParams, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(params.indexList, ",")
-	searchService := GetElasticSearchCostParams(
-		params,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
-				"index": index,
-				"error": err.Error(),
-			})
-			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
-			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
-				"error": err,
-			})
-		} else {
-			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
-		}
-		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
-	}
-	return res, http.StatusOK, nil
-}
-
-// makeElasticSearchRdsDailyRequest prepares and run the request to retrieve the latest reports
-// based on the RdsQueryParams
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empty data
-func makeElasticSearchRdsDailyRequest(ctx context.Context, parsedParams RdsQueryParams) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchRdsDailyParams(
+	index := strings.Join(parsedParams.IndexList, ",")
+	searchService := esSearchParams(
 		parsedParams,
 		es.Client,
 		index,
@@ -90,43 +56,7 @@ func makeElasticSearchRdsDailyRequest(ctx context.Context, parsedParams RdsQuery
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
-				"error": err,
-			})
-		} else {
-			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
-		}
-		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
-	}
-	return res, http.StatusOK, nil
-}
-
-// makeElasticSearchRdsMonthlyRequest prepares and run the request to retrieve a month report
-// based on the esQueryParams
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empty data
-func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams RdsQueryParams) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.indexList, ",")
-	searchService := GetElasticSearchRdsMonthlyParams(
-		parsedParams,
-		es.Client,
-		index,
-	)
-	res, err := searchService.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
-				"index": index,
-				"error": err.Error(),
-			})
-			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
-			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -139,7 +69,7 @@ func makeElasticSearchRdsMonthlyRequest(ctx context.Context, parsedParams RdsQue
 
 // GetRdsMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
 func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []rds.InstanceReport, error) {
-	res, returnCode, err := makeElasticSearchRdsMonthlyRequest(ctx, params)
+	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchRdsMonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -152,7 +82,7 @@ func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []
 
 // GetRdsDailyInstances does an elastic request and returns an array of instances daily report based on query params
 func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
-	res, returnCode, err := makeElasticSearchRdsDailyRequest(ctx, params)
+	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchRdsDailyParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -161,8 +91,8 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 		return returnCode, nil, err
 	}
 	params.AccountList = accountsAndIndexes.Accounts
-	params.indexList = accountsAndIndexes.Indexes
-	costRes, _, _ := makeElasticSearchCostRequest(ctx, params)
+	params.IndexList = accountsAndIndexes.Indexes
+	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
 	instances, err := prepareResponseRdsDaily(ctx, res, costRes)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
@@ -177,7 +107,7 @@ func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.Use
 		return returnCode, nil, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
-	parsedParams.indexList = accountsAndIndexes.Indexes
+	parsedParams.IndexList = accountsAndIndexes.Indexes
 	returnCode, monthlyInstances, err := GetRdsMonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -193,7 +123,7 @@ func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.Use
 
 // GetRdsUnusedData gets RDS reports and parse them based on query params to have an array of unused instances
 func GetRdsUnusedData(ctx context.Context, params RdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
-	returnCode, instances, err := GetRdsData(ctx, RdsQueryParams{params.accountList, nil, params.date}, user, tx)
+	returnCode, instances, err := GetRdsData(ctx, RdsQueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}

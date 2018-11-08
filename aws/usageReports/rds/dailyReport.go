@@ -48,14 +48,16 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	for _, DBInstance := range instances.DBInstances {
 		stats := getInstanceStats(ctx, DBInstance, sess, start, end)
 		InstanceChan <- Instance{
-			DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
-			AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
-			DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
-			Engine:               aws.StringValue(DBInstance.Engine),
-			AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
-			MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
-			Costs:                make(map[string]float64, 0),
-			Stats:                stats,
+			InstanceBase: InstanceBase{
+				DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
+				AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
+				DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
+				Engine:               aws.StringValue(DBInstance.Engine),
+				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
+				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
+			},
+			Costs: make(map[string]float64, 0),
+			Stats: stats,
 		}
 	}
 	return nil
@@ -94,10 +96,12 @@ func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount) error {
 	instances := make([]InstanceReport, 0)
 	for instance := range merge(InstanceChans...) {
 		instances = append(instances, InstanceReport{
-			Account:    account,
-			ReportDate: now,
-			ReportType: "daily",
-			Instance:   instance,
+			ReportBase: utils.ReportBase{
+				Account:    account,
+				ReportDate: now,
+				ReportType: "daily",
+			},
+			Instance: instance,
 		})
 	}
 	return importInstancesToEs(ctx, aa, instances)

@@ -5,6 +5,10 @@
       "Action": [
         "sts:GetCallerIdentity",
         "rds:DescribeDBInstances",
+        "es:DescribeElasticsearchDomain",
+        "es:DescribeElasticsearchDomains",
+        "es:ListDomainNames",
+        "es:ListTags",
         "cloudwatch:GetMetricStatistics",
         "ec2:DescribeRegions",
         "ec2:DescribeInstances",
