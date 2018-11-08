@@ -70,24 +70,6 @@ class EventPanel extends Component {
         return res;
     }
 
-    // 0 : Low, 1: Medium, 2: High, 3: Critical
-    getAnomalyLevel(element) {
-        if (element.cost - element.upper_band < 5) {
-            return 0;
-        } else {
-            const percent = ((element.cost * 100) / element.upper_band) - 100;
-            if (percent < 20) {
-                return 0;
-            } else if (percent < 50) {
-                return 1;
-            } else if (percent < 100) {
-                return 2;
-            } else {
-                return 3;
-            }    
-        }
-    }
-
     getBadgeClasses(level) {
         switch (level) {
             case 0:
@@ -108,7 +90,7 @@ class EventPanel extends Component {
         const { dataSet, abnormalElement, service } = this.props;
         const exceededCost = (abnormalElement.cost - abnormalElement.upper_band).toFixed(2);
         const badgeLabels = ['Low', 'Medium', 'High', 'Critical'];
-        const anomalyLevel = this.getAnomalyLevel(abnormalElement);
+        const anomalyLevel = abnormalElement.level;
         return (
             <div className="white-box">
                 <h5 className="inline-block">
