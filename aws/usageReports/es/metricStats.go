@@ -22,6 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
