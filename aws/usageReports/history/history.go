@@ -33,6 +33,7 @@ import (
 
 const numPartition = 5
 
+var ErrBillingDataIncomplete = errors.New("Billing data are not completed")
 type (
 	// structures that allows to parse ES result
 	EsRegionPerResourceResult struct {
@@ -201,7 +202,7 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 		return err
 	} else if complete == false {
 		logger.Info("Billing data are not completed", nil)
-		return nil
+		return ErrBillingDataIncomplete
 	}
 	return getInstancesInfo(ctx, aa, startDate, endDate)
 }
