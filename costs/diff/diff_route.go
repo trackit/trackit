@@ -32,6 +32,7 @@ import (
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 )
 
 type usageType = map[string]interface{}
@@ -145,15 +146,27 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
 func TaskDiffData(ctx context.Context, aa aws.AwsAccount) (data costDiff, err error) {
-	now := time.Now()
-	dateBegin := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
-	dateEnd := time.Date(now.Year(), now.Month(), 1, 23, 59, 59, 999999999, now.Location()).UTC().AddDate(0, 0, -1)
+	dateBegin, dateEnd := history.GetHistoryDate()
 	parsedParams := esQueryParams{
 		accountList:       []string{es.GetAccountIdFromRoleArn(aa.RoleArn)},
 		dateBegin: dateBegin,
 		dateEnd: dateEnd,
 		aggregationPeriod: "day",
 	}
+	var tx *sql.Tx
+	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
+		return costDiff{}, err
+	}
+	user, err := users.GetUserWithId(tx, aa.UserId)
+	if err != nil {
+		return
+	}
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return costDiff{}, err
+	}
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
 	_, diffData := getDiffData(ctx, parsedParams)
 	return convertDiffData(ctx, diffData)
 }
