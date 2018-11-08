@@ -17,12 +17,11 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"strconv"
-	"time"
-
 	"github.com/trackit/jsonlog"
+	"strconv"
 
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	usageReports "github.com/trackit/trackit-server/usageReports/rds"
 	"github.com/trackit/trackit-server/users"
@@ -72,8 +71,7 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 	data = make([][]string, 0)
 	data = append(data, rdsInstanceFormat)
 
-	now := time.Now()
-	date := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
+	date, _ := history.GetHistoryDate()
 
 	identity, err := aa.GetAwsAccountIdentity()
 	if err != nil {

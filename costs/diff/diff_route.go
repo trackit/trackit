@@ -146,7 +146,7 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
 func TaskDiffData(ctx context.Context, aa aws.AwsAccount) (data costDiff, err error) {
-	dateBegin, dateEnd := history.GetHistoryData()
+	dateBegin, dateEnd := history.GetHistoryDate()
 	parsedParams := esQueryParams{
 		accountList:       []string{es.GetAccountIdFromRoleArn(aa.RoleArn)},
 		dateBegin: dateBegin,
