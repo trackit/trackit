@@ -22,8 +22,8 @@ import (
 	"regexp"
 
 	"github.com/aws/aws-sdk-go/service/sts"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/awsSession"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/users"
@@ -38,6 +38,7 @@ type AwsAccount struct {
 	External       string `json:"-"`
 	Payer          bool   `json:"payer"`
 	UserPermission int    `json:"permissionLevel"`
+	AwsIdentity    string `json:"awsIdentity"`
 }
 
 const (
@@ -94,7 +95,8 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 			key.RoleArn,
 			key.External,
 			key.Payer,
-			0})
+			0,
+			key.AwsIdentity})
 	}
 	for _, key := range dbShareAccounts {
 		dbAwsAccountById, err := models.AwsAccountByID(tx, key.AccountID)
@@ -108,7 +110,8 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 			dbAwsAccountById.RoleArn,
 			dbAwsAccountById.External,
 			dbAwsAccountById.Payer,
-			key.UserPermission})
+			key.UserPermission,
+			dbAwsAccountById.AwsIdentity})
 	}
 	return res, nil
 }
@@ -142,14 +145,20 @@ func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount
 // correctly configured.
 func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbAwsAccount := models.AwsAccount{
-		UserID:   a.UserId,
-		RoleArn:  a.RoleArn,
-		Pretty:   a.Pretty,
-		External: a.External,
-		Payer:    a.Payer,
+	identity, err := a.GetAwsAccountIdentity()
+	if err != nil {
+		logger.Error("Failed to get AWS Identity.", err.Error())
+		return err
 	}
-	err := dbAwsAccount.Insert(db)
+	dbAwsAccount := models.AwsAccount{
+		UserID:      a.UserId,
+		RoleArn:     a.RoleArn,
+		Pretty:      a.Pretty,
+		External:    a.External,
+		Payer:       a.Payer,
+		AwsIdentity: identity,
+	}
+	err = dbAwsAccount.Insert(db)
 	if err == nil {
 		a.Id = dbAwsAccount.ID
 	} else {
@@ -177,12 +186,38 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 	return err
 }
 
+// UpdateIdentityAwsAccount updates an AWS account for a user. It does no error
+// checking: the caller should check themselves that the AWS account exists.
+// Only the identity will be updated.
+func (a *AwsAccount) UpdateIdentityAwsAccount(ctx context.Context, tx *sql.Tx) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbAwsAccount, err := models.AwsAccountByID(tx, a.Id)
+	if err != nil {
+		logger.Error("Failed to get AWS account in database.", err.Error())
+		return err
+	}
+	identity, err := a.GetAwsAccountIdentity()
+	if err != nil {
+		logger.Error("Failed to get AWS identity.", err.Error())
+		return err
+	}
+	dbAwsAccount.AwsIdentity = identity
+	err = dbAwsAccount.Update(tx)
+	if err != nil {
+		logger.Error("Failed to update AWS account in database.", err.Error())
+	}
+	return err
+}
+
 // GetAwsAccountIdentity returns the AWS identity of an AWS Account.
 func (a *AwsAccount) GetAwsAccountIdentity() (identity string, err error) {
-	if reg, err := regexp.Compile("^arn:aws:iam::([0-9]{12}):.*$"); err != nil {
+	if a.RoleArn == "" {
+		return a.AwsIdentity, nil
+	} else if reg, err := regexp.Compile("^arn:aws:iam::([0-9]{12}):.*$"); err != nil {
 		return "", err
 	} else {
 		identity = reg.FindStringSubmatch(a.RoleArn)[1]
+		a.AwsIdentity = identity
 	}
 	return
 }
@@ -192,11 +227,12 @@ func (a *AwsAccount) GetAwsAccountIdentity() (identity string, err error) {
 // the logic of the server.
 func AwsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 	return AwsAccount{
-		Id:       dbAwsAccount.ID,
-		UserId:   dbAwsAccount.UserID,
-		Pretty:   dbAwsAccount.Pretty,
-		RoleArn:  dbAwsAccount.RoleArn,
-		External: dbAwsAccount.External,
-		Payer:    dbAwsAccount.Payer,
+		Id:          dbAwsAccount.ID,
+		UserId:      dbAwsAccount.UserID,
+		Pretty:      dbAwsAccount.Pretty,
+		RoleArn:     dbAwsAccount.RoleArn,
+		External:    dbAwsAccount.External,
+		Payer:       dbAwsAccount.Payer,
+		AwsIdentity: dbAwsAccount.AwsIdentity,
 	}
 }

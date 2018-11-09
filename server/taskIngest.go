@@ -88,8 +88,44 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 			"error":            err.Error(),
 		})
 	}
+	updateIdentityAndSubAccounts(ctx, aa)
 	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	return
+}
+
+func updateIdentityAndSubAccounts(ctx context.Context, aa aws.AwsAccount) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var tx *sql.Tx
+	var err error
+	defer func() {
+		if tx != nil {
+			if err != nil {
+				tx.Rollback()
+			} else {
+				tx.Commit()
+			}
+		}
+	}()
+	if tx, err = db.Db.BeginTx(ctx, nil); err == nil {
+		if aa.AwsIdentity == "" {
+			err = aa.UpdateIdentityAwsAccount(ctx, tx)
+		}
+		if err == nil {
+			errSub := aws.PutSubAccounts(ctx, aa, tx)
+			if errSub != nil {
+				logger.Error("Failed to update sub accounts.", map[string]interface{}{
+					"awsAccountId": aa.Id,
+					"error":        errSub.Error(),
+				})
+			}
+		}
+	}
+	if err != nil {
+		logger.Error("Failed update aws identity.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
 }
 
 func registerUpdate(db *sql.DB, br s3.BillRepository) (int64, error) {

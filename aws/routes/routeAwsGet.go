@@ -55,9 +55,9 @@ type dbAccessor interface {
 }
 
 type BillRepositoryUpdateInfo struct {
-	BillRepositoryId int        `json:"billRepositoryId`
-	AwsAccountPretty string     `json:"awsAccountPretty`
-	AwsAccountId     int        `json:"awsAccountId`
+	BillRepositoryId int        `json:"billRepositoryId"`
+	AwsAccountPretty string     `json:"awsAccountPretty"`
+	AwsAccountId     int        `json:"awsAccountId"`
 	Bucket           string     `json:"bucket"`
 	Prefix           string     `json:"prefix"`
 	NextStarted      *time.Time `json:"nextStarted"`
@@ -179,7 +179,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 
 	// sql query
 	var sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external ` +
+		`id, user_id, pretty, role_arn, external, aws_identity ` +
 		`FROM trackit.aws_account ` +
 		`WHERE user_id = ? ` +
 		`AND id IN ` + accountID
@@ -197,7 +197,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 		aa := aws.AwsAccount{}
 
 		// scan
-		err = q.Scan(&aa.Id, &aa.UserId, &aa.Pretty, &aa.RoleArn, &aa.External)
+		err = q.Scan(&aa.Id, &aa.UserId, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.AwsIdentity)
 		if err != nil {
 			return nil, err
 		}
