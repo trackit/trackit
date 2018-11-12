@@ -217,7 +217,6 @@ func (a *AwsAccount) GetAwsAccountIdentity() (identity string, err error) {
 		return "", err
 	} else {
 		identity = reg.FindStringSubmatch(a.RoleArn)[1]
-		a.AwsIdentity = identity
 	}
 	return
 }

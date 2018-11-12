@@ -65,17 +65,14 @@ func PutSubAccounts(ctx context.Context, account AwsAccount, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	for _, sub := range subAccounts {
-		already := false
-		for _, old := range alreadyAccounts {
-			if old.AwsIdentity == sub.AwsIdentity {
-				already = true
-				break
+	SubAccountsLoop:
+		for _, sub := range subAccounts {
+			for _, old := range alreadyAccounts {
+				if old.AwsIdentity == sub.AwsIdentity {
+					continue SubAccountsLoop
+				}
 			}
-		}
-		if !already {
 			sub.CreateAwsAccount(ctx, tx)
 		}
-	}
 	return nil
 }

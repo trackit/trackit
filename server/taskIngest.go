@@ -88,8 +88,8 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 			"error":            err.Error(),
 		})
 	}
-	updateIdentityAndSubAccounts(ctx, aa)
 	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
+	updateIdentityAndSubAccounts(ctx, aa)
 	return
 }
 
@@ -116,6 +116,10 @@ func updateIdentityAndSubAccounts(ctx context.Context, aa aws.AwsAccount) {
 				logger.Error("Failed to update sub accounts.", map[string]interface{}{
 					"awsAccountId": aa.Id,
 					"error":        errSub.Error(),
+				})
+			} else {
+				logger.Info("Sub accounts updated.", map[string]interface{}{
+					"awsAccountId": aa.Id,
 				})
 			}
 		}
