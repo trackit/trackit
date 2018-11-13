@@ -67,7 +67,7 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
 
-	search.Aggregation("products", elastic.NewTermsAggregation().Field("serviceCode").Size(aggregationMaxSize).
+	search.Aggregation("products", elastic.NewTermsAggregation().Field("productCode").Size(aggregationMaxSize).
 		SubAggregation("dates", elastic.NewDateHistogramAggregation().Field("usageStartDate").ExtendedBounds(durationBegin, durationEnd).Interval(aggregationPeriod).
 		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search

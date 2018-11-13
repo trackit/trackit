@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -25,12 +25,14 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 )
 
 type usageType = map[string]interface{}
@@ -66,7 +68,7 @@ var diffQueryArgs = []routes.QueryArg{
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getDiffData).With(
+		http.MethodGet: routes.H(prepareGetDiffData).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(diffQueryArgs),
@@ -117,7 +119,59 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams) (
 }
 
 // getDiffData returns the cost diff based on the query params, in JSON or CSV format.
-func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
+func getDiffData(ctx context.Context, parsedParams esQueryParams) (int, interface{}) {
+	sr, returnCode, err := makeElasticSearchRequest(ctx, parsedParams)
+	if err != nil {
+		if returnCode == http.StatusOK {
+			return returnCode, nil
+		} else {
+			return returnCode, err
+		}
+	}
+	res, err := prepareDiffData(ctx, sr)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusOK, res
+}
+
+func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	if report, ok := diffData.(costDiff); ok {
+		return report, nil
+	}
+	logger.Error("An error occured while converting to diffData", nil)
+	return nil, fmt.Errorf("Error when casting")
+}
+
+// TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
+func TaskDiffData(ctx context.Context, aa aws.AwsAccount) (data costDiff, err error) {
+	dateBegin, dateEnd := history.GetHistoryDate()
+	parsedParams := esQueryParams{
+		accountList:       []string{es.GetAccountIdFromRoleArn(aa.RoleArn)},
+		dateBegin: dateBegin,
+		dateEnd: dateEnd,
+		aggregationPeriod: "day",
+	}
+	var tx *sql.Tx
+	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
+		return costDiff{}, err
+	}
+	user, err := users.GetUserWithId(tx, aa.UserId)
+	if err != nil {
+		return
+	}
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return costDiff{}, err
+	}
+	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.indexList = accountsAndIndexes.Indexes
+	_, diffData := getDiffData(ctx, parsedParams)
+	return convertDiffData(ctx, diffData)
+}
+
+func prepareGetDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	parsedParams := esQueryParams{
 		accountList:       []string{},
@@ -138,17 +192,5 @@ func getDiffData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 	parsedParams.accountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
-	sr, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams)
-	if err != nil {
-		if returnCode == http.StatusOK {
-			return returnCode, nil
-		} else {
-			return returnCode, err
-		}
-	}
-	res, err := prepareDiffData(request.Context(), sr)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-	return http.StatusOK, res
+	return getDiffData(request.Context(), parsedParams)
 }

@@ -102,7 +102,7 @@ func getUnattachedEIP(pluginParams core.PluginParams, pluginRes *core.PluginResu
 	for eip := range merge(EIPChans...) {
 		if eip.Err != nil {
 			pluginRes.Status = "red"
-			pluginRes.Error = fmt.Sprintf("Unable to list addresses: %s", err.Error())
+			pluginRes.Error = fmt.Sprintf("Unable to list addresses: %s", eip.Err.Error())
 			return
 		}
 		processEIP(pluginRes, eip.Region, eip.EIPRes)
