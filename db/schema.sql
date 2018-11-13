@@ -539,7 +539,10 @@ ALTER TABLE aws_account_update_job ADD esError VARCHAR(255) NOT NULL DEFAULT "";
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_account ADD aws_identity VARCHAR(255) NOT NULL DEFAULT "";
+ALTER TABLE aws_account ADD (
+  aws_identity VARCHAR(255) NOT NULL DEFAULT "",
+  parent_id    INTEGER      NULL     DEFAULT NULL
+);
 
 CREATE OR REPLACE VIEW aws_account_due_update AS
 	SELECT * FROM aws_account WHERE next_update <= NOW() AND role_arn != ""

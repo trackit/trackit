@@ -26,6 +26,26 @@ import (
 	"github.com/trackit/trackit-server/models"
 )
 
+func updateExistingAccount(ctx context.Context, aa AwsAccount, subs []AwsAccount, tx *sql.Tx) error {
+	exists, err := models.AwsAccountsByUserID(tx, aa.UserId)
+	if err != nil {
+		return err
+	}
+	for _, exist := range exists {
+		if exist.ParentID.Valid == true {
+			continue
+		}
+		for _, sub := range subs {
+			if exist.AwsIdentity == sub.AwsIdentity && exist.AwsIdentity != aa.AwsIdentity {
+				exist.ParentID.Valid = true
+				exist.ParentID.Int64 = int64(aa.Id)
+				exist.Update(tx)
+			}
+		}
+	}
+	return nil
+}
+
 // getAwsSubAccounts gets the list of sub accounts in AWS for an aws account
 func getAwsSubAccounts(aa AwsAccount) ([]AwsAccount, error) {
 	creds, err := GetTemporaryCredentials(aa, "GetAwsSubAccounts")
@@ -50,6 +70,7 @@ func getAwsSubAccounts(aa AwsAccount) ([]AwsAccount, error) {
 			External:    "",
 			Payer:       false,
 			AwsIdentity: aws.StringValue(account.Id),
+			ParentId:    sql.NullInt64{int64(aa.Id), true},
 		})
 	}
 	return subAccounts, err
@@ -57,6 +78,11 @@ func getAwsSubAccounts(aa AwsAccount) ([]AwsAccount, error) {
 
 // PutSubAccounts gets AWS sub accounts of an aws accounts and puts it in DB if they don't already exists
 func PutSubAccounts(ctx context.Context, account AwsAccount, tx *sql.Tx) error {
+	identity, err := account.GetAwsAccountIdentity()
+	if err != nil {
+		return err
+	}
+	account.AwsIdentity = identity
 	subAccounts, err := getAwsSubAccounts(account)
 	if err != nil {
 		return err
@@ -74,5 +100,5 @@ func PutSubAccounts(ctx context.Context, account AwsAccount, tx *sql.Tx) error {
 			}
 			sub.CreateAwsAccount(ctx, tx)
 		}
-	return nil
+	return updateExistingAccount(ctx, account, subAccounts, tx)
 }

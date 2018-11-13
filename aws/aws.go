@@ -31,14 +31,15 @@ import (
 
 // AwsAccount represents a client's AWS account.
 type AwsAccount struct {
-	Id             int    `json:"id"`
-	UserId         int    `json:"-"`
-	Pretty         string `json:"pretty"`
-	RoleArn        string `json:"roleArn"`
-	External       string `json:"-"`
-	Payer          bool   `json:"payer"`
-	UserPermission int    `json:"permissionLevel"`
-	AwsIdentity    string `json:"awsIdentity"`
+	Id             int           `json:"id"`
+	UserId         int           `json:"-"`
+	Pretty         string        `json:"pretty"`
+	RoleArn        string        `json:"roleArn"`
+	External       string        `json:"-"`
+	Payer          bool          `json:"payer"`
+	UserPermission int           `json:"permissionLevel"`
+	AwsIdentity    string        `json:"awsIdentity"`
+	ParentId       sql.NullInt64 `json:"-"`
 }
 
 const (
@@ -96,7 +97,8 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 			key.External,
 			key.Payer,
 			0,
-			key.AwsIdentity})
+			key.AwsIdentity,
+			key.ParentID})
 	}
 	for _, key := range dbShareAccounts {
 		dbAwsAccountById, err := models.AwsAccountByID(tx, key.AccountID)
@@ -111,7 +113,8 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 			dbAwsAccountById.External,
 			dbAwsAccountById.Payer,
 			key.UserPermission,
-			dbAwsAccountById.AwsIdentity})
+			dbAwsAccountById.AwsIdentity,
+			dbAwsAccountById.ParentID})
 	}
 	return res, nil
 }
@@ -157,6 +160,7 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 		External:    a.External,
 		Payer:       a.Payer,
 		AwsIdentity: identity,
+		ParentID:    a.ParentId,
 	}
 	err = dbAwsAccount.Insert(db)
 	if err == nil {
@@ -233,5 +237,6 @@ func AwsAccountFromDbAwsAccount(dbAwsAccount models.AwsAccount) AwsAccount {
 		External:    dbAwsAccount.External,
 		Payer:       dbAwsAccount.Payer,
 		AwsIdentity: dbAwsAccount.AwsIdentity,
+		ParentId:    dbAwsAccount.ParentID,
 	}
 }
