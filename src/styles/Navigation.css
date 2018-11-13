@@ -201,15 +201,18 @@ div.dropdown-trigger:hover  .dropdown-menu {
     padding-bottom: 0;
 }
 
-#account-selection .account-selection-item .checkbox {
+#account-selection .account-selection-item .checkbox,
+.accounts-list .checkbox {
     margin: 0;
 }
 
-#account-selection .account-selection-item input[type=checkbox] {
+#account-selection .account-selection-item input[type=checkbox],
+.accounts-list input[type=checkbox] {
     margin: 0;
 }
 
-#account-selection .account-selection-item .checkbox.selected svg path {
+#account-selection .account-selection-item .checkbox.selected svg path,
+.accounts-list .checkbox.selected svg path {
     fill: #4885ed;
 }
 
@@ -264,4 +267,15 @@ div.dropdown-trigger:hover  .dropdown-menu {
         margin-left: 60px;
         padding: 25px;
     }
+}
+
+/* Accounts status */
+.account-item-details {
+    margin-left: 25px !important;
+}
+
+
+.account-item-details ul li {
+    padding-top: 0;
+    padding-bottom: 0;
 }
