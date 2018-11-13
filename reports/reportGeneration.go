@@ -28,33 +28,33 @@ import (
 
 type module struct {
 	Name      string
-	Function  func(context.Context, aws.AwsAccount, *sql.Tx) ([][]string, error)
+	Function  func(context.Context, aws.AwsAccount, *sql.Tx) ([][]cell, error)
 	ErrorName string
 }
 
 var modules = []module{
 	{
-		Name: "EC2 Usage Report",
-		Function: getEc2UsageReport,
+		Name:      "EC2 Usage Report",
+		Function:  getEc2UsageReport,
 		ErrorName: "ec2UsageReportError",
-	},
-	{
-		Name: "RDS Usage Report",
-		Function: getRdsUsageReport,
-		ErrorName: "rdsUsageReportError",
-	},
-	{
-		Name: "Cost Differentiator Report",
-		Function: getCostDiff,
-		ErrorName: "CostDifferentiatorError",
-	},
+	}, /*
+		{
+			Name: "RDS Usage Report",
+			Function: getRdsUsageReport,
+			ErrorName: "rdsUsageReportError",
+		},
+		{
+			Name: "Cost Differentiator Report",
+			Function: getCostDiff,
+			ErrorName: "CostDifferentiatorError",
+		},*/
 }
 
 func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Generating spreadsheet for account", aa)
 	now := time.Now()
-	date := fmt.Sprintf("%s%s", (now.Month()-1).String(), strconv.Itoa(now.Year()))
+	date := fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
 	errs = make(map[string]error)
 
 	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
@@ -72,15 +72,16 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]err
 				}
 			}
 		}
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file)
+		//		errs["speadsheetError"] = saveSpreadsheet(ctx, file)
+		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file)
 	} else {
 		errs["speadsheetError"] = err
 	}
 	return
 }
 
-func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) ([]Sheet, map[string]error) {
-	sheets := make([]Sheet, 0)
+func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) ([]sheet, map[string]error) {
+	sheets := make([]sheet, 0)
 	errors := make(map[string]error)
 
 	for _, module := range modules {
@@ -88,7 +89,7 @@ func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) ([]S
 		if err != nil {
 			errors[module.ErrorName] = err
 		} else {
-			sheets = append(sheets, Sheet{Name: module.Name, Data: data})
+			sheets = append(sheets, sheet{name: module.Name, data: data})
 		}
 	}
 

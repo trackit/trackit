@@ -28,26 +28,30 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-var ec2InstanceFormat = []string{
-	"ID",
-	"Name",
-	"Type",
-	"Region",
-	"Purchasing option",
-	"Cost",
-	"CPU Average (Percentage)",
-	"CPU Peak (Percentage)",
-	"Network In (Bytes)",
-	"Network Out (Bytes)",
-	"I/O Read (Bytes)",
-	"I/O Read - Detailed (Bytes)",
-	"I/O Write (Bytes)",
-	"I/O Write - Detailed (Bytes)",
-	"Key Pair",
-	"Tags",
+var ec2InstanceFormat = []cell{
+	newCell("ID").addStyle(textBold, backgroundGreen),
+	newCell("Name").addStyle(textBold),
+	newCell("Type").addStyle(textBold),
+	newCell("Region").addStyle(textBold),
+	newCell("Purchasing option").addStyle(textBold),
+	newCell("Cost", 1).addStyle(textBold),
+	newCell("CPU (Percentage)", 2).addStyle(textBold),
+	newCell("Network (Bytes)", 2).addStyle(textBold),
+	newCell("I/O (Bytes)", 4).addStyle(textBold),
+	newCell("Key Pair").addStyle(textBold),
+	newCell("Tags").addStyle(textBold),
+	newCell("Name").addStyle(textBold),
+	//	{"CPU Average (Percentage)", 1},
+	//	{"CPU Peak (Percentage)", 1},
+	//	{"Network In (Bytes)", 1},
+	//	{"Network Out (Bytes)", 1},
+	//	{"I/O Read (Bytes)", 1},
+	//	{"I/O Read - Detailed (Bytes)", 1},
+	//	{"I/O Write (Bytes)", 1},
+	//	{"I/O Write - Detailed (Bytes)", 1},
 }
 
-func formatEc2Instance(instance ec2.Instance) []string {
+func formatEc2Instance(instance ec2.Instance) []cell {
 	var cost float64
 	for _, value := range instance.Costs {
 		cost += value
@@ -71,34 +75,34 @@ func formatEc2Instance(instance ec2.Instance) []string {
 	for key, value := range instance.Tags {
 		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
 	}
-	return []string{
-		instance.Id,
-		name,
-		instance.Type,
-		instance.Region,
-		instance.Purchasing,
-		strconv.FormatFloat(cost, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.Cpu.Average, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.Cpu.Peak, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.Network.In, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.Network.Out, 'f', -1, 64),
-		strconv.Itoa(ioRead),
-		strings.Join(ioReadDetails, ";"),
-		strconv.Itoa(ioWrite),
-		strings.Join(ioWriteDetails, ";"),
-		instance.KeyPair,
-		strings.Join(tags, ";"),
+	return []cell{
+		newCell(instance.Id),
+		newCell(name),
+		newCell(instance.Type),
+		newCell(instance.Region),
+		newCell(instance.Purchasing),
+		newCell(strconv.FormatFloat(cost, 'f', -1, 64)),
+		newCell(strconv.FormatFloat(instance.Stats.Cpu.Average, 'f', -1, 64)),
+		newCell(strconv.FormatFloat(instance.Stats.Cpu.Peak, 'f', -1, 64)),
+		newCell(strconv.FormatFloat(instance.Stats.Network.In, 'f', -1, 64)),
+		newCell(strconv.FormatFloat(instance.Stats.Network.Out, 'f', -1, 64)),
+		newCell(strconv.Itoa(ioRead)),
+		newCell(strings.Join(ioReadDetails, ";")),
+		newCell(strconv.Itoa(ioWrite)),
+		newCell(strings.Join(ioWriteDetails, ";")),
+		newCell(instance.KeyPair),
+		newCell(strings.Join(tags, ";")),
 	}
 }
 
-func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]string, err error) {
+func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	data = make([][]string, 0)
+	data = make([][]cell, 0)
 	data = append(data, ec2InstanceFormat)
 
 	now := time.Now()
-	date := time.Date(now.Year(), now.Month() - 1, 1, 0, 0, 0, 0, now.Location()).UTC()
+	date := time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, now.Location()).UTC()
 
 	identity, err := aa.GetAwsAccountIdentity()
 	if err != nil {
@@ -112,10 +116,10 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 
 	parameters := ec2.Ec2QueryParams{
 		AccountList: []string{identity},
-		Date: date,
+		Date:        date,
 	}
 
-	logger.Debug("Getting EC2 Usage Report for account " + strconv.Itoa(aa.Id), nil)
+	logger.Debug("Getting EC2 Usage Report for account "+strconv.Itoa(aa.Id), nil)
 	_, reports, err := ec2.GetEc2Data(ctx, parameters, user, tx)
 	if err != nil {
 		return
