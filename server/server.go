@@ -42,6 +42,7 @@ import (
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/users"
 	_ "github.com/trackit/trackit-server/users/shared_account"
+	_ "github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 )
 
 var buildNumber string = "unknown-build"
