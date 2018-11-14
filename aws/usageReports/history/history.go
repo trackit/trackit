@@ -35,6 +35,7 @@ import (
 const numPartition = 5
 
 var ErrBillingDataIncomplete = errors.New("Billing data are not completed")
+
 type (
 	// structures that allows to parse ES result
 	EsRegionPerResourceResult struct {
@@ -75,7 +76,7 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
+	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("productCode", product))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
@@ -172,7 +173,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
+	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("invoiceId", ""))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))

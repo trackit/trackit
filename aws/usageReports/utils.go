@@ -156,7 +156,7 @@ func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, err
 func CheckMonthlyReportExists(ctx context.Context, date time.Time, aa taws.AwsAccount, prefix string) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("account", es.GetAccountIdFromRoleArn(aa.RoleArn)))
+	query = query.Filter(elastic.NewTermQuery("account", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("reportDate", date))
 	index := es.IndexNameForUserId(aa.UserId, prefix)
 	result, err := es.Client.Search().Index(index).Size(1).Query(query).Do(ctx)
