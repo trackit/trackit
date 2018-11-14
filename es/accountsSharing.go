@@ -18,7 +18,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/models"
@@ -61,16 +60,6 @@ func (ai *AccountsAndIndexes) addIndex(index string) {
 	ai.Indexes = append(ai.Indexes, index)
 }
 
-// GetAccountIdFromRoleArn takes a role arn string and returns the account ID
-// or an empty string if the role arn is not valid
-func GetAccountIdFromRoleArn(roleArn string) string {
-	arnElems := strings.Split(roleArn, ":")
-	if len(arnElems) != 6 {
-		return ""
-	}
-	return arnElems[4]
-}
-
 // getAllAccountsAndIndexes returns an AccountsAndIndexes struct, a status code and an error
 // The AccountsAndIndexes struct will contain all the accounts available to the user
 // with their indexes without duplicates
@@ -89,25 +78,16 @@ func getAllAccountsAndIndexes(user users.User, tx *sql.Tx, indexPrefix string) (
 	}
 	// Add all the user accounts
 	for _, userAccount := range userAccounts {
-		accountId := GetAccountIdFromRoleArn(userAccount.RoleArn)
-		if accountId != "" {
-			accountsAndIndexes.addAccount(accountId)
-			accountsAndIndexes.addIndex(IndexNameForUserId(userAccount.UserID, indexPrefix))
-		}
+		accountsAndIndexes.addAccount(userAccount.AwsIdentity)
+		accountsAndIndexes.addIndex(IndexNameForUserId(userAccount.UserID, indexPrefix))
 	}
 	// Add all the non duplicate shared accounts
 	for _, sharedAccount := range sharedAccounts {
-		accountId := GetAccountIdFromRoleArn(sharedAccount.RoleArn)
 		// Do not add the account if the user already own the same account
-		if accountId != "" && accountsAndIndexes.isAccountDuplicate(accountId) == false {
-			accountsAndIndexes.addAccount(accountId)
+		if accountsAndIndexes.isAccountDuplicate(sharedAccount.AwsIdentity) == false {
+			accountsAndIndexes.addAccount(sharedAccount.AwsIdentity)
 			accountsAndIndexes.addIndex(IndexNameForUserId(sharedAccount.OwnerID, indexPrefix))
 		}
-	}
-	// temporary fix to handle an account with sub accounts (healthline)
-	if len(sharedAccounts) == 0 {
-		accountsAndIndexes.Accounts = []string{}
-		accountsAndIndexes.addIndex(IndexNameForUserId(user.Id, indexPrefix))
 	}
 	// If no indexes where found, return an error to prevent giving access to all indexes
 	if len(accountsAndIndexes.Indexes) == 0 {
@@ -142,21 +122,19 @@ func GetAccountsAndIndexes(accountList []string, user users.User, tx *sql.Tx, in
 		found_match := false
 		// Try to match in priority with the user's accounts
 		for _, userAccount := range userAccounts {
-			accountId := GetAccountIdFromRoleArn(userAccount.RoleArn)
-			if accountId != "" && accountId == account {
+			if userAccount.AwsIdentity == account {
 				found_match = true
-				accountsAndIndexes.addAccount(account)
+				accountsAndIndexes.addAccount(userAccount.AwsIdentity)
 				accountsAndIndexes.addIndex(IndexNameForUserId(userAccount.UserID, indexPrefix))
 			}
 		}
 		// If no match is found in the user's accounts, try in the shared accounts
 		if found_match == false {
 			for _, sharedAccount := range sharedAccounts {
-				accountId := GetAccountIdFromRoleArn(sharedAccount.RoleArn)
-				if accountId != "" && accountId == account {
+				if sharedAccount.AwsIdentity == account {
 					found_match = true
-					if accountsAndIndexes.isAccountDuplicate(accountId) == false {
-						accountsAndIndexes.addAccount(account)
+					if accountsAndIndexes.isAccountDuplicate(sharedAccount.AwsIdentity) == false {
+						accountsAndIndexes.addAccount(sharedAccount.AwsIdentity)
 						accountsAndIndexes.addIndex(IndexNameForUserId(sharedAccount.OwnerID, indexPrefix))
 					}
 				}

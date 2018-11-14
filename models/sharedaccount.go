@@ -24,6 +24,7 @@ type SharedAccountWithRole struct {
 	UserPermission  int    `json:"user_permission"`  // user_permission
 	SharingAccepted bool   `json:"sharing_accepted"` // sharing_accepted
 	RoleArn         string `json:"role_arn"`         // role_arn
+	AwsIdentity     string `json:"aws_identity"`     // aws_identity
 	OwnerID         int    `json:"owner_id"`         // owner_id
 }
 
@@ -32,7 +33,7 @@ type SharedAccountWithRole struct {
 func SharedAccountsWithRoleByUserID(db XODB, userID int) ([]*SharedAccountWithRole, error) {
 	var err error
 	const sqlstr = `SELECT ` +
-		`sa.id, sa.account_id, sa.user_id, sa.user_permission, sa.sharing_accepted, aa.role_arn, aa.user_id ` +
+		`sa.id, sa.account_id, sa.user_id, sa.user_permission, sa.sharing_accepted, aa.role_arn, aa.aws_identity, aa.user_id ` +
 		`FROM trackit.shared_account AS sa ` +
 		`INNER JOIN trackit.aws_account AS aa ON sa.account_id=aa.id ` +
 		`WHERE sa.user_id=?`
@@ -44,7 +45,7 @@ func SharedAccountsWithRoleByUserID(db XODB, userID int) ([]*SharedAccountWithRo
 	res := []*SharedAccountWithRole{}
 	for q.Next() {
 		sa := SharedAccountWithRole{}
-		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.SharingAccepted, &sa.RoleArn, &sa.OwnerID)
+		err = q.Scan(&sa.ID, &sa.AccountID, &sa.UserID, &sa.UserPermission, &sa.SharingAccepted, &sa.RoleArn, &sa.AwsIdentity, &sa.OwnerID)
 		if err != nil {
 			return nil, err
 		}
