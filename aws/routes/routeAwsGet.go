@@ -25,12 +25,12 @@ import (
 
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
 )
 
 func init() {
@@ -258,17 +258,21 @@ func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillReposit
 		if aa.ParentId.Valid == false {
 			continue
 		}
-		AccountsLoop:
-			for i, account := range accounts {
-				if aa.ParentId.Int64 == int64(account.Id) {
-					if accounts[i].SubAccounts == nil {
-						accounts[i].SubAccounts = make([]AwsAccountWithBillRepositories, 0)
-					}
-					accounts[i].SubAccounts = append(accounts[i].SubAccounts, aa)
-					continue AccountsLoop
+		foundMatch := false
+	AccountsLoop:
+		for i, account := range accounts {
+			if aa.ParentId.Int64 == int64(account.Id) {
+				if accounts[i].SubAccounts == nil {
+					accounts[i].SubAccounts = make([]AwsAccountWithBillRepositories, 0)
 				}
+				accounts[i].SubAccounts = append(accounts[i].SubAccounts, aa)
+				foundMatch = true
+				continue AccountsLoop
 			}
-		accounts = append(accounts, aa)
+		}
+		if foundMatch == false {
+			accounts = append(accounts, aa)
+		}
 	}
 	return accounts, nil
 }
