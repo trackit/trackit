@@ -19,7 +19,7 @@ package models
 func AwsAccounts(db XODB) ([]*AwsAccount, error) {
 	var err error
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update ` +
+		`id, user_id, pretty, role_arn, external, next_update, aws_identity ` +
 		`FROM trackit.aws_account`
 	XOLog(sqlstr)
 	q, err := db.Query(sqlstr)
@@ -32,7 +32,7 @@ func AwsAccounts(db XODB) ([]*AwsAccount, error) {
 		aa := AwsAccount{
 			_exists: true,
 		}
-		err = q.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate)
+		err = q.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.AwsIdentity)
 		if err != nil {
 			return nil, err
 		}
