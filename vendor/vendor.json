@@ -265,6 +265,12 @@
 			"revisionTime": "2018-08-09T22:26:03Z"
 		},
 		{
+			"checksumSHA1": "jbeiGywfS9eq+sgkpYdTSG1+6OY=",
+			"path": "github.com/aws/aws-sdk-go/service/organizations",
+			"revision": "a1cf564001efacc3326b79254f0a7378c54959cf",
+			"revisionTime": "2018-11-12T23:06:07Z"
+		},
+		{
 			"checksumSHA1": "Kv8hkh6CxOCAG73xohmft8z4I3g=",
 			"path": "github.com/aws/aws-sdk-go/service/rds",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
