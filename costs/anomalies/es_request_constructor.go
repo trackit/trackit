@@ -39,7 +39,7 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 // durationBegin is reduced by period. This offset is deleted later.
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
 	periodDuration := time.Duration(config.AnomalyDetectionBollingerBandPeriod) * 24 * time.Hour
-	durationBegin = durationBegin.Add(-periodDuration)
+	durationBegin = durationBegin.Add(-periodDuration-1)
 	return elastic.NewRangeQuery("usageStartDate").
 		From(durationBegin).To(durationEnd)
 }
@@ -67,7 +67,7 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
 
-	search.Aggregation("products", elastic.NewTermsAggregation().Field("serviceCode").Size(aggregationMaxSize).
+	search.Aggregation("products", elastic.NewTermsAggregation().Field("productCode").Size(aggregationMaxSize).
 		SubAggregation("dates", elastic.NewDateHistogramAggregation().Field("usageStartDate").ExtendedBounds(durationBegin, durationEnd).Interval(aggregationPeriod).
 		SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search

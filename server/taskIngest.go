@@ -23,13 +23,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws/awserr"
-
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.
@@ -89,7 +88,36 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 		})
 	}
 	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
+	updateSubAccounts(ctx, aa)
 	return
+}
+
+func updateSubAccounts(ctx context.Context, aa aws.AwsAccount) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var tx *sql.Tx
+	var err error
+	defer func() {
+		if tx != nil {
+			if err != nil {
+				tx.Rollback()
+			} else {
+				tx.Commit()
+			}
+		}
+	}()
+	if tx, err = db.Db.BeginTx(ctx, nil); err == nil {
+		err = aws.PutSubAccounts(ctx, aa, tx)
+	}
+	if err != nil {
+		logger.Error("Failed to update sub accounts.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	} else {
+		logger.Info("Sub accounts updated.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+		})
+	}
 }
 
 func registerUpdate(db *sql.DB, br s3.BillRepository) (int64, error) {

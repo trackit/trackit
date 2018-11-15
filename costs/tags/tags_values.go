@@ -128,7 +128,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	query := getTagsValuesQuery(params)
 	index := strings.Join(params.IndexList, ",")
 	aggregation := elastic.NewReverseNestedAggregation().
-		SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(0x7FFFFFFF).
+		SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
 			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
 	if filter.Type == "time" {
 		aggregation = elastic.NewReverseNestedAggregation().
@@ -138,8 +138,8 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	}
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
-		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").
-			SubAggregation("tags", elastic.NewTermsAggregation().Field("tags.tag").
+		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").Size(maxAggregationSize).
+			SubAggregation("tags", elastic.NewTermsAggregation().Field("tags.tag").Size(maxAggregationSize).
 				SubAggregation("rev", aggregation))))
 	res, err := search.Do(ctx)
 	if err != nil {

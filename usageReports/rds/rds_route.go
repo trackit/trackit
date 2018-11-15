@@ -27,17 +27,17 @@ import (
 type (
 	// RdsQueryParams will store the parsed query params
 	RdsQueryParams struct {
-		accountList []string
-		indexList   []string
-		date        time.Time
+		AccountList []string
+		IndexList   []string
+		Date        time.Time
 	}
 
 	// RdsUnusedQueryParams will store the parsed query params
 	RdsUnusedQueryParams struct {
-		accountList []string
-		indexList   []string
-		date        time.Time
-		count       int
+		AccountList []string
+		IndexList   []string
+		Date        time.Time
+		Count       int
 	}
 )
 
@@ -91,11 +91,11 @@ func getRdsReport(request *http.Request, a routes.Arguments) (int, interface{}) 
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := RdsQueryParams{
-		accountList: []string{},
-		date:        a[routes.DateQueryArg].(time.Time),
+		AccountList: []string{},
+		Date:        a[routes.DateQueryArg].(time.Time),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
-		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
+		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	returnCode, report, err := GetRdsData(request.Context(), parsedParams, user, tx)
 	if err != nil {
@@ -110,15 +110,15 @@ func getRdsUnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := RdsUnusedQueryParams{
-		accountList: []string{},
-		date:        a[routes.DateQueryArg].(time.Time),
-		count:       -1,
+		AccountList: []string{},
+		Date:        a[routes.DateQueryArg].(time.Time),
+		Count:       -1,
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
-		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
+		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	if a[rdsUnusedQueryArgs[2]] != nil {
-		parsedParams.count = a[rdsUnusedQueryArgs[2]].(int)
+		parsedParams.Count = a[rdsUnusedQueryArgs[2]].(int)
 	}
 	returnCode, report, err := GetRdsUnusedData(request.Context(), parsedParams, user, tx)
 	if err != nil {

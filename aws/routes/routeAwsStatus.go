@@ -3,16 +3,14 @@ package routes
 import (
 	"database/sql"
 	"errors"
-	"fmt"
-	"github.com/trackit/trackit-server/aws/s3"
 	"net/http"
-	"strings"
-	"time"
 
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 )
@@ -27,36 +25,30 @@ type awsAccountWithStatus struct {
 	BillRepositories []billRepositoryWithStatus `json:"billRepositories"`
 }
 
-type job struct {
-	Created   *time.Time
-	Completed *time.Time
-	Error     string
-}
-
 type status struct {
-	Value string `json:"value"`
+	Value  string `json:"value"`
 	Detail string `json:"detail"`
 }
 
-func getStatusMessage(br billRepositoryWithStatus, item *job) status {
+func getStatusMessage(br billRepositoryWithStatus, item *models.AwsAccountStatus) status {
 	if len(br.Error) > 0 {
 		return status{
-			Value: "error",
+			Value:  "error",
 			Detail: br.Error,
-		}
-	} else if len(item.Error) > 0 {
-		return status{
-			Value: "error",
-			Detail: item.Error,
 		}
 	} else if item == nil {
 		return status{
-			Value: "not_started",
+			Value:  "not_started",
 			Detail: "",
 		}
-	} else if item.Completed == nil {
+	} else if len(item.Error) > 0 {
 		return status{
-			Value: "in_progress",
+			Value:  "error",
+			Detail: item.Error,
+		}
+	} else if item.Completed.IsZero() {
+		return status{
+			Value:  "in_progress",
 			Detail: "",
 		}
 	} else {
@@ -65,44 +57,6 @@ func getStatusMessage(br billRepositoryWithStatus, item *job) status {
 			Detail: "",
 		}
 	}
-}
-
-func getLastJobs(tx *sql.Tx, billRepositoriesIds []int) (map[int]job, error) {
-	var sqlstr = `
-		WITH jobs AS (
-  			SELECT
-				aws_bill_repository_id,
-				created,
-				completed,
-         		error,
-         		ROW_NUMBER() OVER (PARTITION BY aws_bill_repository_id ORDER BY id DESC) AS rn
-  			FROM aws_bill_update_job
-  			WHERE aws_bill_repository_id IN (?)
-		)
-		SELECT aws_bill_repository_id, created, completed, error FROM jobs WHERE rn = 1`
-	formattedIds := strings.Trim(strings.Replace(fmt.Sprint(billRepositoriesIds), " ", ",", -1), "[]")
-	q, err := tx.Query(sqlstr, formattedIds)
-	if err != nil {
-		return nil, err
-	}
-	defer q.Close()
-	res := make(map[int]job)
-	var i int
-	for i = 0; q.Next(); i++ {
-		var item job
-		var id int
-		err = q.Scan(
-			&id,
-			&item.Created,
-			&item.Completed,
-			&item.Error,
-		)
-		res[id] = item
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}) {
@@ -127,12 +81,12 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 			billRepositoriesIds = append(billRepositoriesIds, billRepository.Id)
 		}
 	}
-	jobs, err := getLastJobs(tx, billRepositoriesIds)
+	jobs, err := models.GetLatestAccountsBillRepositoriesStatus(tx, billRepositoriesIds)
 	if err != nil {
 		l.Error("failed to get AWS accounts' bill repositories import statuses", err.Error())
 		return 500, errors.New("failed to retrieve import statuses")
 	}
-	result := make([]interface{}, 0)
+	result := make([]awsAccountWithStatus, 0)
 	for _, awsAccount := range awsAccountsWithBillRepositories {
 		var billRepositories []billRepositoryWithStatus
 		for _, billRepository := range awsAccount.BillRepositories {

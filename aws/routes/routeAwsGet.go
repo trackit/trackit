@@ -25,12 +25,12 @@ import (
 
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
 )
 
 func init() {
@@ -55,9 +55,9 @@ type dbAccessor interface {
 }
 
 type BillRepositoryUpdateInfo struct {
-	BillRepositoryId int        `json:"billRepositoryId`
-	AwsAccountPretty string     `json:"awsAccountPretty`
-	AwsAccountId     int        `json:"awsAccountId`
+	BillRepositoryId int        `json:"billRepositoryId"`
+	AwsAccountPretty string     `json:"awsAccountPretty"`
+	AwsAccountId     int        `json:"awsAccountId"`
 	Bucket           string     `json:"bucket"`
 	Prefix           string     `json:"prefix"`
 	NextStarted      *time.Time `json:"nextStarted"`
@@ -179,7 +179,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 
 	// sql query
 	var sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external ` +
+		`id, user_id, pretty, role_arn, external, aws_identity ` +
 		`FROM trackit.aws_account ` +
 		`WHERE user_id = ? ` +
 		`AND id IN ` + accountID
@@ -197,7 +197,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 		aa := aws.AwsAccount{}
 
 		// scan
-		err = q.Scan(&aa.Id, &aa.UserId, &aa.Pretty, &aa.RoleArn, &aa.External)
+		err = q.Scan(&aa.Id, &aa.UserId, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.AwsIdentity)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +210,8 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 
 type AwsAccountWithBillRepositories struct {
 	aws.AwsAccount
-	BillRepositories []s3.BillRepositoryWithPending `json:"billRepositories"`
+	BillRepositories []s3.BillRepositoryWithPending   `json:"billRepositories"`
+	SubAccounts      []AwsAccountWithBillRepositories `json:"subAccounts,omitempty"`
 }
 
 // getAwsAccount is a route handler which returns the caller's list of
@@ -246,12 +247,43 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 }
 
-func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAccount, tx *sql.Tx) (awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, err error){
+func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillRepositories) ([]AwsAccountWithBillRepositories, error) {
+	accounts := make([]AwsAccountWithBillRepositories, 0)
+	for _, aa := range awsAccountsWithBillRepositories {
+		if aa.ParentId.Valid == false {
+			accounts = append(accounts, aa)
+		}
+	}
+	for _, aa := range awsAccountsWithBillRepositories {
+		if aa.ParentId.Valid == false {
+			continue
+		}
+		foundMatch := false
+	AccountsLoop:
+		for i, account := range accounts {
+			if aa.ParentId.Int64 == int64(account.Id) {
+				if accounts[i].SubAccounts == nil {
+					accounts[i].SubAccounts = make([]AwsAccountWithBillRepositories, 0)
+				}
+				accounts[i].SubAccounts = append(accounts[i].SubAccounts, aa)
+				foundMatch = true
+				continue AccountsLoop
+			}
+		}
+		if foundMatch == false {
+			accounts = append(accounts, aa)
+		}
+	}
+	return accounts, nil
+}
+
+func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAccount, tx *sql.Tx) (awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, err error) {
 	timeLimit := time.Now().AddDate(0, 0, -7)
 	for _, aa := range awsAccounts {
 		aawbr := AwsAccountWithBillRepositories{
 			aa,
 			[]s3.BillRepositoryWithPending{},
+			nil,
 		}
 		var brs []s3.BillRepository
 		if brs, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
@@ -279,5 +311,5 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 		}
 		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
 	}
-	return
+	return sortSubAccounts(awsAccountsWithBillRepositories)
 }
