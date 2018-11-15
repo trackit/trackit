@@ -25,12 +25,12 @@ There are a few rules a plugin must respect in order to work:
 ----
 func init() {
 	core.AccountPlugin{
-    Name:             "My unique plugin name",
-    Description:      "My plugin description",
-    Category:         "My plugin category (example: EC2)",
-    Label:            "The label used to display the number of checks (will be displayed with the following format on the front end: <passed> <label>(s))"
-    Func:             myHandlerFunction,
-    PayerAccountOnly: false, // Set to true if billings are required
+    Name:               "My unique plugin name",
+    Description:        "My plugin description",
+    Category:           "My plugin category (example: EC2)",
+    Label:              "The label used to display the number of checks (will be displayed with the following format on the front end: <passed> <label>(s))"
+    Func:               myHandlerFunction,
+    BillingDataOnly:    false, // Set to true if the plugin does not require a role to access the AWS API
 	}.Register()
 }
 ----
