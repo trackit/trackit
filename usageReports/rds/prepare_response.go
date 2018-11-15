@@ -188,8 +188,8 @@ func prepareResponseRdsUnused(params RdsUnusedQueryParams, instances []rds.Insta
 		}
 		return cost1 > cost2
 	})
-	if params.count >= 0 && params.count <= len(unusedInstances) {
-		return http.StatusOK, unusedInstances[0:params.count], nil
+	if params.Count >= 0 && params.Count <= len(unusedInstances) {
+		return http.StatusOK, unusedInstances[0:params.Count], nil
 	}
 	return http.StatusOK, unusedInstances, nil
 }

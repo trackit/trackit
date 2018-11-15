@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ec2
+package es
 
 import (
 	"context"
@@ -21,24 +21,24 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
 )
 
 // makeElasticSearchRequest prepares and run an ES request
-// based on the ec2QueryParams and search params
+// based on the esQueryParams and search params
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2QueryParams,
-	esSearchParams func(Ec2QueryParams, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, parsedParams EsQueryParams,
+	esSearchParams func(EsQueryParams, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := esSearchParams(
@@ -67,22 +67,22 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2QueryParams,
 	return res, http.StatusOK, nil
 }
 
-// GetEc2MonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetEc2MonthlyInstances(ctx context.Context, params Ec2QueryParams) (int, []InstanceReport, error) {
-	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEc2MonthlyParams)
+// GetEsMonthlyDomains does an elastic request and returns an array of domains monthly report based on query params
+func GetEsMonthlyDomains(ctx context.Context, params EsQueryParams) (int, []DomainReport, error) {
+	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEsMonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	instances, err := prepareResponseEc2Monthly(ctx, res)
+	domains, err := prepareResponseEsMonthly(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, domains, nil
 }
 
-// GetEc2DailyInstances does an elastic request and returns an array of instances daily report based on query params
-func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEc2DailyParams)
+// GetEsDailyDomains does an elastic request and returns an array of domains daily report based on query params
+func GetEsDailyDomains(ctx context.Context, params EsQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
+	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEsDailyParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -93,39 +93,39 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	params.AccountList = accountsAndIndexes.Accounts
 	params.IndexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
-	instances, err := prepareResponseEc2Daily(ctx, res, costRes)
+	domains, err := prepareResponseEsDaily(ctx, res, costRes)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, domains, nil
 }
 
-// GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
-func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2.IndexPrefixEC2Report)
+// GetEsData gets ES monthly reports based on query params, if there isn't a monthly report, it gets daily reports
+func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, tes.IndexPrefixESReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams)
+	returnCode, monthlyDomains, err := GetEsMonthlyDomains(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
-		return returnCode, monthlyInstances, nil
+	} else if monthlyDomains != nil && len(monthlyDomains) > 0 {
+		return returnCode, monthlyDomains, nil
 	}
-	returnCode, dailyInstances, err := GetEc2DailyInstances(ctx, parsedParams, user, tx)
+	returnCode, dailyDomains, err := GetEsDailyDomains(ctx, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	return returnCode, dailyInstances, nil
+	return returnCode, dailyDomains, nil
 }
 
-// GetEc2UnusedData gets EC2 reports and parse them based on query params to have an array of unused instances
-func GetEc2UnusedData(ctx context.Context, params Ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	returnCode, instances, err := GetEc2Data(ctx, Ec2QueryParams{params.AccountList, nil, params.Date}, user, tx)
+// GetEsUnusedData gets ES reports and parse them based on query params to have an array of unused domains
+func GetEsUnusedData(ctx context.Context, params EsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
+	returnCode, reports, err := GetEsData(ctx, EsQueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	return prepareResponseEc2Unused(params, instances)
+	return prepareResponseEsUnused(params, reports)
 }

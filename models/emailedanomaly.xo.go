@@ -167,7 +167,6 @@ func EmailedAnomalyByID(db XODB, id int) (*EmailedAnomaly, error) {
 //
 // Generated from index 'foreign_aws_account'.
 func EmailedAnomaliesByAwsAccountID(db XODB, awsAccountID int) ([]*EmailedAnomaly, error) {
-
 	var err error
 
 	// sql query
