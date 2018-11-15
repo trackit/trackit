@@ -27,12 +27,12 @@ import (
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
 )
 
 type usageType = map[string]interface{}
@@ -107,7 +107,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams) (
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -148,9 +148,9 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 func TaskDiffData(ctx context.Context, aa aws.AwsAccount) (data costDiff, err error) {
 	dateBegin, dateEnd := history.GetHistoryDate()
 	parsedParams := esQueryParams{
-		accountList:       []string{es.GetAccountIdFromRoleArn(aa.RoleArn)},
-		dateBegin: dateBegin,
-		dateEnd: dateEnd,
+		accountList:       []string{aa.AwsIdentity},
+		dateBegin:         dateBegin,
+		dateEnd:           dateEnd,
 		aggregationPeriod: "day",
 	}
 	var tx *sql.Tx
