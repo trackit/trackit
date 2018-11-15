@@ -30,7 +30,7 @@ type status struct {
 	Detail string `json:"detail"`
 }
 
-func getStatusMessage(br billRepositoryWithStatus, item *models.AwsAccountStatus) status {
+func getStatusMessage(br s3.BillRepositoryWithPending, item *models.AwsAccountStatus) status {
 	if len(br.Error) > 0 {
 		return status{
 			Value:  "error",
