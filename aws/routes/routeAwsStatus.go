@@ -38,16 +38,21 @@ type status struct {
 	Detail string `json:"detail"`
 }
 
-func getStatusMessage(item *job) status {
-	if item == nil {
+func getStatusMessage(br billRepositoryWithStatus, item *job) status {
+	if len(br.Error) > 0 {
 		return status{
-			Value: "not_started",
-			Detail: "",
+			Value: "error",
+			Detail: br.Error,
 		}
 	} else if len(item.Error) > 0 {
 		return status{
 			Value: "error",
 			Detail: item.Error,
+		}
+	} else if item == nil {
+		return status{
+			Value: "not_started",
+			Detail: "",
 		}
 	} else if item.Completed == nil {
 		return status{
@@ -133,9 +138,9 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 		for _, billRepository := range awsAccount.BillRepositories {
 			var status status
 			if value, ok := jobs[billRepository.Id]; ok {
-				status = getStatusMessage(&value)
+				status = getStatusMessage(billRepository, &value)
 			} else {
-				status = getStatusMessage(nil)
+				status = getStatusMessage(billRepository, nil)
 			}
 			newBillRepo := billRepositoryWithStatus{
 				billRepository,
