@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ec2
+package reservedInstances
 
 import (
 	"context"
@@ -27,15 +27,15 @@ import (
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/config"
-	"fmt"
 )
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
 func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
 	defer close(instanceChan)
-	start, end := utils.GetCurrentCheckedDay()
+	//start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Debug("START FETCHING DAILY RI REPORTS DATA", nil)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
@@ -47,21 +47,21 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		return err
 	}
 	for _, reservation := range reservedInstances.ReservedInstances {
-		//for _, instance := range reservation.Instances {
-		//	stats := getInstanceStats(ctx, instance, sess, start, end)
-		//	costs := make(map[string]float64, 0)
-		//	instanceChan <- Instance{
-		//		Id:         aws.StringValue(instance.InstanceId),
-		//		Region:     aws.StringValue(instance.Placement.AvailabilityZone),
-		//		State:      aws.StringValue(instance.State.Name),
-		//		Purchasing: getPurchasingOption(instance),
-		//		KeyPair:    aws.StringValue(instance.KeyName),
-		//		Tags:       getInstanceTag(instance.Tags),
-		//		Type:       aws.StringValue(instance.InstanceType),
-		//		Costs:      costs,
-		//		Stats:      stats,
-		//	}
-		//}
+		logger.Debug("RI : ", reservation)
+		//stats := getInstanceStats(ctx, reservation, sess, start, end)
+		instanceChan <- Instance{
+			Id:         aws.StringValue(reservation.ReservedInstancesId),
+			Region:     aws.StringValue(reservation.AvailabilityZone),
+			Tags:       getInstanceTag(reservation.Tags),
+			Type:       aws.StringValue(reservation.InstanceType),
+			FixedPrice:      aws.Float64Value(reservation.FixedPrice),
+			UsagePrice: aws.Float64Value(reservation.UsagePrice),
+			Duration:	aws.Int64Value(reservation.Duration),
+			Start:		aws.TimeValue(reservation.Start),
+			End: 		aws.TimeValue(reservation.End),
+			InstanceCount: aws.Int64Value(reservation.InstanceCount),
+			InstanceTenancy: aws.StringValue(reservation.InstanceTenancy),
+		}
 	}
 	return nil
 }

@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ec2
+package reservedInstances
 
 import (
 	"context"
@@ -42,15 +42,19 @@ type (
 
 	// Instance contains the information of an EC2 instance
 	Instance struct {
-		Id         string             `json:"id"`
-		Region     string             `json:"region"`
-		State      string             `json:"state"`
-		Purchasing string             `json:"purchasing"`
-		KeyPair    string             `json:"keyPair"`
-		Type       string             `json:"type"`
-		Tags       []Tag              `json:"tags"`
-		Costs      map[string]float64 `json:"costs"`
-		Stats      Stats              `json:"stats"`
+		Id            string  `json:"id"`
+		Region        string  `json:"region"`
+		Tags          []Tag   `json:"tags"`
+		Type          string  `json:"type"`
+		UsagePrice    float64 `json:"usage_cost"`
+		FixedPrice    float64 `json:"fixed_price"`
+		InstanceCount int64   `json:"instance_count"`
+		Duration      int64   `json:"duration"`
+		Start time.Time `json:"start"`
+		End time.Time `json:"end"`
+		Instancecount int64 `json:"instancecount"`
+		InstanceTenancy string `json:"instance_tenancy"`
+
 	}
 
 	// Stats contains statistics of an instance get on CloudWatch
@@ -86,14 +90,15 @@ type (
 	}
 )
 
-// importInstancesToEs imports EC2 instances in ElasticSearch.
+// importInstancesToEs imports EC2 reserved instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
 func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EC2 instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2Report)
+	logger.Debug("INSTANCES : ", instances)
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixRiReport)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -105,7 +110,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeEC2Report, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, TypeRiReport, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

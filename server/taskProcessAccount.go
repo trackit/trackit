@@ -28,6 +28,7 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
+	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 	"github.com/trackit/trackit-server/db"
 )
 
@@ -152,6 +153,7 @@ func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
 // processAccountEC2 processes all the EC2 data for an AwsAccount
 func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
 	err := ec2.FetchDailyInstancesStats(ctx, aa)
+	err = reservedInstances.FetchDailyInstancesStats(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest EC2 data.", map[string]interface{}{
