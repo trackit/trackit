@@ -213,6 +213,25 @@ func (a *AwsAccount) UpdateIdentityAwsAccount(ctx context.Context, tx *sql.Tx) e
 	return err
 }
 
+// UpdateRoleAndExternalAwsAccount updates an AWS account for a user. It does no error
+// checking: the caller should check themselves that the AWS account exists.
+// Only the RoleArn and External will be updated.
+func (a *AwsAccount) UpdateRoleAndExternalAwsAccount(ctx context.Context, tx *sql.Tx) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbAwsAccount, err := models.AwsAccountByID(tx, a.Id)
+	if err != nil {
+		logger.Error("Failed to get AWS account in database.", err.Error())
+	} else {
+		dbAwsAccount.RoleArn = a.RoleArn
+		dbAwsAccount.External = a.External
+		err := dbAwsAccount.Update(tx)
+		if err != nil {
+			logger.Error("Failed to update AWS account in database.", err.Error())
+		}
+	}
+	return err
+}
+
 // GetAwsAccountIdentity returns the AWS identity of an AWS Account.
 func (a *AwsAccount) GetAwsAccountIdentity() (identity string, err error) {
 	if a.RoleArn == "" {
