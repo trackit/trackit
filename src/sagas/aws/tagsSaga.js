@@ -49,6 +49,11 @@ export function* getTagsValuesSaga({ id, begin, end, filter, key }) {
             accountsRaw.data.forEach((item) => {
               const accountID = getAccountIDFromRole(item.roleArn);
               accounts[accountID] = {...item, accountID};
+              if (item.subAccounts) {
+                item.subAccounts.forEach((item) => {
+                  accounts[item.awsIdentity] = {...item, accountID: item.awsIdentity};
+                });
+              }
             });
             res.data[key] = res.data[key].map((item) => ({
                 tag: item.tag,

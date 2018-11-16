@@ -37,6 +37,11 @@ export function* getDataSaga({ id, itemType, begin, end, filters }) {
             accountsRaw.data.forEach((item) => {
               const accountID = getAccountIDFromRole(item.roleArn);
               accounts[accountID] = {...item, accountID};
+              if (item.subAccounts) {
+                item.subAccounts.forEach((item) => {
+                  accounts[item.awsIdentity] = {...item, accountID: item.awsIdentity};
+                });
+              }
             });
             const newData = {};
             Object.keys(res.data.account).forEach((accountID) => {
