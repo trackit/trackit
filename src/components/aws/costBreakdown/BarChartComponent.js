@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import moment from 'moment';
 import PropTypes from 'prop-types';
 import * as d3 from 'd3';
 import NVD3Chart from 'react-nvd3';
@@ -8,9 +9,12 @@ import ChartsColors from "../../../styles/ChartsColors";
 
 const transformProductsBarChart = costBreakdown.transformProductsBarChart;
 
+// For timezones compensation
+const timeOffset = new Date().getTimezoneOffset();
+
 /* istanbul ignore next */
 const context = {
-  formatXAxis: (d) => (d3.time.format('%x')(new Date(d))),
+  formatXAxis: (d) => (moment(d).format('YYYY-MM-DD')),
   formatYAxis: (d) => ('$' + d3.format(',.2f')(d)),
 };
 
@@ -30,8 +34,8 @@ const yAxis = {
 
 /* istanbul ignore next */
 const formatX = (d) => {
-  const date = new Date(d[0]);
-  return date.getTime();
+  const date = moment(d[0]).add(timeOffset, 'm');
+  return date.valueOf();
 };
 
 /* istanbul ignore next */
