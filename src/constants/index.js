@@ -4,6 +4,7 @@ import Auth from './auth';
 import User from './user';
 import Dashboard from './dashboardTypes';
 import Events from './events';
+import Plugins from './plugins';
 import Highlevel from './highlevel';
 
 export default {
@@ -13,5 +14,6 @@ export default {
 	...Dashboard,
 	...User,
 	...Events,
+	...Plugins,
 	...Highlevel
 };

@@ -91,6 +91,9 @@ export default {
     },
     values: {}
   },
+  plugins: {
+    data: {}
+  },
   gcp: {},
   dashboard: {
     items: {},
