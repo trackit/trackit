@@ -31,6 +31,6 @@ export const getUnusedRDS = (token, date, accounts=undefined) => {
 export const getES = (token, date, accounts=undefined) => {
   let route = `/es?date=${date.format("YYYY-MM-DD")}`;
   if (accounts && accounts.length)
-    route += `?accounts=${accounts.join(',')}`;
+    route += `&accounts=${accounts.join(',')}`;
   return call(route, 'GET', null, token);
 };
