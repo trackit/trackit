@@ -50,8 +50,10 @@ export class VMsComponent extends Component {
     if (instances)
       instances.forEach((instance) => {
         if (instance.stats && instance.stats.volumes && Object.keys(instance.stats.volumes).length) {
-          instance.stats.volumes.read.total = Object.keys(instance.stats.volumes.read).map((volume) => (instance.stats.volumes.read[volume])).reduce((a, b) => (a + b));
-          instance.stats.volumes.write.total = Object.keys(instance.stats.volumes.write).map((volume) => (instance.stats.volumes.write[volume])).reduce((a, b) => (a + b));
+          const read = Object.keys(instance.stats.volumes.read).map((volume) => (instance.stats.volumes.read[volume] < 0 ? 0 : instance.stats.volumes.read[volume]));
+          const write = Object.keys(instance.stats.volumes.write).map((volume) => (instance.stats.volumes.write[volume] < 0 ? 0 : instance.stats.volumes.write[volume]));
+          instance.stats.volumes.read.total = (read.length ? read.reduce((a, b) => (a + b)) : undefined);
+          instance.stats.volumes.write.total = (write.length ? write.reduce((a, b) => (a + b)) : undefined);
         }
         if (regions.indexOf(instance.region) === -1)
           regions.push(instance.region);
