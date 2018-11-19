@@ -140,7 +140,7 @@ export class Navigation extends Component {
             <li className="nav-item">
               <NavLink to='/app/plugins' activeClassName="active">
                 <i className="menu-icon fa fa-check-square-o"/>
-                <span className="hide-menu">Recommandations</span>
+                <span className="hide-menu">Recommendations</span>
               </NavLink>
             </li>
             <li>

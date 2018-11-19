@@ -91,7 +91,7 @@ class PluginsContainer extends Component {
               <h3 className="white-box-title no-padding inline-block">
                 <i className="fa fa-check-square-o"></i>
                 &nbsp;
-                Recommandations
+                Recommendations
               </h3>
             </div>
             {spinnerAndError}
