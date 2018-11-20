@@ -226,7 +226,9 @@ func prepareResponseEc2Monthly(ctx context.Context, resEc2 *elastic.SearchResult
 func isInstanceUnused(instance Instance) bool {
 	average := instance.Stats.Cpu.Average
 	peak := instance.Stats.Cpu.Peak
-	if peak >= 60.0 {
+	if average == -1 || peak == -1 {
+		return false
+	} else if peak >= 60.0 {
 		return false
 	} else if average >= 10.0 {
 		return false

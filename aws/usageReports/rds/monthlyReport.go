@@ -45,6 +45,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 		return err
 	}
 	for _, DBInstance := range instances.DBInstances {
+		tags := getInstanceTags(ctx, DBInstance, svc)
 		stats := getInstanceStats(ctx, DBInstance, sess, startDate, endDate)
 		costs := make(map[string]float64, 0)
 		costs["instance"] = inst.Cost
@@ -57,6 +58,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
 				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
 			},
+			Tags:  tags,
 			Costs: costs,
 			Stats: stats,
 		}

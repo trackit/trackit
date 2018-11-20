@@ -46,6 +46,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		return err
 	}
 	for _, DBInstance := range instances.DBInstances {
+		tags := getInstanceTags(ctx, DBInstance, svc)
 		stats := getInstanceStats(ctx, DBInstance, sess, start, end)
 		InstanceChan <- Instance{
 			InstanceBase: InstanceBase{
@@ -56,6 +57,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
 				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
 			},
+			Tags:  tags,
 			Costs: make(map[string]float64, 0),
 			Stats: stats,
 		}

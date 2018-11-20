@@ -51,6 +51,7 @@ type (
 	// Instance contains the information of an RDS instance
 	Instance struct {
 		InstanceBase
+		Tags  []utils.Tag        `json:"tags"`
 		Costs map[string]float64 `json:"costs"`
 		Stats Stats              `json:"stats"`
 	}

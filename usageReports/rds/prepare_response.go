@@ -26,6 +26,7 @@ import (
 
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
 type (
@@ -81,7 +82,38 @@ type (
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
+
+	// InstanceReport has all the information of an RDS instance report
+	InstanceReport struct {
+		utils.ReportBase
+		Instance Instance `json:"instance"`
+	}
+
+	// Instance contains the information of an RDS instance
+	Instance struct {
+		rds.InstanceBase
+		Tags  map[string]string  `json:"tags"`
+		Costs map[string]float64 `json:"costs"`
+		Stats rds.Stats          `json:"stats"`
+	}
 )
+
+func getRdsInstanceReportResponse(oldInstance rds.InstanceReport) InstanceReport {
+	tags := make(map[string]string, 0)
+	for _, tag := range oldInstance.Instance.Tags {
+		tags[tag.Key] = tag.Value
+	}
+	newInstance := InstanceReport{
+		ReportBase: oldInstance.ReportBase,
+		Instance: Instance{
+			InstanceBase: oldInstance.Instance.InstanceBase,
+			Tags:         tags,
+			Costs:        oldInstance.Instance.Costs,
+			Stats:        oldInstance.Instance.Stats,
+		},
+	}
+	return newInstance
+}
 
 // addCostToInstance adds cost for an instance based on billing data
 func addCostToInstance(instance rds.InstanceReport, costs ResponseCost) rds.InstanceReport {
@@ -106,11 +138,11 @@ func addCostToInstance(instance rds.InstanceReport, costs ResponseCost) rds.Inst
 }
 
 // prepareResponseRdsMonthly parses the results from elasticsearch and returns an array of RDS daily instances report
-func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, resCost *elastic.SearchResult) ([]rds.InstanceReport, error) {
+func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedRds ResponseRdsDaily
 	var parsedCost ResponseCost
-	instances := make([]rds.InstanceReport, 0)
+	instances := make([]InstanceReport, 0)
 	err := json.Unmarshal(*resRds.Aggregations["accounts"], &parsedRds.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES RDS response", err)
@@ -133,7 +165,7 @@ func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, 
 			if date.Time == lastDate {
 				for _, instance := range date.Instances.Hits.Hits {
 					instance.Instance = addCostToInstance(instance.Instance, parsedCost)
-					instances = append(instances, instance.Instance)
+					instances = append(instances, getRdsInstanceReportResponse(instance.Instance))
 				}
 			}
 		}
@@ -142,10 +174,10 @@ func prepareResponseRdsDaily(ctx context.Context, resRds *elastic.SearchResult, 
 }
 
 // prepareResponseRdsMonthly parses the results from elasticsearch and returns an array of RDS monthly instances report
-func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult) ([]rds.InstanceReport, error) {
+func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult) ([]InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseRdsMonthly
-	instances := make([]rds.InstanceReport, 0)
+	instances := make([]InstanceReport, 0)
 	err := json.Unmarshal(*resRds.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES RDS response", err)
@@ -153,16 +185,18 @@ func prepareResponseRdsMonthly(ctx context.Context, resRds *elastic.SearchResult
 	}
 	for _, account := range response.Accounts.Buckets {
 		for _, instance := range account.Instances.Hits.Hits {
-			instances = append(instances, instance.Instance)
+			instances = append(instances, getRdsInstanceReportResponse(instance.Instance))
 		}
 	}
 	return instances, nil
 }
 
-func isInstanceUnused(instance rds.Instance) bool {
+func isInstanceUnused(instance Instance) bool {
 	average := instance.Stats.Cpu.Average
 	peak := instance.Stats.Cpu.Peak
-	if peak >= 60.0 {
+	if average == -1 || peak == -1 {
+		return false
+	} else if peak >= 60.0 {
 		return false
 	} else if average >= 10.0 {
 		return false
@@ -171,8 +205,8 @@ func isInstanceUnused(instance rds.Instance) bool {
 }
 
 // prepareResponseRdsUnused filter reports to get the unused instances sorted by cost
-func prepareResponseRdsUnused(params RdsUnusedQueryParams, instances []rds.InstanceReport) (int, []rds.InstanceReport, error) {
-	unusedInstances := make([]rds.InstanceReport, 0)
+func prepareResponseRdsUnused(params RdsUnusedQueryParams, instances []InstanceReport) (int, []InstanceReport, error) {
+	unusedInstances := make([]InstanceReport, 0)
 	for _, instance := range instances {
 		if isInstanceUnused(instance.Instance) {
 			unusedInstances = append(unusedInstances, instance)
