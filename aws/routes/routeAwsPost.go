@@ -60,11 +60,12 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 	ctx := r.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	account := aws.AwsAccount{
-		RoleArn:  body.RoleArn,
-		External: body.External,
-		UserId:   user.Id,
-		Pretty:   body.Pretty,
-		Payer:    body.Payer,
+		RoleArn:     body.RoleArn,
+		External:    body.External,
+		UserId:      user.Id,
+		Pretty:      body.Pretty,
+		Payer:       body.Payer,
+		AwsIdentity: "",
 	}
 	if account.External != user.NextExternal {
 		logger.Warning("tried to add AWS account with bad external", account)

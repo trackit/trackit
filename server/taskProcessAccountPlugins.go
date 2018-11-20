@@ -89,7 +89,7 @@ func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccoun
 		if plugin.PayerAccountOnly == true && aa.Payer == false {
 			continue
 		}
-		accountId := es.GetAccountIdFromRoleArn(aa.RoleArn)
+		accountId := aa.AwsIdentity
 		pluginResultES := core.PluginResultES{
 			Account:    accountId,
 			ReportDate: time.Now().UTC(),

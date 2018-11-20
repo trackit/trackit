@@ -1,9 +1,9 @@
 [#trackit-logo]
 image::https://s3-us-west-2.amazonaws.com/trackit-public-artifacts/github-page/logo.png[]
 
-= Trackit
+= TrackIt
 
-Trackit is a tool to optimize your AWS usage and spending.
+TrackIt is a tool to optimize your AWS usage and spending.
 
 == Don't want to self-host trackit?
 
