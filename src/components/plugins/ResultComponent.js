@@ -15,6 +15,13 @@ class ResultComponent extends Component {
         }
     }
 
+    getPercentage(passed, checked) {
+        if (checked === 0) {
+            return 100;
+        }
+        return ((passed * 100) / checked);
+    }
+
     render() {
         const { result } = this.props;
 
@@ -54,10 +61,10 @@ class ResultComponent extends Component {
                             <div
                                 className={`progress-bar ${result.status}-bg`}
                                 role="progressbar"
-                                aria-valuenow={(result.passed * 100) / result.checked}
+                                aria-valuenow={this.getPercentage(result.passed, result.checked)}
                                 aria-valuemin="0"
                                 aria-valuemax="100"
-                                style={{width: `${(result.passed * 100) / result.checked}%`}}
+                                style={{width: `${this.getPercentage(result.passed, result.checked)}%`}}
                             >
                             </div>
                         </div>

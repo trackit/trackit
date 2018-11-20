@@ -10,6 +10,8 @@ class AccountComponent extends Component {
             const element = results[i];
             if (element.checked)
                 res += ((element.passed * 100) / element.checked);
+            else
+                res += 100;
         }
         return (res / results.length);
     }
