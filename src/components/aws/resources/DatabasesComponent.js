@@ -306,6 +306,7 @@ DatabasesComponent.propTypes = {
         engine: PropTypes.string.isRequired,
         multiAZ: PropTypes.bool.isRequired,
         allocatedStorage: PropTypes.number.isRequired,
+        tags: PropTypes.object,
         costs: PropTypes.object,
         stats: PropTypes.shape({
           cpu: PropTypes.shape({
