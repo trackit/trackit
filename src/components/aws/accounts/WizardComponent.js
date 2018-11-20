@@ -493,7 +493,9 @@ export class StepPolicy extends Component {
                     "ec2:DescribeReservedInstancesListings",
                     "ec2:DescribeReservedInstancesModifications",
                     "ec2:DescribeReservedInstancesOfferings",
-                    "ec2:DescribeVolumes"
+                    "ec2:DescribeVolumes",
+                    "ec2:DescribeAddresses",
+                    "organizations:ListAccounts"    
                 ],
                 "Resource": "*"
             }
