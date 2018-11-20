@@ -5,6 +5,7 @@ import Actions from "../../../actions";
 import Spinner from "react-spinkit";
 import Moment from "moment";
 import Misc from '../../misc';
+import Tags from './misc/Tags';
 import ReactTable from "react-table";
 import {formatGigaBytes, formatPrice, formatBytes, formatPercent} from "../../../common/formatters";
 import UnusedStorage from './misc/UnusedStorage';
@@ -66,6 +67,15 @@ export class DatabasesComponent extends Component {
         filterable
         defaultFilterMethod={(filter, row) => String(row[filter.id]).toLowerCase().includes(filter.value)}
         columns={[
+          {
+            Header: 'Tags',
+            accessor: 'tags',
+            maxWidth: 50,
+            filterable: false,
+            Cell: row => ((row.value && Object.keys(row.value).length) ?
+              (<Tags tags={row.value}/>) :
+              (<Tooltip placement="left" icon={<i className="fa fa-tag disabled"/>} tooltip="No tags"/>))
+          },
           {
             Header: 'Name',
             accessor: 'id',
