@@ -198,6 +198,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 
 		// scan
 		err = q.Scan(&aa.Id, &aa.UserId, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.AwsIdentity)
+		aa.AccountOwner = true
 		if err != nil {
 			return nil, err
 		}
