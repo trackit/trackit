@@ -48,7 +48,7 @@ class Volumes extends Component {
             className="volumes-list"
             onClick={this.handlePopoverClose}
           >
-            {Object.keys(this.props.volumes).filter(key => (key !== "total")).map((volume, index) => (<div key={index} className="volumes-item">{volume} : {formatBytes(this.props.volumes[volume])}</div>))}
+            {Object.keys(this.props.volumes).filter(key => (key !== "total")).map((volume, index) => (<div key={index} className="volumes-item">{volume} : {this.props.volumes[volume] < 0 ? "NaN" : formatBytes(this.props.volumes[volume])}</div>))}
           </div>
         </Popover>
         <div

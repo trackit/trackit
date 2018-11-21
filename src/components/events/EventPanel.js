@@ -4,8 +4,12 @@ import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
 import * as d3 from 'd3';
 
+// For timezones compensation
+const timeOffset = new Date().getTimezoneOffset();
+
+
 const context = {
-    formatXAxis: (d) => (d3.time.format('%x')(new Date(d))),
+    formatXAxis: (d) => (moment(d).format('YYYY-MM-DD')),
     formatYAxis: (d) => ('$' + d3.format(',.2f')(d)),
   };
   
@@ -25,10 +29,10 @@ const context = {
   
   /* istanbul ignore next */
   const formatX = (d) => {
-    const date = new Date(d[0]);
-    return date.getTime();
+    const date = moment(d[0]).add(timeOffset, 'm');
+    return date.valueOf();
   };
-  
+    
   /* istanbul ignore next */
   const formatY = (d) => (d[1]);
   
@@ -70,24 +74,6 @@ class EventPanel extends Component {
         return res;
     }
 
-    // 0 : Low, 1: Medium, 2: High, 3: Critical
-    getAnomalyLevel(element) {
-        if (element.cost - element.upper_band < 5) {
-            return 0;
-        } else {
-            const percent = ((element.cost * 100) / element.upper_band) - 100;
-            if (percent < 20) {
-                return 0;
-            } else if (percent < 50) {
-                return 1;
-            } else if (percent < 100) {
-                return 2;
-            } else {
-                return 3;
-            }    
-        }
-    }
-
     getBadgeClasses(level) {
         switch (level) {
             case 0:
@@ -108,7 +94,7 @@ class EventPanel extends Component {
         const { dataSet, abnormalElement, service } = this.props;
         const exceededCost = (abnormalElement.cost - abnormalElement.upper_band).toFixed(2);
         const badgeLabels = ['Low', 'Medium', 'High', 'Critical'];
-        const anomalyLevel = this.getAnomalyLevel(abnormalElement);
+        const anomalyLevel = abnormalElement.level;
         return (
             <div className="white-box">
                 <h5 className="inline-block">
@@ -118,9 +104,9 @@ class EventPanel extends Component {
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
                 </h5>
-                <h5 className="inline-block pull-right">{moment(abnormalElement.date).format("ddd, MMM Do Y")}</h5>
+                <h5 className="inline-block pull-right">{moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}</h5>
                 <div className="clearfix"></div>
-                <p>On {moment(abnormalElement.date).format("ddd, MMM Do Y")}, <strong>{service.length ? service : "Unknown service"}</strong> exceeded the maximum expected cost for this service by <strong>${exceededCost}</strong></p>
+                <p>On {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}, <strong>{service.length ? service : "Unknown service"}</strong> exceeded the maximum expected cost for this service by <strong>${exceededCost}</strong></p>
                 <hr />
                 <NVD3Chart
                     id="barChart"

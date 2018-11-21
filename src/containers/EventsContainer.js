@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import Components from '../components';
 import Actions from '../actions';
+import Spinner from "react-spinkit";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 
@@ -21,20 +22,40 @@ class EventsContainer extends Component {
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
-  getAbnormals(data) {
-    const res = [];
-    for (let i = 0; i < data.length; i++) {
-      const element = data[i];
-      if (element.abnormal) {
-        res.push(element);
-      }
-    }
-    return res.length ? res : null;
+  formatEvents(events) {
+    const abnormalsList = [];
+
+    Object.keys(events).forEach((key) => {
+      const event = events[key];
+      const abnormals = event.filter((item) => (item.abnormal));
+      abnormals.forEach((element) => {
+        abnormalsList.push({element, key, event});
+      });
+    });
+
+    abnormalsList.sort((a, b) => ((moment(a.element.date).isBefore(b.element.date)) ? 1 : -1));
+
+    return abnormalsList.map((abnormal) => {
+      const element = abnormal.element;
+      const key = abnormal.key;
+      const dataSet = abnormal.event;
+      return (
+        <div key={`${element.date}-${key}`}>
+          <Components.Events.EventPanel
+            dataSet={dataSet}
+            abnormalElement={element}
+            service={key}
+          />
+        </div>
+      );
+    });
   }
 
-
   render() {
-    const propsValues = this.props.values;
+    const loading = (!this.props.values.status ? (<Spinner className="spinner" name='circle'/>) : null);
+
+    const error = (this.props.values.error ? ` (${this.props.values.error.message})` : null);
+    const noEvent = (this.props.values.status && (!this.props.values.values || !Object.keys(this.props.values.values).length || error) ? <div className="alert alert-warning" role="alert">No event available{error}</div> : "");
 
     const timerange = (this.props.dates ?  (
       <TimerangeSelector
@@ -45,44 +66,15 @@ class EventsContainer extends Component {
     ) : null);
 
     let events = [];
-    if (propsValues && propsValues.status && propsValues.values) {
-      const abnormalsList = [];
-      for (var key in propsValues.values) {
-        if (propsValues.values.hasOwnProperty(key)) {
-            const dataSet = propsValues.values[key];
-            const abnormals = this.getAbnormals(dataSet);
-            if (abnormals) {
-              for (let i = 0; i < abnormals.length; i++) {
-                const element = abnormals[i];
-                abnormalsList.push({element, key, dataSet});
-              }
-            }
-        }
-      }
-      abnormalsList.sort((a, b) => {
-        if (moment(a.element.date).isBefore(b.element.date)) {
-          return 1;
-        } else {
-          return -1;
-        }
-      });
-      for (let i = 0; i < abnormalsList.length; i++) {
-        const element = abnormalsList[i].element;
-        const key = abnormalsList[i].key;
-        const dataSet = abnormalsList[i].dataSet;
-        events.push(
-        <div key={`${element.date}-${key}`}>
-          <Components.Events.EventPanel
-            dataSet={dataSet}
-            abnormalElement={element}
-            service={key}
-          />
-        </div>
-        );
-        
-      }
-    }
+    if (this.props.values && this.props.values.status && this.props.values.values)
+      events = this.formatEvents(this.props.values.values);
 
+    const spinnerAndError = (loading || noEvent ? (
+      <div className="white-box">
+        {loading}
+        {noEvent}
+      </div>
+    ) : null);
 
     return (
       <div>
@@ -100,6 +92,7 @@ class EventsContainer extends Component {
             </div>
           </div>
         </div>
+        {spinnerAndError}
         {events}
       </div>
     );

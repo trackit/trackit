@@ -5,11 +5,10 @@ import Actions from "../../../actions";
 import Spinner from "react-spinkit";
 import Moment from 'moment';
 import ReactTable from 'react-table';
-import {formatPercent, formatBytes, formatPrice} from '../../../common/formatters';
+import Popover from '@material-ui/core/Popover';
+import {formatPercent, formatPrice, formatMegaBytes, formatGigaBytes} from '../../../common/formatters';
 import Misc from '../../misc';
-import Tags from './misc/Tags';
-import Volumes from './misc/Volumes';
-import Costs from './misc/Costs';
+import Costs from "./misc/Costs";
 
 const Tooltip = Misc.Popover;
 
@@ -19,7 +18,69 @@ const getTotalCost = (costs) => {
   return total;
 };
 
-export class VMsComponent extends Component {
+export class Tags extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      showPopOver: false
+    };
+    this.handlePopoverOpen = this.handlePopoverOpen.bind(this);
+    this.handlePopoverClose = this.handlePopoverClose.bind(this);
+  }
+
+  handlePopoverOpen = (e) => {
+    e.preventDefault();
+    this.setState({ showPopOver: true });
+  };
+
+  handlePopoverClose = (e) => {
+    e.preventDefault();
+    this.setState({ showPopOver: false });
+  };
+
+  render() {
+    return (
+      <div>
+        <Popover
+          open={this.state.showPopOver}
+          anchorEl={this.anchor}
+          onClose={this.handlePopoverClose}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'center',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+        >
+          <div
+            className="tags-list"
+            onClick={this.handlePopoverClose}
+          >
+            {Object.keys(this.props.tags).map((tag, index) => (<div key={index} className="tags-item">{tag} : {this.props.tags[tag]}</div>))}
+          </div>
+        </Popover>
+        <div
+          ref={node => {
+            this.anchor = node;
+          }}
+          onClick={this.handlePopoverOpen}
+        >
+          <Tooltip placement="left" icon={<i className="fa fa-tags"/>} tooltip="Click to show tags"/>
+        </div>
+      </div>
+    );
+  }
+
+}
+
+Tags.propTypes = {
+  tags: PropTypes.object.isRequired
+};
+
+export class ElasticSearchComponent extends Component {
 
   componentWillMount() {
     this.props.getData(this.props.dates.startDate);
@@ -35,10 +96,10 @@ export class VMsComponent extends Component {
     const error = (this.props.data.error ? (<div className="alert alert-warning" role="alert">Error while getting data ({this.props.data.error.message})</div>) : null);
 
     let reportDate = null;
-    let instances = [];
+    let domains = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      instances = this.props.data.value.map((item) => item.instance);
-      const reportsDates = this.props.data.value.map((item) => (Moment(item.reportDate)));
+      domains = this.props.data.value.map((item) => item.domain);
+      const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
       reportDate = (<Tooltip info tooltip={"Reports created between " + oldestReport.format("ddd D MMM HH:mm") + " and " + newestReport.format("ddd D MMM HH:mm")}/>);
@@ -46,29 +107,19 @@ export class VMsComponent extends Component {
 
     const regions = [];
     const types = [];
-    const purchasings = [];
-    if (instances)
-      instances.forEach((instance) => {
-        if (instance.stats && instance.stats.volumes && Object.keys(instance.stats.volumes).length) {
-          const read = Object.keys(instance.stats.volumes.read).map((volume) => (instance.stats.volumes.read[volume] < 0 ? 0 : instance.stats.volumes.read[volume]));
-          const write = Object.keys(instance.stats.volumes.write).map((volume) => (instance.stats.volumes.write[volume] < 0 ? 0 : instance.stats.volumes.write[volume]));
-          instance.stats.volumes.read.total = (read.length ? read.reduce((a, b) => (a + b)) : undefined);
-          instance.stats.volumes.write.total = (write.length ? write.reduce((a, b) => (a + b)) : undefined);
-        }
-        if (regions.indexOf(instance.region) === -1)
-          regions.push(instance.region);
-        if (types.indexOf(instance.type) === -1)
-          types.push(instance.type);
-        if (purchasings.indexOf(instance.purchasing) === -1)
-          purchasings.push(instance.purchasing);
+    if (domains)
+      domains.forEach((domain) => {
+        if (regions.indexOf(domain.region) === -1)
+          regions.push(domain.region);
+        if (types.indexOf(domain.type) === -1)
+          types.push(domain.type);
       });
     regions.sort();
     types.sort();
-    purchasings.sort();
 
     const list = (!loading && !error ? (
       <ReactTable
-        data={instances}
+        data={domains}
         noDataText="No instances available"
         filterable
         defaultFilterMethod={(filter, row) => String(row[filter.id]).toLowerCase().includes(filter.value)}
@@ -84,20 +135,18 @@ export class VMsComponent extends Component {
           },
           {
             Header: 'Name',
-            id: 'name',
-            accessor: row => (row.tags.hasOwnProperty("Name") ? row.tags.Name : ""),
+            accessor: 'domainName',
             minWidth: 150,
-            filterMethod: (filter, row) =>
-              (row.tags.hasOwnProperty("Name") ? String(row.tags.Name) : "").toLowerCase().includes(filter.value),
             Cell: row => (<strong>{row.value}</strong>)
           },
           {
             Header: 'ID',
-            accessor: 'id',
+            accessor: 'domainId',
+            Cell: row => (<strong>{row.value}</strong>)
           },
           {
             Header: 'Type',
-            accessor: 'type',
+            accessor: 'instanceType',
             filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
             Filter: ({ filter, onChange }) => (
               <select
@@ -109,6 +158,12 @@ export class VMsComponent extends Component {
                 {types.map((type, index) => (<option key={index} value={type}>{type}</option>))}
               </select>
             )
+          },
+          {
+            Header: 'Instances',
+            accessor: 'instanceCount',
+            maxWidth: 100,
+            filterable: false
           },
           {
             Header: 'Region',
@@ -146,19 +201,22 @@ export class VMsComponent extends Component {
             )
           },
           {
-            Header: 'Purchasing Option',
-            accessor: 'purchasing',
-            filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
-            Filter: ({ filter, onChange }) => (
-              <select
-                onChange={event => onChange(event.target.value)}
-                style={{ width: "100%" }}
-                value={filter ? filter.value : "all"}
-              >
-                <option value="all">Show All</option>
-                {purchasings.map((purchasing, index) => (<option key={index} value={purchasing}>{purchasing}</option>))}
-              </select>
-            )
+            Header: 'Storage',
+            columns: [
+              {
+                Header: 'Total',
+                accessor: 'totalStorageSpace',
+                filterable: false,
+                Cell: row => formatGigaBytes(row.value)
+              },
+              {
+                Header: 'Unused',
+                id: 'freeStorageSpace',
+                accessor: d => d.stats.freeSpace,
+                filterable: false,
+                Cell: row => formatMegaBytes(row.value)
+              },
+            ]
           },
           {
             Header: 'CPU',
@@ -168,7 +226,7 @@ export class VMsComponent extends Component {
                 id: 'cpuAverage',
                 accessor: d => d.stats.cpu.average,
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? (
+                Cell: row => (
                   <div className="cpu-stats">
                     <Tooltip
                       placement="left"
@@ -196,14 +254,14 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "N/A")
+                )
               },
               {
                 Header: 'Peak',
                 id: 'cpuPeak',
                 accessor: d => d.stats.cpu.peak,
                 filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? (
+                Cell: row => (
                   <div className="cpu-stats">
                     <Tooltip
                       placement="right"
@@ -231,69 +289,84 @@ export class VMsComponent extends Component {
                       tooltip={formatPercent(row.value, 2, false)}
                     />
                   </div>
-                ) : "N/A")
+                )
               }
             ]
           },
           {
-            Header: 'IO',
+            Header: 'Memory Pressure',
             columns: [
               {
-                Header: 'Read',
-                id: 'ioRead',
-                accessor: d => d.stats.volumes.read || null,
-                minWidth: 120,
+                Header: 'Average',
+                id: 'jvmMemoryPressureAverage',
+                accessor: d => d.stats.JVMMemoryPressure.average,
                 filterable: false,
-                sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
-                Cell: row => (row.value ? (row.value.total >= 0 ? (
-                  <div className="ioDetails">
-                    <span>
-                      {formatBytes(row.value.total)}
-                    </span>
-                    <Volumes volumes={row.value}/>
+                Cell: row => (
+                  <div className="jvm-memory-pressure-stats">
+                    <Tooltip
+                      placement="left"
+                      icon={(
+                        <div
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#dddddd',
+                            borderRadius: '2px',
+                            flex: 1
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${row.value}%`,
+                              height: '100%',
+                              backgroundColor: row.value > 85 ? '#d6413b'
+                                : row.value > 75 ? '#ff9800'
+                                  : '#4caf50',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        </div>
+                      )}
+                      tooltip={formatPercent(row.value, 2, false)}
+                    />
                   </div>
-                ) : "N/A") : null)
+                )
               },
               {
-                Header: 'Write',
-                id: 'ioWrite',
-                accessor: d => d.stats.volumes.write || null,
-                minWidth: 120,
+                Header: 'Peak',
+                id: 'jvmMemoryPressurePeak',
+                accessor: d => d.stats.JVMMemoryPressure.peak,
                 filterable: false,
-                sortMethod: (a, b) => (a && b && a.total > b.total ? 1 : -1),
-                Cell: row => (row.value ? (row.value.total >= 0 ? (
-                  <div className="ioDetails">
-                    <span>
-                      {formatBytes(row.value.total)}
-                    </span>
-                    <Volumes volumes={row.value}/>
+                Cell: row => (
+                  <div className="jvm-memory-pressure-stats">
+                    <Tooltip
+                      placement="right"
+                      icon={(
+                        <div
+                          style={{
+                            height: '100%',
+                            backgroundColor: '#dddddd',
+                            borderRadius: '2px',
+                            flex: 1
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${row.value}%`,
+                              height: '100%',
+                              backgroundColor: row.value > 85 ? '#d6413b'
+                                : row.value > 75 ? '#ff9800'
+                                  : '#4caf50',
+                              borderRadius: '2px'
+                            }}
+                          />
+                        </div>
+                      )}
+                      tooltip={formatPercent(row.value, 2, false)}
+                    />
                   </div>
-                ) : "N/A") : null)
+                )
               }
             ]
-          },
-          {
-            Header: 'Network',
-            columns: [
-              {
-                Header: 'In',
-                id: 'networkIn',
-                accessor: d => d.stats.network.in,
-                filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
-              },
-              {
-                Header: 'Out',
-                id: 'networkOut',
-                accessor: d => d.stats.network.out,
-                filterable: false,
-                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
-              }
-            ]
-          },
-          {
-            Header: 'Key Pair',
-            accessor: 'keyPair'
           }
         ]}
         defaultSorted={[{
@@ -305,11 +378,11 @@ export class VMsComponent extends Component {
     ) : null);
 
     return (
-      <div className="clearfix resources vms">
+      <div className="clearfix resources search-engines">
         <h4 className="white-box-title no-padding inline-block">
-          <i className="menu-icon fa fa-desktop"/>
+          <i className="menu-icon fa fa-search-plus"/>
           &nbsp;
-          VMs
+          ElasticSearch
           {reportDate}
         </h4>
         {loading}
@@ -321,7 +394,7 @@ export class VMsComponent extends Component {
 
 }
 
-VMsComponent.propTypes = {
+ElasticSearchComponent.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
     status: PropTypes.bool.isRequired,
@@ -329,29 +402,26 @@ VMsComponent.propTypes = {
     value: PropTypes.arrayOf(PropTypes.shape({
       account: PropTypes.string.isRequired,
       reportDate: PropTypes.string.isRequired,
-      instance: PropTypes.shape({
-        id: PropTypes.string.isRequired,
-        state: PropTypes.string.isRequired,
+      domain: PropTypes.shape({
+        domainId: PropTypes.string.isRequired,
+        domainName: PropTypes.string.isRequired,
         region: PropTypes.string.isRequired,
-        keyPair: PropTypes.string.isRequired,
-        type: PropTypes.string.isRequired,
-        purchasing: PropTypes.string.isRequired,
-        tags: PropTypes.object.isRequired,
         costs: PropTypes.object,
         stats: PropTypes.shape({
           cpu: PropTypes.shape({
             average: PropTypes.number,
             peak: PropTypes.number
           }),
-          network: PropTypes.shape({
-            in: PropTypes.number,
-            out: PropTypes.number
+          JVMMemoryPressure: PropTypes.shape({
+            average: PropTypes.number,
+            peak: PropTypes.number
           }),
-          volumes: PropTypes.shape({
-            read: PropTypes.object,
-            write: PropTypes.object
-          }),
-        })
+          freeSpace: PropTypes.number.isRequired,
+        }),
+        totalStorageSpace: PropTypes.number.isRequired,
+        instanceType: PropTypes.string.isRequired,
+        instanceCount: PropTypes.number.isRequired,
+        tags: PropTypes.object.isRequired
       })
     }))
   }),
@@ -364,17 +434,17 @@ VMsComponent.propTypes = {
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.selection,
   dates: aws.resources.dates,
-  data: aws.resources.EC2
+  data: aws.resources.ES
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   getData: (date) => {
-    dispatch(Actions.AWS.Resources.get.EC2(date));
+    dispatch(Actions.AWS.Resources.get.ES(date));
   },
   clear: () => {
-    dispatch(Actions.AWS.Resources.clear.EC2());
+    dispatch(Actions.AWS.Resources.clear.ES());
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(VMsComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(ElasticSearchComponent);

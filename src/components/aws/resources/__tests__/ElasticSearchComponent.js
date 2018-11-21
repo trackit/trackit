@@ -1,5 +1,5 @@
 import React from 'react';
-import { DatabasesComponent } from '../DatabasesComponent';
+import { ElasticSearchComponent } from '../ElasticSearchComponent';
 import { shallow } from 'enzyme';
 import Spinner from "react-spinkit";
 import ReactTable from 'react-table';
@@ -25,13 +25,10 @@ const propsWithData = {
       {
         account: '420',
         reportDate: Moment().toISOString(),
-        instance: {
-          id: 'name',
-          type: 'type',
-          availabilityZone: 'us-west-1',
-          engine: 'engine',
-          multiAZ: 'yes',
-          allocatedStorage: 42,
+        domain: {
+          domainId: 'id',
+          domainName: 'name',
+          region: 'us-west-1',
           costs: {
             instance: 42
           },
@@ -40,11 +37,17 @@ const propsWithData = {
               average: 42,
               peak: 42
             },
-            freeSpace: {
-              minimum: 42,
-              maximum: 42,
-              average: 42
-            }
+            JVMMemoryPressure: {
+              average: 42,
+              peak: 42
+            },
+            freeSpace: 42
+          },
+          totalStorageSpace: 42,
+          instanceType: 'type',
+          instanceCount: 42,
+          tags: {
+            key: "value"
           }
         }
       }
@@ -68,33 +71,33 @@ const propsWithError = {
   }
 };
 
-describe('<DatabasesComponent />', () => {
+describe('<ElasticSearchComponent />', () => {
 
-  it('renders a <DatabasesComponent /> component', () => {
-    const wrapper = shallow(<DatabasesComponent {...propsWithData}/>);
+  it('renders a <ElasticSearchComponent /> component', () => {
+    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <Tooltip /> component', () => {
-    const wrapper = shallow(<DatabasesComponent {...propsWithData}/>);
+    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
     const tooltip = wrapper.find(Tooltip);
     expect(tooltip.length).toBe(1);
   });
 
   it('renders a <ReactTable /> component', () => {
-    const wrapper = shallow(<DatabasesComponent {...propsWithData}/>);
+    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
     const table = wrapper.find(ReactTable);
     expect(table.length).toBe(1);
   });
 
   it('renders a <Spinner /> component when data is loading', () => {
-    const wrapper = shallow(<DatabasesComponent {...propsLoading}/>);
+    const wrapper = shallow(<ElasticSearchComponent {...propsLoading}/>);
     const spinner = wrapper.find(Spinner);
     expect(spinner.length).toBe(1);
   });
 
   it('renders an <div class="alert" /> component when data is not available', () => {
-    const wrapper = shallow(<DatabasesComponent {...propsWithError}/>);
+    const wrapper = shallow(<ElasticSearchComponent {...propsWithError}/>);
     const alert = wrapper.find("div.alert");
     expect(alert.length).toBe(1);
   });

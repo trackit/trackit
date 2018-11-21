@@ -133,6 +133,10 @@ export class App extends Component {
               path={this.props.match.url + "/events"}
               component={checkRedirections(Containers.Events)}
             />
+            <Route
+              path={this.props.match.url + "/plugins"}
+              component={checkRedirections(Containers.Plugins)}
+            />
           </div>
         </Containers.Main>
       </div>

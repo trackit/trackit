@@ -77,6 +77,10 @@ export default {
       RDS: {
         status: true,
         value: null
+      },
+      ES: {
+        status: true,
+        value: null
       }
     },
   },
@@ -86,6 +90,9 @@ export default {
       endDate : moment(),
     },
     values: {}
+  },
+  plugins: {
+    data: {}
   },
   gcp: {},
   dashboard: {

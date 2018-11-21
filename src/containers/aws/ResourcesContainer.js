@@ -9,6 +9,7 @@ const Panel = Components.Misc.Panel;
 const IntervalNavigator = Components.Misc.IntervalNavigator;
 const VMs = Components.AWS.Resources.VMs;
 const Databases = Components.AWS.Resources.Databases;
+const ElasticSearch = Components.AWS.Resources.ElasticSearch;
 
 export class ResourcesContainer extends Component {
 
@@ -32,6 +33,7 @@ export class ResourcesContainer extends Component {
         </div>
         <VMs/>
         <Databases/>
+        <ElasticSearch/>
       </Panel>
     );
   }
