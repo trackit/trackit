@@ -39,10 +39,11 @@ type (
 
 	// esProductAnomaly is used to ingest in ElasticSearch.
 	esProductAnomaly struct {
-		Account string               `json:"account"`
-		Date    string               `json:"date"`
-		Product string               `json:"product"`
-		Cost    esProductAnomalyCost `json:"cost"`
+		Account  string               `json:"account"`
+		Date     string               `json:"date"`
+		Product  string               `json:"product"`
+		Abnormal bool                 `json:"abnormal"`
+		Cost     esProductAnomalyCost `json:"cost"`
 	}
 
 	// esProductDatesBucket is used to store the raw ElasticSearch response.
@@ -105,9 +106,10 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 	}
 	for _, aCost := range aCosts {
 		doc := esProductAnomaly{
-			Account: account.AwsIdentity,
-			Date:    aCost.Meta.Date,
-			Product: aCost.Meta.AdditionalMeta.(AnalyzedCostProductMeta).Product,
+			Account:  account.AwsIdentity,
+			Date:     aCost.Meta.Date,
+			Product:  aCost.Meta.AdditionalMeta.(AnalyzedCostProductMeta).Product,
+			Abnormal: aCost.Anomaly,
 			Cost: esProductAnomalyCost{
 				Value:       aCost.Cost,
 				MaxExpected: aCost.UpperBand,
