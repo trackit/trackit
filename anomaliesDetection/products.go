@@ -19,7 +19,6 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"net/http"
 	"sort"
 
 	"github.com/trackit/jsonlog"
@@ -223,8 +222,8 @@ func productGetTotalCostByDay(typedDocument esProductTypedResult) totalCostByDay
 // productGetAnomaliesData returns product anomalies based on query params, in JSON format.
 func productGetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams) (AnalyzedCosts, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	sr, returnCode, err := makeElasticSearchRequest(ctx, getProductElasticSearchParams, params)
-	if err != nil && returnCode != http.StatusOK {
+	sr, _, err := makeElasticSearchRequest(ctx, getProductElasticSearchParams, params)
+	if err != nil {
 		return nil, err
 	}
 	var typedDocument esProductTypedResult
