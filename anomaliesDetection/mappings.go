@@ -55,6 +55,9 @@ const TemplateAnomaliesDetection = `
 				"product" : {
 					"type": "keyword"
 				},
+				"abnormal" : {
+					"type": "boolean"
+				},
 				"cost": {
 					"type": "object",
 					"properties": {

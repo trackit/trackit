@@ -60,17 +60,6 @@ func deviation(sigma float64, period int) float64 {
 	return deviation
 }
 
-// cleanAnomalies removes non-abnormal values.
-func cleanAnomalies(aCosts AnalyzedCosts) AnalyzedCosts {
-	res := make(AnalyzedCosts, 0)
-	for index := range aCosts {
-		if aCosts[index].Anomaly {
-			res = append(res, aCosts[index])
-		}
-	}
-	return res
-}
-
 // analyseAnomalies calculates anomalies with Bollinger Bands algorithm and
 // const values above. It consists in generating an upper band, which, if
 // exceeded, make an alert.
@@ -114,6 +103,5 @@ func addPadding(aCosts AnalyzedCosts, dateBegin time.Time) AnalyzedCosts {
 func computeAnomalies(ctx context.Context, aCosts AnalyzedCosts, dateBegin time.Time) AnalyzedCosts {
 	aCosts = addPadding(aCosts, dateBegin)
 	aCosts = analyseAnomalies(aCosts)
-	aCosts = cleanAnomalies(aCosts)
 	return aCosts
 }
