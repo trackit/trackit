@@ -45,56 +45,19 @@ type sheet struct {
 type cell struct {
 	value string
 	width int
-	style []int
+	style *xlsx.Style
 }
-
-const (
-	textBold = iota
-	textItalic
-	textCenter
-	backgroundGreen
-	backgroundRed
-)
 
 func newCell(value string, dimensions ...int) cell {
 	width := 1
 	if len(dimensions) > 0 {
 		width = dimensions[0]
 	}
-	return cell{value: value, width: width, style: []int{}}
-}
-
-func (c cell) addStyle(options ...int) cell {
-	for _, option := range options {
-		c.style = append(c.style, option)
+	return cell{
+		value: value,
+		width: width,
+		style: xlsx.NewStyle(),
 	}
-	return c
-}
-
-func (c cell) convertStyle() (style *xlsx.Style) {
-	style = xlsx.NewStyle()
-	for _, option := range c.style {
-		switch option {
-		case textBold:
-			style.Font.Bold = true
-			break
-		case textItalic:
-			style.Font.Italic = true
-			break
-		case textCenter:
-			style.Alignment.Horizontal = "center"
-			break
-		case backgroundGreen:
-			style.Fill.BgColor = "B9F6CA00"
-			break
-		case backgroundRed:
-			style.Fill.BgColor = "FF8A80FF"
-			break
-		default:
-			continue
-		}
-	}
-	return
 }
 
 func convertToSheet(raw sheet) (sheet xlsx.Sheet) {
@@ -115,10 +78,7 @@ func convertToSheet(raw sheet) (sheet xlsx.Sheet) {
 				newCell.HMerge = rawCell.width
 				horizontalPadding = rawCell.width
 			}
-			if len(rawCell.style) > 0 {
-				style := rawCell.convertStyle()
-				newCell.SetStyle(style)
-			}
+			newCell.SetStyle(rawCell.style)
 		}
 	}
 	return
