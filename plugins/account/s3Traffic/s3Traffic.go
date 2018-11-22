@@ -27,12 +27,12 @@ import (
 func init() {
 	// Register the plugin
 	core.AccountPlugin{
-		Name:             "S3 traffic",
-		Description:      "Get the list of s3 buckets with no traffic over the last month",
-		Category:         utils.PluginsCategories["S3"],
-		Label:            "bucket(s) with traffic",
-		Func:             handlerS3Traffic,
-		PayerAccountOnly: true,
+		Name:            "S3 traffic",
+		Description:     "Get the list of s3 buckets with no traffic over the last month",
+		Category:        utils.PluginsCategories["S3"],
+		Label:           "bucket(s) with traffic",
+		Func:            handlerS3Traffic,
+		BillingDataOnly: true,
 	}.Register()
 }
 
@@ -66,7 +66,7 @@ func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResu
 	endDate := time.Now().UTC()
 	esIndex := es.IndexNameForUserId(pluginParams.User.Id, ts3.IndexPrefixLineItem)
 
-	searchService := GetS3StorageUsage(beginDate, endDate, pluginParams.ESClient, esIndex)
+	searchService := GetS3StorageUsage(beginDate, endDate, pluginParams.ESClient, pluginParams.AccountId, esIndex)
 	res, err := searchService.Do(pluginParams.Context)
 	if err != nil {
 		pluginRes.Status = "red"
@@ -80,7 +80,7 @@ func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResu
 		return
 	}
 
-	searchService = GetS3BandwidthUsage(beginDate, endDate, pluginParams.ESClient, esIndex)
+	searchService = GetS3BandwidthUsage(beginDate, endDate, pluginParams.ESClient, pluginParams.AccountId, esIndex)
 	res, err = searchService.Do(pluginParams.Context)
 	if err != nil {
 		pluginRes.Status = "red"
