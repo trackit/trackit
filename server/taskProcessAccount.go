@@ -25,6 +25,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
 	"github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
@@ -69,6 +70,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		ec2Err := processAccountEC2(ctx, aa)
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
+		processAccountElastiCache(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr, historyCreated)
 	}
@@ -162,7 +164,7 @@ func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountEs processes all the ES data for an AwsAccount
+// processAccountES processes all the ES data for an AwsAccount
 func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 	err := es.FetchDomainsStats(ctx, aa)
 	if err != nil {
@@ -175,7 +177,20 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 	return nil
 }
 
-// processAccountHistoryRDS processes EC2, RDS and ES data with billing data for an AwsAccount
+// processAccountElastiCache processes all the ElastiCache data for an AwsAccount
+func processAccountElastiCache(ctx context.Context, aa aws.AwsAccount) error {
+	err := elasticache.FetchDailyInstancesStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest ElastiCache data", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return nil
+}
+
+// processAccountHistory processes EC2, RDS, ES and ElastiCache data with billing data for an AwsAccount
 func processAccountHistory(ctx context.Context, aa aws.AwsAccount) (bool, error) {
 	status, err := history.FetchHistoryInfos(ctx, aa)
 	if err != nil && err != history.ErrBillingDataIncomplete {

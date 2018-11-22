@@ -28,6 +28,7 @@ import (
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
 	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/es"
@@ -173,8 +174,12 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	if esErr == nil {
 		esCreated, esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
 	}
+	elastiCacheCost, elastiCacheErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonElastiCache")
+	if elastiCacheErr == nil {
+		elastiCacheErr = elasticache.PutElastiCacheMonthlyReport(ctx, elastiCacheCost, aa, startDate, endDate)
+	}
 	reportsCreated := (ec2Created || rdsCreated || esCreated)
-	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
+	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr, elastiCacheErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.

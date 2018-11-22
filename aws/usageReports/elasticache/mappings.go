@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package rds
+package elasticache
 
 import (
 	"context"
@@ -23,28 +23,28 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const TypeRDSReport = "rds-report"
-const IndexPrefixRDSReport = "rds-reports"
-const TemplateNameRDSReport = "rds-reports"
+const TypeElastiCacheReport = "elasticache-report"
+const IndexPrefixElastiCacheReport = "elasticache-reports"
+const TemplateNameElastiCacheReport = "elasticache-reports"
 
-// put the ElasticSearch index for *-rds-reports indices at startup.
+// put the ElasticSearch index for *-elasticache-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameRDSReport).BodyString(TemplateRdsReport).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(TemplateNameElastiCacheReport).BodyString(TemplateElastiCacheReport).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index rds-reports.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index ElastiCache Report.", err)
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index rds-reports.", res)
+		jsonlog.DefaultLogger.Info("Put ES index ElastiCache Report.", res)
 		ctxCancel()
 	}
 }
 
-const TemplateRdsReport = `
+const TemplateElastiCacheReport = `
 {
-	"template": "*-rds-reports",
-	"version": 5,
+	"template": "*-elasticache-reports",
+	"version": 1,
 	"mappings": {
-		"rds-report": {
+		"elasticache-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -56,25 +56,38 @@ const TemplateRdsReport = `
 					"type": "keyword"
 				},
 				"instance": {
-					"type": "object",
 					"properties": {
 						"id": {
 							"type": "keyword"
 						},
-						"availabilityZone": {
+						"status": {
 							"type": "keyword"
 						},
-						"type": {
+						"region": {
 							"type": "keyword"
+						},
+						"nodeType": {
+							"type": "keyword"
+						},
+						"nodes": {
+							"type": "nested",
+							"properties": {
+								"id": {
+									"type": "keyword"
+								},
+								"status": {
+									"type": "keyword"
+								},
+								"region": {
+									"type": "keyword"
+								}
+							}
 						},
 						"engine": {
 							"type": "keyword"
 						},
-						"allocatedStorage": {
-							"type": "integer"
-						},
-						"multiAZ": {
-							"type": "boolean"
+						"engineVersion": {
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",
@@ -89,36 +102,6 @@ const TemplateRdsReport = `
 						},
 						"costs": {
 							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"freeSpace": {
-									"type": "object",
-									"properties": {
-											"minimum": {
-												"type": "double"
-											},
-											"maximum": {
-												"type": "double"
-											},
-											"average": {
-												"type": "double"
-											}
-									}
-								}
-							}
 						}
 					}
 				}
