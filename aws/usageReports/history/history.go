@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -89,8 +90,14 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 		if elastic.IsNotFound(err) {
 			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return nil, http.StatusOK, err
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			logger.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			logger.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		logger.Error("Query execution failed", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	return result, http.StatusOK, nil
@@ -183,8 +190,14 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 		if elastic.IsNotFound(err) {
 			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return false, nil
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			logger.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			logger.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		logger.Error("Query execution failed", err.Error())
 		return false, err
 	}
 	if result.Hits.TotalHits == 0 {
