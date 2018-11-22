@@ -22,15 +22,16 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/anomaliesDetection"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/aws/s3"
 )
 
 // AnomalyEsQueryParams will store the parsed query params
@@ -40,6 +41,11 @@ type AnomalyEsQueryParams struct {
 	AccountList []string
 	IndexList   []string
 }
+
+// elasticSearchSearchParamsGetter represents the function used to get search params
+// used to request ElasticSearch.
+type elasticSearchSearchParamsGetter func(accountList []string, durationBegin time.Time,
+	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService
 
 // anomalyQueryArgs allows to get required queryArgs params
 var anomalyQueryArgs = []routes.QueryArg{
@@ -68,14 +74,13 @@ func init() {
 // the user (e.g if the index does not exists because it was not yet indexed) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryParams, user users.User) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryParams, elasticSearchSearchParamsGetter elasticSearchSearchParamsGetter) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.IndexList, ",")
-	searchService := GetElasticSearchParams(
+	searchService := elasticSearchSearchParamsGetter(
 		parsedParams.AccountList,
 		parsedParams.DateBegin,
 		parsedParams.DateEnd,
-		"day",
 		es.Client,
 		index,
 	)
@@ -89,7 +94,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryPa
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
 		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -112,13 +117,13 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 		parsedParams.AccountList = a[anomalyQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, anomalies.IndexPrefixAnomaliesDetection)
 	if err != nil {
 		return returnCode, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	res, returnCode, err := GetAnomaliesData(request.Context(), parsedParams, user)
+	_, returnCode, err = makeElasticSearchRequest(request.Context(), parsedParams, getProductAnomaliesElasticSearchParams)
 	if err != nil {
 		if returnCode == http.StatusOK {
 			return returnCode, nil
@@ -126,36 +131,19 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 			return http.StatusInternalServerError, err
 		}
 	}
-	return http.StatusOK, res
-}
-
-// deleteOffset deletes the offset set in createQueryTimeRange.
-func deleteOffset(c ProductsCostAnomalies, dateBegin time.Time) {
-	for k, costAnomalies := range c {
-		var toDelete []int
-		for i, an := range costAnomalies {
-			if d, err := time.Parse("2006-01-02T15:04:05.000Z", an.Date); err == nil {
-				if dateBegin.After(d) && !dateBegin.Equal(d) {
-					toDelete = append(toDelete, i)
-				}
-			}
-		}
-		for n, i := range toDelete {
-			c[k] = append(c[k][:i-n], c[k][i-n+1:]...)
+	accountsAndIndexes, returnCode, err = es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
+	}
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	products, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams, getElasticSearchParams)
+	if err != nil {
+		if returnCode == http.StatusOK {
+			return returnCode, nil
+		} else {
+			return http.StatusInternalServerError, err
 		}
 	}
-}
-
-// GetAnomaliesData returns the cost anomalies based on the query params, in JSON format.
-func GetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams, user users.User) (ProductsCostAnomalies, int, error) {
-	sr, returnCode, err := makeElasticSearchRequest(ctx, params, user)
-	if err != nil {
-		return ProductsCostAnomalies{}, returnCode, err
-	}
-	res, err := prepareAnomalyData(ctx, sr)
-	if err != nil {
-		return ProductsCostAnomalies{}, 0, err
-	}
-	deleteOffset(res, params.DateBegin)
-	return res, 0, nil
+	return http.StatusOK, products
 }

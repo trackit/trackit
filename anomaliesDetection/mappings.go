@@ -42,7 +42,7 @@ func init() {
 const TemplateAnomaliesDetection = `
 {
 	"template": "*-` + IndexPrefixAnomaliesDetection + `",
-	"version": 6,
+	"version": 1,
 	"mappings": {
 		"` + TypeProductAnomaliesDetection + `": {
 			"properties": {

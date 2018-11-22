@@ -1,3 +1,17 @@
+//   Copyright 2018 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package anomalies
 
 import (
@@ -17,15 +31,22 @@ import (
 )
 
 type (
+	// AnalyzedCostProductMeta can be the additional metadata in AnalyzedCostEssentialMeta.
+	// It's used to detect product anomalies and store them in ElasticSearch with more info.
 	AnalyzedCostProductMeta struct {
 		Product string
 	}
 
+	// AnalyzedCostEssentialMeta is the mandatory metadata ignored by the algorithm
+	// and contains the Date and an additional metadata with specialized values.
 	AnalyzedCostEssentialMeta struct {
 		AdditionalMeta interface{}
 		Date           string
 	}
 
+	// AnalyzedCost is returned by Bollinger Band algorithm and contains
+	// every necessary data for it. It also contains metadata, ignored by
+	// the algorithm.
 	AnalyzedCost struct {
 		Meta      AnalyzedCostEssentialMeta
 		Cost      float64
@@ -43,6 +64,8 @@ type (
 		Index     string
 	}
 
+	// ElasticSearchFunction is a function passed to makeElasticSearchRequest,
+	// used to get results from ElasticSearch.
 	ElasticSearchFunction func(
 		account string,
 		durationBegin time.Time,
@@ -53,6 +76,7 @@ type (
 	) *elastic.SearchService
 )
 
+// RunAnomaliesDetection run every anomaly detection algorithms and store results in ElasticSearch.
 func RunAnomaliesDetection(account aws.AwsAccount, ctx context.Context, tx *sql.Tx) error {
 	now := time.Now()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
