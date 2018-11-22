@@ -99,7 +99,7 @@ type (
 )
 
 func getRdsInstanceReportResponse(oldInstance rds.InstanceReport) InstanceReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string, len(oldInstance.Instance.Tags))
 	for _, tag := range oldInstance.Instance.Tags {
 		tags[tag.Key] = tag.Value
 	}

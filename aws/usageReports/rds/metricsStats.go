@@ -30,20 +30,20 @@ import (
 // getInstanceTags returns an array of tags associated to the RDS instance given as parameter
 func getInstanceTags(ctx context.Context, instance *rds.DBInstance, svc *rds.RDS) []utils.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	tags := make([]utils.Tag, 0)
 	desc := rds.ListTagsForResourceInput{
 		ResourceName: instance.DBInstanceArn,
 	}
 	res, err := svc.ListTagsForResource(&desc)
 	if err != nil {
 		logger.Error("Failed to get RDS tags", err.Error())
-		return tags
+		return []utils.Tag{}
 	}
-	for _, tag := range res.TagList {
-		tags = append(tags, utils.Tag{
+	tags := make([]utils.Tag, len(res.TagList))
+	for i, tag := range res.TagList {
+		tags[i] = utils.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
-		})
+		}
 	}
 	return tags
 }
