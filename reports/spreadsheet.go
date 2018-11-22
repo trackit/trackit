@@ -38,17 +38,47 @@ type spreadsheet struct {
 }
 
 type sheet struct {
-	name   string
-	data   [][]string
+	name string
+	data [][]cell
+}
+
+type cell struct {
+	value string
+	width int
+	style *xlsx.Style
+}
+
+func newCell(value string, dimensions ...int) cell {
+	width := 1
+	if len(dimensions) > 0 {
+		width = dimensions[0]
+	}
+	return cell{
+		value: value,
+		width: width,
+		style: xlsx.NewStyle(),
+	}
 }
 
 func convertToSheet(raw sheet) (sheet xlsx.Sheet) {
+	var horizontalPadding int
 	sheet = xlsx.Sheet{Name: raw.name}
 	for _, rawRow := range raw.data {
+		horizontalPadding = 0
 		row := sheet.AddRow()
 		for _, rawCell := range rawRow {
-			cell := row.AddCell()
-			cell.Value = rawCell
+			for horizontalPadding > 0 {
+				row.AddCell()
+				horizontalPadding--
+			}
+			newCell := row.AddCell()
+			newCell.Value = rawCell.value
+			if rawCell.width > 1 {
+				rawCell.width--
+				newCell.HMerge = rawCell.width
+				horizontalPadding = rawCell.width
+			}
+			newCell.SetStyle(rawCell.style)
 		}
 	}
 	return
@@ -73,6 +103,18 @@ func generateSpreadsheet(ctx context.Context, aa taws.AwsAccount, date string, s
 		}
 	}
 	return &spreadsheet{account: aa, date: date, file: file}, errors
+}
+
+func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet) (err error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	filename := fmt.Sprintf("/reports/%s.xlsx", file.date)
+
+	err = file.file.Save(filename)
+	if err != nil {
+		logger.Error("Error while saving file", err)
+	}
+	return
 }
 
 func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
