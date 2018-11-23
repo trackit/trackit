@@ -187,7 +187,9 @@ func prepareResponseEsMonthly(ctx context.Context, resEc2 *elastic.SearchResult)
 func isDomainUnused(domain Domain) bool {
 	average := domain.Stats.Cpu.Average
 	peak := domain.Stats.Cpu.Peak
-	if peak >= 60.0 {
+	if average == -1 || peak == -1 {
+		return false
+	} else if peak >= 60.0 {
 		return false
 	} else if average >= 10 {
 		return false

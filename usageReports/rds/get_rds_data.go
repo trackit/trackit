@@ -68,7 +68,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams RdsQueryParams,
 }
 
 // GetRdsMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []rds.InstanceReport, error) {
+func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchRdsMonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -81,7 +81,7 @@ func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []
 }
 
 // GetRdsDailyInstances does an elastic request and returns an array of instances daily report based on query params
-func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchRdsDailyParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -101,7 +101,7 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 }
 
 // GetRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyInstances
-func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rds.IndexPrefixRDSReport)
 	if err != nil {
 		return returnCode, nil, err
@@ -122,7 +122,7 @@ func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.Use
 }
 
 // GetRdsUnusedData gets RDS reports and parse them based on query params to have an array of unused instances
-func GetRdsUnusedData(ctx context.Context, params RdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsUnusedData(ctx context.Context, params RdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	returnCode, instances, err := GetRdsData(ctx, RdsQueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err

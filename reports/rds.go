@@ -22,8 +22,7 @@ import (
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	usageReports "github.com/trackit/trackit-server/usageReports/rds"
+	"github.com/trackit/trackit-server/usageReports/rds"
 	"github.com/trackit/trackit-server/users"
 )
 
@@ -83,7 +82,7 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 		return
 	}
 
-	parameters := usageReports.RdsQueryParams{
+	parameters := rds.RdsQueryParams{
 		AccountList: []string{identity},
 		Date: date,
 	}
@@ -91,7 +90,7 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 	logger.Debug("Getting RDS Usage Report for account", map[string]interface{}{
 		"account": aa,
 	})
-	_, reports, err := usageReports.GetRdsData(ctx, parameters, user, tx)
+	_, reports, err := rds.GetRdsData(ctx, parameters, user, tx)
 	if err != nil {
 		return
 	}
