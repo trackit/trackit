@@ -76,31 +76,19 @@ func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, 
 			KeyPair:    "",
 			Type:       "N/A",
 		},
-		Tags:       make([]utils.Tag, 0),
-		Costs:      make(map[string]float64, 0),
-		Stats: Stats{
-			Cpu: Cpu{
-				Average: -1,
-				Peak:    -1,
-			},
-			Network: Network{
-				In:  -1,
-				Out: -1,
-			},
-			Volumes: make([]Volume, 0),
-		},
 	}
-	inst.Costs["instance"] = instance.Cost
 	res, err := getElasticSearchEc2Instance(ctx, account, instance.Resource,
-		es.Client, es.IndexNameForUserId(userId, IndexPrefixEC2Report))
+		es.Client, es.IndexNameForUserId(userId, IndexPrefixRiReport))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
+			fmt.Print("THIS IS BEFORE REGION")
 			inst.Region = docType.Instance.Region
 			inst.Purchasing = docType.Instance.Purchasing
 			inst.KeyPair = docType.Instance.KeyPair
 			inst.Type = docType.Instance.Type
 			inst.Tags = docType.Instance.Tags
+			fmt.Print("THIS IS AFTER TAGS")
 		}
 	}
 	return inst
@@ -124,7 +112,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 	}
 	for _, reservation := range instances.Reservations {
 		for _, instance := range reservation.Instances {
-			stats := getInstanceStats(ctx, instance, sess, startDate, endDate)
+			//stats := getInstanceStats(ctx, instance, sess, startDate, endDate)
 			costs := make(map[string]float64, 0)
 			costs["instance"] = inst.Cost
 			instanceChan <- Instance{
@@ -132,13 +120,11 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 					Id:         aws.StringValue(instance.InstanceId),
 					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
 					State:      aws.StringValue(instance.State.Name),
-					Purchasing: getPurchasingOption(instance),
+					//Purchasing: getPurchasingOption(instance),
 					KeyPair:    aws.StringValue(instance.KeyName),
 					Type:       aws.StringValue(instance.InstanceType),
 				},
 				Tags:  getInstanceTag(instance.Tags),
-				Costs: costs,
-				Stats: stats,
 			}
 		}
 	}
@@ -214,48 +200,48 @@ func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerResource) ([]ut
 	return newInstance, newVolume, newCloudWatch
 }
 
-func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch []utils.CostPerResource) []InstanceReport {
-	for i, instance := range instances {
-		for _, volume := range instance.Instance.Stats.Volumes {
-			for _, costPerVolume := range costVolume {
-				if volume.Id == costPerVolume.Resource {
-					instances[i].Instance.Costs[volume.Id] += costPerVolume.Cost
-				}
-			}
-		}
-		for _, cloudWatch := range costCloudWatch {
-			if strings.Contains(cloudWatch.Resource, instance.Instance.Id) {
-				instances[i].Instance.Costs["cloudwatch"] += cloudWatch.Cost
-			}
-		}
-	}
-	return instances
-}
+//func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch []utils.CostPerResource) []InstanceReport {
+//	for i, instance := range instances {
+//		for _, volume := range instance.Instance.Stats.Volumes {
+//			for _, costPerVolume := range costVolume {
+//				if volume.Id == costPerVolume.Resource {
+//					instances[i].Instance.Costs[volume.Id] += costPerVolume.Cost
+//				}
+//			}
+//		}
+//		for _, cloudWatch := range costCloudWatch {
+//			if strings.Contains(cloudWatch.Resource, instance.Instance.Id) {
+//				instances[i].Instance.Costs["cloudwatch"] += cloudWatch.Cost
+//			}
+//		}
+//	}
+//	return instances
+//}
 
-// PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
-func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting EC2 monthly report", map[string]interface{}{
-		"awsAccountId": aa.Id,
-		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
-		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
-	})
-	costInstance, costVolume, costCloudWatch := filterInstancesCosts(ec2Cost, cloudWatchCost)
-	if len(costInstance) == 0 {
-		logger.Info("No EC2 instances found in billing data.", nil)
-		return nil
-	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEC2Report)
-	if err != nil {
-		return err
-	} else if already {
-		logger.Info("There is already an EC2 monthly report", nil)
-		return nil
-	}
-	instances, err := fetchMonthlyInstancesStats(ctx, costInstance, aa, startDate, endDate)
-	if err != nil {
-		return err
-	}
-	instances = addCostToInstances(instances, costVolume, costCloudWatch)
-	return importInstancesToEs(ctx, aa, instances)
-}
+//// PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
+//func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
+//	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+//	logger.Info("Starting EC2 monthly report", map[string]interface{}{
+//		"awsAccountId": aa.Id,
+//		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
+//		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
+//	})
+//	//costInstance, costVolume, costCloudWatch := filterInstancesCosts(ec2Cost, cloudWatchCost)
+//	//if len(costInstance) == 0 {
+//	//	logger.Info("No EC2 instances found in billing data.", nil)
+//	//	return nil
+//	//}
+//	//already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixRiReport)
+//	//if err != nil {
+//	//	return err
+//	//} else if already {
+//	//	logger.Info("There is already an EC2 monthly report", nil)
+//	//	return nil
+//	//}
+//	//instances, err := fetchMonthlyInstancesStats(ctx, costInstance, aa, startDate, endDate)
+//	//if err != nil {
+//	//	return err
+//	//}
+//	//instances = addCostToInstances(instances, costVolume, costCloudWatch)
+//	return importInstancesToEs(ctx, aa, instances)
+//}

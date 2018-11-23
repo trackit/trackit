@@ -44,6 +44,7 @@ import (
 	_ "github.com/trackit/trackit-server/users"
 	_ "github.com/trackit/trackit-server/users/shared_account"
 	_ "github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
+	_ "github.com/trackit/trackit-server/usageReports/reservedInstances"
 )
 
 var buildNumber string = "unknown-build"

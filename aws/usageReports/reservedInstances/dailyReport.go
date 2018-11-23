@@ -35,7 +35,6 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	defer close(instanceChan)
 	//start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("START FETCHING DAILY RI REPORTS DATA", nil)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
@@ -50,17 +49,20 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		logger.Debug("RI : ", reservation)
 		//stats := getInstanceStats(ctx, reservation, sess, start, end)
 		instanceChan <- Instance{
-			Id:         aws.StringValue(reservation.ReservedInstancesId),
-			Region:     aws.StringValue(reservation.AvailabilityZone),
-			Tags:       getInstanceTag(reservation.Tags),
-			Type:       aws.StringValue(reservation.InstanceType),
+			Id:              aws.StringValue(reservation.ReservedInstancesId),
+			Region:          aws.StringValue(reservation.AvailabilityZone),
+			Tags:            getInstanceTag(reservation.Tags),
+			Type:            aws.StringValue(reservation.InstanceType),
 			FixedPrice:      aws.Float64Value(reservation.FixedPrice),
-			UsagePrice: aws.Float64Value(reservation.UsagePrice),
-			Duration:	aws.Int64Value(reservation.Duration),
-			Start:		aws.TimeValue(reservation.Start),
-			End: 		aws.TimeValue(reservation.End),
-			InstanceCount: aws.Int64Value(reservation.InstanceCount),
+			UsagePrice:      aws.Float64Value(reservation.UsagePrice),
+			Duration:        aws.Int64Value(reservation.Duration),
+			Start:           aws.TimeValue(reservation.Start),
+			End:             aws.TimeValue(reservation.End),
+			InstanceCount:   aws.Int64Value(reservation.InstanceCount),
 			InstanceTenancy: aws.StringValue(reservation.InstanceTenancy),
+			//OfferingClass: aws.StringValue(reservation.OfferingClass),
+			//OfferingType: aws.StringValue(reservation.OfferingType),
+			//ProductDescription: aws.StringValue(reservation.ProductDescription),
 		}
 	}
 	return nil

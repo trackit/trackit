@@ -34,14 +34,26 @@ const MonitorInstanceStsSessionName = "monitor-instance"
 type (
 	// InstanceReport is saved in ES to have all the information of an EC2 instance
 	InstanceReport struct {
+		utils.ReportBase
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		ReportType string    `json:"reportType"`
 		Instance   Instance  `json:"instance"`
 	}
 
+	// InstanceBase contains basics information of an EC2 instance
+	InstanceBase struct {
+		Id         string `json:"id"`
+		Region     string `json:"region"`
+		State      string `json:"state"`
+		Purchasing string `json:"purchasing"`
+		KeyPair    string `json:"keyPair"`
+		Type       string `json:"type"`
+	}
+
 	// Instance contains the information of an EC2 instance
 	Instance struct {
+		InstanceBase
 		Id            string  `json:"id"`
 		Region        string  `json:"region"`
 		Tags          []Tag   `json:"tags"`
@@ -54,33 +66,6 @@ type (
 		End time.Time `json:"end"`
 		Instancecount int64 `json:"instancecount"`
 		InstanceTenancy string `json:"instance_tenancy"`
-
-	}
-
-	// Stats contains statistics of an instance get on CloudWatch
-	Stats struct {
-		Cpu     Cpu      `json:"cpu"`
-		Network Network  `json:"network"`
-		Volumes []Volume `json:"volumes"`
-	}
-
-	// Cpu contains cpu statistics of an instance
-	Cpu struct {
-		Average float64 `json:"average"`
-		Peak    float64 `json:"peak"`
-	}
-
-	// Network contains network statistics of an instance
-	Network struct {
-		In  float64 `json:"in"`
-		Out float64 `json:"out"`
-	}
-
-	// Volume contains information about an EBS volume
-	Volume struct {
-		Id    string  `json:"id"`
-		Read  float64 `json:"read"`
-		Write float64 `json:"write"`
 	}
 
 	// Tag contains the key of a tag and his value

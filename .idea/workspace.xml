@@ -1,0 +1,830 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="b8b7361a-735b-4a84-97b5-f724d89d6940" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/usageReports/reservedInstances/ec2_route.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/usageReports/reservedInstances/es_request_constructor.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/usageReports/reservedInstances/get_ec2_data.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/usageReports/reservedInstances/prepare_response.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/history/history.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/history/history.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/reservedInstances/dailyReport.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/reservedInstances/dailyReport.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/reservedInstances/mappings.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/reservedInstances/mappings.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/reservedInstances/metricsStats.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/reservedInstances/metricsStats.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/reservedInstances/monthlyReport.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/reservedInstances/monthlyReport.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/reservedInstances/utils.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/reservedInstances/utils.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/server/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/server/server.go" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <splitter split-orientation="horizontal" split-proportion="0.5526161">
+      <split-first>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="dailyReport.go" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/dailyReport.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="333">
+                  <caret line="49" column="40" selection-start-line="49" selection-start-column="40" selection-end-line="49" selection-end-column="40" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="metricsStats.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/metricsStats.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="3384">
+                  <caret line="191" selection-start-line="191" selection-start-column="2" selection-end-line="217" selection-end-column="3" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="ec2_route.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/ec2_route.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="766">
+                  <caret line="74" column="1" selection-start-line="74" selection-start-column="1" selection-end-line="74" selection-end-column="1" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="es_request_constructor.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/es_request_constructor.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="437">
+                  <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="get_ec2_data.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/get_ec2_data.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="491">
+                  <caret line="81" lean-forward="true" selection-start-line="81" selection-end-line="81" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="prepare_response.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/prepare_response.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="608">
+                  <caret line="53" column="60" lean-forward="true" selection-start-line="53" selection-start-column="60" selection-end-line="53" selection-end-column="60" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="monthlyReport.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/monthlyReport.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1854">
+                  <caret line="122" column="22" selection-start-line="122" selection-start-column="22" selection-end-line="122" selection-end-column="22" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="api.go" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/vendor/github.com/aws/aws-sdk-go/service/ec2/api.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="72">
+                  <caret line="60462" column="31" lean-forward="true" selection-start-line="60462" selection-start-column="31" selection-end-line="60462" selection-end-column="31" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="mappings.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/mappings.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="572">
+                  <caret line="42" column="1" selection-start-line="42" selection-start-column="1" selection-end-line="42" selection-end-column="1" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="utils.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/utils.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="396">
+                  <caret line="35" column="4" selection-start-line="35" selection-start-column="4" selection-end-line="35" selection-end-column="4" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="utils.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/utils.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="612">
+                  <caret line="53" column="34" lean-forward="true" selection-start-line="53" selection-start-column="34" selection-end-line="53" selection-end-column="34" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="utils.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/utils.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="666">
+                  <caret line="50" column="5" selection-start-line="50" selection-start-column="5" selection-end-line="50" selection-end-column="5" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>testToken</find>
+      <find>interface</find>
+      <find>client</find>
+      <find>new</find>
+      <find>shareAccountBody</find>
+      <find>nil</find>
+      <find>insert</find>
+      <find>.update</find>
+      <find>update</find>
+      <find>session.</find>
+      <find>append</find>
+      <find>session.Must</find>
+      <find>delete</find>
+      <find>users.</find>
+      <find>from DB</find>
+      <find>user</find>
+      <find>aws.Config</find>
+      <find>SELECT</find>
+      <find>A bill repository is an S3 location (bucket+prefix) where Cost And Usage Reports can be found.</find>
+      <find>costd</find>
+      <find>truc</find>
+      <find>region</find>
+      <find>errors.N</find>
+      <find>fmt</find>
+      <find>report</find>
+      <find>TemplateLineItem</find>
+      <find>IndexPrefixRiReport</find>
+      <find>ec2.</find>
+      <find>SetURL</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>TestToken</replace>
+    </replaceStrings>
+  </component>
+  <component name="GOROOT" path="/usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/users/shared_account/decorators.go" />
+        <option value="$PROJECT_DIR$/users/shared_account/share_db.go" />
+        <option value="$PROJECT_DIR$/routes/commonQueryArgs.go" />
+        <option value="$PROJECT_DIR$/users/shared_account/shared_account.go" />
+        <option value="$PROJECT_DIR$/users/shared_account/security_checks.go" />
+        <option value="$PROJECT_DIR$/reports/reports_route.go" />
+        <option value="$PROJECT_DIR$/users/shared_account/invite.go" />
+        <option value="$PROJECT_DIR$/awsSession/awsSession.go" />
+        <option value="$PROJECT_DIR$/reports/spreadsheet.go" />
+        <option value="$PROJECT_DIR$/server/taskSpreadSheet.go" />
+        <option value="$PROJECT_DIR$/ec2/prepare_response.go" />
+        <option value="$PROJECT_DIR$/ec2/get_ec2_data.go" />
+        <option value="$PROJECT_DIR$/aws/routes/routeAwsGet.go" />
+        <option value="$PROJECT_DIR$/costs/anomalies/anomalies_route.go" />
+        <option value="$PROJECT_DIR$/aws/routes/routeAwsPost.go" />
+        <option value="$PROJECT_DIR$/routes/decoratorRequestBody.go" />
+        <option value="$PROJECT_DIR$/aws/aws.go" />
+        <option value="$PROJECT_DIR$/costs/costs_route.go" />
+        <option value="$PROJECT_DIR$/aws/routes/routes.go" />
+        <option value="$PROJECT_DIR$/routes/decoratorResponseBody.go" />
+        <option value="$PROJECT_DIR$/server/taskCheckEntitlement.go" />
+        <option value="$PROJECT_DIR$/db/schema.sql" />
+        <option value="$PROJECT_DIR$/db/migration/0019_add_aws_account_user_entitlement_due_update.sql" />
+        <option value="$PROJECT_DIR$/users/login.go" />
+        <option value="$PROJECT_DIR$/users/create.go" />
+        <option value="$PROJECT_DIR$/users/shared_account/routes.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/utils.go" />
+        <option value="$PROJECT_DIR$/aws/s3/billRepository.go" />
+        <option value="$PROJECT_DIR$/db/migration/0020_add_aws_account_reports_job.sql" />
+        <option value="$PROJECT_DIR$/reports/cost_diff.go" />
+        <option value="$PROJECT_DIR$/costs/diff/diff.go" />
+        <option value="$PROJECT_DIR$/server/taskSpreadsheet.go" />
+        <option value="$PROJECT_DIR$/reports/reportGeneration.go" />
+        <option value="$PROJECT_DIR$/usageReports/ec2/get_ec2_data.go" />
+        <option value="$PROJECT_DIR$/reports/ec2.go" />
+        <option value="$PROJECT_DIR$/costs/diff/diff_route.go" />
+        <option value="$PROJECT_DIR$/docker/server/taskProcessAccount.go" />
+        <option value="$PROJECT_DIR$/server/taskProcessAccount.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/history/history.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/reservedInstances/dailyReport.go" />
+        <option value="$PROJECT_DIR$/server/server.go" />
+        <option value="$PROJECT_DIR$/usageReports/reservedInstances/es_request_constructor.go" />
+        <option value="$PROJECT_DIR$/usageReports/reservedInstances/get_ec2_data.go" />
+        <option value="$PROJECT_DIR$/usageReports/reservedInstances/ec2_route.go" />
+        <option value="$PROJECT_DIR$/usageReports/reservedInstances/prepare_response.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/reservedInstances/mappings.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/reservedInstances/utils.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/reservedInstances/metricsStats.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/reservedInstances/monthlyReport.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/ec2/mappings.go" />
+        <option value="$PROJECT_DIR$/config/config.go" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="NodePackageJsonFileManager">
+    <packageJsonPaths />
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="251" />
+    <option name="y" value="198" />
+    <option name="width" value="952" />
+    <option name="height" value="528" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <expand>
+            <path>
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="trackit-server" type="cbb8eebc:String" user="trackit-server" />
+            </path>
+            <path>
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="trackit-server" type="cbb8eebc:String" user="trackit-server" />
+              <item name="db" type="cbb8eebc:String" user="db" />
+            </path>
+            <path>
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="trackit-server" type="cbb8eebc:String" user="trackit-server" />
+              <item name="reports" type="cbb8eebc:String" user="reports" />
+            </path>
+            <path>
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="trackit-server" type="cbb8eebc:String" user="trackit-server" />
+              <item name="server" type="cbb8eebc:String" user="server" />
+            </path>
+            <path>
+              <item name="Root" type="cbb8eebc:String" user="Root" />
+              <item name="trackit-server" type="cbb8eebc:String" user="trackit-server" />
+              <item name="users" type="cbb8eebc:String" user="users" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="ec2" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="es" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="history" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="rds" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="reservedInstances" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="config" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="costs" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="costs" type="462c0819:PsiDirectoryNode" />
+              <item name="diff" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="reports" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="ec2" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="reservedInstances" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="users" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="users" type="462c0819:PsiDirectoryNode" />
+              <item name="shared_account" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="SearchEverywhereHistoryKey" value="struct&#9;null&#9;null&#10;/aws/bi&#9;FILE&#9;file:///home/ccleary/go/src/github.com/trackit/trackit-server/aws/s3/billRepository.go&#10;/reports&#9;null&#9;null&#10;ec2&#9;FILE&#9;file:///home/ccleary/go/src/github.com/trackit/trackit-server/usageReports/ec2/ec2_route.go&#10;ec2/r&#9;null&#9;null&#10;/ec2/&#9;FILE&#9;file:///home/ccleary/go/src/github.com/trackit/trackit-server/usageReports/ec2&#10;/aws/bill&#9;FILE&#9;file:///home/ccleary/go/src/github.com/trackit/trackit-server/aws/s3/billRepository.go&#10;/docs&#9;null&#9;null&#10;aws/next&#9;null&#9;null&#10;/aws/billrepositoryupdates&#9;null&#9;null&#10;/aws/billrepository&#9;FILE&#9;file:///home/ccleary/go/src/github.com/trackit/trackit-server/aws/s3/billRepository.go&#10;fetchDa&#9;null&#9;null&#10;db close&#9;null&#9;null&#10;db conn&#9;null&#9;null&#10;user id&#9;null&#9;null&#10;send mail&#9;null&#9;null&#10;redirect&#9;null&#9;null&#10;redirec&#9;null&#9;null&#10;method post&#9;null&#9;null&#10;methodpost&#9;null&#9;null&#10;session&#9;FILE&#9;file:///home/ccleary/go/src/github.com/trackit/trackit-server/awsSession/awsSession.go&#10;MarketplaceMetering&#9;null&#9;null&#10;.new&#9;null&#9;null&#10;.New&#9;null&#9;null&#10;client&#9;null&#9;null" />
+    <property name="configurable.Global.GOPATH.is.expanded" value="true" />
+    <property name="configurable.Module.GOPATH.is.expanded" value="false" />
+    <property name="configurable.Project.GOPATH.is.expanded" value="true" />
+    <property name="go.gopath.indexing.explicitly.defined" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.vendoring.notification.had.been.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="settings.editor.selected.configurable" value="com.goide.configuration.GoLibrariesConfigurableProvider" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/usageReports" />
+      <recent name="$PROJECT_DIR$/aws/usageReports/reservedInstances" />
+      <recent name="$PROJECT_DIR$/server" />
+      <recent name="$PROJECT_DIR$/users/shared_account" />
+      <recent name="$PROJECT_DIR$/db/migration" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/users/shared_account" />
+      <recent name="$PROJECT_DIR$/users" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-3" y="0" width="1926" height="1051" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1140625" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32908705" />
+      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" weight="0.32908705" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32908705" />
+      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="7" weight="0.0" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.0" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+    </layout>
+    <layout-to-restore>
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20511483" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="TODO" order="6" weight="0.32908705" />
+      <window_info anchor="bottom" id="Version Control" order="10" weight="0.0" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.0" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" weight="0.32908705" />
+      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+    </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="7" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/db/migration/0018_aws_bill_update_job_error_resize.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="14" selection-start-line="14" selection-end-line="14" selection-end-column="75" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db/migration/0019_add_aws_account_user_entitlement_due_update.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="14" selection-start-line="14" selection-end-line="18" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db/migration/0020_add_aws_account_reports_job.sql" />
+    <entry file="file://$PROJECT_DIR$/server/taskAnomaliesDetection.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/reports/reports_route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2088">
+          <caret line="134" column="5" selection-start-line="134" selection-start-column="5" selection-end-line="134" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/go/src/cmd/compile/internal/types/type.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="305">
+          <caret line="236" column="5" selection-start-line="236" selection-start-column="5" selection-end-line="236" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/costs/costs_route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="720">
+          <caret line="57" selection-start-line="57" selection-end-line="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/users/shared_account/invite.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="423">
+          <caret line="105" column="31" selection-start-line="105" selection-start-column="31" selection-end-line="105" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db/migration/0021_add_aws_account_reports_job.sql" />
+    <entry file="file://$PROJECT_DIR$/models/awsaccountreportsjob.xo.go" />
+    <entry file="file://$PROJECT_DIR$/users/shared_account/share_db.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1188">
+          <caret line="66" column="36" selection-start-line="66" selection-start-column="4" selection-end-line="66" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/users/shared_account/security_checks.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="43" column="29" selection-start-line="43" selection-start-column="29" selection-end-line="43" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/users/decorator.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="37" column="1" lean-forward="true" selection-start-line="37" selection-start-column="1" selection-end-line="37" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/README.adoc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-342">
+          <caret line="2" lean-forward="true" selection-start-line="2" selection-end-line="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/reports/cost_diff.go" />
+    <entry file="file://$PROJECT_DIR$/plugins/utils/pluginsStatusUtils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="26" selection-start-line="26" selection-end-line="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/plugins/plugins.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/taskSpreadsheet.go" />
+    <entry file="file://$PROJECT_DIR$/reports/reportGeneration.go" />
+    <entry file="file://$PROJECT_DIR$/usageReports/ec2/get_ec2_data.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1962">
+          <caret line="123" column="30" selection-start-line="123" selection-start-column="30" selection-end-line="123" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/costs/diff/diff.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1422">
+          <caret line="90" selection-start-line="90" selection-end-line="90" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/reports/ec2.go" />
+    <entry file="file://$PROJECT_DIR$/costs/diff/diff_route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3132">
+          <caret line="174" column="34" selection-start-line="174" selection-start-column="34" selection-end-line="174" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/docker/server/taskProcessAccount.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="30" column="61" lean-forward="true" selection-start-line="30" selection-start-column="61" selection-end-line="30" selection-end-column="61" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../aws/aws-sdk-go/service/elasticsearchservice/service.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="702">
+          <caret line="46" column="5" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/aws/aws-sdk-go/aws/session/session.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="198">
+          <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/es/dailyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="342">
+          <caret line="41" column="41" selection-start-line="41" selection-start-column="41" selection-end-line="41" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/es/userIndex.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="468">
+          <caret line="30" column="5" selection-start-line="30" selection-start-column="5" selection-end-line="30" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/users/shared_account/routes.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="36">
+          <caret line="25" column="33" lean-forward="true" selection-start-line="25" selection-start-column="33" selection-end-line="25" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/taskProcessAccount.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2718">
+          <caret line="167" column="5" selection-start-line="167" selection-start-column="5" selection-end-line="167" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/metricsStats.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="47" column="5" selection-start-line="47" selection-start-column="5" selection-end-line="47" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/dailyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="513">
+          <caret line="60" column="53" selection-start-line="60" selection-start-column="16" selection-end-line="60" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/monthlyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="338">
+          <caret line="204" column="9" lean-forward="true" selection-start-line="204" selection-start-column="9" selection-end-line="204" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/history/history.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2538">
+          <caret line="157" column="37" selection-start-line="157" selection-start-column="37" selection-end-line="157" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/ec2/ec2_route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1408" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/server.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="810">
+          <caret line="45" column="41" selection-start-line="45" selection-start-column="41" selection-end-line="45" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/utils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="35" column="4" selection-start-line="35" selection-start-column="4" selection-end-line="35" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/utils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="666">
+          <caret line="50" column="5" selection-start-line="50" selection-start-column="5" selection-end-line="50" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/monthlyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1854">
+          <caret line="122" column="22" selection-start-line="122" selection-start-column="22" selection-end-line="122" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="82">
+          <caret line="88" column="34" lean-forward="true" selection-start-line="88" selection-start-column="34" selection-end-line="88" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/metricsStats.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3384">
+          <caret line="191" selection-start-line="191" selection-start-column="2" selection-end-line="217" selection-end-column="3" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="572">
+          <caret line="42" column="1" selection-start-line="42" selection-start-column="1" selection-end-line="42" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/config/config.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="734">
+          <caret line="134" column="4" selection-start-line="134" selection-start-column="4" selection-end-line="134" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/es/client.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="423">
+          <caret line="67" column="43" lean-forward="true" selection-start-line="67" selection-start-column="43" selection-end-line="67" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/get_ec2_data.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="491">
+          <caret line="81" lean-forward="true" selection-start-line="81" selection-end-line="81" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/ec2_route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="766">
+          <caret line="74" column="1" selection-start-line="74" selection-start-column="1" selection-end-line="74" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/es_request_constructor.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="437">
+          <caret line="60" column="19" selection-start-line="60" selection-start-column="19" selection-end-line="60" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/reservedInstances/prepare_response.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="608">
+          <caret line="53" column="60" lean-forward="true" selection-start-line="53" selection-start-column="60" selection-end-line="53" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/dailyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="333">
+          <caret line="49" column="40" selection-start-line="49" selection-start-column="40" selection-end-line="49" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/reservedInstances/utils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="53" column="34" lean-forward="true" selection-start-line="53" selection-start-column="34" selection-end-line="53" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/aws/aws-sdk-go/service/ec2/api.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="72">
+          <caret line="60462" column="31" lean-forward="true" selection-start-line="60462" selection-start-column="31" selection-end-line="60462" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

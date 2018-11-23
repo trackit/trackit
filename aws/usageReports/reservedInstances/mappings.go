@@ -63,16 +63,17 @@ const TemplateLineItem = `
 						"region": {
 							"type": "keyword"
 						},
-						"state": {
-							"type": "keyword"
-						},
-						"purchasing": {
+						"CurrencyCode"
+						"Duration": {
 							"type": "keyword"
 						},
 						"keyPair": {
 							"type": "keyword"
 						},
-						"type": {
+						"end": {
+							"type": "keyword"
+						},
+						"start": {
 							"type": "keyword"
 						},
 						"tags": {
@@ -86,50 +87,6 @@ const TemplateLineItem = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"network": {
-									"type": "object",
-									"properties": {
-											"in": {
-												"type": "double"
-											},
-											"out": {
-												"type": "double"
-											}
-									}
-								},
-								"volumes": {
-									"type": "nested",
-									"properties": {
-										"id": {
-											"type": "keyword"
-										},
-										"read": {
-											"type": "double"
-										},
-										"write": {
-											"type": "double"
-										}
-									}
-								}
-							}
-						}
 					}
 				}
 			},
