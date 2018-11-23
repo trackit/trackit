@@ -131,7 +131,6 @@ func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount) (
 		})
 		return false, err
 	}
-	logger.Error("dbProcessAccountJob", dbProcessAccountJob)
 	if dbProcessAccountJob.MonthlyReportsGenerated {
 		if dbAccount.LastSpreadsheetReportGeneration.Before(dbProcessAccountJob.Completed) {
 			return true, nil
