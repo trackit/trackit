@@ -18,8 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/trackit/jsonlog"
-	"strconv"
-
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
@@ -27,49 +25,55 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-var rdsInstanceFormat = []string{
-	"Name",
-	"Type",
-	"Region",
-	"Cost",
-	"Engine",
-	"Multi A-Z",
-	"Storage (GigaBytes)",
-	"Storage - Available (Average) (Bytes)",
-	"Storage - Available (Minimum) (Bytes)",
-	"Storage - Available (Maximum) (Bytes)",
-	"CPU Average (Percentage)",
-	"CPU Peak (Percentage)",
-}
+var rdsInstanceFormat = [][]cell{{
+	newCell("", 7).addStyle(textCenter, backgroundGrey),
+	newCell("Storage - Available (Bytes)", 3).addStyle(textCenter, textBold, backgroundGrey),
+	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
+}, {
+	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Region").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Cost").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Engine").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Multi A-Z").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Storage - Total (GigaBytes)").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Average").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Minimum").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Maximum").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Average").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Peak").addStyle(textCenter, textBold, backgroundGrey),
+}}
 
-func formatRdsInstance(instance rds.Instance) []string {
+func formatRdsInstance(instance rds.Instance) []cell {
 	var cost float64
 
 	for _, value := range instance.Costs {
 		cost += value
 	}
 
-	return []string{
-		instance.DBInstanceIdentifier,
-		instance.DBInstanceClass,
-		instance.AvailabilityZone,
-		strconv.FormatFloat(cost, 'f', -1, 64),
-		instance.Engine,
-		strconv.FormatBool(instance.MultiAZ),
-		strconv.FormatInt(instance.AllocatedStorage, 10),
-		strconv.FormatFloat(instance.Stats.FreeSpace.Average, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.FreeSpace.Minimum, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.FreeSpace.Maximum, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.Cpu.Average, 'f', -1, 64),
-		strconv.FormatFloat(instance.Stats.Cpu.Peak, 'f', -1, 64),
+	return []cell{
+		newCell(instance.DBInstanceIdentifier),
+		newCell(instance.DBInstanceClass),
+		newCell(instance.AvailabilityZone),
+		newCell(cost),
+		newCell(instance.Engine),
+		newCell(instance.MultiAZ),
+		newCell(instance.AllocatedStorage),
+		newCell(instance.Stats.FreeSpace.Average),
+		newCell(instance.Stats.FreeSpace.Minimum),
+		newCell(instance.Stats.FreeSpace.Maximum),
+		newCell(instance.Stats.Cpu.Average),
+		newCell(instance.Stats.Cpu.Peak),
 	}
 }
 
-func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]string, err error) {
+func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	data = make([][]string, 0)
-	data = append(data, rdsInstanceFormat)
+	data = make([][]cell, 0)
+	for _, headerRow := range rdsInstanceFormat {
+		data = append(data, headerRow)
+	}
 
 	date, _ := history.GetHistoryDate()
 

@@ -43,21 +43,46 @@ type sheet struct {
 }
 
 type cell struct {
-	value string
+	value interface{}
 	width int
 	style *xlsx.Style
 }
 
-func newCell(value string, dimensions ...int) cell {
+func (c cell) setValueToCell(newCell *xlsx.Cell) {
+	switch value := c.value.(type) {
+	case int:
+		newCell.SetInt(value)
+		break
+	case float64:
+		newCell.SetFloat(value)
+		break
+	case bool:
+		newCell.SetBool(value)
+		break
+	case string:
+		newCell.SetString(value)
+		break
+	default:
+		if defaultValue, ok := value.(string); ok {
+			newCell.SetString(defaultValue)
+		} else {
+			newCell.SetString("Invalid Data")
+		}
+	}
+}
+
+func newCell(value interface{}, dimensions ...int) cell {
 	width := 1
 	if len(dimensions) > 0 {
 		width = dimensions[0]
 	}
-	return cell{
+	item := cell{
 		value: value,
 		width: width,
 		style: xlsx.NewStyle(),
 	}
+	item.addStyle(defaultStyle{})
+	return item
 }
 
 func convertToSheet(raw sheet) (sheet xlsx.Sheet) {
@@ -72,7 +97,7 @@ func convertToSheet(raw sheet) (sheet xlsx.Sheet) {
 				horizontalPadding--
 			}
 			newCell := row.AddCell()
-			newCell.Value = rawCell.value
+			rawCell.setValueToCell(newCell)
 			if rawCell.width > 1 {
 				rawCell.width--
 				newCell.HMerge = rawCell.width
