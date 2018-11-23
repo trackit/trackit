@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -29,28 +28,28 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-var ec2InstanceFormat = []cell{
-	newCell("ID").addStyle(textBold, backgroundGreen),
-	newCell("Name").addStyle(textBold),
-	newCell("Type").addStyle(textBold),
-	newCell("Region").addStyle(textBold),
-	newCell("Purchasing option").addStyle(textBold),
-	newCell("Cost", 1).addStyle(textBold),
-	newCell("CPU (Percentage)", 2).addStyle(textBold),
-	newCell("Network (Bytes)", 2).addStyle(textBold),
-	newCell("I/O (Bytes)", 4).addStyle(textBold),
-	newCell("Key Pair").addStyle(textBold),
-	newCell("Tags").addStyle(textBold),
-	newCell("Name").addStyle(textBold),
-	//	{"CPU Average (Percentage)", 1},
-	//	{"CPU Peak (Percentage)", 1},
-	//	{"Network In (Bytes)", 1},
-	//	{"Network Out (Bytes)", 1},
-	//	{"I/O Read (Bytes)", 1},
-	//	{"I/O Read - Detailed (Bytes)", 1},
-	//	{"I/O Write (Bytes)", 1},
-	//	{"I/O Write - Detailed (Bytes)", 1},
-}
+var ec2InstanceFormat = [][]cell{{
+	newCell("", 6).addStyle(textCenter, backgroundGrey),
+	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Network (Bytes)", 2).addStyle(textCenter, textBold, backgroundGrey),
+	newCell("I/O (Bytes)", 2).addStyle(textCenter, textBold, backgroundGrey),
+	newCell("", 2).addStyle(textCenter, backgroundGrey),
+}, {
+	newCell("ID").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Region").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Purchasing option").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Cost").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Average").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Peak").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("In").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Out").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Read").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Write").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Key Pair").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Tags").addStyle(textCenter, textBold, backgroundGrey),
+}}
 
 func formatEc2Instance(instance ec2.Instance) []cell {
 	var cost float64
@@ -62,15 +61,11 @@ func formatEc2Instance(instance ec2.Instance) []cell {
 		name = value
 	}
 	ioRead, ioWrite := 0, 0
-	ioReadDetails := make([]string, 0)
-	ioWriteDetails := make([]string, 0)
-	for volume, size := range instance.Stats.Volumes.Read {
+	for _, size := range instance.Stats.Volumes.Read {
 		ioRead += int(size)
-		ioReadDetails = append(ioReadDetails, fmt.Sprintf("%s:%d", volume, int(size)))
 	}
-	for volume, size := range instance.Stats.Volumes.Write {
+	for _, size := range instance.Stats.Volumes.Write {
 		ioWrite += int(size)
-		ioWriteDetails = append(ioWriteDetails, fmt.Sprintf("%s:%d", volume, int(size)))
 	}
 	tags := make([]string, 0)
 	for key, value := range instance.Tags {
@@ -82,15 +77,13 @@ func formatEc2Instance(instance ec2.Instance) []cell {
 		newCell(instance.Type),
 		newCell(instance.Region),
 		newCell(instance.Purchasing),
-		newCell(strconv.FormatFloat(cost, 'f', -1, 64)),
-		newCell(strconv.FormatFloat(instance.Stats.Cpu.Average, 'f', -1, 64)),
-		newCell(strconv.FormatFloat(instance.Stats.Cpu.Peak, 'f', -1, 64)),
-		newCell(strconv.FormatFloat(instance.Stats.Network.In, 'f', -1, 64)),
-		newCell(strconv.FormatFloat(instance.Stats.Network.Out, 'f', -1, 64)),
-		newCell(strconv.Itoa(ioRead)),
-		newCell(strings.Join(ioReadDetails, ";")),
-		newCell(strconv.Itoa(ioWrite)),
-		newCell(strings.Join(ioWriteDetails, ";")),
+		newCell(cost),
+		newCell(instance.Stats.Cpu.Average / 100),
+		newCell(instance.Stats.Cpu.Peak / 100),
+		newCell(instance.Stats.Network.In),
+		newCell(instance.Stats.Network.Out),
+		newCell(ioRead),
+		newCell(ioWrite),
 		newCell(instance.KeyPair),
 		newCell(strings.Join(tags, ";")),
 	}
@@ -100,7 +93,9 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
-	data = append(data, ec2InstanceFormat)
+	for _, headerRow := range ec2InstanceFormat {
+		data = append(data, headerRow)
+	}
 
 	date, _ := history.GetHistoryDate()
 

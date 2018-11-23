@@ -175,9 +175,9 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	return concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
 }
 
-// checkBillingDataCompleted checks if billing data in ES are complete.
+// CheckBillingDataCompleted checks if billing data in ES are complete.
 // If they are complete it returns true, otherwise it returns false.
-func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
+func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
@@ -216,7 +216,7 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	complete, err := checkBillingDataCompleted(ctx, startDate, endDate, aa)
+	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
 		return err
 	} else if complete == false {

@@ -25,9 +25,10 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/reports"
 	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/reports"
 )
 
 // taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.
@@ -63,6 +64,7 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
+	} else if generation, err := checkReportGeneration(ctx, aa); err != nil && !generation {
 	} else {
 		errs := reports.GenerateReport(ctx, aa)
 		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs)
@@ -75,6 +77,34 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, err, nil)
 	}
 	return
+}
+
+func checkReportGeneration(ctx context.Context, aa aws.AwsAccount) (bool, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	startDate, endDate := history.GetHistoryDate()
+	logger.Info("Checking report generation conditions", map[string]interface{}{
+		"awsAccountId": aa.Id,
+		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
+		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
+	})
+	complete, err := history.CheckBillingDataCompleted(ctx, startDate, endDate, aa)
+	if err != nil {
+		logger.Info("Error while checking if billin data are completed", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
+			"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
+			"error": err,
+		})
+		return false, err
+	} else if !complete {
+		logger.Info("Billing data are not completed", map[string]interface{}{
+			"awsAccountId": aa.Id,
+		})
+		return false, nil
+	}
+	// get last generation date
+	//check if new monthly reports are available
+	return true, nil
 }
 
 func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, error) {
@@ -90,7 +120,7 @@ func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, erro
 }
 
 func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error) {
-	rErr := registerAccountReportGenerationCompletion(db, updateId, jobErr, errs)
+	rErr := registerAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -101,17 +131,27 @@ func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *
 	}
 }
 
-func registerAccountReportGenerationCompletion(db *sql.DB, updateId int64, jobErr error, errs map[string]error) error {
+func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error) error {
 	dbAccountReports, err := models.AwsAccountReportsJobByID(db, int(updateId))
 	if err != nil {
 		return err
 	}
-	dbAccountReports.Completed = time.Now()
+	date := time.Now()
+	dbAccountReports.Completed = date
 	dbAccountReports.Joberror = errToStr(jobErr)
 	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
 	dbAccountReports.Costdifferror = errToStr(errs["costDiffError"])
 	dbAccountReports.Ec2usagereporterror = errToStr(errs["ec2UsageReportError"])
 	dbAccountReports.Rdsusagereporterror = errToStr(errs["rdsUsageReportError"])
 	err = dbAccountReports.Update(db)
+	if err != nil {
+		return err
+	}
+	dbAccount, err := models.AwsAccountByID(db, aaId)
+	if err != nil {
+		return err
+	}
+	dbAccount.LastSpreadsheetReportGeneration = date
+	err = dbAccount.Update(db)
 	return err
 }

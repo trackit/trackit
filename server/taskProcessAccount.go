@@ -70,7 +70,6 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
 		historyErr := processAccountHistory(ctx, aa)
-		processAccountSpreadsheet(ctx, aa, historyErr)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr)
 	}
 	if err != nil {
@@ -186,11 +185,4 @@ func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 		})
 	}
 	return err
-}
-
-// processAccountSpreadsheet generate spreasheet report for an AwsAccount
-func processAccountSpreadsheet(ctx context.Context, aa aws.AwsAccount, historyErr error) {
-	if historyErr != nil {
-		_ = generateReport(ctx, aa.Id)
-	}
 }

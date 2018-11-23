@@ -38,17 +38,17 @@ var modules = []module{
 		Name:      "EC2 Usage Report",
 		Function:  getEc2UsageReport,
 		ErrorName: "ec2UsageReportError",
-	}, /*
-		{
-			Name: "RDS Usage Report",
-			Function: getRdsUsageReport,
-			ErrorName: "rdsUsageReportError",
-		},
-		{
-			Name: "Cost Differentiator Report",
-			Function: getCostDiff,
-			ErrorName: "CostDifferentiatorError",
-		},*/
+	},
+	{
+		Name: "RDS Usage Report",
+		Function: getRdsUsageReport,
+		ErrorName: "rdsUsageReportError",
+	},
+	{
+		Name: "Cost Differentiator Report",
+		Function: getCostDiff,
+		ErrorName: "CostDifferentiatorError",
+	},
 }
 
 func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]error) {
