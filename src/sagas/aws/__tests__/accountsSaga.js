@@ -30,7 +30,7 @@ describe("Accounts Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
-        .toEqual(call(API.AWS.Accounts.getAccounts, token));
+        .toEqual(call(API.AWS.Accounts.getAccountsStatus, token));
 
       expect(saga.next(validResponse).value)
         .toEqual(put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts }));
@@ -47,7 +47,7 @@ describe("Accounts Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
-        .toEqual(call(API.AWS.Accounts.getAccounts, token));
+        .toEqual(call(API.AWS.Accounts.getAccountsStatus, token));
 
       expect(saga.next(invalidResponse).value)
         .toEqual(put({ type: Constants.AWS_GET_ACCOUNTS_ERROR, error: Error("Error with request") }));
@@ -64,7 +64,7 @@ describe("Accounts Saga", () => {
         .toEqual(getToken());
 
       expect(saga.next(token).value)
-        .toEqual(call(API.AWS.Accounts.getAccounts, token));
+        .toEqual(call(API.AWS.Accounts.getAccountsStatus, token));
 
       expect(saga.next(noResponse).value)
         .toEqual(put({ type: Constants.AWS_GET_ACCOUNTS_ERROR, error: Error("Error with request") }));

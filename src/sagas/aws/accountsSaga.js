@@ -7,7 +7,7 @@ import Constants from '../../constants';
 export function* getAccountsSaga() {
   try {
     const token = yield getToken();
-    const res = yield call(API.AWS.Accounts.getAccounts, token);
+    const res = yield call(API.AWS.Accounts.getAccountsStatus, token);
     if (res.success === null) {
       yield put({type: Constants.LOGOUT_REQUEST});
       return;

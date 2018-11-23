@@ -38,7 +38,11 @@ const accountWithBills = {
       error: "access denied",
       nextPending: true,
       bucket: "another-billing-bucket",
-      prefix: "another-prefix"
+      prefix: "another-prefix",
+      status: {
+        value: "error",
+        detail: "access denied"
+      }
     },
   ],
 };
@@ -48,6 +52,7 @@ const accountWithRightBills = {
   userId: 42,
   roleArn: "arn:aws:iam::000000000001:role/TEST_ROLE",
   pretty: "Name",
+  payer: true,
   billRepositories: [
     {
       error: "",
@@ -134,11 +139,6 @@ describe('<Item />', () => {
     account: accountWithBills
   };
 
-  const propsWithoutBills = {
-    ...props,
-    account: accountWithoutBills
-  };
-
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -155,9 +155,6 @@ describe('<Item />', () => {
   });
 
   it('renders two <ListItem/> component with one for error message ', () => {
-    const wrapper = shallow(<Item {...propsWithoutBills}/>);
-    const item = wrapper.find(ListItem);
-    expect(item.length).toBe(2);
     const wrapperBis = shallow(<Item {...propsWithErrorInBills}/>);
     const itemBis = wrapperBis.find(ListItem);
     expect(itemBis.length).toBe(2);
