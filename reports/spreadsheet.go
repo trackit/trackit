@@ -133,7 +133,7 @@ func generateSpreadsheet(ctx context.Context, aa taws.AwsAccount, date string, s
 func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	filename := fmt.Sprintf("/reports/%s.xlsx", file.date)
+	filename := fmt.Sprintf("/reports/TRACKIT_%s_%s.xlsx", file.account.Pretty, file.date)
 
 	err = file.file.Save(filename)
 	if err != nil {
@@ -145,7 +145,7 @@ func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet) (err error) 
 func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	filename := fmt.Sprintf("%s.xlsx", file.date)
+	filename := fmt.Sprintf("TRACKIT_%s_%s.xlsx", file.account.Pretty, file.date)
 	reportPath := path.Join(strconv.Itoa(file.account.Id), "generated-report", filename)
 
 	logger.Info("Uploading spreadsheet", reportPath)
@@ -158,7 +158,7 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 		if err != nil {
 			logger.Error("Error while saving report", map[string]interface{}{
 				"report": reportPath,
-				"error": err.Error(),
+				"error":  err.Error(),
 			})
 		}
 	}()
@@ -172,7 +172,7 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 	if err != nil {
 		logger.Error("Failed to upload report", map[string]interface{}{
 			"report": reportPath,
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 	} else {
 		logger.Info("Spreadsheet successfully uploaded", result.Location)

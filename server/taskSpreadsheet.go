@@ -64,8 +64,8 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
 	} else if generation, err = checkReportGeneration(ctx, db.Db, aa); err != nil || !generation {
+	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
 	} else {
 		errs := reports.GenerateReport(ctx, aa)
 		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs)
@@ -123,24 +123,23 @@ func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount) (
 	if len(dbProcessAccountJobs) == 0 {
 		return false, nil
 	}
-	dbProcessAccountJob, err := models.GetLatestAccountUpdateJob(db, aa.Id)
-	if err != nil {
-		logger.Info("Error while getting last process account job", map[string]interface{}{
+	generation := false
+	for _, job := range dbProcessAccountJobs {
+		if job.MonthlyReportsGenerated {
+			if dbAccount.LastSpreadsheetReportGeneration.Before(job.Completed) {
+				generation = true
+			}
+		}
+	}
+	if generation {
+		return true, nil
+	} else {
+		logger.Info("No new monthly reports", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err,
 		})
-		return false, err
+		return false, nil
 	}
-	if dbProcessAccountJob.MonthlyReportsGenerated {
-		if dbAccount.LastSpreadsheetReportGeneration.Before(dbProcessAccountJob.Completed) {
-			return true, nil
-		}
-	}
-	logger.Info("No new monthly reports", map[string]interface{}{
-		"awsAccountId": aa.Id,
-		"error":        err,
-	})
-	return false, nil
 }
 
 func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, error) {
