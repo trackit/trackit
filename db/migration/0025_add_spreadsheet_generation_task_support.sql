@@ -13,3 +13,4 @@
 --   limitations under the License.
 
 ALTER TABLE aws_account ADD last_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE aws_account_update_job ADD monthly_reports_generated bool NOT NULL DEFAULT 0;
