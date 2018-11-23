@@ -71,6 +71,10 @@ i.white-box-title-icon {
 	color: #88cc22;
 }
 
+.account-badge.fa-share-alt {
+	color: #4885ed;
+}
+
 .account-badge-information-banner {
 	width: 100%;
 	margin-top: 10px;

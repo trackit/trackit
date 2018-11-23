@@ -9,6 +9,7 @@ import Form from './FormComponent';
 import Bills from './bills';
 import TeamSharing from './teamSharing';
 
+const Tooltip = Misc.Popover;
 const DeleteConfirmation = Misc.DeleteConfirmation;
 
 export class Item extends Component {
@@ -88,6 +89,16 @@ export class Item extends Component {
           <div className="actions">
 
             <div className="inline-block">
+              {(!this.props.account.accountOwner ? (
+                <Tooltip icon={(
+                  <div className="btn btn=default">
+                    <i className="fa account-badge fa-share-alt"/>
+                  </div>
+                )} tooltip="This account is shared by another user" placement="left"/>
+              ) : null)}
+            </div>
+
+            <div className="inline-block">
               <TeamSharing.List account={this.props.account.id} disabled={this.props.account.permissionLevel === 2} permissionLevel={this.props.account.permissionLevel}/>
             </div>
             &nbsp;
@@ -129,6 +140,7 @@ Item.propTypes = {
     billRepositories: PropTypes.arrayOf(
       PropTypes.shape({
         error: PropTypes.string.isRequired,
+        accountOwner: PropTypes.bool,
         nextPending: PropTypes.bool.isRequired,
         bucket: PropTypes.string.isRequired,
         prefix: PropTypes.string.isRequired
