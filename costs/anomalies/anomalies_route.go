@@ -205,7 +205,7 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 	raw, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams)
 	if err != nil {
 		if returnCode == http.StatusOK {
-			return returnCode, nil
+			return returnCode, err
 		} else {
 			return http.StatusInternalServerError, err
 		}
