@@ -86,10 +86,10 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccount) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, plugin := range core.RegisteredAccountPlugins {
-		if plugin.PayerAccountOnly == true && aa.Payer == false {
+		if plugin.BillingDataOnly == false && aa.RoleArn == "" {
 			continue
 		}
-		accountId := es.GetAccountIdFromRoleArn(aa.RoleArn)
+		accountId := aa.AwsIdentity
 		pluginResultES := core.PluginResultES{
 			Account:    accountId,
 			ReportDate: time.Now().UTC(),
@@ -97,19 +97,23 @@ func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccoun
 			Category:   plugin.Category,
 			Label:      plugin.Label,
 		}
-		creds, err := aws.GetTemporaryCredentials(aa, fmt.Sprintf("trackit-%s-plugin", plugin.Name))
-		if err != nil {
-			logger.Error("Error when getting temporary credentials", err.Error())
-			pluginResultES.Error = fmt.Sprintf("Error when getting temporary credentials: %s", err.Error())
-		} else {
-			params := core.PluginParams{
-				Context:            ctx,
-				User:               user,
-				AwsAccount:         aa,
-				AccountId:          accountId,
-				AccountCredentials: creds,
-				ESClient:           es.Client,
+		params := core.PluginParams{
+			Context:    ctx,
+			User:       user,
+			AwsAccount: aa,
+			AccountId:  accountId,
+			ESClient:   es.Client,
+		}
+		if plugin.BillingDataOnly == false {
+			creds, err := aws.GetTemporaryCredentials(aa, fmt.Sprintf("trackit-%s-plugin", plugin.Name))
+			if err != nil {
+				logger.Error("Error when getting temporary credentials", err.Error())
+				pluginResultES.Error = fmt.Sprintf("Error when getting temporary credentials: %s", err.Error())
+			} else {
+				params.AccountCredentials = creds
 			}
+		}
+		if pluginResultES.Error == "" {
 			res := plugin.Func(params)
 			pluginResultES.Result = res.Result
 			pluginResultES.Status = res.Status

@@ -50,15 +50,17 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 			stats := getInstanceStats(ctx, instance, sess, start, end)
 			costs := make(map[string]float64, 0)
 			instanceChan <- Instance{
-				Id:         aws.StringValue(instance.InstanceId),
-				Region:     aws.StringValue(instance.Placement.AvailabilityZone),
-				State:      aws.StringValue(instance.State.Name),
-				Purchasing: getPurchasingOption(instance),
-				KeyPair:    aws.StringValue(instance.KeyName),
-				Tags:       getInstanceTag(instance.Tags),
-				Type:       aws.StringValue(instance.InstanceType),
-				Costs:      costs,
-				Stats:      stats,
+				InstanceBase: InstanceBase{
+					Id:         aws.StringValue(instance.InstanceId),
+					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
+					State:      aws.StringValue(instance.State.Name),
+					Purchasing: getPurchasingOption(instance),
+					KeyPair:    aws.StringValue(instance.KeyName),
+					Type:       aws.StringValue(instance.InstanceType),
+				},
+				Tags:  getInstanceTag(instance.Tags),
+				Costs: costs,
+				Stats: stats,
 			}
 		}
 	}
@@ -100,10 +102,12 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 	instances := make([]InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
 		instances = append(instances, InstanceReport{
-			Account:    account,
-			ReportDate: now,
-			ReportType: "daily",
-			Instance:   instance,
+			ReportBase: utils.ReportBase{
+				Account:    account,
+				ReportDate: now,
+				ReportType: "daily",
+			},
+			Instance: instance,
 		})
 	}
 	return importInstancesToEs(ctx, awsAccount, instances)

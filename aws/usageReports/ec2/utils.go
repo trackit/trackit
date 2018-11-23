@@ -34,23 +34,26 @@ const MonitorInstanceStsSessionName = "monitor-instance"
 type (
 	// InstanceReport is saved in ES to have all the information of an EC2 instance
 	InstanceReport struct {
-		Account    string    `json:"account"`
-		ReportDate time.Time `json:"reportDate"`
-		ReportType string    `json:"reportType"`
-		Instance   Instance  `json:"instance"`
+		utils.ReportBase
+		Instance Instance `json:"instance"`
 	}
 
-	// Instance contains the information of an EC2 instance
+	// InstanceBase contains basics information of an EC2 instance
+	InstanceBase struct {
+		Id         string `json:"id"`
+		Region     string `json:"region"`
+		State      string `json:"state"`
+		Purchasing string `json:"purchasing"`
+		KeyPair    string `json:"keyPair"`
+		Type       string `json:"type"`
+	}
+
+	// Instance contains all the information of an EC2 instance
 	Instance struct {
-		Id         string             `json:"id"`
-		Region     string             `json:"region"`
-		State      string             `json:"state"`
-		Purchasing string             `json:"purchasing"`
-		KeyPair    string             `json:"keyPair"`
-		Type       string             `json:"type"`
-		Tags       []Tag              `json:"tags"`
-		Costs      map[string]float64 `json:"costs"`
-		Stats      Stats              `json:"stats"`
+		InstanceBase
+		Tags  []utils.Tag        `json:"tags"`
+		Costs map[string]float64 `json:"costs"`
+		Stats Stats              `json:"stats"`
 	}
 
 	// Stats contains statistics of an instance get on CloudWatch
@@ -77,12 +80,6 @@ type (
 		Id    string  `json:"id"`
 		Read  float64 `json:"read"`
 		Write float64 `json:"write"`
-	}
-
-	// Tag contains the key of a tag and his value
-	Tag struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
 	}
 )
 

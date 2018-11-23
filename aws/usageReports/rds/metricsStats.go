@@ -23,7 +23,30 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit-server/aws/usageReports"
 )
+
+// getInstanceTags returns an array of tags associated to the RDS instance given as parameter
+func getInstanceTags(ctx context.Context, instance *rds.DBInstance, svc *rds.RDS) []utils.Tag {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	desc := rds.ListTagsForResourceInput{
+		ResourceName: instance.DBInstanceArn,
+	}
+	res, err := svc.ListTagsForResource(&desc)
+	if err != nil {
+		logger.Error("Failed to get RDS tags", err.Error())
+		return []utils.Tag{}
+	}
+	tags := make([]utils.Tag, len(res.TagList))
+	for i, tag := range res.TagList {
+		tags[i] = utils.Tag{
+			Key:   aws.StringValue(tag.Key),
+			Value: aws.StringValue(tag.Value),
+		}
+	}
+	return tags
+}
 
 // getInstanceCPUStats gets the CPU average and the CPU peak from CloudWatch
 func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {

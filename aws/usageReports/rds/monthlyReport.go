@@ -45,18 +45,22 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 		return err
 	}
 	for _, DBInstance := range instances.DBInstances {
+		tags := getInstanceTags(ctx, DBInstance, svc)
 		stats := getInstanceStats(ctx, DBInstance, sess, startDate, endDate)
 		costs := make(map[string]float64, 0)
 		costs["instance"] = inst.Cost
 		instanceChan <- Instance{
-			DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
-			AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
-			DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
-			Engine:               aws.StringValue(DBInstance.Engine),
-			AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
-			MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
-			Costs:                costs,
-			Stats:                stats,
+			InstanceBase: InstanceBase{
+				DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
+				AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
+				DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
+				Engine:               aws.StringValue(DBInstance.Engine),
+				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
+				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
+			},
+			Tags:  tags,
+			Costs: costs,
+			Stats: stats,
 		}
 	}
 	return nil
@@ -97,10 +101,12 @@ func getRdsMetrics(ctx context.Context, instancesList []utils.CostPerResource, a
 	instances := make([]InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
 		instances = append(instances, InstanceReport{
-			Account:    account,
-			ReportDate: startDate,
-			ReportType: "monthly",
-			Instance:   instance,
+			ReportBase: utils.ReportBase{
+				Account:    account,
+				ReportDate: startDate,
+				ReportType: "monthly",
+			},
+			Instance: instance,
 		})
 	}
 	return instances, nil

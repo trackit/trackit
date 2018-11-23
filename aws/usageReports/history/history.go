@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -27,6 +28,7 @@ import (
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/es"
 )
@@ -75,7 +77,7 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
+	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("productCode", product))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
@@ -88,8 +90,14 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 		if elastic.IsNotFound(err) {
 			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return nil, http.StatusOK, err
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			logger.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			logger.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		logger.Error("Query execution failed", err.Error())
 		return nil, http.StatusInternalServerError, err
 	}
 	return result, http.StatusOK, nil
@@ -151,7 +159,7 @@ func concatErrors(tabError []error) error {
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var ec2Created, rdsCreated bool
+	var ec2Created, rdsCreated, esCreated bool
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
@@ -161,8 +169,12 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	if rdsErr == nil {
 		rdsCreated, rdsErr = rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
 	}
-	reportsCreated := (ec2Created || rdsCreated)
-	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr})
+	esCost, esErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonES")
+	if esErr == nil {
+		esCreated, esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
+	}
+	reportsCreated := (ec2Created || rdsCreated || esCreated)
+	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.
@@ -170,7 +182,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("usageAccountId", es.GetAccountIdFromRoleArn(aa.RoleArn)))
+	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("invoiceId", ""))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
@@ -180,8 +192,14 @@ func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 		if elastic.IsNotFound(err) {
 			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return false, nil
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			logger.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			logger.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		logger.Error("Query execution failed", err.Error())
 		return false, err
 	}
 	if result.Hits.TotalHits == 0 {

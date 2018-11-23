@@ -47,7 +47,7 @@ func createQueryAccountFilterRds(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// GetElasticSearchRdsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchRdsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
 // 	- params RdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
@@ -58,7 +58,7 @@ func createQueryAccountFilterRds(accountList []string) *elastic.TermsQuery {
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchRdsDailyParams(params RdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchRdsDailyParams(params RdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilterRds(params.AccountList))
@@ -74,7 +74,7 @@ func GetElasticSearchRdsDailyParams(params RdsQueryParams, client *elastic.Clien
 	return search
 }
 
-// GetElasticSearchRdsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchRdsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
 // 	- params RdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
@@ -85,7 +85,7 @@ func GetElasticSearchRdsDailyParams(params RdsQueryParams, client *elastic.Clien
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchRdsMonthlyParams(params RdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchRdsMonthlyParams(params RdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilterRds(params.AccountList))
@@ -107,7 +107,7 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("usageAccountId", accountListFormatted...)
 }
 
-// GetElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
 // 	- params RdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
@@ -118,7 +118,7 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchCostParams(params RdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchCostParams(params RdsQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilterBill(params.AccountList))

@@ -28,16 +28,16 @@ type (
 	// Ec2QueryParams will store the parsed query params
 	Ec2QueryParams struct {
 		AccountList []string
-		indexList   []string
+		IndexList   []string
 		Date        time.Time
 	}
 
 	// Ec2UnusedQueryParams will store the parsed query params
 	Ec2UnusedQueryParams struct {
-		accountList []string
-		indexList   []string
-		date        time.Time
-		count       int
+		AccountList []string
+		IndexList   []string
+		Date        time.Time
+		Count       int
 	}
 )
 
@@ -110,15 +110,15 @@ func getEc2UnusedInstances(request *http.Request, a routes.Arguments) (int, inte
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := Ec2UnusedQueryParams{
-		accountList: []string{},
-		date:        a[routes.DateQueryArg].(time.Time),
-		count:       -1,
+		AccountList: []string{},
+		Date:        a[routes.DateQueryArg].(time.Time),
+		Count:       -1,
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
-		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
+		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	if a[ec2UnusedQueryArgs[2]] != nil {
-		parsedParams.count = a[ec2UnusedQueryArgs[2]].(int)
+		parsedParams.Count = a[ec2UnusedQueryArgs[2]].(int)
 	}
 	returnCode, report, err := GetEc2UnusedData(request.Context(), parsedParams, user, tx)
 	if err != nil {

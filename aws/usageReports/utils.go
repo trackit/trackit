@@ -16,6 +16,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -29,12 +30,27 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-// CostPerResource associates a cost (float64) to an aws instance (string)
-type CostPerResource struct {
-	Resource string
-	Cost     float64
-	Region   string
-}
+type (
+	// CostPerResource associates a cost to an aws resourceId with a region
+	CostPerResource struct {
+		Resource string
+		Cost     float64
+		Region   string
+	}
+
+	// BaseReport contains basic information for any kin of usage report
+	ReportBase struct {
+		Account    string    `json:"account"`
+		ReportDate time.Time `json:"reportDate"`
+		ReportType string    `json:"reportType"`
+	}
+
+	// Tag contains the key of a tag and his value
+	Tag struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	}
+)
 
 const (
 	mebibyte = 1 << 20
@@ -141,7 +157,7 @@ func FetchRegionsList(ctx context.Context, sess *session.Session) ([]string, err
 func CheckMonthlyReportExists(ctx context.Context, date time.Time, aa taws.AwsAccount, prefix string) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("account", es.GetAccountIdFromRoleArn(aa.RoleArn)))
+	query = query.Filter(elastic.NewTermQuery("account", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("reportDate", date))
 	index := es.IndexNameForUserId(aa.UserId, prefix)
 	result, err := es.Client.Search().Index(index).Size(1).Query(query).Do(ctx)
@@ -149,8 +165,14 @@ func CheckMonthlyReportExists(ctx context.Context, date time.Time, aa taws.AwsAc
 		if elastic.IsNotFound(err) {
 			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return false, nil
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			logger.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			logger.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		logger.Error("Query execution failed", err.Error())
 		return false, err
 	}
 	if result.Hits.TotalHits == 0 {

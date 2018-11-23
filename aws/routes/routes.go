@@ -101,6 +101,19 @@ func init() {
 	}.H().Register("/aws/next")
 }
 
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getAwsAccountsStatus).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.Documentation{
+				Summary:     "get status of aws accounts",
+				Description: "Gets status of AWS Accounts and their bill repositories.",
+			},
+		),
+	}.H().Register("/aws/status")
+}
+
 // decodeRequestBody decodes a JSON request body and returns nil in case it
 // could do so.
 func decodeRequestBody(request *http.Request, structuredBody interface{}) error {

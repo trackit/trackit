@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/usageReports/ec2"
