@@ -51,7 +51,7 @@ func getElasticSearchEc2Instance(ctx context.Context, account, instance string, 
 				"error": err.Error(),
 			})
 			return nil, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,

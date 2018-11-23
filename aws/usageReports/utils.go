@@ -16,6 +16,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -164,8 +165,14 @@ func CheckMonthlyReportExists(ctx context.Context, date time.Time, aa taws.AwsAc
 		if elastic.IsNotFound(err) {
 			logger.Warning("Query execution failed, ES index does not exists", map[string]interface{}{"index": index, "error": err.Error()})
 			return false, nil
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			logger.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			logger.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		logger.Error("Query execution failed", err.Error())
 		return false, err
 	}
 	if result.Hits.TotalHits == 0 {
