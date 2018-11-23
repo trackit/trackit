@@ -51,6 +51,7 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var updateId int64
+	var generation bool
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -64,7 +65,7 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
-	} else if generation, err := checkReportGeneration(ctx, aa); err != nil && !generation {
+	} else if generation, err = checkReportGeneration(ctx, db.Db, aa); err != nil || !generation {
 	} else {
 		errs := reports.GenerateReport(ctx, aa)
 		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs)
@@ -79,7 +80,7 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 	return
 }
 
-func checkReportGeneration(ctx context.Context, aa aws.AwsAccount) (bool, error) {
+func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := history.GetHistoryDate()
 	logger.Info("Checking report generation conditions", map[string]interface{}{
@@ -89,11 +90,9 @@ func checkReportGeneration(ctx context.Context, aa aws.AwsAccount) (bool, error)
 	})
 	complete, err := history.CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
-		logger.Info("Error while checking if billin data are completed", map[string]interface{}{
+		logger.Info("Error while checking if billing data are completed", map[string]interface{}{
 			"awsAccountId": aa.Id,
-			"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
-			"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
-			"error": err,
+			"error":        err,
 		})
 		return false, err
 	} else if !complete {
@@ -102,15 +101,53 @@ func checkReportGeneration(ctx context.Context, aa aws.AwsAccount) (bool, error)
 		})
 		return false, nil
 	}
-	// get last generation date
-	//check if new monthly reports are available
-	return true, nil
+	dbAccount, err := models.AwsAccountByID(db, aa.Id)
+	if err != nil {
+		logger.Info("Error while getting AWS account", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err,
+		})
+		return false, err
+	}
+	if dbAccount.LastSpreadsheetReportGeneration.Before(endDate) {
+		return true, nil
+	}
+	dbProcessAccountJobs, err := models.AwsAccountUpdateJobsByAwsAccountID(db, aa.Id)
+	if err != nil {
+		logger.Info("Error while getting process account job", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err,
+		})
+		return false, err
+	}
+	if len(dbProcessAccountJobs) == 0 {
+		return false, nil
+	}
+	dbProcessAccountJob, err := models.GetLatestAccountUpdateJob(db, aa.Id)
+	if err != nil {
+		logger.Info("Error while getting last process account job", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err,
+		})
+		return false, err
+	}
+	logger.Error("dbProcessAccountJob", dbProcessAccountJob)
+	if dbProcessAccountJob.MonthlyReportsGenerated {
+		if dbAccount.LastSpreadsheetReportGeneration.Before(dbProcessAccountJob.Completed) {
+			return true, nil
+		}
+	}
+	logger.Info("No new monthly reports", map[string]interface{}{
+		"awsAccountId": aa.Id,
+		"error":        err,
+	})
+	return false, nil
 }
 
 func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	dbReportGeneration := models.AwsAccountReportsJob{
 		AwsAccountID: aa.Id,
-		WorkerID: backendId,
+		WorkerID:     backendId,
 	}
 	err := dbReportGeneration.Insert(db)
 	if err != nil {

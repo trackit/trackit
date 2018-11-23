@@ -21,7 +21,7 @@ func GetLatestAccountUpdateJob(db XODB, accountId int) (*AwsAccountUpdateJob, er
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, rdsError ` +
+		`id, aws_account_id, completed, worker_id, jobError, rdsError, monthly_reports_generated ` +
 		`FROM trackit.aws_account_update_job ` +
 		`WHERE aws_account_id = ? ORDER BY completed DESC LIMIT 1`
 
@@ -31,7 +31,7 @@ func GetLatestAccountUpdateJob(db XODB, accountId int) (*AwsAccountUpdateJob, er
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, accountId).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror)
+	err = db.QueryRow(sqlstr, accountId).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.MonthlyReportsGenerated)
 	if err != nil {
 		return nil, err
 	}
