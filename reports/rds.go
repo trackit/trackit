@@ -17,7 +17,9 @@ package reports
 import (
 	"context"
 	"database/sql"
+
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/usageReports/rds"
@@ -88,7 +90,7 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 
 	parameters := rds.RdsQueryParams{
 		AccountList: []string{identity},
-		Date: date,
+		Date:        date,
 	}
 
 	logger.Debug("Getting RDS Usage Report for account", map[string]interface{}{
