@@ -38,17 +38,72 @@ type spreadsheet struct {
 }
 
 type sheet struct {
-	name   string
-	data   [][]string
+	name string
+	data [][]cell
+}
+
+type cell struct {
+	value interface{}
+	width int
+	style *xlsx.Style
+}
+
+func (c cell) setValueToCell(newCell *xlsx.Cell) {
+	switch value := c.value.(type) {
+	case int:
+		newCell.SetInt(value)
+		break
+	case float64:
+		newCell.SetFloat(value)
+		break
+	case bool:
+		newCell.SetBool(value)
+		break
+	case string:
+		newCell.SetString(value)
+		break
+	default:
+		if defaultValue, ok := value.(string); ok {
+			newCell.SetString(defaultValue)
+		} else {
+			newCell.SetString("Invalid Data")
+		}
+	}
+}
+
+func newCell(value interface{}, dimensions ...int) cell {
+	width := 1
+	if len(dimensions) > 0 {
+		width = dimensions[0]
+	}
+	item := cell{
+		value: value,
+		width: width,
+		style: xlsx.NewStyle(),
+	}
+	item.addStyle(defaultStyle{})
+	return item
 }
 
 func convertToSheet(raw sheet) (sheet xlsx.Sheet) {
+	var horizontalPadding int
 	sheet = xlsx.Sheet{Name: raw.name}
 	for _, rawRow := range raw.data {
+		horizontalPadding = 0
 		row := sheet.AddRow()
 		for _, rawCell := range rawRow {
-			cell := row.AddCell()
-			cell.Value = rawCell
+			for horizontalPadding > 0 {
+				row.AddCell()
+				horizontalPadding--
+			}
+			newCell := row.AddCell()
+			rawCell.setValueToCell(newCell)
+			if rawCell.width > 1 {
+				rawCell.width--
+				newCell.HMerge = rawCell.width
+				horizontalPadding = rawCell.width
+			}
+			newCell.SetStyle(rawCell.style)
 		}
 	}
 	return
@@ -75,10 +130,22 @@ func generateSpreadsheet(ctx context.Context, aa taws.AwsAccount, date string, s
 	return &spreadsheet{account: aa, date: date, file: file}, errors
 }
 
+func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet) (err error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	filename := fmt.Sprintf("/reports/TRACKIT_%s_%s.xlsx", file.account.Pretty, file.date)
+
+	err = file.file.Save(filename)
+	if err != nil {
+		logger.Error("Error while saving file", err)
+	}
+	return
+}
+
 func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	filename := fmt.Sprintf("%s.xlsx", file.date)
+	filename := fmt.Sprintf("TRACKIT_%s_%s.xlsx", file.account.Pretty, file.date)
 	reportPath := path.Join(strconv.Itoa(file.account.Id), "generated-report", filename)
 
 	logger.Info("Uploading spreadsheet", reportPath)
@@ -91,7 +158,7 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 		if err != nil {
 			logger.Error("Error while saving report", map[string]interface{}{
 				"report": reportPath,
-				"error": err.Error(),
+				"error":  err.Error(),
 			})
 		}
 	}()
@@ -105,7 +172,7 @@ func saveSpreadsheet(ctx context.Context, file *spreadsheet) (err error) {
 	if err != nil {
 		logger.Error("Failed to upload report", map[string]interface{}{
 			"report": reportPath,
-			"error": err.Error(),
+			"error":  err.Error(),
 		})
 	} else {
 		logger.Info("Spreadsheet successfully uploaded", result.Location)

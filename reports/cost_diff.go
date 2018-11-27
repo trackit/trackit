@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -28,8 +27,8 @@ import (
 )
 
 type costDiffValue struct {
-	Cost      string
-	Variation string
+	Cost      float64
+	Variation float64
 }
 
 type costDiffProduct map[string]costDiffValue
@@ -66,22 +65,22 @@ func formatCostDiff(data []diff.PricePoint) (values costDiffProduct) {
 			date = key.Date
 		}
 		values[date] = costDiffValue{
-			Cost: strconv.FormatFloat(key.Cost, 'f', -1, 64),
-			Variation: strconv.FormatFloat(key.PercentVariation, 'f', -1, 64),
+			Cost: key.Cost,
+			Variation: key.PercentVariation / 100,
 		}
 	}
 	return
 }
 
-func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]string, err error) {
+func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Getting Cost Differentiator Report for account", map[string]interface{}{
 		"account": aa,
 	})
 
-	data = make([][]string, 0)
-	header := make([]string, 0)
-	header = append(header, "Product")
+	data = make([][]cell, 0)
+	header := make([]cell, 0)
+	header = append(header, newCell("Product").addStyle(textCenter, textBold, backgroundGrey))
 
 	rawData := make(map[string]costDiffProduct)
 
@@ -96,24 +95,30 @@ func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]s
 
 	dates := getDates(rawData)
 	for _, date := range dates {
-		header = append(header, date + " - Cost")
+		header = append(header, newCell(date + " - Cost").addStyle(textCenter, textBold, backgroundGrey))
 		if len(header) > 2 {
-			header = append(header, date + " - Variation")
+			header = append(header, newCell(date + " - Variation").addStyle(textCenter, textBold, backgroundGrey),)
 		}
 	}
 	data = append(data, header)
 	for product, value := range rawData {
-		row := make([]string, 0)
-		row = append(row, product)
+		row := make([]cell, 0)
+		row = append(row, newCell(product).addStyle(backgroundLightGrey))
 		for _, date := range dates {
 			if cost, ok := value[date] ; ok {
-				row = append(row, cost.Cost)
+				row = append(row, newCell(cost.Cost))
 				if len(row) > 2 {
-					row = append(row, cost.Variation)
+					cell := newCell(cost.Variation)
+					if cost.Variation < 0 {
+						cell.addStyle(backgroundGreen)
+					} else if cost.Variation > 0 {
+						cell.addStyle(backgroundRed)
+					}
+					row = append(row, cell)
 				}
 			} else {
-				row = append(row, "N/A")
-				row = append(row, "N/A")
+				row = append(row, newCell("N/A"))
+				row = append(row, newCell("N/A"))
 			}
 		}
 		data = append(data, row)

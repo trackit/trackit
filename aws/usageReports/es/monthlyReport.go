@@ -134,7 +134,7 @@ func filterEsDomains(esCost []utils.CostPerResource) []utils.CostPerResource {
 }
 
 // PutEsMonthlyReport puts a monthly report of ES in ES
-func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
+func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting ES monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -144,18 +144,22 @@ func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa 
 	costInstance := filterEsDomains(esCost)
 	if len(costInstance) == 0 {
 		logger.Info("No ES domains found in billing data.", nil)
-		return nil
+		return false, nil
 	}
 	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixESReport)
 	if err != nil {
-		return err
+		return false, err
 	} else if already {
 		logger.Info("There is already an ES monthly report", nil)
-		return nil
+		return false, nil
 	}
 	report, err := getEsMetrics(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {
-		return err
+		return false, err
 	}
-	return importDomainsToEs(ctx, aa, report)
+	err = importDomainsToEs(ctx, aa, report)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

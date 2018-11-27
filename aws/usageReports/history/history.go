@@ -158,26 +158,28 @@ func concatErrors(tabError []error) error {
 }
 
 // getInstanceInfo sort products and call history reports
-func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) error {
+func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
+	var ec2Created, rdsCreated, esCreated bool
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
-		ec2Err = ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+		ec2Created, ec2Err = ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
 	}
 	rdsCost, rdsErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonRDS")
 	if rdsErr == nil {
-		rdsErr = rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
+		rdsCreated, rdsErr = rds.PutRdsMonthlyReport(ctx, rdsCost, aa, startDate, endDate)
 	}
 	esCost, esErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonES")
 	if esErr == nil {
-		esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
+		esCreated, esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
 	}
-	return concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
+	reportsCreated := (ec2Created || rdsCreated || esCreated)
+	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
 }
 
-// checkBillingDataCompleted checks if billing data in ES are complete.
+// CheckBillingDataCompleted checks if billing data in ES are complete.
 // If they are complete it returns true, otherwise it returns false.
-func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
+func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
@@ -208,7 +210,7 @@ func checkBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 }
 
 // FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
-func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
+func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	startDate, endDate := GetHistoryDate()
 	logger.Info("Starting history report", map[string]interface{}{
@@ -216,12 +218,12 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) error {
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	complete, err := checkBillingDataCompleted(ctx, startDate, endDate, aa)
+	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
-		return err
+		return false, err
 	} else if complete == false {
 		logger.Info("Billing data are not completed", nil)
-		return ErrBillingDataIncomplete
+		return false, ErrBillingDataIncomplete
 	}
 	return getInstancesInfo(ctx, aa, startDate, endDate)
 }
