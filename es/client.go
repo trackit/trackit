@@ -65,7 +65,7 @@ func getElasticSearchConfig() []elastic.ClientOptionFunc {
 
 // getElasticSearchUrlConfig gets the SetURL elastic.ClientOptionFunc.
 func getElasticSearchUrlConfig() elastic.ClientOptionFunc {
-	return elastic.SetURL(config.EsAddress)
+	return elastic.SetURL(config.EsAddress...)
 }
 
 // getElasticSearchAuthConfig gets the elastic.ClientOptionFunc responsible for
@@ -151,16 +151,20 @@ func getElasticSearchEc2RoleAuth() elastic.ClientOptionFunc {
 // getElasticSearchEc2RoleAuthOptionFunc builds the option funcs to sign
 // requests with the provided AWS credentials.
 func getElasticSearchEc2RoleAuthOptionFunc(creds *credentials.Credentials) elastic.ClientOptionFunc {
-	if cofs, err := NewSignedElasticClientOptions(config.EsAddress, creds); err == nil {
-		return configEach(cofs...)
-	} else {
-		jsonlog.DefaultLogger.Error(
-			"Could not configure ElasticSearch client IAM auth: failed to create signing HTTP client.",
-			err.Error(),
-		)
-		os.Exit(1)
-		return nil
+	cofs := make([]elastic.ClientOptionFunc, 0)
+	for _, address := range config.EsAddress {
+		if rcofs, err := NewSignedElasticClientOptions(address, creds); err == nil {
+			cofs = append(cofs, rcofs...)
+		} else {
+			jsonlog.DefaultLogger.Error(
+				"Could not configure ElasticSearch client IAM auth: failed to create signing HTTP client.",
+				err.Error(),
+			)
+			os.Exit(1)
+			return nil
+		}
 	}
+	return configEach(cofs...)
 }
 
 // configNoop does not alter the ElasticSearch configuration.

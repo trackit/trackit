@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2018 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ var (
 	// It can be 'basic:user:password' for basic authentication.
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
-	EsAddress string
+	EsAddress stringArray
 	// SmtpAddress is the SMTP address where to send mails.
 	SmtpAddress string
 	// SmtpPort is the SMTP port where to send mails.
@@ -111,7 +111,7 @@ func init() {
 	flag.StringVar(&DefaultRoleBucket, "default-role-bucket", "", "The bucket name for the default role.")
 	flag.StringVar(&DefaultRoleBucketPrefix, "default-role-bucket-prefix", "", "The billing prefix for the default role.")
 	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
-	flag.StringVar(&EsAddress, "es-address", "http://127.0.0.1:9200", "The address of the ElasticSearch database.")
+	flag.Var(&EsAddress, "es-address", "The address of the ElasticSearch database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.StringVar(&UrlEc2Pricing, "url-ec2-pricing", "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json", "The URL used to download the EC2 pricing.")
 	flag.StringVar(&SmtpAddress, "smtp-address", "", "The address of the SMTP server.")
@@ -133,4 +133,7 @@ func init() {
 	flag.StringVar(&AnomalyDetectionPrettyLevels, "anomaly-detection-pretty-levels", "low,medium,high,critical", "Pretty names of the levels.")
 	flag.IntVar(&AnomalyEmailingMinLevel, "anomaly-emailing-min-level", 2, "Minimum level for the mail to be sent.")
 	flag.Parse()
+	if len(EsAddress) == 0 {
+		EsAddress = stringArray{"http://127.0.0.1:9200"}
+	}
 }
