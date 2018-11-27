@@ -160,7 +160,7 @@ func concatErrors(tabError []error) error {
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var ec2Created, rdsCreated, esCreated bool
+	var ec2Created, rdsCreated, esCreated, elastiCacheCreated bool
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
@@ -176,9 +176,9 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	}
 	elastiCacheCost, elastiCacheErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonElastiCache")
 	if elastiCacheErr == nil {
-		elastiCacheErr = elasticache.PutElastiCacheMonthlyReport(ctx, elastiCacheCost, aa, startDate, endDate)
+		elastiCacheCreated, elastiCacheErr = elasticache.PutElastiCacheMonthlyReport(ctx, elastiCacheCost, aa, startDate, endDate)
 	}
-	reportsCreated := (ec2Created || rdsCreated || esCreated)
+	reportsCreated := (ec2Created || rdsCreated || esCreated || elastiCacheCreated)
 	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr, elastiCacheErr})
 }
 

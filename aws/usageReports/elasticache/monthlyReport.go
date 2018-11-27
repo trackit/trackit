@@ -22,11 +22,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/trackit/jsonlog"
+
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/config"
-	"github.com/aws/aws-sdk-go/service/elasticache"
 )
 
 // fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
@@ -132,7 +133,7 @@ func filterElastiCacheInstances(elastiCacheCost []utils.CostPerResource) []utils
 }
 
 // PutElastiCacheMonthlyReport puts a monthly report of ElastiCache instance in ES
-func PutElastiCacheMonthlyReport(ctx context.Context, costs []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
+func PutElastiCacheMonthlyReport(ctx context.Context, costs []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting ElastiCache monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -142,18 +143,22 @@ func PutElastiCacheMonthlyReport(ctx context.Context, costs []utils.CostPerResou
 	costs = filterElastiCacheInstances(costs)
 	if len(costs) == 0 {
 		logger.Info("No ElastiCache instances found in billing data.", nil)
-		return nil
+		return false, nil
 	}
 	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixElastiCacheReport)
 	if err != nil {
-		return err
+		return false, err
 	} else if already {
 		logger.Info("There is already an ElastiCache monthly report", nil)
-		return nil
+		return false, nil
 	}
 	instances, err := fetchMonthlyInstancesStats(ctx, costs, aa, startDate, endDate)
 	if err != nil {
-		return err
+		return false, err
 	}
-	return importInstancesToEs(ctx, aa, instances)
+	if err = importInstancesToEs(ctx, aa, instances); err != nil {
+		return false, err
+	} else {
+		return true, nil
+	}
 }

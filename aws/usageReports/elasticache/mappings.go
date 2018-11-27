@@ -102,6 +102,33 @@ const TemplateElastiCacheReport = `
 						},
 						"costs": {
 							"type": "object"
+						},
+						"stats": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": "object",
+									"properties": {
+											"average": {
+												"type": "double"
+											},
+											"peak": {
+												"type": "double"
+											}
+									}
+								},
+								"network": {
+									"type": "object",
+									"properties": {
+											"in": {
+												"type": "double"
+											},
+											"out": {
+												"type": "double"
+											}
+									}
+								}
+							}
 						}
 					}
 				}

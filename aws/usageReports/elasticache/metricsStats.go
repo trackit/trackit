@@ -15,14 +15,15 @@
 package elasticache
 
 import (
-	"time"
 	"context"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/elasticache"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
+	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
@@ -41,7 +42,7 @@ func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc 
 	}
 	for _, tag := range res.TagList {
 		tags = append(tags, utils.Tag{
-			Key: aws.StringValue(tag.Key),
+			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})
 	}

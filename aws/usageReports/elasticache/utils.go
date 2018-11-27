@@ -65,8 +65,8 @@ type (
 
 	// Stats contains statistics of an instance get on CloudWatch
 	Stats struct {
-		Cpu     Cpu      `json:"cpu"`
-		Network Network  `json:"network"`
+		Cpu     Cpu     `json:"cpu"`
+		Network Network `json:"network"`
 	}
 
 	// Cpu contains cpu statistics of an instance
