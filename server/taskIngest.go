@@ -105,11 +105,10 @@ func updateSubAccounts(ctx context.Context, aa aws.AwsAccount) {
 			}
 		}
 	}()
-	if tx, err = db.Db.BeginTx(ctx, nil); err == nil {
-		err = aws.PutSubAccounts(ctx, aa, tx)
-	}
-	if err != nil {
-		logger.Error("Failed to update sub accounts.", map[string]interface{}{
+	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
+		logger.Error("Failed to get DB Tx", err.Error())
+	} else if err = aws.PutSubAccounts(ctx, aa, tx); err != nil {
+		logger.Warning("Failed to update sub accounts.", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
 		})
