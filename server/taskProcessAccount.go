@@ -29,6 +29,7 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 )
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
@@ -71,6 +72,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		esErr := processAccountES(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr, historyCreated)
+		reservedInstances.FetchDailyInstancesStats(ctx, aa)
 	}
 	if err != nil {
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, false)
