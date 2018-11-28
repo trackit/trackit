@@ -109,7 +109,7 @@ func setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories
 			}
 			billRepositories = append(billRepositories, newBillRepo)
 		}
-		if len(awsAccount.SubAccounts) > 0 {
+		if awsAccount.SubAccounts != nil && len(awsAccount.SubAccounts) > 0 {
 			subAccounts = setStatusForAwsAccountsWithBillRepositories(awsAccount.SubAccounts, jobs)
 		}
 		account := awsAccountWithStatus{
