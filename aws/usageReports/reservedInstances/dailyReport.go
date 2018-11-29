@@ -46,7 +46,6 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		return err
 	}
 	for _, reservation := range instances.ReservedInstances {
-		costs := make(map[string]float64, 0)
 		instanceChan <- Instance{
 			InstanceBase: InstanceBase{
 				Id:              aws.StringValue(reservation.ReservedInstancesId),
@@ -61,7 +60,6 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				InstanceTenancy: aws.StringValue(reservation.InstanceTenancy),
 			},
 			Tags:  getInstanceTag(reservation.Tags),
-			Costs: costs,
 		}
 	}
 	return nil
@@ -106,6 +104,7 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",
+				Service: "EC2",
 			},
 			Instance: instance,
 		})

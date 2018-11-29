@@ -55,6 +55,9 @@ const TemplateLineItem = `
 				"reportType": {
 					"type": "keyword"
 				},
+				"service": {
+					"type": "keyword"
+				},
 				"instance": {
 					"properties": {
 						"id": {
@@ -98,9 +101,6 @@ const TemplateLineItem = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
-						}
 					}
 				}
 			},

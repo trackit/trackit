@@ -56,7 +56,6 @@ type (
 	Instance struct {
 		InstanceBase
 		Tags  []utils.Tag        `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
 	}
 )
 

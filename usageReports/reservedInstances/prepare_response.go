@@ -17,8 +17,6 @@ package reservedInstances
 import (
 	"context"
 	"encoding/json"
-	"strings"
-
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
@@ -91,7 +89,6 @@ type (
 	Instance struct {
 		reservedInstances.InstanceBase
 		Tags  map[string]string  `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
 	}
 )
 
@@ -105,33 +102,9 @@ func getReservedInstancesInstanceReportResponse(oldInstance reservedInstances.In
 		Instance: Instance{
 			InstanceBase: oldInstance.Instance.InstanceBase,
 			Tags:         tags,
-			Costs:        oldInstance.Instance.Costs,
 		},
 	}
 	return newInstance
-}
-
-// addCostToInstance adds a cost for an instance based on billing data
-func addCostToInstance(instance reservedInstances.InstanceReport, costs ResponseCost) reservedInstances.InstanceReport {
-	if instance.Instance.Costs == nil {
-		instance.Instance.Costs = make(map[string]float64, 0)
-	}
-	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != instance.Account {
-			continue
-		}
-		for _, instanceCost := range accounts.Instances.Buckets {
-			if strings.Contains(instanceCost.Key, instance.Instance.Id) {
-				if len(instanceCost.Key) == 19 && strings.HasPrefix(instanceCost.Key, "i-") {
-					instance.Instance.Costs["instance"] += instanceCost.Cost.Value
-				} else {
-					instance.Instance.Costs["cloudwatch"] += instanceCost.Cost.Value
-				}
-			}
-		}
-		return instance
-	}
-	return instance
 }
 
 // prepareResponseReservedInstancesDaily parses the results from elasticsearch and returns an array of ReservedInstances daily instances report
@@ -161,7 +134,6 @@ func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInsta
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
 				for _, instance := range date.Instances.Hits.Hits {
-					instance.Instance = addCostToInstance(instance.Instance, parsedCost)
 					instances = append(instances, getReservedInstancesInstanceReportResponse(instance.Instance))
 				}
 			}
