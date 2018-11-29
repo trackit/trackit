@@ -21,8 +21,8 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 )
 
 type (
@@ -32,90 +32,90 @@ type (
 		Accounts struct {
 			Buckets []struct {
 				Key       string `json:"key"`
-				Instances struct {
+				Reservations struct {
 					Buckets []struct {
 						Key  string `json:"key"`
 						Cost struct {
 							Value float64 `json:"value"`
 						} `json:"cost"`
 					} `json:"buckets"`
-				} `json:"instances"`
+				} `json:"reservations"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ReservedInstances Monthly instances
-	ResponseReservedInstancesMonthly struct {
+	// Structure that allow to parse ES response for ReservedReservations Monthly reservations
+	ResponseReservedReservationsMonthly struct {
 		Accounts struct {
 			Buckets []struct {
-				Instances struct {
+				Reservations struct {
 					Hits struct {
 						Hits []struct {
-							Instance reservedInstances.InstanceReport `json:"_source"`
+							Reservation reservedInstances.ReservationReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"instances"`
+				} `json:"reservations"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ReservedInstances Daily instances
-	ResponseReservedInstancesDaily struct {
+	// Structure that allow to parse ES response for ReservedReservations Daily reservations
+	ResponseReservedReservationsDaily struct {
 		Accounts struct {
 			Buckets []struct {
 				Dates struct {
 					Buckets []struct {
 						Time      string `json:"key_as_string"`
-						Instances struct {
+						Reservations struct {
 							Hits struct {
 								Hits []struct {
-									Instance reservedInstances.InstanceReport `json:"_source"`
+									Reservation reservedInstances.ReservationReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
-						} `json:"instances"`
+						} `json:"reservations"`
 					} `json:"buckets"`
 				} `json:"dates"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// InstanceReport has all the information of an ReservedInstances instance report
-	InstanceReport struct {
+	// ReservationReport has all the information of an ReservedReservations reservation report
+	ReservationReport struct {
 		utils.ReportBase
-		Instance Instance `json:"instance"`
+		Reservation Reservation `json:"reservation"`
 	}
 
-	// Instance contains the information of an ReservedInstances instance
-	Instance struct {
-		reservedInstances.InstanceBase
+	// Reservation contains the information of an ReservedReservations reservation
+	Reservation struct {
+		reservedInstances.ReservationBase
 		Tags  map[string]string  `json:"tags"`
 	}
 )
 
-func getReservedInstancesInstanceReportResponse(oldInstance reservedInstances.InstanceReport) InstanceReport {
+func getReservedReservationsInstanceReportResponse(oldReservation reservedInstances.ReservationReport) ReservationReport {
 	tags := make(map[string]string, 0)
-	for _, tag := range oldInstance.Instance.Tags {
+	for _, tag := range oldReservation.Reservation.Tags {
 		tags[tag.Key] = tag.Value
 	}
-	newInstance := InstanceReport{
-		ReportBase: oldInstance.ReportBase,
-		Instance: Instance{
-			InstanceBase: oldInstance.Instance.InstanceBase,
+	newReservation := ReservationReport{
+		ReportBase: oldReservation.ReportBase,
+		Reservation: Reservation{
+			ReservationBase: oldReservation.Reservation.ReservationBase,
 			Tags:         tags,
 		},
 	}
-	return newInstance
+	return newReservation
 }
 
-// prepareResponseReservedInstancesDaily parses the results from elasticsearch and returns an array of ReservedInstances daily instances report
-func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInstances *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceReport, error) {
+// prepareResponseReservedReservationsDaily parses the results from elasticsearch and returns an array of ReservedReservations daily reservations report
+func prepareResponseReservedReservationsDaily(ctx context.Context, resReservedReservations *elastic.SearchResult, resCost *elastic.SearchResult) ([]ReservationReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var parsedReservedInstances ResponseReservedInstancesDaily
+	var parsedReservedReservations ResponseReservedReservationsDaily
 	var parsedCost ResponseCost
-	instances := make([]InstanceReport, 0)
-	err := json.Unmarshal(*resReservedInstances.Aggregations["accounts"], &parsedReservedInstances.Accounts)
+	reservations := make([]ReservationReport, 0)
+	err := json.Unmarshal(*resReservedReservations.Aggregations["accounts"], &parsedReservedReservations.Accounts)
 	if err != nil {
-		logger.Error("Error while unmarshaling ES ReservedInstances response", err)
+		logger.Error("Error while unmarshaling ES ReservedReservations response", err)
 		return nil, err
 	}
 	if resCost != nil {
@@ -124,7 +124,7 @@ func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInsta
 			logger.Error("Error while unmarshaling ES cost response", err)
 		}
 	}
-	for _, account := range parsedReservedInstances.Accounts.Buckets {
+	for _, account := range parsedReservedReservations.Accounts.Buckets {
 		var lastDate = ""
 		for _, date := range account.Dates.Buckets {
 			if date.Time > lastDate {
@@ -133,29 +133,29 @@ func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInsta
 		}
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
-				for _, instance := range date.Instances.Hits.Hits {
-					instances = append(instances, getReservedInstancesInstanceReportResponse(instance.Instance))
+				for _, reservation := range date.Reservations.Hits.Hits {
+					reservations = append(reservations, getReservedReservationsInstanceReportResponse(reservation.Reservation))
 				}
 			}
 		}
 	}
-	return instances, nil
+	return reservations, nil
 }
 
-// prepareResponseReservedInstancesMonthly parses the results from elasticsearch and returns an array of ReservedInstances monthly instances report
-func prepareResponseReservedInstancesMonthly(ctx context.Context, resReservedInstances *elastic.SearchResult) ([]InstanceReport, error) {
+// prepareResponseReservedReservationsMonthly parses the results from elasticsearch and returns an array of ReservedReservations monthly reservations report
+func prepareResponseReservedReservationsMonthly(ctx context.Context, resReservedReservations *elastic.SearchResult) ([]ReservationReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var response ResponseReservedInstancesMonthly
-	instances := make([]InstanceReport, 0)
-	err := json.Unmarshal(*resReservedInstances.Aggregations["accounts"], &response.Accounts)
+	var response ResponseReservedReservationsMonthly
+	reservations := make([]ReservationReport, 0)
+	err := json.Unmarshal(*resReservedReservations.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
-		logger.Error("Error while unmarshaling ES ReservedInstances response", err)
+		logger.Error("Error while unmarshaling ES ReservedReservations response", err)
 		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	for _, account := range response.Accounts.Buckets {
-		for _, instance := range account.Instances.Hits.Hits {
-			instances = append(instances, getReservedInstancesInstanceReportResponse(instance.Instance))
+		for _, reservation := range account.Reservations.Hits.Hits {
+			reservations = append(reservations, getReservedReservationsInstanceReportResponse(reservation.Reservation))
 		}
 	}
-	return instances, nil
+	return reservations, nil
 }

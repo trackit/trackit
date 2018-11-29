@@ -31,7 +31,7 @@ import (
 )
 
 // makeElasticSearchRequest prepares and run an ES request
-// based on the reservedInstancesQueryParams and search params
+// based on the reservedReservationsQueryParams and search params
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
@@ -67,21 +67,21 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams ReservedInstance
 	return res, http.StatusOK, nil
 }
 
-// GetReservedInstancesMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetReservedInstancesMonthlyInstances(ctx context.Context, params ReservedInstancesQueryParams) (int, []InstanceReport, error) {
+// GetReservedInstancesMonthlyReservations does an elastic request and returns an array of reservations monthly report based on query params
+func GetReservedInstancesMonthlyReservations(ctx context.Context, params ReservedInstancesQueryParams) (int, []ReservationReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchReservedInstancesMonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	instances, err := prepareResponseReservedInstancesMonthly(ctx, res)
+	reservations, err := prepareResponseReservedReservationsMonthly(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, reservations, nil
 }
 
-// GetReservedInstancesDailyInstances does an elastic request and returns an array of instances daily report based on query params
-func GetReservedInstancesDailyInstances(ctx context.Context, params ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+// GetReservedInstancesDailyReservations does an elastic request and returns an array of reservations daily report based on query params
+func GetReservedInstancesDailyReservations(ctx context.Context, params ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchReservedInstancesDailyParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -93,30 +93,30 @@ func GetReservedInstancesDailyInstances(ctx context.Context, params ReservedInst
 	params.AccountList = accountsAndIndexes.Accounts
 	params.IndexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
-	instances, err := prepareResponseReservedInstancesDaily(ctx, res, costRes)
+	reservations, err := prepareResponseReservedReservationsDaily(ctx, res, costRes)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, reservations, nil
 }
 
-// GetReservedInstancesData gets ReservedInstances monthly reports based on query params, if there isn't a monthly report, it gets daily reports
-func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+// GetReservedReservationsData gets ReservedReservations monthly reports based on query params, if there isn't a monthly report, it gets daily reports
+func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, reservedInstances.IndexPrefixReservedInstancesReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetReservedInstancesMonthlyInstances(ctx, parsedParams)
+	returnCode, monthlyReservations, err := GetReservedInstancesMonthlyReservations(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
-		return returnCode, monthlyInstances, nil
+	} else if monthlyReservations != nil && len(monthlyReservations) > 0 {
+		return returnCode, monthlyReservations, nil
 	}
-	returnCode, dailyInstances, err := GetReservedInstancesDailyInstances(ctx, parsedParams, user, tx)
+	returnCode, dailyReservations, err := GetReservedInstancesDailyReservations(ctx, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	return returnCode, dailyInstances, nil
+	return returnCode, dailyReservations, nil
 }

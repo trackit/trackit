@@ -29,10 +29,10 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-// fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
-// and filled by DescribeInstances and getInstanceStats.
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
-	defer close(instanceChan)
+// fetchDailyReservationsList sends in reservationInfoChan the reservations fetched from DescribeReservations
+// and filled by DescribeReservations and getReservationStats.
+func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credentials, region string, reservationChan chan Reservation) error {
+	defer close(reservationChan)
 	//start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -40,14 +40,14 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		Region:      aws.String(region),
 	}))
 	svc := ec2.New(sess)
-	instances, err := svc.DescribeReservedInstances(nil)
+	reservations, err := svc.DescribeReservedInstances(nil)
 	if err != nil {
-		logger.Error("Error when describing instances", err.Error())
+		logger.Error("Error when describing reservations", err.Error())
 		return err
 	}
-	for _, reservation := range instances.ReservedInstances {
-		instanceChan <- Instance{
-			InstanceBase: InstanceBase{
+	for _, reservation := range reservations.ReservedInstances {
+		reservationChan <- Reservation{
+			ReservationBase: ReservationBase{
 				Id:              aws.StringValue(reservation.ReservedInstancesId),
 				Region:          aws.StringValue(reservation.AvailabilityZone),
 				Type:            aws.StringValue(reservation.InstanceType),
@@ -59,19 +59,19 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				InstanceCount:   aws.Int64Value(reservation.InstanceCount),
 				InstanceTenancy: aws.StringValue(reservation.InstanceTenancy),
 			},
-			Tags:  getInstanceTag(reservation.Tags),
+			Tags:  getReservationTag(reservation.Tags),
 		}
 	}
 	return nil
 }
 
-// FetchDailyInstancesStats fetches the stats of the ReservedInstances instances of an AwsAccount
+// FetchDailyReservationsStats fetches the stats of the ReservedReservations reservations of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
-// In this way, FetchInstancesStats should be called every hour.
-func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+// In this way, FetchReservationsStats should be called every hour.
+func FetchDailyReservationsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching ReservedInstances instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
-	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorInstanceStsSessionName)
+	logger.Info("Fetching ReservedReservations reservation stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorReservationStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
 		return err
@@ -91,23 +91,23 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	reservationChans := make([]<-chan Reservation, 0, len(regions))
 	for _, region := range regions {
-		instanceChan := make(chan Instance)
-		go fetchDailyInstancesList(ctx, creds, region, instanceChan)
-		instanceChans = append(instanceChans, instanceChan)
+		reservationChan := make(chan Reservation)
+		go fetchDailyReservationsList(ctx, creds, region, reservationChan)
+		reservationChans = append(reservationChans, reservationChan)
 	}
-	instances := make([]InstanceReport, 0)
-	for instance := range merge(instanceChans...) {
-		instances = append(instances, InstanceReport{
+	reservations := make([]ReservationReport, 0)
+	for reservation := range merge(reservationChans...) {
+		reservations = append(reservations, ReservationReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",
 				Service: "EC2",
 			},
-			Instance: instance,
+			Reservation: reservation,
 		})
 	}
-	return importInstancesToEs(ctx, awsAccount, instances)
+	return importReservationsToEs(ctx, awsAccount, reservations)
 }

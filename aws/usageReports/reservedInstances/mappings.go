@@ -44,7 +44,7 @@ const TemplateLineItem = `
 	"template": "*-reserved-instances-reports",
 	"version": 1,
 	"mappings": {
-		"reservedInstances-report": {
+		"reservedReservations-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -58,7 +58,7 @@ const TemplateLineItem = `
 				"service": {
 					"type": "keyword"
 				},
-				"instance": {
+				"reservation": {
 					"properties": {
 						"id": {
 							"type": "keyword"
@@ -84,10 +84,10 @@ const TemplateLineItem = `
 						"end": {
 							"type": "keyword"
 						},
-						"instanceCount": {
+						"reservationCount": {
 							"type": "keyword"
 						},
-						"instanceTenancy": {
+						"reservationTenancy": {
 							"type": "keyword"
 						},
 						"tags": {
@@ -100,7 +100,7 @@ const TemplateLineItem = `
 									"type": "keyword"
 								}
 							}
-						},
+						}
 					}
 				}
 			},

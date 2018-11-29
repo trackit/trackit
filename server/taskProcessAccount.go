@@ -72,7 +72,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		esErr := processAccountES(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr, historyCreated)
-		reservedInstances.FetchDailyInstancesStats(ctx, aa)
+		reservedInstances.FetchDailyReservationsStats(ctx, aa)
 	}
 	if err != nil {
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, false)

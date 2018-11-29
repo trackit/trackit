@@ -29,17 +29,17 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const MonitorInstanceStsSessionName = "monitor-instance"
+const MonitorReservationStsSessionName = "monitor-reservation"
 
 type (
-	// InstanceReport is saved in ES to have all the information of an ReservedInstances instance
-	InstanceReport struct {
+	// ReservationReport is saved in ES to have all the information of an ReservedReservations reservation
+	ReservationReport struct {
 		utils.ReportBase
-		Instance Instance `json:"instance"`
+		Reservation Reservation `json:"reservation"`
 	}
 
-	// InstanceBase contains basics information of an ReservedInstances instance
-	InstanceBase struct {
+	// ReservationBase contains basics information of an ReservedReservations reservation
+	ReservationBase struct {
 		Id              string    `json:"id"`
 		Region          string    `json:"region"`
 		Type            string    `json:"type"`
@@ -48,22 +48,22 @@ type (
 		Duration        int64     `json:"duration"`
 		Start           time.Time `json:"start"`
 		End             time.Time `json:"end"`
-		InstanceCount   int64     `json:"instance_count"`
-		InstanceTenancy string    `json:"instance_tenancy"`
+		InstanceCount   int64     `json:"reservation_count"`
+		InstanceTenancy string    `json:"reservation_tenancy"`
 	}
 
-	// Instance contains all the information of an ReservedInstances instance
-	Instance struct {
-		InstanceBase
+	// Reservation contains all the information of an ReservedReservations reservation
+	Reservation struct {
+		ReservationBase
 		Tags  []utils.Tag        `json:"tags"`
 	}
 )
 
-// importInstancesToEs imports ReservedInstances instances in ElasticSearch.
+// importReservationsToEs imports ReservedReservations reservations in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
+func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservations []ReservationReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating ReservedInstances instances for AWS account.", map[string]interface{}{
+	logger.Info("Updating ReservedReservations reservations for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
 	index := es.IndexNameForUserId(aa.UserId, IndexPrefixReservedInstancesReport)
@@ -72,33 +72,33 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return err
 	}
-	for _, instance := range instances {
-		id, err := generateId(instance)
+	for _, reservation := range reservations {
+		id, err := generateId(reservation)
 		if err != nil {
-			logger.Error("Error when marshaling instance var", err.Error())
+			logger.Error("Error when marshaling reservation var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeReservedInstancesReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, reservation, TypeReservedInstancesReport, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put ReservedInstances instances in ES", err.Error())
+		logger.Error("Fail to put ReservedReservations reservations in ES", err.Error())
 		return err
 	}
-	logger.Info("ReservedInstances instances put in ES", nil)
+	logger.Info("ReservedReservations reservations put in ES", nil)
 	return nil
 }
 
-func generateId(instance InstanceReport) (string, error) {
+func generateId(reservation ReservationReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
 	}{
-		instance.Account,
-		instance.ReportDate,
-		instance.Instance.Id,
+		reservation.Account,
+		reservation.ReportDate,
+		reservation.Reservation.Id,
 	})
 	if err != nil {
 		return "", err
@@ -110,13 +110,13 @@ func generateId(instance InstanceReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Instance) <-chan Instance {
+func merge(cs ...<-chan Reservation) <-chan Reservation {
 	var wg sync.WaitGroup
-	out := make(chan Instance)
+	out := make(chan Reservation)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Instance) {
+	output := func(c <-chan Reservation) {
 		for n := range c {
 			out <- n
 		}
