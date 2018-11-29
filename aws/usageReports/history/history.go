@@ -31,6 +31,7 @@ import (
 	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/aws/usageReports/lambda"
 )
 
 const numPartition = 5
@@ -159,7 +160,7 @@ func concatErrors(tabError []error) error {
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var ec2Created, rdsCreated, esCreated bool
+	var ec2Created, rdsCreated, esCreated, lambdaCreated bool
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
@@ -173,8 +174,12 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	if esErr == nil {
 		esCreated, esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
 	}
-	reportsCreated := (ec2Created || rdsCreated || esCreated)
-	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
+	lambdaCost, lambdaErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonLambda")
+	if lambdaErr == nil {
+		lambdaCreated, lambdaErr = lambda.PutLambdaMonthlyReport(ctx, lambdaCost, aa, startDate, endDate)
+	}
+	reportsCreated := (ec2Created || rdsCreated || esCreated || lambdaCreated)
+	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr, lambdaErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.

@@ -1,0 +1,692 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d3e41070-72d3-4621-802c-ea0860d9657c" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/aws/usageReports/history/history.go" beforeDir="false" afterPath="$PROJECT_DIR$/aws/usageReports/history/history.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/vendor/vendor.json" beforeDir="false" afterPath="$PROJECT_DIR$/vendor/vendor.json" afterDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <splitter split-orientation="horizontal" split-proportion="0.5">
+      <split-first>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="utils.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/utils.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="-226">
+                  <caret line="41" column="25" lean-forward="true" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="lambda_route.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/lambda/lambda_route.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="750">
+                  <caret line="74" column="1" selection-start-line="74" selection-start-column="1" selection-end-line="74" selection-end-column="1" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="get_lambda_data.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/lambda/get_lambda_data.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1065">
+                  <caret line="85" column="19" lean-forward="true" selection-start-line="85" selection-start-column="19" selection-end-line="85" selection-end-column="19" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="prepare_response.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/usageReports/lambda/prepare_response.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="779">
+                  <caret line="189" lean-forward="true" selection-start-line="189" selection-end-line="189" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="mappings.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/mappings.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="615">
+                  <caret line="84" column="25" selection-start-line="84" selection-start-column="25" selection-end-line="84" selection-end-column="25" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="history.go" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/history/history.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="443">
+                  <caret line="181" column="95" selection-start-line="181" selection-start-column="95" selection-end-line="181" selection-end-column="95" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="dailyReport.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/dailyReport.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="104">
+                  <caret line="62" column="52" selection-start-line="62" selection-start-column="52" selection-end-line="62" selection-end-column="52" />
+                  <folding>
+                    <element signature="e#626#994#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="monthlyReport.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/monthlyReport.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="360">
+                  <caret line="42" column="39" lean-forward="true" selection-start-line="42" selection-start-column="39" selection-end-line="42" selection-end-column="39" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="metricsStats.go" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/metricsStats.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="120">
+                  <caret line="8" column="64" selection-start-line="8" selection-start-column="64" selection-end-line="8" selection-end-column="64" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+          <file leaf-file-name="api.go" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/vendor/github.com/aws/aws-sdk-go/service/lambda/api.go">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="289">
+                  <caret line="5735" column="5" selection-start-line="5735" selection-start-column="5" selection-end-line="5735" selection-end-column="5" />
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Go File" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>Tag</find>
+      <find>MapTag</find>
+      <find>[]ec2.</find>
+      <find>ec2QueryParams</find>
+      <find>ec2UnusedQueryParams</find>
+      <find>rdsUnusedQueryParams</find>
+      <find>rdsQueryParams</find>
+      <find>http.Li</find>
+      <find>esQueryParams</find>
+      <find>esUnusedQueryParams</find>
+      <find>gra</find>
+      <find>tag</find>
+      <find>(*elastic.Error)</find>
+      <find>report</find>
+      <find>ec2</find>
+      <find>Ec2</find>
+      <find>EC2</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>[]</replace>
+      <replace>Ec2QueryParams</replace>
+      <replace>Ec2UnusedQueryParams</replace>
+      <replace>RdsUnusedQueryParams</replace>
+      <replace>RdsQueryParams</replace>
+      <replace>EsQueryParams</replace>
+      <replace>EsUnusedQueryParams</replace>
+      <replace>elasticache</replace>
+      <replace>ElastiCache</replace>
+      <replace>lambda</replace>
+      <replace>Lambda</replace>
+    </replaceStrings>
+    <dirStrings>
+      <dir>$PROJECT_DIR$/usageReports/es</dir>
+      <dir>$PROJECT_DIR$/server</dir>
+      <dir>$PROJECT_DIR$/usageReports/elasticache</dir>
+      <dir>$PROJECT_DIR$/aws/usageReports/lambda</dir>
+      <dir>$PROJECT_DIR$/usageReports/lambda</dir>
+    </dirStrings>
+  </component>
+  <component name="GOROOT" path="/usr/local/go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/server/taskPrepareSubAccounts.go" />
+        <option value="$PROJECT_DIR$/aws/routes/routeAwsPost.go" />
+        <option value="$PROJECT_DIR$/policies/tool_policies/get_sub_accounts.json" />
+        <option value="$PROJECT_DIR$/policies/all_policies.json" />
+        <option value="$PROJECT_DIR$/db/migration/0023_add_aws_identity.sql" />
+        <option value="$PROJECT_DIR$/aws/sub_account.go" />
+        <option value="$PROJECT_DIR$/models/awsaccount.go" />
+        <option value="$PROJECT_DIR$/db/migration/0023_sub_accounts.sql" />
+        <option value="$PROJECT_DIR$/server/taskUpdateAwsIdentity.go" />
+        <option value="$PROJECT_DIR$/db/migration/0024_aws_accounts_status.sql" />
+        <option value="$PROJECT_DIR$/aws/usageReports/rds/utils.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/rds/monthlyReport.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/rds/dailyReport.go" />
+        <option value="$PROJECT_DIR$/reports/rds.go" />
+        <option value="$PROJECT_DIR$/usageReports/ec2/prepare_response.go" />
+        <option value="$PROJECT_DIR$/usageReports/es/prepare_response.go" />
+        <option value="$PROJECT_DIR$/aws/aws.go" />
+        <option value="$PROJECT_DIR$/aws/routes/routeAwsGet.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/rds/mappings.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/es/mappings.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/ec2/mappings.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/es/monthlyReport.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/elasticache/dailyReport.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/rds/metricsStats.go" />
+        <option value="$PROJECT_DIR$/usageReports/rds/prepare_response.go" />
+        <option value="$PROJECT_DIR$/server/taskIngest.go" />
+        <option value="$PROJECT_DIR$/usageReports/elasticache/ec2_route.go" />
+        <option value="$PROJECT_DIR$/usageReports/elasticache/es_request_constructor.go" />
+        <option value="$PROJECT_DIR$/usageReports/elasticache/get_ec2_data.go" />
+        <option value="$PROJECT_DIR$/server/server.go" />
+        <option value="$PROJECT_DIR$/usageReports/elasticache/prepare_response.go" />
+        <option value="$PROJECT_DIR$/db/migration/0026_add_elasticache_error.sql" />
+        <option value="$PROJECT_DIR$/db/schema.sql" />
+        <option value="$PROJECT_DIR$/server/taskProcessAccount.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/elasticache/utils.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/elasticache/mappings.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/elasticache/metricsStats.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/elasticache/monthlyReport.go" />
+        <option value="$PROJECT_DIR$/usageReports/es/get_es_data.go" />
+        <option value="$PROJECT_DIR$/usageReports/rds/get_rds_data.go" />
+        <option value="$PROJECT_DIR$/usageReports/ec2/get_ec2_data.go" />
+        <option value="$PROJECT_DIR$/usageReports/elasticache/get_elasticache_data.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/lambda/utils.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/lambda/metricsStats.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/lambda/dailyReport.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/lambda/monthlyReport.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/lambda/mappings.go" />
+        <option value="$PROJECT_DIR$/usageReports/lambda/prepare_response.go" />
+        <option value="$PROJECT_DIR$/usageReports/lambda/lambda_route.go" />
+        <option value="$PROJECT_DIR$/usageReports/lambda/get_lambda_data.go" />
+        <option value="$PROJECT_DIR$/aws/usageReports/history/history.go" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="NodePackageJsonFileManager">
+    <packageJsonPaths />
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-3" />
+    <option name="y" value="31" />
+    <option name="width" value="1926" />
+    <option name="height" value="1052" />
+  </component>
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="history" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="aws" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="lambda" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="trackit-server" type="b2602c69:ProjectViewProjectNode" />
+              <item name="trackit-server" type="462c0819:PsiDirectoryNode" />
+              <item name="usageReports" type="462c0819:PsiDirectoryNode" />
+              <item name="lambda" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="DefaultGoTemplateProperty" value="Go File" />
+    <property name="go.gopath.indexing.explicitly.defined" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.vendoring.notification.had.been.shown" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="go build routeAwsGet.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+      <module name="trackit-server" />
+      <working_directory value="$PROJECT_DIR$/" />
+      <go_parameters value="-i" />
+      <kind value="FILE" />
+      <filePath value="$PROJECT_DIR$/aws/routes/routeAwsGet.go" />
+      <package value="github.com/trackit/trackit-server" />
+      <directory value="$PROJECT_DIR$/" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Go Build.go build routeAwsGet.go" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-3" y="31" width="1926" height="1052" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15260416" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" weight="0.3297062" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Version Control" order="7" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3297062" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="bottom" id="Terminal" order="7" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" />
+    </layout>
+    <layout-to-restore>
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Version Control" order="10" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="right" id="Database" order="3" />
+      <window_info anchor="bottom" id="Terminal" order="8" />
+      <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
+      <window_info anchor="bottom" id="Database Changes" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+    </layout-to-restore>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/aws/aws-sdk-go/service/elasticache/api.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1211">
+          <caret line="5149" column="6" lean-forward="true" selection-start-line="5149" selection-start-column="6" selection-end-line="5149" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/rds/monthlyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="141" column="18" selection-start-line="141" selection-start-column="18" selection-end-line="141" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/assumerole.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="345">
+          <caret line="28" column="37" selection-start-line="28" selection-start-column="37" selection-end-line="28" selection-end-column="37" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/utils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2265">
+          <caret line="153" selection-start-line="153" selection-end-line="153" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/es/metricStats.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="555">
+          <caret line="62" column="46" selection-start-line="62" selection-start-column="46" selection-end-line="62" selection-end-column="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/rds/metricsStats.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="49" selection-start-line="49" selection-end-line="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/rds/prepare_response.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1575">
+          <caret line="117" column="33" selection-start-line="117" selection-start-column="33" selection-end-line="117" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomaliesDetection/products.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="839">
+          <caret line="224" column="39" selection-start-line="224" selection-start-column="39" selection-end-line="224" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomaliesDetection/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="315">
+          <caret line="43" column="58" selection-start-line="43" selection-start-column="58" selection-end-line="43" selection-end-column="58" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/rds/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="27" column="43" selection-start-line="27" selection-start-column="43" selection-end-line="27" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomaliesDetection/anomalies.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="839">
+          <caret line="125" column="36" selection-start-line="125" selection-start-column="36" selection-end-line="125" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/anomaliesDetection/es_request_constructor.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="750">
+          <caret line="56" column="29" selection-start-line="56" selection-start-column="29" selection-end-line="56" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/taskIngest.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="109" selection-start-line="109" selection-end-line="109" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/elasticache/elasticache_route.go" />
+    <entry file="file://$PROJECT_DIR$/usageReports/elasticache/es_request_constructor.go" />
+    <entry file="file://$PROJECT_DIR$/server/server.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="495">
+          <caret line="33" column="52" selection-start-line="33" selection-start-column="52" selection-end-line="33" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/awsSession/awsSession.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="35" lean-forward="true" selection-start-line="35" selection-end-line="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/elasticache/prepare_response.go" />
+    <entry file="file://$PROJECT_DIR$/db/migration/0022_add_es_error.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret selection-end-line="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/server/taskProcessAccount.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="629">
+          <caret line="195" column="29" lean-forward="true" selection-start-line="195" selection-start-column="29" selection-end-line="195" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/dailyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="749">
+          <caret line="112" column="26" selection-start-line="112" selection-start-column="26" selection-end-line="112" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/utils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="87" column="5" selection-start-line="87" selection-start-column="5" selection-end-line="87" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/db/migration/0026_add_elasticache_error.sql" />
+    <entry file="file://$PROJECT_DIR$/db/schema.sql">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="775">
+          <caret line="631" lean-forward="true" selection-start-line="631" selection-end-line="631" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/elasticache/mappings.go" />
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/metricsStats.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="26" column="32" lean-forward="true" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/monthlyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="30" column="48" lean-forward="true" selection-start-line="30" selection-start-column="48" selection-end-line="30" selection-end-column="48" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/elasticache/metricsStats.go" />
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/elasticache/dailyReport.go" />
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/elasticache/monthlyReport.go" />
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/elasticache/utils.go" />
+    <entry file="file://$PROJECT_DIR$/usageReports/ec2/prepare_response.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2970">
+          <caret line="211" column="42" selection-start-line="211" selection-start-column="42" selection-end-line="211" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/s3/rawS3Get.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/ec2/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1260">
+          <caret line="91" column="34" selection-start-line="91" selection-start-column="34" selection-end-line="91" selection-end-column="34" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/s3/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="43" column="30" selection-start-line="43" selection-start-column="30" selection-end-line="43" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/ec2/get_ec2_data.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="435">
+          <caret line="29" column="45" selection-start-line="29" selection-start-column="45" selection-end-line="29" selection-end-column="45" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/rds/get_rds_data.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="254">
+          <caret line="20" column="14" selection-start-line="20" selection-start-column="14" selection-end-line="20" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/es/get_es_data.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="510">
+          <caret line="48" column="7" selection-start-line="48" selection-start-column="7" selection-end-line="48" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/errors/errors.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="67" column="93" selection-start-line="67" selection-start-column="35" selection-end-line="67" selection-end-column="93" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/elasticache/get_elasticache_data.go" />
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/aws/aws-sdk-go/service/lambda/api.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="289">
+          <caret line="5735" column="5" selection-start-line="5735" selection-start-column="5" selection-end-line="5735" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/metricsStats.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="120">
+          <caret line="8" column="64" selection-start-line="8" selection-start-column="64" selection-end-line="8" selection-end-column="64" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/monthlyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="42" column="39" lean-forward="true" selection-start-line="42" selection-start-column="39" selection-end-line="42" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/dailyReport.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="104">
+          <caret line="62" column="52" selection-start-line="62" selection-start-column="52" selection-end-line="62" selection-end-column="52" />
+          <folding>
+            <element signature="e#626#994#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/go/src/builtin/builtin.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="164">
+          <caret line="216" column="53" selection-start-line="216" selection-start-column="53" selection-end-line="216" selection-end-column="53" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/utils.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-226">
+          <caret line="41" column="25" lean-forward="true" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/lambda/lambda_route.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="750">
+          <caret line="74" column="1" selection-start-line="74" selection-start-column="1" selection-end-line="74" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/lambda/get_lambda_data.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1065">
+          <caret line="85" column="19" lean-forward="true" selection-start-line="85" selection-start-column="19" selection-end-line="85" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/usageReports/lambda/prepare_response.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="779">
+          <caret line="189" lean-forward="true" selection-start-line="189" selection-end-line="189" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/lambda/mappings.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="615">
+          <caret line="84" column="25" selection-start-line="84" selection-start-column="25" selection-end-line="84" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/aws/usageReports/history/history.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="443">
+          <caret line="181" column="95" selection-start-line="181" selection-start-column="95" selection-end-line="181" selection-end-column="95" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>
