@@ -155,7 +155,6 @@ func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, erro
 }
 
 func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error) {
-	updateNextAccountReportGeneration(db, aaId)
 	rErr := registerAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -165,16 +164,6 @@ func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *
 			"updateId":     updateId,
 		})
 	}
-}
-
-func updateNextAccountReportGeneration(db *sql.DB, aaId int) error {
-	dbAwsAccount, err := models.AwsAccountByID(db, aaId)
-	if err != nil {
-		return err
-	}
-	dbAwsAccount.NextSpreadsheetReportGeneration = time.Now().AddDate(0, 0, 1)
-	err = dbAwsAccount.Update(db)
-	return err
 }
 
 func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error) error {
