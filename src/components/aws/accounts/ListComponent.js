@@ -36,14 +36,29 @@ export class Item extends Component {
     const accountBadge = Status.getBadge(status);
     const infoBanner = Status.getInformationBanner(status);
     const formattedInfoBanner = (infoBanner ? (
-      <ListItem divider className="account-alert">
+      <ListItem className="account-alert">
         {infoBanner}
       </ListItem>
-    ) : null)
+    ) : null);
+
+    const subAccounts = (this.props.account.subAccounts && this.props.account.subAccounts.length ? (
+      <ListItem>
+        <List disablePadding className="account-subaccounts">
+          {this.props.account.subAccounts.map((subAccount, key) => (
+            <Item
+              key={key}
+              account={subAccount}
+              accountActions={this.props.accountActions}
+            />
+          ))}
+        </List>
+      </ListItem>
+    ) : null);
+
     return (
       <div>
 
-        <ListItem divider={(infoBanner === null)} className="account-item">
+        <ListItem className="account-item">
 
           {accountBadge}
 
@@ -90,6 +105,7 @@ export class Item extends Component {
         </ListItem>
 
         {formattedInfoBanner}
+        {subAccounts}
 
       </div>
     );
@@ -139,11 +155,12 @@ class ListComponent extends Component {
 
     const accounts = (this.props.accounts.status && this.props.accounts.values && this.props.accounts.values.length ? (
       this.props.accounts.values.map((account, index) => (
-        <Item
-          key={index}
-          account={account}
-          accountActions={this.props.accountActions}
-        />
+        <div className="white-box" key={index}>
+          <Item
+            account={account}
+            accountActions={this.props.accountActions}
+          />
+        </div>
       ))
     ) : null);
 

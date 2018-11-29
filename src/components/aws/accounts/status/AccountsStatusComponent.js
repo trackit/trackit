@@ -109,7 +109,7 @@ class AccountsStatusComponent extends Component {
           key={index}
           account={account}
           select={this.props.select}
-          isSelected={isSelected(account)}
+          isSelected={isSelected}
         />
       ))
     ) : null);
@@ -165,6 +165,8 @@ AccountsStatusComponent.propTypes = {
     values: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.number.isRequired,
+        accountOwner: PropTypes.bool.isRequired,
+        awsIdentity: PropTypes.string.isRequired,
         roleArn: PropTypes.string.isRequired,
         pretty: PropTypes.string,
         permissionLevel: PropTypes.number,
@@ -177,13 +179,32 @@ AccountsStatusComponent.propTypes = {
             prefix: PropTypes.string.isRequired
           })
         ),
+        subAccounts: PropTypes.arrayOf(
+          PropTypes.shape({
+            id: PropTypes.number.isRequired,
+            accountOwner: PropTypes.bool.isRequired,
+            awsIdentity: PropTypes.string.isRequired,
+            roleArn: PropTypes.string.isRequired,
+            pretty: PropTypes.string,
+            permissionLevel: PropTypes.number,
+            payer: PropTypes.bool.isRequired,
+            billRepositories: PropTypes.arrayOf(
+              PropTypes.shape({
+                error: PropTypes.string.isRequired,
+                nextPending: PropTypes.bool.isRequired,
+                bucket: PropTypes.string.isRequired,
+                prefix: PropTypes.string.isRequired
+              })
+            ),
+          })
+        )
       })
     ),
   }),
   selection: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.number.isRequired,
-      roleArn: PropTypes.string.isRequired,
+      awsIdentity: PropTypes.string.isRequired,
       pretty: PropTypes.string,
     })
   ),
