@@ -149,9 +149,9 @@ export class ListComponent extends Component {
 
     return (
       <Dialog
-        buttonName={<span><i className="fa fa-users"/> Manage users</span>}
+        buttonName={<span><i className="fa fa-share-alt"/> Share</span>}
         disabled={this.props.disabled}
-        title="Manage users"
+        title="Share this account"
         secondActionName="Close"
         onOpen={this.getAccountViewers}
         onClose={this.clearAccountViewers}

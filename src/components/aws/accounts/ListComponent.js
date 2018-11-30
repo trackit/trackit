@@ -49,6 +49,7 @@ export class Item extends Component {
               key={key}
               account={subAccount}
               accountActions={this.props.accountActions}
+              subAccount
             />
           ))}
         </List>
@@ -84,10 +85,14 @@ export class Item extends Component {
               <TeamSharing.List account={this.props.account.id} disabled={this.props.account.permissionLevel === 2} permissionLevel={this.props.account.permissionLevel}/>
             </div>
             &nbsp;
-            <div className="inline-block">
-              <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
-            </div>
-            &nbsp;
+            {!this.props.subAccount ? (
+              <div>
+                <div className="inline-block">
+                  <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
+                </div>
+                &nbsp;
+              </div>
+            ) : null}
             <div className="inline-block">
               <Form
                 account={this.props.account}
@@ -142,6 +147,11 @@ Item.propTypes = {
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
+  subAccount: PropTypes.bool
+};
+
+Item.defaultProps = {
+  subAccount: false
 };
 
 // List Component for AWS Accounts
