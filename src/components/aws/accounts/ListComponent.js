@@ -98,6 +98,7 @@ export class Item extends Component {
                 account={this.props.account}
                 submit={this.editAccount}
                 disabled={this.props.account.permissionLevel !== 0}
+                subAccount={this.props.subAccount}
               />
             </div>
             &nbsp;
