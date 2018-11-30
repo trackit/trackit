@@ -23,6 +23,7 @@ type billRepositoryWithStatus struct {
 type awsAccountWithStatus struct {
 	aws.AwsAccount
 	BillRepositories []billRepositoryWithStatus `json:"billRepositories"`
+	SubAccounts      []awsAccountWithStatus     `json:"subAccounts,omitempty"`
 }
 
 type status struct {
@@ -53,7 +54,7 @@ func getStatusMessage(br s3.BillRepositoryWithPending, item *models.AwsAccountSt
 		}
 	} else {
 		return status{
-			Value: "ok",
+			Value:  "ok",
 			Detail: "",
 		}
 	}
@@ -86,9 +87,15 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 		l.Error("failed to get AWS accounts' bill repositories import statuses", err.Error())
 		return 500, errors.New("failed to retrieve import statuses")
 	}
+	result := setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories, jobs)
+	return 200, result
+}
+
+func setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, jobs map[int]models.AwsAccountStatus) []awsAccountWithStatus {
 	result := make([]awsAccountWithStatus, 0)
 	for _, awsAccount := range awsAccountsWithBillRepositories {
 		var billRepositories []billRepositoryWithStatus
+		var subAccounts []awsAccountWithStatus
 		for _, billRepository := range awsAccount.BillRepositories {
 			var status status
 			if value, ok := jobs[billRepository.Id]; ok {
@@ -102,11 +109,15 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 			}
 			billRepositories = append(billRepositories, newBillRepo)
 		}
+		if awsAccount.SubAccounts != nil && len(awsAccount.SubAccounts) > 0 {
+			subAccounts = setStatusForAwsAccountsWithBillRepositories(awsAccount.SubAccounts, jobs)
+		}
 		account := awsAccountWithStatus{
 			awsAccount.AwsAccount,
 			billRepositories,
+			subAccounts,
 		}
 		result = append(result, account)
 	}
-	return 200, result
+	return result
 }
