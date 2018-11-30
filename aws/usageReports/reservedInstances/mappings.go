@@ -75,7 +75,7 @@ const TemplateLineItem = `
 						"usagePrice": {
 							"type": "keyword"
 						},
-						"duration": {
+						"usageDuration": {
 							"type": "keyword"
 						},
 						"start": {

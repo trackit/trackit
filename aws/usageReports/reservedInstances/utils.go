@@ -45,7 +45,7 @@ type (
 		Type            string    `json:"type"`
 		FixedPrice      float64   `json:"fixed_price"`
 		UsagePrice      float64   `json:"usage_price"`
-		Duration        int64     `json:"duration"`
+		UsageDuration        int64     `json:"usageDuration"`
 		Start           time.Time `json:"start"`
 		End             time.Time `json:"end"`
 		InstanceCount   int64     `json:"reservation_count"`

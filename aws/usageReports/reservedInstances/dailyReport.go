@@ -53,7 +53,7 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 				Type:            aws.StringValue(reservation.InstanceType),
 				FixedPrice:      aws.Float64Value(reservation.FixedPrice),
 				UsagePrice:      aws.Float64Value(reservation.UsagePrice),
-				Duration:        aws.Int64Value(reservation.Duration),
+				UsageDuration:   aws.Int64Value(reservation.Duration),
 				Start:           aws.TimeValue(reservation.Start),
 				End:             aws.TimeValue(reservation.End),
 				InstanceCount:   aws.Int64Value(reservation.InstanceCount),
