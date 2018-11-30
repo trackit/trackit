@@ -81,9 +81,17 @@ class AccountsStatusComponent extends Component {
 
     if (!this.props.accounts.status)
       return null;
-    if (this.props.accounts.status && (!this.props.accounts.values || !this.props.accounts.values.length || error))
+
+    if (!this.props.accounts.values || !this.props.accounts.values.length || error)
       return `No accounts ${error}`;
-    if (this.props.selection.length === 0 || this.props.accounts.values.length === this.props.selection.length)
+
+    let accountsNumber = this.props.accounts.values.length;
+    this.props.accounts.values.forEach((account) => {
+      if (account.hasOwnProperty("subAccounts") && account.subAccounts)
+        accountsNumber += account.subAccounts.length;
+    });
+
+    if (this.props.selection.length === 0 || accountsNumber === this.props.selection.length)
       return `Displaying All accounts`;
     if (this.props.selection.length === 1)
       return `Displaying ${this.props.selection[0].pretty}`;

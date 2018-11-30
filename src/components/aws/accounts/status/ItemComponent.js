@@ -31,10 +31,15 @@ class Item extends Component {
 
   selectMasterAccount = (e) => {
     e.preventDefault();
+
+    const selectMaster = !this.props.isSelected(this.props.account);
+
     this.props.select(this.props.account);
-    this.props.account.subAccounts.forEach((subAccount) => {
-      this.props.select(subAccount);
-    });
+    if (selectMaster)
+      this.props.account.subAccounts.forEach((subAccount) => {
+        if (!this.props.isSelected(subAccount))
+          this.props.select(subAccount);
+      });
   };
 
   render() {
