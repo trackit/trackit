@@ -37,7 +37,7 @@ func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc 
 		ResourceName: aws.String(arn),
 	})
 	if err != nil {
-		logger.Error("Error will getting cluster tags", err.Error())
+		logger.Error("Error while getting cluster tags", err.Error())
 		return tags
 	}
 	for _, tag := range res.TagList {
