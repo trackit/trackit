@@ -106,7 +106,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put ElastiCache instances in ES", err.Error())
+		logger.Error("Failed to put ElastiCache instances in ES", err.Error())
 		return err
 	}
 	logger.Info("ElastiCache instances put in ES", nil)

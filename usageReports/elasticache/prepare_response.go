@@ -125,6 +125,8 @@ func addCostToInstance(instance elasticache.InstanceReport, costs ResponseCost) 
 			continue
 		}
 		for _, instanceCost := range accounts.Instances.Buckets {
+			// format ARN for an ElastiCache instance is:
+			// "arn:aws:elasticache:[region]:[aws_id]:cluster:[cluster name]"
 			split := strings.Split(instanceCost.Key, ":")
 			if len(split) == 7 && split[2] == "elasticache" && split[6] == instance.Instance.Id {
 				instance.Instance.Costs[split[6]] += instanceCost.Cost.Value
