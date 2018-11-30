@@ -40,21 +40,6 @@ export class S3AnalyticsContainer extends Component {
       />
     ) : null);
 
-    let badges;
-
-    if (this.props.values && this.props.values.status) {
-      badges = (
-        <Components.AWS.Accounts.StatusBadges
-          values={
-            this.props.values ? (
-              this.props.values.status ? this.props.values.values : {}
-            ) : {}
-          }
-        />
-      );
-    }
-  
-
     return (
       <Panel>
 
@@ -64,7 +49,6 @@ export class S3AnalyticsContainer extends Component {
             <i className="fa fa-hdd-o"></i>
             &nbsp;
             AWS S3 Analytics
-            {badges}
           </h3>
           <div className="inline-block pull-right">
             {timerange}

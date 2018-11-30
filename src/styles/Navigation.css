@@ -274,8 +274,23 @@ div.dropdown-trigger:hover  .dropdown-menu {
     margin-left: 25px !important;
 }
 
+.account-subaccounts {
+    width: 100%;
+    margin-left: 10px !important;
+    border-left: 2px solid #eee;
+}
 
-.account-item-details ul li {
+.account-subaccounts .account-item {
+    padding-right: 0;
+}
+
+.account-item-details ul li,
+.account-subaccounts ul li {
     padding-top: 0;
     padding-bottom: 0;
+}
+
+.accounts-list .account-item .badge {
+    font-size: 13px;
+    line-height: 20px;
 }

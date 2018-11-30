@@ -36,14 +36,30 @@ export class Item extends Component {
     const accountBadge = Status.getBadge(status);
     const infoBanner = Status.getInformationBanner(status);
     const formattedInfoBanner = (infoBanner ? (
-      <ListItem divider className="account-alert">
+      <ListItem className="account-alert">
         {infoBanner}
       </ListItem>
-    ) : null)
+    ) : null);
+
+    const subAccounts = (this.props.account.subAccounts && this.props.account.subAccounts.length ? (
+      <ListItem>
+        <List disablePadding className="account-subaccounts">
+          {this.props.account.subAccounts.map((subAccount, key) => (
+            <Item
+              key={key}
+              account={subAccount}
+              accountActions={this.props.accountActions}
+              subAccount
+            />
+          ))}
+        </List>
+      </ListItem>
+    ) : null);
+
     return (
       <div>
 
-        <ListItem divider={(infoBanner === null)} className="account-item">
+        <ListItem className="account-item">
 
           {accountBadge}
 
@@ -69,15 +85,20 @@ export class Item extends Component {
               <TeamSharing.List account={this.props.account.id} disabled={this.props.account.permissionLevel === 2} permissionLevel={this.props.account.permissionLevel}/>
             </div>
             &nbsp;
-            <div className="inline-block">
-              <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
-            </div>
-            &nbsp;
+            {!this.props.subAccount ? (
+              <div>
+                <div className="inline-block">
+                  <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
+                </div>
+                &nbsp;
+              </div>
+            ) : null}
             <div className="inline-block">
               <Form
                 account={this.props.account}
                 submit={this.editAccount}
                 disabled={this.props.account.permissionLevel !== 0}
+                subAccount={this.props.subAccount}
               />
             </div>
             &nbsp;
@@ -90,6 +111,7 @@ export class Item extends Component {
         </ListItem>
 
         {formattedInfoBanner}
+        {subAccounts}
 
       </div>
     );
@@ -126,6 +148,11 @@ Item.propTypes = {
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
+  subAccount: PropTypes.bool
+};
+
+Item.defaultProps = {
+  subAccount: false
 };
 
 // List Component for AWS Accounts
@@ -139,11 +166,12 @@ class ListComponent extends Component {
 
     const accounts = (this.props.accounts.status && this.props.accounts.values && this.props.accounts.values.length ? (
       this.props.accounts.values.map((account, index) => (
-        <Item
-          key={index}
-          account={account}
-          accountActions={this.props.accountActions}
-        />
+        <div className="white-box" key={index}>
+          <Item
+            account={account}
+            accountActions={this.props.accountActions}
+          />
+        </div>
       ))
     ) : null);
 

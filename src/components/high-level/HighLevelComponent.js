@@ -7,7 +7,6 @@ import Spinner from "react-spinkit";
 import Actions from '../../actions';
 
 import IntervalNavigator from '../misc/IntervalNavigator';
-import StatusBadges from '../aws/accounts/StatusBadgesComponent';
 import Summary from './SummaryComponent';
 import TopSpendings from './TopSpendingsComponent';
 import TopTags from './TopTagsComponent';
@@ -74,15 +73,6 @@ export class HighLevelComponent extends Component {
         isCurrentInterval={this.isCurrentInterval}
       />
     ) : null);
-
-    let badges;
-
-    if (this.props.costs && this.props.costs.status)
-      badges = (
-        <StatusBadges
-          values={this.props.costs ? (this.props.costs.status ? this.props.costs.values : {}) : {}}
-        />
-      );
 
     let costLoader;
     let costError;
@@ -193,7 +183,6 @@ export class HighLevelComponent extends Component {
                   <i className="fa fa-home"></i>
                   &nbsp;
                   Home
-                  {badges}
                 </h3>
                 <div className="inline-block pull-right">
                   {timerange}

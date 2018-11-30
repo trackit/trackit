@@ -73,8 +73,23 @@ class FormComponent extends Component {
     });
   }
 
-
   render() {
+    /* This field is disabled for subAccount, a new form should be created once a new Wizard is made for subAccounts */
+    const billingData = (!this.props.subAccount ? (
+      <div className="checkbox">
+        <label>
+          <input
+            type="checkbox"
+            name="payer"
+            checked={this.state.payer}
+            onChange={this.handleInputChange}
+          />
+          &nbsp;
+          This account has billing data
+        </label>
+      </div>
+    ) : null);
+
     return (
       <div>
 
@@ -123,20 +138,12 @@ class FormComponent extends Component {
                   value={this.state.pretty}
                   onChange={this.handleInputChange}
                   className="form-control"
+                  /* This field is disabled for subAccount, a new form should be created once a new Wizard is made for subAccounts */
+                  disabled={this.props.subAccount}
                 />
               </div>
 
-              <div className="checkbox">
-                <label>
-                <input
-                  type="checkbox"
-                  name="payer"
-                  checked={this.state.payer}
-                  onChange={this.handleInputChange}
-                />
-                  This account has billing data
-                </label>
-              </div>
+              {billingData}
 
               <hr />
 
@@ -174,11 +181,13 @@ FormComponent.propTypes = {
     payer: PropTypes.bool.isRequired,
   }),
   submit: PropTypes.func.isRequired,
-  disabled: PropTypes.bool
+  disabled: PropTypes.bool,
+  subAccount: PropTypes.bool
 };
 
 FormComponent.defaultProps = {
-  disabled: false
+  disabled: false,
+  subAccount: false
 };
 
 export default FormComponent;

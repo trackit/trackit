@@ -5,7 +5,6 @@ import { shallow } from 'enzyme';
 
 const List = Components.AWS.Accounts.List;
 const Wizard = Components.AWS.Accounts.Wizard;
-const Panel = Components.Misc.Panel;
 
 const defaultActions = {
   accountActions: {
@@ -51,12 +50,6 @@ describe('<AccountsContainer />', () => {
   it('renders a <AccountsContainer /> component', () => {
     const wrapper = shallow(<AccountsContainer {...props} />);
     expect(wrapper.length).toBe(1);
-  });
-
-  it('renders a <Panel /> component', () => {
-    const wrapper = shallow(<AccountsContainer {...props} />);
-    const panel = wrapper.find(Panel);
-    expect(panel.length).toBe(1);
   });
 
   it('renders a <List /> component', () => {
