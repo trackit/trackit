@@ -18,6 +18,7 @@ class Item extends Component {
     };
     this.handleClick = this.handleClick.bind(this);
     this.selectAccount = this.selectAccount.bind(this);
+    this.selectMasterAccount = this.selectMasterAccount.bind(this);
   }
 
   handleClick = () => {
@@ -28,6 +29,14 @@ class Item extends Component {
     this.props.select(account);
   };
 
+  selectMasterAccount = (e) => {
+    e.preventDefault();
+    this.props.select(this.props.account);
+    this.props.account.subAccounts.forEach((subAccount) => {
+      this.props.select(subAccount);
+    });
+  };
+
   render() {
     const status = Status.getAWSAccountStatus(this.props.account);
     const accountBadge = Status.getBadge(status);
@@ -35,11 +44,11 @@ class Item extends Component {
     const subaccounts = (this.props.account.hasOwnProperty("subAccounts") ? (
       <Collapse in={this.state.open} timeout="auto" unmountOnExit>
         <List disablePadding className="account-item-details">
-          {this.props.account.subAccounts.map((subAccount) => {
+          {this.props.account.subAccounts.map((subAccount, key) => {
             const status = Status.getAWSAccountStatus(subAccount);
             const badge = Status.getBadge(status);
             return (
-              <ListItem>
+              <ListItem key={key}>
                 <Checkbox
                   className={"checkbox " + (this.props.isSelected(subAccount) ? "selected" : "")}
                   checked={this.props.isSelected(subAccount)}
@@ -67,7 +76,7 @@ class Item extends Component {
           <Checkbox
             className={"checkbox " + (this.props.isSelected(this.props.account) ? "selected" : "")}
             checked={this.props.isSelected(this.props.account)}
-            onChange={(e) => {e.preventDefault(); this.selectAccount(this.props.account)}}
+            onChange={this.selectMasterAccount}
             disableRipple
           />
           <ListItemText
