@@ -84,10 +84,10 @@ const TemplateLineItem = `
 						"end": {
 							"type": "keyword"
 						},
-						"reservationCount": {
+						"instanceCount": {
 							"type": "keyword"
 						},
-						"reservationTenancy": {
+						"instanceTenancy": {
 							"type": "keyword"
 						},
 						"tags": {

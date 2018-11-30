@@ -33,7 +33,6 @@ import (
 // and filled by DescribeReservations and getReservationStats.
 func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credentials, region string, reservationChan chan Reservation) error {
 	defer close(reservationChan)
-	//start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -65,7 +64,7 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 	return nil
 }
 
-// FetchDailyReservationsStats fetches the stats of the ReservedInstances reservations of an AwsAccount
+// FetchDailyReservationsStats fetches the stats of the ReservedInstances EC2 of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchReservationsStats should be called every hour.
 func FetchDailyReservationsStats(ctx context.Context, awsAccount taws.AwsAccount) error {

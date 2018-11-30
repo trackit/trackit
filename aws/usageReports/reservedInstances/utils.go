@@ -45,11 +45,11 @@ type (
 		Type            string    `json:"type"`
 		FixedPrice      float64   `json:"fixed_price"`
 		UsagePrice      float64   `json:"usage_price"`
-		UsageDuration        int64     `json:"usageDuration"`
+		UsageDuration   int64     `json:"usage_duration"`
 		Start           time.Time `json:"start"`
 		End             time.Time `json:"end"`
-		InstanceCount   int64     `json:"reservation_count"`
-		InstanceTenancy string    `json:"reservation_tenancy"`
+		InstanceCount   int64     `json:"instance_count"`
+		InstanceTenancy string    `json:"instance_tenancy"`
 	}
 
 	// Reservation contains all the information of an ReservedInstances reservation
