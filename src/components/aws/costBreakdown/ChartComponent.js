@@ -4,7 +4,6 @@ import Spinner from 'react-spinkit';
 import BarChart from './BarChartComponent';
 import PieChart from './PieChartComponent';
 import DifferentiatorChart from './DifferentiatorChartComponent';
-import AWSAccounts from '../../aws/accounts';
 import Misc from '../../misc';
 import Moment from "moment/moment";
 
@@ -108,20 +107,6 @@ export class Header extends Component {
     if (!this.props.icon)
       return null;
 
-    let badges;
-
-    if (this.props.values && this.props.values.status) {
-      badges = (
-        <AWSAccounts.StatusBadges
-          values={
-            this.props.values ? (
-              this.props.values.status ? this.props.values.values : {}
-            ) : {}
-          }
-        />
-      );
-    }
-
     switch (this.props.type) {
       case "pie":
         return (
@@ -129,7 +114,6 @@ export class Header extends Component {
             <i className="menu-icon fa fa-pie-chart"/>
             &nbsp;
             Pie Chart
-            {badges}
           </div>
         );
       case "diff":
@@ -138,7 +122,6 @@ export class Header extends Component {
             <i className="menu-icon fa fa-table"/>
             &nbsp;
             Cost Table
-            {badges}
           </div>
         );
       case "bar":
@@ -148,7 +131,6 @@ export class Header extends Component {
             <i className="menu-icon fa fa-bar-chart"/>
             &nbsp;
             Bar Chart
-            {badges}
           </div>
         );
     }

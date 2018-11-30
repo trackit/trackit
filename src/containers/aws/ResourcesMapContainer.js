@@ -1,18 +1,14 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-
 import Components from '../../components';
-
 import Spinner from 'react-spinkit';
 import PropTypes from "prop-types";
 import Actions from "../../actions";
-
 import {formatPrice} from '../../common/formatters';
-import Misc from "../../components/misc";
 
 const Map = Components.AWS.Map.Map;
 const TimerangeSelector = Components.Misc.TimerangeSelector;
-const Selector = Misc.Selector;
+const Selector = Components.Misc.Selector;
 
 const regions = {
   "sa-east-1": "Sao Paulo",
@@ -248,21 +244,6 @@ export class ResourcesMapContainer extends Component {
       </div>
     ));
 
-    let badges;
-
-    if (this.props.costs && this.props.costs.status) {
-      badges = (
-        <Components.AWS.Accounts.StatusBadges
-          values={
-            this.props.costs ? (
-              this.props.costs.status ? this.props.costs.values : {}
-            ) : {}
-          }
-        />
-      );
-    }
-  
-
     return (
       <div className="container-fluid">
         <div className="row">
@@ -273,7 +254,6 @@ export class ResourcesMapContainer extends Component {
                   <i className="fa fa-globe"/>
                   &nbsp;
                   Resources Map
-                  {badges}
                 </h3>
               </div>
               <div className="inline-block pull-right">
