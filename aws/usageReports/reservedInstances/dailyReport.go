@@ -65,12 +65,12 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 	return nil
 }
 
-// FetchDailyReservationsStats fetches the stats of the ReservedReservations reservations of an AwsAccount
+// FetchDailyReservationsStats fetches the stats of the ReservedInstances reservations of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchReservationsStats should be called every hour.
 func FetchDailyReservationsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching ReservedReservations reservation stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	logger.Info("Fetching ReservedInstances reservation stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorReservationStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())

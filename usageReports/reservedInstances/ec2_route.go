@@ -25,14 +25,14 @@ import (
 )
 
 type (
-	// ReservedReservationsQueryParams will store the parsed query params
+	// ReservedInstancesQueryParams will store the parsed query params
 	ReservedInstancesQueryParams struct {
 		AccountList []string
 		IndexList   []string
 		Date        time.Time
 	}
 
-	// ReservedReservationsUnusedQueryParams will store the parsed query params
+	// ReservedInstancesUnusedQueryParams will store the parsed query params
 	ReservedInstancesUnusedQueryParams struct {
 		AccountList []string
 		IndexList   []string
@@ -68,14 +68,14 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(reservedInstancesQueryArgs),
 			routes.Documentation{
-				Summary:     "get the list of ReservedReservations reservations",
-				Description: "Responds with the list of ReservedReservations reservations based on the queryparams passed to it",
+				Summary:     "get the list of ReservedInstances reservations",
+				Description: "Responds with the list of ReservedInstances reservations based on the queryparams passed to it",
 			},
 		),
 	}.H().Register("/reservedInstances")
 }
 
-// getReservedReservationsReservations returns the list of ReservedReservations reports based on the query params, in JSON format.
+// getReservedInstancesReservations returns the list of ReservedInstances reports based on the query params, in JSON format.
 func getReservedInstancesInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)

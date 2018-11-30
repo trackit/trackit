@@ -38,8 +38,8 @@ func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 	}
 }
 
-// createQueryAccountFilterReservedReservations creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilterReservedReservations(accountList []string) *elastic.TermsQuery {
+// createQueryAccountFilterReservedInstances creates and return a new *elastic.TermsQuery on the accountList array
+func createQueryAccountFilterReservedInstances(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
 		accountListFormatted[i] = v
@@ -47,9 +47,9 @@ func createQueryAccountFilterReservedReservations(accountList []string) *elastic
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// getElasticSearchReservedReservationsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchReservedInstancesDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- params ReservedReservationsQueryParams : contains the list of accounts and the date
+// 	- params ReservedInstancesQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an reservation of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
@@ -61,7 +61,7 @@ func createQueryAccountFilterReservedReservations(accountList []string) *elastic
 func getElasticSearchReservedInstancesDailyParams(params ReservedInstancesQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
-		query = query.Filter(createQueryAccountFilterReservedReservations(params.AccountList))
+		query = query.Filter(createQueryAccountFilterReservedInstances(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "daily"))
 	dateStart, dateEnd := getDateForDailyReport(params.Date)
@@ -74,9 +74,9 @@ func getElasticSearchReservedInstancesDailyParams(params ReservedInstancesQueryP
 	return search
 }
 
-// getElasticSearchReservedReservationsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// getElasticSearchReservedInstancesMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- params ReservedReservationsQueryParams : contains the list of accounts and the date
+// 	- params ReservedInstancesQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an reservation of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
@@ -88,7 +88,7 @@ func getElasticSearchReservedInstancesDailyParams(params ReservedInstancesQueryP
 func getElasticSearchReservedInstancesMonthlyParams(params ReservedInstancesQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
-		query = query.Filter(createQueryAccountFilterReservedReservations(params.AccountList))
+		query = query.Filter(createQueryAccountFilterReservedInstances(params.AccountList))
 	}
 	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
 	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
@@ -109,7 +109,7 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 
 // getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- params ReservedReservationsQueryParams : contains the list of accounts and the date
+// 	- params ReservedInstancesQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an reservation of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query

@@ -73,7 +73,7 @@ func GetReservedInstancesMonthlyReservations(ctx context.Context, params Reserve
 	if err != nil {
 		return returnCode, nil, err
 	}
-	reservations, err := prepareResponseReservedReservationsMonthly(ctx, res)
+	reservations, err := prepareResponseReservedInstancesMonthly(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
@@ -93,14 +93,14 @@ func GetReservedInstancesDailyReservations(ctx context.Context, params ReservedI
 	params.AccountList = accountsAndIndexes.Accounts
 	params.IndexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
-	reservations, err := prepareResponseReservedReservationsDaily(ctx, res, costRes)
+	reservations, err := prepareResponseReservedInstancesDaily(ctx, res, costRes)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
 	return http.StatusOK, reservations, nil
 }
 
-// GetReservedReservationsData gets ReservedReservations monthly reports based on query params, if there isn't a monthly report, it gets daily reports
+// GetReservedInstancesData gets ReservedInstances monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, reservedInstances.IndexPrefixReservedInstancesReport)
 	if err != nil {
