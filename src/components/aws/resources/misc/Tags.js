@@ -56,7 +56,7 @@ class Tags extends Component {
           }}
           onClick={this.handlePopoverOpen}
         >
-          <Tooltip placement="left" icon={<i className="fa fa-tags"/>} tooltip="Click to show tags"/>
+          <Tooltip placement="right" icon={<i className="fa fa-tags"/>} tooltip="Click to show tags"/>
         </div>
       </div>
     );
