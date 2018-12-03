@@ -73,7 +73,7 @@ class EventsContainer extends Component {
       events = this.formatEvents(this.props.values.values);
 
     const emptyEvents = (!events.length && !loading && !noEvents ? (
-      <div className="alert alert-success" role="alert">No errors found for this timerange</div>
+      <div className="alert alert-success" role="alert">No events found for this timerange</div>
     ) : null);
 
     const spinnerAndError = (loading || noEvents || emptyEvents ? (
