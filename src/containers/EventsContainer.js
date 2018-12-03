@@ -25,11 +25,13 @@ class EventsContainer extends Component {
   formatEvents(events) {
     const abnormalsList = [];
 
-    Object.keys(events).forEach((key) => {
-      const event = events[key];
-      const abnormals = event.filter((item) => (item.abnormal));
-      abnormals.forEach((element) => {
-        abnormalsList.push({element, key, event});
+    Object.keys(events).forEach((account) => {
+      Object.keys(events[account]).forEach((key) => {
+        const event = events[account][key];
+        const abnormals = event.filter((item) => (item.abnormal));
+        abnormals.forEach((element) => {
+          abnormalsList.push({element, key, event});
+        });
       });
     });
 
@@ -55,7 +57,8 @@ class EventsContainer extends Component {
     const loading = (!this.props.values.status ? (<Spinner className="spinner" name='circle'/>) : null);
 
     const error = (this.props.values.error ? ` (${this.props.values.error.message})` : null);
-    const noEvent = (this.props.values.status && (!this.props.values.values || !Object.keys(this.props.values.values).length || error) ? <div className="alert alert-warning" role="alert">No event available{error}</div> : "");
+    const emptyTimerange = (this.props.values.status && !Object.keys(this.props.values.values).length ? ` (Timerange not processed yet)` : null);
+    const noEvents = (this.props.values.status && (error || emptyTimerange) ? <div className="alert alert-warning" role="alert">No event available{error || emptyTimerange}</div> : null);
 
     const timerange = (this.props.dates ?  (
       <TimerangeSelector
@@ -69,10 +72,15 @@ class EventsContainer extends Component {
     if (this.props.values && this.props.values.status && this.props.values.values)
       events = this.formatEvents(this.props.values.values);
 
-    const spinnerAndError = (loading || noEvent ? (
+    const emptyEvents = (!events.length && !loading && !noEvents ? (
+      <div className="alert alert-success" role="alert">No errors found for this timerange</div>
+    ) : null);
+
+    const spinnerAndError = (loading || noEvents || emptyEvents ? (
       <div className="white-box">
         {loading}
-        {noEvent}
+        {noEvents}
+        {emptyEvents}
       </div>
     ) : null);
 
