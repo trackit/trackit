@@ -16,6 +16,8 @@ export function* getS3DataSaga({ begin, end }) {
     }
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_GET_S3_DATA_SUCCESS, data: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {

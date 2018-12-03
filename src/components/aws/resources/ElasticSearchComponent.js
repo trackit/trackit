@@ -5,7 +5,6 @@ import Actions from "../../../actions";
 import Spinner from "react-spinkit";
 import Moment from 'moment';
 import ReactTable from 'react-table';
-import Popover from '@material-ui/core/Popover';
 import {formatPercent, formatPrice, formatMegaBytes, formatGigaBytes} from '../../../common/formatters';
 import Misc from '../../misc';
 import Costs from "./misc/Costs";
