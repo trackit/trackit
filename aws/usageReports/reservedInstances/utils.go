@@ -32,13 +32,13 @@ import (
 const MonitorReservationStsSessionName = "monitor-reservation"
 
 type (
-	// ReservationReport is saved in ES to have all the information of an ReservedInstances reservation
+	// ReservationReport is saved in ES to have all the information of a instance reservation
 	ReservationReport struct {
 		utils.ReportBase
 		Reservation Reservation `json:"reservation"`
 	}
 
-	// ReservationBase contains basics information of an ReservedInstances reservation
+	// ReservationBase contains basics information of a reserved instance reservation
 	ReservationBase struct {
 		Id              string    `json:"id"`
 		Region          string    `json:"region"`
@@ -52,18 +52,18 @@ type (
 		InstanceTenancy string    `json:"instance_tenancy"`
 	}
 
-	// Reservation contains all the information of an ReservedInstances reservation
+	// Reservation contains all the information of a instance reservation
 	Reservation struct {
 		ReservationBase
 		Tags  []utils.Tag        `json:"tags"`
 	}
 )
 
-// importReservationsToEs imports ReservedInstances reservations in ElasticSearch.
+// importReservationsToEs imports reserved instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
 func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservations []ReservationReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating ReservedInstances reservations for AWS account.", map[string]interface{}{
+	logger.Info("Updating reserved instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
 	index := es.IndexNameForUserId(aa.UserId, IndexPrefixReservedInstancesReport)
@@ -83,10 +83,10 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put ReservedInstances reservations in ES", err.Error())
+		logger.Error("Fail to put reserved instances in ES", err.Error())
 		return err
 	}
-	logger.Info("ReservedInstances reservations put in ES", nil)
+	logger.Info("reserved instancesit  put in ES", nil)
 	return nil
 }
 

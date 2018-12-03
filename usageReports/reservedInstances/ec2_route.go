@@ -42,13 +42,13 @@ type (
 )
 
 var (
-	// reservedReservationsQueryArgs allows to get required queryArgs params
+	// reservedInstancesQueryArgs allows to get required queryArgs params
 	reservedInstancesQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
 	}
 
-	// reservedReservationsUnusedQueryArgs allows to get required queryArgs params
+	// reservedInstancesUnusedQueryArgs allows to get required queryArgs params
 	reservedInstancesUnusedQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
@@ -63,20 +63,20 @@ var (
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getReservedInstancesInstances).With(
+		http.MethodGet: routes.H(getReservedInstances).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(reservedInstancesQueryArgs),
 			routes.Documentation{
-				Summary:     "get the list of ReservedInstances reservations",
-				Description: "Responds with the list of ReservedInstances reservations based on the queryparams passed to it",
+				Summary:     "get the list of Reserved Instances",
+				Description: "Responds with the list of Reserved Instances based on the queryparams passed to it",
 			},
 		),
-	}.H().Register("/reservedInstances")
+	}.H().Register("/ri")
 }
 
-// getReservedInstancesReservations returns the list of ReservedInstances reports based on the query params, in JSON format.
-func getReservedInstancesInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getReservedInstances returns the list of Reserved Instances reports based on the query params, in JSON format.
+func getReservedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := ReservedInstancesQueryParams{

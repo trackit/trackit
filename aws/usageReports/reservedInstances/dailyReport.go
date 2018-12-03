@@ -64,7 +64,7 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 	return nil
 }
 
-// FetchDailyReservationsStats fetches the stats of the ReservedInstances EC2 of an AwsAccount
+// FetchDailyReservationsStats fetches the stats of the reserved instances of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchReservationsStats should be called every hour.
 func FetchDailyReservationsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
