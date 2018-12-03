@@ -29,6 +29,7 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/aws/usageReports/lambda"
 )
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
@@ -69,6 +70,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		ec2Err := processAccountEC2(ctx, aa)
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
+		processAccountLambda(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr, historyCreated)
 	}
@@ -173,6 +175,19 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 		})
 	}
 	return nil
+}
+
+// processAccountLambda processes all the Lambda data for an AwsAccount
+func processAccountLambda(ctx context.Context, aa aws.AwsAccount) error {
+	err := lambda.FetchDailyInstancesStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest Lambda data.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
 }
 
 // processAccountHistoryRDS processes EC2, RDS and ES data with billing data for an AwsAccount

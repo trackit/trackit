@@ -40,16 +40,17 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 		Region:      aws.String(region),
 	}))
 	svc := lambda.New(sess)
-	input := lambda.ListFunctionsInput{
-		FunctionVersion: aws.String("ALL"),
+	input := lambda.ListVersionsByFunctionInput{
+		FunctionName: aws.String(inst.Resource),
 	}
-	functions, err := svc.ListFunctions(&input)
+	functions, err := svc.ListVersionsByFunction(&input)
 	if err != nil {
 		logger.Error("Error when describing instances", err.Error())
 		return err
 	}
-	for _, function := range functions.Functions {
+	for _, function := range functions.Versions {
 		costs := make(map[string]float64, 0)
+		costs["function"] = inst.Cost
 		instanceChan <- Instance{
 			InstanceBase: InstanceBase{
 				Name:        aws.StringValue(function.FunctionName),
@@ -110,6 +111,20 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 	return instancesList, nil
 }
 
+// filterLambdaInstances filters cost per instance to get only costs associated to a Lambda instance
+func filterLambdaInstances(lambdaCost []utils.CostPerResource) []utils.CostPerResource {
+	costInstances := []utils.CostPerResource{}
+	for _, instance := range lambdaCost {
+		// format in billing data for a Lambda instance is: "arn:aws:lambda:(region):(aws_id):function:(lambda name)"
+		// so i get the 7th element of the split by ":"
+		split := strings.Split(instance.Resource, ":")
+		if len(split) == 7 && split[2] == "lambda" {
+			costInstances = append(costInstances, utils.CostPerResource{split[6], instance.Cost, instance.Region})
+		}
+	}
+	return costInstances
+}
+
 // PutLambdaMonthlyReport puts a monthly report of Lambda instance in ES
 func PutLambdaMonthlyReport(ctx context.Context, costs []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -118,6 +133,7 @@ func PutLambdaMonthlyReport(ctx context.Context, costs []utils.CostPerResource, 
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
+	costs = filterLambdaInstances(costs)
 	if len(costs) == 0 {
 		logger.Info("No Lambda instances found in billing data.", nil)
 		return false, nil

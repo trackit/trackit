@@ -174,7 +174,7 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	if esErr == nil {
 		esCreated, esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
 	}
-	lambdaCost, lambdaErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonLambda")
+	lambdaCost, lambdaErr := getCostPerResource(ctx, aa, startDate, endDate, "AWSLambda")
 	if lambdaErr == nil {
 		lambdaCreated, lambdaErr = lambda.PutLambdaMonthlyReport(ctx, lambdaCost, aa, startDate, endDate)
 	}

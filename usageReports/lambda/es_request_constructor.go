@@ -122,7 +122,7 @@ func getElasticSearchCostParams(params LambdaQueryParams, client *elastic.Client
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilterBill(params.AccountList))
 	}
-	query = query.Filter(elastic.NewTermsQuery("productCode", "AmazonLambda", "AmazonCloudWatch"))
+	query = query.Filter(elastic.NewTermQuery("productCode", "AWSLambda"))
 	dateStart, dateEnd := getDateForDailyReport(params.Date)
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(dateStart).To(dateEnd))
