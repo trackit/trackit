@@ -28,16 +28,25 @@ class PluginsContainer extends Component {
   }
 
   getAccountLabel(account) {
+    let accountName = null;
     if (this.props.allAccounts && this.props.allAccounts.status && this.props.allAccounts.values) {
-      const all = this.props.allAccounts.values;
-      for (let i = 0; i < all.length; i++) {
-        const element = all[i];
-        if (element.roleArn.split(':')[4] === account) {
-          return element.pretty;
+      this.props.allAccounts.values.some((element) => {
+        if (element.awsIdentity === account && !accountName) {
+          accountName = element.pretty;
+          return true;
         }
-      }
+        if (element.subAccounts)
+          element.subAccounts.some((subAccount) => {
+            if (subAccount.awsIdentity === account && !accountName) {
+              accountName = subAccount.pretty;
+              return true;
+            }
+            return false;
+          });
+        return false;
+      });
     }
-    return null;
+    return accountName;
   }
 
   groupResultsByAccounts(values) {
