@@ -55,3 +55,7 @@ export const editAccountViewer = (sharedID, permissionLevel, token) => {
 export const deleteAccountViewer = (sharedID, token) => {
   return call(`/user/share?share-id=${sharedID}`, 'DELETE', null, token);
 };
+
+export const getAccountsStatus = (token) => {
+  return call('/aws/status', 'GET', null, token);
+};

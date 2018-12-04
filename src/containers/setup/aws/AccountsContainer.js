@@ -8,7 +8,6 @@ import PropTypes from "prop-types";
 const List = Components.AWS.Accounts.List;
 const Wizard = Components.AWS.Accounts.Wizard;
 const Status = Components.AWS.Accounts.Bills.Status;
-const Panel = Components.Misc.Panel;
 
 // Accounts Container for AWS Accounts
 export class AccountsContainer extends Component {
@@ -41,9 +40,9 @@ export class AccountsContainer extends Component {
     );
 
     return (
-      <Panel>
+      <div>
 
-        <div>
+        <div className="white-box">
 
           <h3 className="white-box-title no-padding inline-block">
             {/* <img className="white-box-title-icon" src={s3square} alt="AWS square logo"/> */}
@@ -89,7 +88,7 @@ export class AccountsContainer extends Component {
           accountActions={this.props.accountActions}
         />
 
-      </Panel>
+      </div>
     );
   }
 

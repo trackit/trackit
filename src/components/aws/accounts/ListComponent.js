@@ -8,7 +8,9 @@ import Misc from '../../misc';
 import Form from './FormComponent';
 import Bills from './bills';
 import TeamSharing from './teamSharing';
+import Status from '../../../common/awsAccountStatus';
 
+const Tooltip = Misc.Popover;
 const DeleteConfirmation = Misc.DeleteConfirmation;
 
 export class Item extends Component {
@@ -17,10 +19,6 @@ export class Item extends Component {
     super(props);
     this.editAccount = this.editAccount.bind(this);
     this.deleteAccount = this.deleteAccount.bind(this);
-    this.hasError = this.hasError.bind(this);
-    this.hasNextPending = this.hasNextPending.bind(this);
-    this.getAccountBadge = this.getAccountBadge.bind(this);
-    this.getInformationBanner = this.getInformationBanner.bind(this);
   }
 
   editAccount = (body) => {
@@ -33,51 +31,37 @@ export class Item extends Component {
     this.props.accountActions.delete(this.props.account.id);
   };
 
-  hasError = () => {
-    if (this.props.account.payer) {
-      let result = !this.props.account.billRepositories.length;
-      this.props.account.billRepositories.forEach((billRepository) => {
-        if (billRepository.error !== "")
-          result = true;
-      });
-      return result;  
-    }
-    return false;
-  };
-
-  hasNextPending = () => {
-    let result = false;
-    this.props.account.billRepositories.forEach((billRepository) => {
-      if (billRepository.nextPending)
-        result = true;
-    });
-    return result;
-  };
-
-  getAccountBadge = () => {
-    if (this.hasError())
-      return (<i className="fa account-badge fa-times-circle"/>);
-    else if (this.hasNextPending())
-      return (<i className="fa account-badge fa-clock-o"/>);
-    return (<i className="fa account-badge fa-check-circle"/>);
-  };
-
-  getInformationBanner = () => {
-    if (this.hasError())
-      return (<ListItem divider className="account-alert"><div className="alert alert-danger account-badge-information-banner">Import failed, please check your bills locations.</div></ListItem>);
-    else if (this.hasNextPending())
-      return (<ListItem divider className="account-alert"><div className="alert alert-warning account-badge-information-banner">Import may take up to 24 hours, please wait.</div></ListItem>);
-    return null;
-  };
-
   render() {
-    const infoBanner = this.getInformationBanner();
+    const status = Status.getAWSAccountStatus(this.props.account);
+    const accountBadge = Status.getBadge(status);
+    const infoBanner = Status.getInformationBanner(status);
+    const formattedInfoBanner = (infoBanner ? (
+      <ListItem className="account-alert">
+        {infoBanner}
+      </ListItem>
+    ) : null);
+
+    const subAccounts = (this.props.account.subAccounts && this.props.account.subAccounts.length ? (
+      <ListItem>
+        <List disablePadding className="account-subaccounts">
+          {this.props.account.subAccounts.map((subAccount, key) => (
+            <Item
+              key={key}
+              account={subAccount}
+              accountActions={this.props.accountActions}
+              subAccount
+            />
+          ))}
+        </List>
+      </ListItem>
+    ) : null);
+
     return (
       <div>
 
-        <ListItem divider={(infoBanner === null)} className="account-item">
+        <ListItem className="account-item">
 
-          {this.getAccountBadge()}
+          {accountBadge}
 
           <ListItemText
             disableTypography
@@ -88,18 +72,33 @@ export class Item extends Component {
           <div className="actions">
 
             <div className="inline-block">
+              {(!this.props.account.accountOwner ? (
+                <Tooltip icon={(
+                  <div className="btn btn=default">
+                    <i className="fa account-badge fa-share-alt"/>
+                  </div>
+                )} tooltip="This account is shared by another user" placement="left"/>
+              ) : null)}
+            </div>
+
+            <div className="inline-block">
               <TeamSharing.List account={this.props.account.id} disabled={this.props.account.permissionLevel === 2} permissionLevel={this.props.account.permissionLevel}/>
             </div>
             &nbsp;
-            <div className="inline-block">
-              <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
-            </div>
-            &nbsp;
+            {!this.props.subAccount ? (
+              <div>
+                <div className="inline-block">
+                  <Bills.List account={this.props.account.id} disabled={this.props.account.permissionLevel !== 0}/>
+                </div>
+                &nbsp;
+              </div>
+            ) : null}
             <div className="inline-block">
               <Form
                 account={this.props.account}
                 submit={this.editAccount}
                 disabled={this.props.account.permissionLevel !== 0}
+                subAccount={this.props.subAccount}
               />
             </div>
             &nbsp;
@@ -111,7 +110,8 @@ export class Item extends Component {
 
         </ListItem>
 
-        {infoBanner}
+        {formattedInfoBanner}
+        {subAccounts}
 
       </div>
     );
@@ -126,12 +126,21 @@ Item.propTypes = {
     pretty: PropTypes.string,
     permissionLevel: PropTypes.number,
     payer: PropTypes.bool.isRequired,
+    status: PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      detail: PropTypes.string.isRequired,
+    }),
     billRepositories: PropTypes.arrayOf(
       PropTypes.shape({
         error: PropTypes.string.isRequired,
+        accountOwner: PropTypes.bool,
         nextPending: PropTypes.bool.isRequired,
         bucket: PropTypes.string.isRequired,
-        prefix: PropTypes.string.isRequired
+        prefix: PropTypes.string.isRequired,
+        status: PropTypes.shape({
+          value: PropTypes.string.isRequired,
+          detail: PropTypes.string.isRequired,
+        })
       })
     ),
   }),
@@ -139,6 +148,11 @@ Item.propTypes = {
     edit: PropTypes.func.isRequired,
     delete: PropTypes.func.isRequired,
   }).isRequired,
+  subAccount: PropTypes.bool
+};
+
+Item.defaultProps = {
+  subAccount: false
 };
 
 // List Component for AWS Accounts
@@ -152,11 +166,12 @@ class ListComponent extends Component {
 
     const accounts = (this.props.accounts.status && this.props.accounts.values && this.props.accounts.values.length ? (
       this.props.accounts.values.map((account, index) => (
-        <Item
-          key={index}
-          account={account}
-          accountActions={this.props.accountActions}
-        />
+        <div className="white-box" key={index}>
+          <Item
+            account={account}
+            accountActions={this.props.accountActions}
+          />
+        </div>
       ))
     ) : null);
 

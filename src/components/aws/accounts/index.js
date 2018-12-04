@@ -5,8 +5,10 @@ import AccountSelector from './AccountSelectorComponent';
 import Bills from './bills';
 import Wizard from './WizardComponent';
 import SelectedIndicator from './SelectedIndicatorComponent';
-import StatusBadges from './StatusBadgesComponent';
 import Users from './teamSharing';
+import Status from './status';
+
+const AccountsStatus = Status.AccountsStatus;
 
 export default {
   Form,
@@ -16,6 +18,6 @@ export default {
   Bills,
   SelectedIndicator,
   Wizard,
-  StatusBadges,
   Users,
+  AccountsStatus
 };

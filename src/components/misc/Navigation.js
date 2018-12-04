@@ -4,8 +4,6 @@ import { NavLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import Actions from '../../actions';
 import NavbarHeader from './NavbarHeader';
-import AccountSelector from '../aws/accounts/SelectorComponent';
-import SelectedIndicator from '../aws/accounts/SelectedIndicatorComponent';
 
 // Styling
 import '../../styles/Navigation.css';
@@ -19,21 +17,11 @@ export class Navigation extends Component {
     this.state = {
       userMenuExpanded: false,
     };
-    this.closeUserMenu = this.closeUserMenu.bind(this);
   }
 
   componentDidMount() {
     this.props.getData(this.props.eventsDates.startDate, this.props.eventsDates.endDate);
   }
-
-  toggleUserMenu() {
-    this.setState({ userMenuExpanded: !this.state.userMenuExpanded });
-  }
-
-  closeUserMenu = (e) => {
-    e.preventDefault();
-    this.setState({ userMenuExpanded: false });
-  };
 
   getAbnormals(data) {
     const res = [];
@@ -63,27 +51,17 @@ export class Navigation extends Component {
 
   render() {
 
-    let userMenu;
-    if (this.state.userMenuExpanded) {
-      userMenu = (
-        <div className="nav nav-second-level">
-          <AccountSelector/>
-        </div>
-      );
-    }
-
     let eventsBadge;
     if (this.props.events && this.props.events.status && this.props.events.values) {
       eventsBadge = <span className="menu-badge">{this.getEventsNumber(this.props.events.values)}</span>;
     }
-
 
     return(
       <div className="navigation">
 
         <NavbarHeader />
 
-        <div className="navbar-default sidebar animated fadeInLeft" role="navigation" onMouseLeave={this.closeUserMenu}>
+        <div className="navbar-default sidebar animated fadeInLeft" role="navigation">
           <div className="sidebar-head">
             <h3>
               <span className="open-close">
@@ -96,20 +74,6 @@ export class Navigation extends Component {
           </div>
 
           <ul className="nav flex-column" id="side-menu">
-            <li className="user-menu-item">
-              <button onClick={this.toggleUserMenu.bind(this)}>
-                <span className="fa-stack fa-lg red-color">
-                  <i className="fa fa-circle fa-stack-2x"></i>
-                  <i className="fa fa-amazon fa-stack-1x fa-inverse"></i>
-                </span>
-                <span className="hide-menu">
-                  <SelectedIndicator />
-                  <i className="fa fa-caret-right"/>
-                </span>
-              </button>
-              {userMenu || <hr className="m-b-0"/>}
-            </li>
-
             <li className="nav-item">
               <NavLink className="nav-link" exact to='/app' activeClassName="active">
                 <i className="menu-icon fa fa-home"/>
@@ -138,13 +102,13 @@ export class Navigation extends Component {
               </NavLink>
             </li>
             <li className="nav-item">
-              <NavLink to='/app/plugins' activeClassName="active">
+              <NavLink className="nav-link" to='/app/plugins' activeClassName="active">
                 <i className="menu-icon fa fa-check-square-o"/>
                 <span className="hide-menu">Recommendations</span>
               </NavLink>
             </li>
-            <li>
-              <NavLink to='/app/tags' activeClassName="active">
+            <li className="nav-item">
+              <NavLink className="nav-link" to='/app/tags' activeClassName="active">
                 <i className="menu-icon fa fa-tags"/>
                 <span className="hide-menu">Tags</span>
               </NavLink>

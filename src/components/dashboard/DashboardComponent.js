@@ -6,7 +6,6 @@ import UUID from 'uuid/v4';
 import Actions from '../../actions';
 import AWS from './aws';
 import Misc from '../misc';
-import AWSAccounts from '../aws/accounts'
 
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -58,19 +57,6 @@ const generateLayout = (item) => {
 const renderItem = (key, item, child, close=null) => {
   const layout = generateLayout(item);
   let title;
-  let badges;
-
-  if (child && child.props && child.props.values && child.props.values.status) {
-    badges = (
-      <AWSAccounts.StatusBadges
-        values={
-          child.props.values ? (
-            child.props.values.status ? child.props.values.values : {}
-          ) : {}
-        }
-      />
-    );
-  }
 
   switch (item.type) {
     case "cb_infos":
@@ -81,7 +67,6 @@ const renderItem = (key, item, child, close=null) => {
           <i className="menu-icon fa fa-area-chart"/>
           &nbsp;
           Cost Breakdown
-          {badges}
         </div>
       );
       break;
@@ -92,7 +77,6 @@ const renderItem = (key, item, child, close=null) => {
           <img className="white-box-title-icon" src={s3squareLightGrey} alt="AWS square logo"/>
           &nbsp;
           S3 Analytics
-          {badges}
         </div>
       );
       break;
