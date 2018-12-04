@@ -56,8 +56,8 @@ class EventsContainer extends Component {
   render() {
     const loading = (!this.props.values.status ? (<Spinner className="spinner" name='circle'/>) : null);
 
-    const error = (this.props.values.error ? ` (${this.props.values.error.message})` : null);
-    const emptyTimerange = (this.props.values.status && !Object.keys(this.props.values.values).length ? ` (Timerange not processed yet)` : null);
+    const error = (this.props.values.hasOwnProperty("error") && this.props.values.error ? ` (${this.props.values.error.message})` : null);
+    const emptyTimerange = (this.props.values.status && this.props.values.hasOwnProperty("values") && !Object.keys(this.props.values.values).length ? ` (Timerange not processed yet)` : null);
     const noEvents = (this.props.values.status && (error || emptyTimerange) ? <div className="alert alert-warning" role="alert">No event available{error || emptyTimerange}</div> : null);
 
     const timerange = (this.props.dates ?  (
