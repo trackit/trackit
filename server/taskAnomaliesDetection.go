@@ -20,12 +20,14 @@ import (
 	"errors"
 	"flag"
 	"strconv"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/anomaliesDetection"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/models"
 )
 
 // taskAnomaliesDetection processes an AwsAccount to email
@@ -48,6 +50,8 @@ func taskAnomaliesDetection(ctx context.Context) error {
 func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
+	var dbaa *models.AwsAccount
+	var lastUpdate time.Time
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -59,8 +63,10 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 		}
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
-	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if err = anomalies.RunAnomaliesDetection(aa, ctx, tx); err != nil {
+	} else if dbaa, err = models.AwsAccountByID(tx, aaId); err != nil {
+	} else if aa = aws.AwsAccountFromDbAwsAccount(*dbaa); err != nil {
+	} else if lastUpdate, err = anomalies.RunAnomaliesDetection(aa, dbaa.LastAnomaliesUpdate, ctx); err == nil {
+		err = registerAnomaliesUpdate(tx, lastUpdate, aa.Id)
 	}
 	if err != nil {
 		logger.Error("Failed to detect anomalies.", map[string]interface{}{
@@ -69,4 +75,13 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 		})
 	}
 	return
+}
+
+func registerAnomaliesUpdate(tx *sql.Tx, lastUpdate time.Time, aaId int) error {
+	dbaa, err := models.AwsAccountByID(tx, aaId)
+	if err != nil {
+		return err
+	}
+	dbaa.LastAnomaliesUpdate = lastUpdate
+	return dbaa.Update(tx)
 }
