@@ -44,6 +44,7 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 		logger.Error("Error when describing reservations", err.Error())
 		return err
 	}
+	//logger.Debug("RESERVATIONS : ", reservations)
 	for _, reservation := range reservations.ReservedInstances {
 		reservationChan <- Reservation{
 			ReservationBase: ReservationBase{

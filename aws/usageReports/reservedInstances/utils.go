@@ -86,7 +86,7 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 		logger.Error("Fail to put reserved instances in ES", err.Error())
 		return err
 	}
-	logger.Info("reserved instancesit  put in ES", nil)
+	logger.Info("reserved instances put in ES", nil)
 	return nil
 }
 
