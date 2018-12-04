@@ -40,13 +40,13 @@ type (
 
 	// FunctionBase contains basics information of an Lambda function
 	FunctionBase struct {
-		Name        string  `json:"name"`
-		Description string  `json:"description"`
-		Version     string  `json:"version"`
+		Name         string `json:"name"`
+		Description  string `json:"description"`
+		Version      string `json:"version"`
 		LastModified string `json:"lastModified"`
 		Runtime      string `json:"runtime"`
-		Size        int64   `json:"size"`
-		Memory      int64   `json:"memory"`
+		Size         int64  `json:"size"`
+		Memory       int64  `json:"memory"`
 	}
 
 	// Function contains all the information of an Lambda function
@@ -58,8 +58,8 @@ type (
 
 	// Stats contains statistics of an Lambda function
 	Stats struct {
-		Invocations          Invocations          `json:"invocations"`
-		Duration             Duration             `json:"duration"`
+		Invocations Invocations `json:"invocations"`
+		Duration    Duration    `json:"duration"`
 	}
 
 	Invocations struct {
