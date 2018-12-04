@@ -67,10 +67,10 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
+		processAccountLambda(ctx, aa)
 		ec2Err := processAccountEC2(ctx, aa)
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
-		processAccountLambda(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr, historyCreated)
 	}
@@ -179,7 +179,7 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 
 // processAccountLambda processes all the Lambda data for an AwsAccount
 func processAccountLambda(ctx context.Context, aa aws.AwsAccount) error {
-	err := lambda.FetchDailyInstancesStats(ctx, aa)
+	err := lambda.FetchDailyFunctionsStats(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest Lambda data.", map[string]interface{}{

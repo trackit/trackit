@@ -67,56 +67,30 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams LambdaQueryParam
 	return res, http.StatusOK, nil
 }
 
-// GetLambdaMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetLambdaMonthlyInstances(ctx context.Context, params LambdaQueryParams) (int, []InstanceReport, error) {
-	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchLambdaMonthlyParams)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	instances, err := prepareResponseLambdaMonthly(ctx, res)
-	if err != nil {
-		return http.StatusInternalServerError, nil, err
-	}
-	return http.StatusOK, instances, nil
-}
-
-// GetLambdaDailyInstances does an elastic request and returns an array of instances daily report based on query params
-func GetLambdaDailyInstances(ctx context.Context, params LambdaQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+// GetLambdaDailyFunctions does an elastic request and returns an array of functions daily report based on query params
+func GetLambdaDailyFunctions(ctx context.Context, params LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchLambdaDailyParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	params.AccountList = accountsAndIndexes.Accounts
-	params.IndexList = accountsAndIndexes.Indexes
-	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
-	instances, err := prepareResponseLambdaDaily(ctx, res, costRes)
+	functions, err := prepareResponseLambdaDaily(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, functions, nil
 }
 
 // GetLambdaData gets Lambda monthly reports based on query params, if there isn't a monthly report, it gets daily reports
-func GetLambdaData(ctx context.Context, parsedParams LambdaQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+func GetLambdaData(ctx context.Context, parsedParams LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lambda.IndexPrefixLambdaReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetLambdaMonthlyInstances(ctx, parsedParams)
-	if err != nil {
-		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
-		return returnCode, monthlyInstances, nil
-	}
-	returnCode, dailyInstances, err := GetLambdaDailyInstances(ctx, parsedParams, user, tx)
+	returnCode, dailyFunctions, err := GetLambdaDailyFunctions(ctx, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	return returnCode, dailyInstances, nil
+	return returnCode, dailyFunctions, nil
 }

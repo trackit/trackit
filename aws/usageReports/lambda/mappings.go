@@ -55,7 +55,7 @@ const TemplateLineItem = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instance": {
+				"function": {
 					"properties": {
 						"name": {
 							"type": "keyword"
@@ -80,8 +80,32 @@ const TemplateLineItem = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
+						"stats": {
+							"type": "object",
+							"properties": {
+								"invocations": {
+									"type": "object",
+									"properties": {
+											"total": {
+												"type": "double"
+											},
+											"error": {
+												"type": "double"
+											}
+									}
+								},
+								"duration": {
+									"type": "object",
+									"properties": {
+											"average": {
+												"type": "double"
+											},
+											"maximum": {
+												"type": "double"
+											}
+									}
+								}
+							}
 						}
 					}
 				}

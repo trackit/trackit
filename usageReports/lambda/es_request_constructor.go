@@ -50,7 +50,7 @@ func createQueryAccountFilterLambda(accountList []string) *elastic.TermsQuery {
 // getElasticSearchLambdaDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
 // 	- params LambdaQueryParams : contains the list of accounts and the date
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	- client *elastic.Client : an function of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "lambda-reports"
@@ -70,65 +70,6 @@ func getElasticSearchLambdaDailyParams(params LambdaQueryParams, client *elastic
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
-			SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
-	return search
-}
-
-// getElasticSearchLambdaMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as parameters :
-// 	- params LambdaQueryParams : contains the list of accounts and the date
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on which to execute the query. In this context the default value
-//	should be "lambda-reports"
-// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
-// it crash :
-//	- If the client is nil or malconfigured, it will crash
-//	- If the index is not an index present in the ES, it will crash
-func getElasticSearchLambdaMonthlyParams(params LambdaQueryParams, client *elastic.Client, index string) *elastic.SearchService {
-	query := elastic.NewBoolQuery()
-	if len(params.AccountList) > 0 {
-		query = query.Filter(createQueryAccountFilterLambda(params.AccountList))
-	}
-	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
-	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
-	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
-	return search
-}
-
-// createQueryAccountFilterBill creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
-	accountListFormatted := make([]interface{}, len(accountList))
-	for i, v := range accountList {
-		accountListFormatted[i] = v
-	}
-	return elastic.NewTermsQuery("usageAccountId", accountListFormatted...)
-}
-
-// getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as parameters :
-// 	- params LambdaQueryParams : contains the list of accounts and the date
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on which to execute the query
-// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
-// it crash :
-//	- If the client is nil or malconfigured, it will crash
-//	- If the index is not an index present in the ES, it will crash
-func getElasticSearchCostParams(params LambdaQueryParams, client *elastic.Client, index string) *elastic.SearchService {
-	query := elastic.NewBoolQuery()
-	if len(params.AccountList) > 0 {
-		query = query.Filter(createQueryAccountFilterBill(params.AccountList))
-	}
-	query = query.Filter(elastic.NewTermQuery("productCode", "AWSLambda"))
-	dateStart, dateEnd := getDateForDailyReport(params.Date)
-	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
-		From(dateStart).To(dateEnd))
-	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).
-		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize).
-			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
+			SubAggregation("functions", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
 	return search
 }

@@ -29,10 +29,11 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-// fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
-// and filled by DescribeInstances and getInstanceStats.
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
-	defer close(instanceChan)
+// fetchDailyFunctionsList sends in functionInfoChan the functions fetched from DescribeFunctions
+// and filled by DescribeFunctions and getFunctionStats.
+func fetchDailyFunctionsList(ctx context.Context, creds *credentials.Credentials, region string, functionChan chan Function) error {
+	defer close(functionChan)
+	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -41,32 +42,35 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	svc := lambda.New(sess)
 	functions, err := svc.ListFunctions(nil)
 	if err != nil {
-		logger.Error("Error when describing instances", err.Error())
+		logger.Error("Error when describing functions", err.Error())
 		return err
 	}
 	for _, function := range functions.Functions {
-		costs := make(map[string]float64, 0)
-		instanceChan <- Instance{
-			InstanceBase: InstanceBase{
-				Name:        aws.StringValue(function.FunctionName),
-				Description: aws.StringValue(function.Description),
-				Size:        aws.Int64Value(function.CodeSize),
-				Memory:      aws.Int64Value(function.MemorySize),
+		stats := getFunctionStats(ctx, function, sess, start, end)
+		functionChan <- Function{
+			FunctionBase: FunctionBase{
+				Name:         aws.StringValue(function.FunctionName),
+				Description:  aws.StringValue(function.Description),
+				Version:      aws.StringValue(function.Version),
+				LastModified: aws.StringValue(function.LastModified),
+				Runtime:      aws.StringValue(function.Runtime),
+				Size:         aws.Int64Value(function.CodeSize),
+				Memory:       aws.Int64Value(function.MemorySize),
 			},
 			Tags:  getFunctionTags(ctx, function, svc),
-			Costs: costs,
+			Stats: stats,
 		}
 	}
 	return nil
 }
 
-// FetchDailyInstancesStats fetches the stats of the Lambda instances of an AwsAccount
+// FetchDailyFunctionsStats fetches the stats of the Lambda functions of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
-// In this way, FetchInstancesStats should be called every hour.
-func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+// In this way, FetchFunctionsStats should be called every hour.
+func FetchDailyFunctionsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching Lambda instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
-	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorInstanceStsSessionName)
+	logger.Info("Fetching Lambda function stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorFunctionStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
 		return err
@@ -86,22 +90,22 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	functionChans := make([]<-chan Function, 0, len(regions))
 	for _, region := range regions {
-		instanceChan := make(chan Instance)
-		go fetchDailyInstancesList(ctx, creds, region, instanceChan)
-		instanceChans = append(instanceChans, instanceChan)
+		functionChan := make(chan Function)
+		go fetchDailyFunctionsList(ctx, creds, region, functionChan)
+		functionChans = append(functionChans, functionChan)
 	}
-	instances := make([]InstanceReport, 0)
-	for instance := range merge(instanceChans...) {
-		instances = append(instances, InstanceReport{
+	functions := make([]FunctionReport, 0)
+	for function := range merge(functionChans...) {
+		functions = append(functions, FunctionReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",
 			},
-			Instance: instance,
+			Function: function,
 		})
 	}
-	return importInstancesToEs(ctx, awsAccount, instances)
+	return importFunctionsToEs(ctx, awsAccount, functions)
 }

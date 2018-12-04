@@ -43,20 +43,20 @@ var (
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getLambdaInstances).With(
+		http.MethodGet: routes.H(getLambdaFunctions).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(lambdaQueryArgs),
 			routes.Documentation{
-				Summary:     "get the list of Lambda instances",
-				Description: "Responds with the list of Lambda instances based on the queryparams passed to it",
+				Summary:     "get the list of Lambda functions",
+				Description: "Responds with the list of Lambda functions based on the queryparams passed to it",
 			},
 		),
 	}.H().Register("/lambda")
 }
 
-// getLambdaInstances returns the list of Lambda reports based on the query params, in JSON format.
-func getLambdaInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getLambdaFunctions returns the list of Lambda reports based on the query params, in JSON format.
+func getLambdaFunctions(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := LambdaQueryParams{

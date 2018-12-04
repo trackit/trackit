@@ -29,36 +29,55 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const MonitorInstanceStsSessionName = "monitor-instance"
+const MonitorFunctionStsSessionName = "monitor-function"
 
 type (
-	// InstanceReport is saved in ES to have all the information of an Lambda instance
-	InstanceReport struct {
+	// FunctionReport is saved in ES to have all the information of an Lambda function
+	FunctionReport struct {
 		utils.ReportBase
-		Instance Instance `json:"instance"`
+		Function Function `json:"function"`
 	}
 
-	// InstanceBase contains basics information of an Lambda instance
-	InstanceBase struct {
-		Name        string `json:"name"`
-		Description string `json:"description"`
-		Size        int64  `json:"size"`
-		Memory      int64  `json:"memory"`
+	// FunctionBase contains basics information of an Lambda function
+	FunctionBase struct {
+		Name        string  `json:"name"`
+		Description string  `json:"description"`
+		Version     string  `json:"version"`
+		LastModified string `json:"lastModified"`
+		Runtime      string `json:"runtime"`
+		Size        int64   `json:"size"`
+		Memory      int64   `json:"memory"`
 	}
 
-	// Instance contains all the information of an Lambda instance
-	Instance struct {
-		InstanceBase
-		Tags  []utils.Tag        `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
+	// Function contains all the information of an Lambda function
+	Function struct {
+		FunctionBase
+		Tags  []utils.Tag `json:"tags"`
+		Stats Stats       `json:"stats"`
+	}
+
+	// Stats contains statistics of an Lambda function
+	Stats struct {
+		Invocations          Invocations          `json:"invocations"`
+		Duration             Duration             `json:"duration"`
+	}
+
+	Invocations struct {
+		Total  float64 `json:"total"`
+		Failed float64 `json:"failed"`
+	}
+
+	Duration struct {
+		Average float64 `json:"average"`
+		Maximum float64 `json:"maximum"`
 	}
 )
 
-// importInstancesToEs imports Lambda instances in ElasticSearch.
+// importFunctionsToEs imports Lambda functions in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
+func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []FunctionReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating Lambda instances for AWS account.", map[string]interface{}{
+	logger.Info("Updating Lambda functions for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
 	index := es.IndexNameForUserId(aa.UserId, IndexPrefixLambdaReport)
@@ -67,33 +86,33 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return err
 	}
-	for _, instance := range instances {
-		id, err := generateId(instance)
+	for _, function := range functions {
+		id, err := generateId(function)
 		if err != nil {
-			logger.Error("Error when marshaling instance var", err.Error())
+			logger.Error("Error when marshaling function var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeLambdaReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, function, TypeLambdaReport, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put Lambda instances in ES", err.Error())
+		logger.Error("Fail to put Lambda functions in ES", err.Error())
 		return err
 	}
-	logger.Info("Lambda instances put in ES", nil)
+	logger.Info("Lambda functions put in ES", nil)
 	return nil
 }
 
-func generateId(instance InstanceReport) (string, error) {
+func generateId(function FunctionReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
 	}{
-		instance.Account,
-		instance.ReportDate,
-		instance.Instance.Name,
+		function.Account,
+		function.ReportDate,
+		function.Function.Name,
 	})
 	if err != nil {
 		return "", err
@@ -105,13 +124,13 @@ func generateId(instance InstanceReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Instance) <-chan Instance {
+func merge(cs ...<-chan Function) <-chan Function {
 	var wg sync.WaitGroup
-	out := make(chan Instance)
+	out := make(chan Function)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Instance) {
+	output := func(c <-chan Function) {
 		for n := range c {
 			out <- n
 		}

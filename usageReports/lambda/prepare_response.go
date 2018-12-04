@@ -17,139 +17,73 @@ package lambda
 import (
 	"context"
 	"encoding/json"
-	"strings"
-
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/lambda"
-	"github.com/trackit/trackit-server/errors"
 )
 
 type (
-
-	// Structure that allow to parse ES response for costs
-	ResponseCost struct {
-		Accounts struct {
-			Buckets []struct {
-				Key       string `json:"key"`
-				Instances struct {
-					Buckets []struct {
-						Key  string `json:"key"`
-						Cost struct {
-							Value float64 `json:"value"`
-						} `json:"cost"`
-					} `json:"buckets"`
-				} `json:"instances"`
-			} `json:"buckets"`
-		} `json:"accounts"`
-	}
-
-	// Structure that allow to parse ES response for Lambda Monthly instances
-	ResponseLambdaMonthly struct {
-		Accounts struct {
-			Buckets []struct {
-				Instances struct {
-					Hits struct {
-						Hits []struct {
-							Instance lambda.InstanceReport `json:"_source"`
-						} `json:"hits"`
-					} `json:"hits"`
-				} `json:"instances"`
-			} `json:"buckets"`
-		} `json:"accounts"`
-	}
-
-	// Structure that allow to parse ES response for Lambda Daily instances
+	// Structure that allow to parse ES response for Lambda Daily functions
 	ResponseLambdaDaily struct {
 		Accounts struct {
 			Buckets []struct {
 				Dates struct {
 					Buckets []struct {
 						Time      string `json:"key_as_string"`
-						Instances struct {
+						Functions struct {
 							Hits struct {
 								Hits []struct {
-									Instance lambda.InstanceReport `json:"_source"`
+									Function lambda.FunctionReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
-						} `json:"instances"`
+						} `json:"functions"`
 					} `json:"buckets"`
 				} `json:"dates"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// InstanceReport has all the information of an Lambda instance report
-	InstanceReport struct {
+	// FunctionReport has all the information of an Lambda function report
+	FunctionReport struct {
 		utils.ReportBase
-		Instance Instance `json:"instance"`
+		Function Function `json:"function"`
 	}
 
-	// Instance contains the information of an Lambda instance
-	Instance struct {
-		lambda.InstanceBase
-		Tags  map[string]string  `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
+	// Function contains the information of an Lambda function
+	Function struct {
+		lambda.FunctionBase
+		Tags  map[string]string `json:"tags"`
+		Stats lambda.Stats      `json:"stats"`
 	}
 )
 
-func getLambdaInstanceReportResponse(oldInstance lambda.InstanceReport) InstanceReport {
+func getLambdaFunctionReportResponse(oldFunction lambda.FunctionReport) FunctionReport {
 	tags := make(map[string]string, 0)
-	for _, tag := range oldInstance.Instance.Tags {
+	for _, tag := range oldFunction.Function.Tags {
 		tags[tag.Key] = tag.Value
 	}
-	newInstance := InstanceReport{
-		ReportBase: oldInstance.ReportBase,
-		Instance: Instance{
-			InstanceBase: oldInstance.Instance.InstanceBase,
+	newFunction := FunctionReport{
+		ReportBase: oldFunction.ReportBase,
+		Function: Function{
+			FunctionBase: oldFunction.Function.FunctionBase,
 			Tags:         tags,
-			Costs:        oldInstance.Instance.Costs,
+			Stats:        oldFunction.Function.Stats,
 		},
 	}
-	return newInstance
+	return newFunction
 }
 
-// addCostToInstance adds a cost for an instance based on billing data
-func addCostToInstance(instance lambda.InstanceReport, costs ResponseCost) lambda.InstanceReport {
-	if instance.Instance.Costs == nil {
-		instance.Instance.Costs = make(map[string]float64, 0)
-	}
-	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != instance.Account {
-			continue
-		}
-		for _, instanceCost := range accounts.Instances.Buckets {
-			if strings.Contains(instanceCost.Key, instance.Instance.Name) {
-				if len(instanceCost.Key) == 19 && strings.HasPrefix(instanceCost.Key, "i-") {
-					instance.Instance.Costs["instance"] += instanceCost.Cost.Value
-				} else {
-					instance.Instance.Costs["cloudwatch"] += instanceCost.Cost.Value
-				}
-			}
-		}
-		return instance
-	}
-	return instance
-}
-
-// prepareResponseLambdaDaily parses the results from elasticsearch and returns an array of Lambda daily instances report
-func prepareResponseLambdaDaily(ctx context.Context, resLambda *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceReport, error) {
+// prepareResponseLambdaDaily parses the results from elasticsearch and returns an array of Lambda daily functions report
+func prepareResponseLambdaDaily(ctx context.Context, resLambda *elastic.SearchResult) ([]FunctionReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedLambda ResponseLambdaDaily
-	var parsedCost ResponseCost
-	instances := make([]InstanceReport, 0)
+	functions := make([]FunctionReport, 0)
 	err := json.Unmarshal(*resLambda.Aggregations["accounts"], &parsedLambda.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES Lambda response", err)
 		return nil, err
-	}
-	if resCost != nil {
-		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
-		if err != nil {
-			logger.Error("Error while unmarshaling ES cost response", err)
-		}
 	}
 	for _, account := range parsedLambda.Accounts.Buckets {
 		var lastDate = ""
@@ -160,30 +94,11 @@ func prepareResponseLambdaDaily(ctx context.Context, resLambda *elastic.SearchRe
 		}
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
-				for _, instance := range date.Instances.Hits.Hits {
-					instance.Instance = addCostToInstance(instance.Instance, parsedCost)
-					instances = append(instances, getLambdaInstanceReportResponse(instance.Instance))
+				for _, function := range date.Functions.Hits.Hits {
+					functions = append(functions, getLambdaFunctionReportResponse(function.Function))
 				}
 			}
 		}
 	}
-	return instances, nil
-}
-
-// prepareResponseLambdaMonthly parses the results from elasticsearch and returns an array of Lambda monthly instances report
-func prepareResponseLambdaMonthly(ctx context.Context, resLambda *elastic.SearchResult) ([]InstanceReport, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var response ResponseLambdaMonthly
-	instances := make([]InstanceReport, 0)
-	err := json.Unmarshal(*resLambda.Aggregations["accounts"], &response.Accounts)
-	if err != nil {
-		logger.Error("Error while unmarshaling ES Lambda response", err)
-		return nil, errors.GetErrorMessage(ctx, err)
-	}
-	for _, account := range response.Accounts.Buckets {
-		for _, instance := range account.Instances.Hits.Hits {
-			instances = append(instances, getLambdaInstanceReportResponse(instance.Instance))
-		}
-	}
-	return instances, nil
+	return functions, nil
 }
