@@ -65,7 +65,7 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if dbaa, err = models.AwsAccountByID(tx, aaId); err != nil {
 	} else if aa = aws.AwsAccountFromDbAwsAccount(*dbaa); err != nil {
-	} else if lastUpdate, err = anomalies.RunAnomaliesDetection(aa, dbaa.LastAnomliesUpdate, ctx); err == nil {
+	} else if lastUpdate, err = anomalies.RunAnomaliesDetection(aa, dbaa.LastAnomaliesUpdate, ctx); err == nil {
 		err = registerAnomaliesUpdate(tx, lastUpdate, aa.Id)
 	}
 	if err != nil {
@@ -82,6 +82,6 @@ func registerAnomaliesUpdate(tx *sql.Tx, lastUpdate time.Time, aaId int) error {
 	if err != nil {
 		return err
 	}
-	dbaa.LastAnomliesUpdate = lastUpdate
+	dbaa.LastAnomaliesUpdate = lastUpdate
 	return dbaa.Update(tx)
 }

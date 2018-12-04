@@ -668,4 +668,4 @@ CREATE VIEW anomalies_detection_due_update AS
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_account ADD last_anomlies_update DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE aws_account ADD last_anomalies_update DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
