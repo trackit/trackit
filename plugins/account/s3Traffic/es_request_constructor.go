@@ -34,10 +34,12 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // Parameters:
 // - durationBegin and durationEnd: parameters to define the time interval
 // - client: preconfigured elasticsearch client
+// - account: the aws account id to use for filtering
 // - index: the index on which the query should be executed
 // It returns an elastic.SearchService that can be used to execute the search
-func GetS3StorageUsage(durationBegin time.Time, durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
+func GetS3StorageUsage(durationBegin time.Time, durationEnd time.Time, client *elastic.Client, account, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
+	query = query.Filter(elastic.NewTermQuery("usageAccountId", account))
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
 	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
 	// We only want to get standard storage
@@ -53,10 +55,12 @@ func GetS3StorageUsage(durationBegin time.Time, durationEnd time.Time, client *e
 // Parameters:
 // - durationBegin and durationEnd: parameters to define the time interval
 // - client: preconfigured elasticsearch client
+// - account: the aws account id to use for filtering
 // - index: the index on which the query should be executed
 // It returns an elastic.SearchService that can be used to execute the search
-func GetS3BandwidthUsage(durationBegin time.Time, durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
+func GetS3BandwidthUsage(durationBegin time.Time, durationEnd time.Time, client *elastic.Client, account, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
+	query = query.Filter(elastic.NewTermQuery("usageAccountId", account))
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
 	query = query.Filter(elastic.NewTermQuery("productCode", "AmazonS3"))
 	query = query.Filter(elastic.NewWildcardQuery("usageType", "*-Bytes"))

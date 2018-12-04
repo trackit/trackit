@@ -20,12 +20,13 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"errors"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"github.com/trackit/trackit-server/errors"
+	terrors "github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
 )
@@ -53,8 +54,8 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams RdsQueryParams,
 				"index": index,
 				"error": err.Error(),
 			})
-			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,
@@ -62,16 +63,18 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams RdsQueryParams,
 		} else {
 			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
+		return nil, http.StatusInternalServerError, terrors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
 
 // GetRdsMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []rds.InstanceReport, error) {
+func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchRdsMonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
+	} else if res == nil {
+		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
 	instances, err := prepareResponseRdsMonthly(ctx, res)
 	if err != nil {
@@ -81,10 +84,12 @@ func GetRdsMonthlyInstances(ctx context.Context, params RdsQueryParams) (int, []
 }
 
 // GetRdsDailyInstances does an elastic request and returns an array of instances daily report based on query params
-func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchRdsDailyParams)
 	if err != nil {
 		return returnCode, nil, err
+	} else if res == nil {
+		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {
@@ -101,7 +106,7 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 }
 
 // GetRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyInstances
-func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rds.IndexPrefixRDSReport)
 	if err != nil {
 		return returnCode, nil, err
@@ -122,7 +127,7 @@ func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.Use
 }
 
 // GetRdsUnusedData gets RDS reports and parse them based on query params to have an array of unused instances
-func GetRdsUnusedData(ctx context.Context, params RdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []rds.InstanceReport, error) {
+func GetRdsUnusedData(ctx context.Context, params RdsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
 	returnCode, instances, err := GetRdsData(ctx, RdsQueryParams{params.AccountList, nil, params.Date}, user, tx)
 	if err != nil {
 		return returnCode, nil, err

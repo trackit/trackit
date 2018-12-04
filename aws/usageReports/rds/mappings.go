@@ -42,7 +42,7 @@ func init() {
 const TemplateRDSReport = `
 {
 	"template": "*-rds-reports",
-	"version": 4,
+	"version": 5,
 	"mappings": {
 		"rds-report": {
 			"properties": {
@@ -75,6 +75,17 @@ const TemplateRDSReport = `
 						},
 						"multiAZ": {
 							"type": "boolean"
+						},
+						"tags": {
+							"type": "nested",
+							"properties": {
+								"key": {
+									"type": "keyword"
+								},
+								"value": {
+									"type": "keyword"
+								}
+							}
 						},
 						"costs": {
 							"type": "object"

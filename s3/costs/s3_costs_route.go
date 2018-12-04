@@ -114,10 +114,19 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists : "+index, err)
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
 			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		l.Error("Query execution failed : "+err.Error(), nil)
 		return nil, http.StatusInternalServerError, fmt.Errorf("could not execute the ElasticSearch query")
 	}
 	return res, http.StatusOK, nil

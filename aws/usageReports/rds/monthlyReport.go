@@ -45,6 +45,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 		return err
 	}
 	for _, DBInstance := range instances.DBInstances {
+		tags := getInstanceTags(ctx, DBInstance, svc)
 		stats := getInstanceStats(ctx, DBInstance, sess, startDate, endDate)
 		costs := make(map[string]float64, 0)
 		costs["instance"] = inst.Cost
@@ -57,6 +58,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 				AllocatedStorage:     aws.Int64Value(DBInstance.AllocatedStorage),
 				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
 			},
+			Tags:  tags,
 			Costs: costs,
 			Stats: stats,
 		}
@@ -125,7 +127,7 @@ func filterRdsInstances(rdsCost []utils.CostPerResource) []utils.CostPerResource
 }
 
 // PutRdsMonthlyReport puts a monthly report of RDS in ES
-func PutRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
+func PutRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting RDS monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -135,18 +137,22 @@ func PutRdsMonthlyReport(ctx context.Context, rdsCost []utils.CostPerResource, a
 	costInstance := filterRdsInstances(rdsCost)
 	if len(costInstance) == 0 {
 		logger.Info("No RDS instances found in billing data.", nil)
-		return nil
+		return false, nil
 	}
 	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixRDSReport)
 	if err != nil {
-		return err
+		return false, err
 	} else if already {
 		logger.Info("There is already an RDS monthly report", nil)
-		return nil
+		return false, nil
 	}
 	instances, err := getRdsMetrics(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {
-		return err
+		return false, err
 	}
-	return importInstancesToEs(ctx, aa, instances)
+	err = importInstancesToEs(ctx, aa, instances)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

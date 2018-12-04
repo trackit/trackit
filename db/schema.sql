@@ -578,3 +578,78 @@ CREATE VIEW aws_account_status AS
 	)
 	SELECT aws_bill_repository_id, created, completed, error FROM jobs WHERE rn = 1
 ;
+
+--   Copyright 2018 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+CREATE OR REPLACE VIEW aws_account_plugins_due_update AS
+	SELECT * FROM aws_account WHERE next_update_plugins <= NOW()
+;
+
+--   Copyright 2018 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+ALTER TABLE aws_account ADD last_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE aws_account_update_job ADD monthly_reports_generated bool NOT NULL DEFAULT 0;
+
+--   Copyright 2018 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+ALTER TABLE aws_account ADD next_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+
+CREATE OR REPLACE VIEW aws_account_spreadsheets_reports_due_update AS
+SELECT * FROM aws_account WHERE next_spreadsheet_report_generation <= NOW()
+;
+
+--   Copyright 2018 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+ALTER TABLE aws_account ADD next_update_anomalies_detection DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+
+CREATE VIEW anomalies_detection_due_update AS
+	SELECT * FROM aws_account WHERE next_update_anomalies_detection <= NOW()
+;

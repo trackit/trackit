@@ -20,12 +20,13 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"errors"
 
 	"gopkg.in/olivere/elastic.v5"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
-	"github.com/trackit/trackit-server/errors"
+	terrors "github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
 )
@@ -53,8 +54,8 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2QueryParams,
 				"index": index,
 				"error": err.Error(),
 			})
-			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+			return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,
@@ -62,7 +63,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2QueryParams,
 		} else {
 			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
+		return nil, http.StatusInternalServerError, terrors.GetErrorMessage(ctx, err)
 	}
 	return res, http.StatusOK, nil
 }
@@ -72,6 +73,8 @@ func GetEc2MonthlyInstances(ctx context.Context, params Ec2QueryParams) (int, []
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEc2MonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
+	} else if res == nil {
+		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
 	instances, err := prepareResponseEc2Monthly(ctx, res)
 	if err != nil {
@@ -85,6 +88,8 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEc2DailyParams)
 	if err != nil {
 		return returnCode, nil, err
+	} else if res == nil {
+		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
 	if err != nil {

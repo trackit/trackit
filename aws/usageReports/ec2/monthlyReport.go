@@ -51,7 +51,7 @@ func getElasticSearchEc2Instance(ctx context.Context, account, instance string, 
 				"error": err.Error(),
 			})
 			return nil, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,
@@ -233,7 +233,7 @@ func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch [
 }
 
 // PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
-func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) error {
+func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting EC2 monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -243,19 +243,23 @@ func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.Co
 	costInstance, costVolume, costCloudWatch := filterInstancesCosts(ec2Cost, cloudWatchCost)
 	if len(costInstance) == 0 {
 		logger.Info("No EC2 instances found in billing data.", nil)
-		return nil
+		return false, nil
 	}
 	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEC2Report)
 	if err != nil {
-		return err
+		return false, err
 	} else if already {
 		logger.Info("There is already an EC2 monthly report", nil)
-		return nil
+		return false, nil
 	}
 	instances, err := fetchMonthlyInstancesStats(ctx, costInstance, aa, startDate, endDate)
 	if err != nil {
-		return err
+		return false, err
 	}
 	instances = addCostToInstances(instances, costVolume, costCloudWatch)
-	return importInstancesToEs(ctx, aa, instances)
+	err = importInstancesToEs(ctx, aa, instances)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
 }

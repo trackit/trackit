@@ -69,12 +69,11 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		ec2Err := processAccountEC2(ctx, aa)
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
-		historyErr := processAccountHistory(ctx, aa)
-		processAccountSpreadsheet(ctx, aa, historyErr)
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr)
+		historyCreated, historyErr := processAccountHistory(ctx, aa)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, historyErr, historyCreated)
 	}
 	if err != nil {
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, false)
 		logger.Error("Failed to process account data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
@@ -95,9 +94,9 @@ func registerAccountProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	return res.LastInsertId()
 }
 
-func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr error, ec2Err error, esErr error, historyErr error) {
+func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr error, ec2Err error, esErr error, historyErr error, historyCreated bool) {
 	updateNextUpdateAccount(db, aaId)
-	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr, ec2Err, esErr, historyErr)
+	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr, ec2Err, esErr, historyErr, historyCreated)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -123,16 +122,17 @@ func updateNextUpdateAccount(db *sql.DB, aaId int) error {
 	return err
 }
 
-func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr error, ec2Err error, esErr error, historyErr error) error {
+func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr error, ec2Err error, esErr error, historyErr error, historyCreated bool) error {
 	const sqlstr = `UPDATE aws_account_update_job SET
 		completed=?,
 		jobError=?,
 		rdsError=?,
 		ec2Error=?,
 		esError=?,
-		historyError=?
+		historyError=?,
+		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(historyErr), updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(historyErr), historyCreated, updateId)
 	return err
 }
 
@@ -176,8 +176,8 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountHistoryRDS processes EC2, RDS and ES data with billing data for an AwsAccount
-func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
-	err := history.FetchHistoryInfos(ctx, aa)
+func processAccountHistory(ctx context.Context, aa aws.AwsAccount) (bool, error) {
+	status, err := history.FetchHistoryInfos(ctx, aa)
 	if err != nil && err != history.ErrBillingDataIncomplete {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest History data.", map[string]interface{}{
@@ -185,12 +185,5 @@ func processAccountHistory(ctx context.Context, aa aws.AwsAccount) error {
 			"error":        err.Error(),
 		})
 	}
-	return err
-}
-
-// processAccountSpreadsheet generate spreasheet report for an AwsAccount
-func processAccountSpreadsheet(ctx context.Context, aa aws.AwsAccount, historyErr error) {
-	if historyErr != nil {
-		_ = generateReport(ctx, aa.Id)
-	}
+	return status, err
 }

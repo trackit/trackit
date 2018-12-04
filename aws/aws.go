@@ -37,6 +37,7 @@ type AwsAccount struct {
 	RoleArn        string        `json:"roleArn"`
 	External       string        `json:"-"`
 	Payer          bool          `json:"payer"`
+	AccountOwner   bool          `json:"accountOwner"`
 	UserPermission int           `json:"permissionLevel"`
 	AwsIdentity    string        `json:"awsIdentity"`
 	ParentId       sql.NullInt64 `json:"-"`
@@ -96,6 +97,7 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 			key.RoleArn,
 			key.External,
 			key.Payer,
+			true,
 			0,
 			key.AwsIdentity,
 			key.ParentID})
@@ -112,6 +114,7 @@ func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 			dbAwsAccountById.RoleArn,
 			dbAwsAccountById.External,
 			dbAwsAccountById.Payer,
+			false,
 			key.UserPermission,
 			dbAwsAccountById.AwsIdentity,
 			dbAwsAccountById.ParentID})
