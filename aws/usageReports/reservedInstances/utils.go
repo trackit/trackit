@@ -32,13 +32,13 @@ import (
 const MonitorReservationStsSessionName = "monitor-reservation"
 
 type (
-	// ReservationReport is saved in ES to have all the information of a instance reservation
+	// ReservationReport is saved in ES to have all the information of a reservation
 	ReservationReport struct {
 		utils.ReportBase
 		Reservation Reservation `json:"reservation"`
 	}
 
-	// ReservationBase contains basics information of a reserved instance reservation
+	// ReservationBase contains basics information of a reserved instance
 	ReservationBase struct {
 		Id              string    `json:"id"`
 		Region          string    `json:"region"`
@@ -52,7 +52,7 @@ type (
 		InstanceTenancy string    `json:"instance_tenancy"`
 	}
 
-	// Reservation contains all the information of a instance reservation
+	// Reservation contains all the information of a reservation
 	Reservation struct {
 		ReservationBase
 		Tags  []utils.Tag        `json:"tags"`
