@@ -14,6 +14,8 @@ export function* getAccountsSaga() {
     }
     if (res.success && res.hasOwnProperty("data"))
       yield put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -59,6 +61,8 @@ export function* editAccountSaga({ account }) {
         put({ type: Constants.AWS_EDIT_ACCOUNT_SUCCESS }),
         put({ type: Constants.AWS_GET_ACCOUNTS })
       ]);
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -79,6 +83,8 @@ export function* deleteAccountSaga({ accountID }) {
         put({ type: Constants.AWS_DELETE_ACCOUNT_SUCCESS }),
         put({ type: Constants.AWS_GET_ACCOUNTS })
       ]);
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -96,6 +102,8 @@ export function* newExternalSaga() {
     }
     if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("external") && res.data.hasOwnProperty("accountId"))
       yield put({ type: Constants.AWS_NEW_EXTERNAL_SUCCESS, external: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {

@@ -13,6 +13,8 @@ export function* getAccountViewers({ accountID }) {
     }
     if (res.success && res.hasOwnProperty("data"))
       yield put({ type: Constants.AWS_GET_ACCOUNT_VIEWERS_SUCCESS, accounts: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -77,6 +79,8 @@ export function* deleteAccountViewer({ accountID, shareID }) {
         put({ type: Constants.AWS_DELETE_ACCOUNT_VIEWER_SUCCESS }),
         put({ type: Constants.AWS_GET_ACCOUNT_VIEWERS, accountID })
       ]);
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {

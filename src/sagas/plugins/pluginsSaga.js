@@ -14,6 +14,8 @@ export function* getPluginsDataSaga() {
     }
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.GET_PLUGINS_DATA_SUCCESS, data: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      throw Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {

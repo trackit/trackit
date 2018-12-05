@@ -13,6 +13,8 @@ export function* getAccountBillsSaga({ accountID }) {
     }
     if (res.success && res.hasOwnProperty("data"))
       yield put({ type: Constants.AWS_GET_ACCOUNT_BILLS_SUCCESS, bills: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -53,6 +55,8 @@ export function* getAccountBillStatusSaga() {
     }
     if (res.success && res.hasOwnProperty("data"))
       yield put({ type: Constants.AWS_GET_ACCOUNT_BILL_STATUS_SUCCESS, values: res.data });
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
@@ -96,6 +100,8 @@ export function* deleteAccountBillSaga({ accountID, billID }) {
         put({ type: Constants.AWS_GET_ACCOUNT_BILLS, accountID }),
         put({ type: Constants.AWS_GET_ACCOUNTS }),
       ]);
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+      yield Error(res.data.error);
     else
       throw Error("Error with request");
   } catch (error) {
