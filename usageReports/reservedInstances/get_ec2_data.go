@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"gopkg.in/olivere/elastic.v5"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 	terrors "github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
@@ -76,12 +76,6 @@ func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQuer
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	params.AccountList = accountsAndIndexes.Accounts
-	params.IndexList = accountsAndIndexes.Indexes
 	reservations, err := prepareResponseReservedInstancesDaily(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err

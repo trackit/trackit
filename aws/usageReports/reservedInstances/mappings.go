@@ -44,7 +44,7 @@ const TemplateLineItem = `
 	"template": "*-reserved-instances-reports",
 	"version": 1,
 	"mappings": {
-		"reservedInstances-report": {
+		"reserved-instances-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

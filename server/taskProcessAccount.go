@@ -28,8 +28,8 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
+	"github.com/trackit/trackit-server/db"
 )
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.

@@ -35,8 +35,8 @@ type (
 	// ReservationReport is saved in ES to have all the information of a reservation
 	ReservationReport struct {
 		utils.ReportBase
-		Reservation Reservation `json:"reservation"`
 		Service     string      `json:"service"`
+		Reservation Reservation `json:"reservation"`
 	}
 
 	// ReservationBase contains basics information of a reserved instance
