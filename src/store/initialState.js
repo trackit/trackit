@@ -81,6 +81,10 @@ export default {
       ES: {
         status: true,
         value: null
+      },
+      lambdas: {
+        status: true,
+        value: null
       }
     },
   },

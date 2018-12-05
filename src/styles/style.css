@@ -667,12 +667,14 @@ h4.no-data {
 }
 
 .ioDetails,
-.unusedStorageDetails {
+.unusedStorageDetails,
+.success-percentage {
     position: relative;
 }
 
 .ioDetails > div,
-.unusedStorageDetails > div {
+.unusedStorageDetails > div,
+.success-percentage > div {
     position: absolute;
     right: 0;
     top: 0;
@@ -680,7 +682,9 @@ h4.no-data {
 }
 
 .ioDetails .popover-trigger i,
-.unusedStorageDetails .popover-trigger i {
+.unusedStorageDetails .popover-trigger i,
+.function-name .popover-trigger i,
+.success-percentage .popover-trigger i {
     color: #cccccc !important;
 }
 
