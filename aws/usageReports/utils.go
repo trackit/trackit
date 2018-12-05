@@ -43,7 +43,6 @@ type (
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		ReportType string    `json:"reportType"`
-		Service    string    `json:"service"`
 	}
 
 	// Tag contains the key of a tag and his value

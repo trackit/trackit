@@ -70,22 +70,22 @@ const TemplateLineItem = `
 							"type": "keyword"
 						},
 						"fixedPrice": {
-							"type": "keyword"
+							"type": "double"
 						},
 						"usagePrice": {
-							"type": "keyword"
+							"type": "double"
 						},
 						"usageDuration": {
-							"type": "keyword"
+							"type": "int"
 						},
 						"start": {
-							"type": "keyword"
+							"type": "date"
 						},
 						"end": {
-							"type": "keyword"
+							"type": "date"
 						},
 						"instanceCount": {
-							"type": "keyword"
+							"type": "integer"
 						},
 						"instanceTenancy": {
 							"type": "keyword"

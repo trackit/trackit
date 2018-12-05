@@ -44,7 +44,6 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 		logger.Error("Error when describing reservations", err.Error())
 		return err
 	}
-	//logger.Debug("RESERVATIONS : ", reservations)
 	for _, reservation := range reservations.ReservedInstances {
 		reservationChan <- Reservation{
 			ReservationBase: ReservationBase{
@@ -59,7 +58,7 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 				InstanceCount:   aws.Int64Value(reservation.InstanceCount),
 				InstanceTenancy: aws.StringValue(reservation.InstanceTenancy),
 			},
-			Tags:  getReservationTag(reservation.Tags),
+			Tags: getReservationTag(reservation.Tags),
 		}
 	}
 	return nil
@@ -104,8 +103,8 @@ func FetchDailyReservationsStats(ctx context.Context, awsAccount taws.AwsAccount
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",
-				Service: "EC2",
 			},
+			Service:     "EC2",
 			Reservation: reservation,
 		})
 	}

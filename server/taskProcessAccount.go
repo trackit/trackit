@@ -135,7 +135,7 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 		historyError=?,
 		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(historyErr), errToStr(riErr), historyCreated, updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(riErr), errToStr(historyErr), historyCreated, updateId)
 	return err
 }
 

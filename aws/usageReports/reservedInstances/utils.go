@@ -36,6 +36,7 @@ type (
 	ReservationReport struct {
 		utils.ReportBase
 		Reservation Reservation `json:"reservation"`
+		Service     string      `json:"service"`
 	}
 
 	// ReservationBase contains basics information of a reserved instance
@@ -55,7 +56,7 @@ type (
 	// Reservation contains all the information of a reservation
 	Reservation struct {
 		ReservationBase
-		Tags  []utils.Tag        `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 

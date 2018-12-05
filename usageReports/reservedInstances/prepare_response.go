@@ -17,47 +17,15 @@ package reservedInstances
 import (
 	"context"
 	"encoding/json"
+
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 )
 
 type (
-
-	// Structure that allow to parse ES response for costs
-	ResponseCost struct {
-		Accounts struct {
-			Buckets []struct {
-				Key       string `json:"key"`
-				Reservations struct {
-					Buckets []struct {
-						Key  string `json:"key"`
-						Cost struct {
-							Value float64 `json:"value"`
-						} `json:"cost"`
-					} `json:"buckets"`
-				} `json:"reservations"`
-			} `json:"buckets"`
-		} `json:"accounts"`
-	}
-
-	// Structure that allow to parse ES response for ReservedInstances Monthly reservations
-	ResponseReservedInstancesMonthly struct {
-		Accounts struct {
-			Buckets []struct {
-				Reservations struct {
-					Hits struct {
-						Hits []struct {
-							Reservation reservedInstances.ReservationReport `json:"_source"`
-						} `json:"hits"`
-					} `json:"hits"`
-				} `json:"reservations"`
-			} `json:"buckets"`
-		} `json:"accounts"`
-	}
 
 	// Structure that allow to parse ES response for ReservedInstances Daily reservations
 	ResponseReservedInstancesDaily struct {
@@ -65,7 +33,7 @@ type (
 			Buckets []struct {
 				Dates struct {
 					Buckets []struct {
-						Time      string `json:"key_as_string"`
+						Time         string `json:"key_as_string"`
 						Reservations struct {
 							Hits struct {
 								Hits []struct {
@@ -82,13 +50,14 @@ type (
 	// ReservationReport has all the information of an ReservedInstances reservation report
 	ReservationReport struct {
 		utils.ReportBase
+		Service     string      `json:"service"`
 		Reservation Reservation `json:"reservation"`
 	}
 
 	// Reservation contains the information of an ReservedInstances reservation
 	Reservation struct {
 		reservedInstances.ReservationBase
-		Tags  map[string]string  `json:"tags"`
+		Tags map[string]string `json:"tags"`
 	}
 )
 
@@ -99,30 +68,24 @@ func getReservedInstancesInstanceReportResponse(oldReservation reservedInstances
 	}
 	newReservation := ReservationReport{
 		ReportBase: oldReservation.ReportBase,
+		Service:    oldReservation.Service,
 		Reservation: Reservation{
 			ReservationBase: oldReservation.Reservation.ReservationBase,
-			Tags:         tags,
+			Tags:            tags,
 		},
 	}
 	return newReservation
 }
 
 // prepareResponseReservedInstancesDaily parses the results from elasticsearch and returns an array of ReservedInstances daily reservations report
-func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInstances *elastic.SearchResult, resCost *elastic.SearchResult) ([]ReservationReport, error) {
+func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInstances *elastic.SearchResult) ([]ReservationReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedReservedInstances ResponseReservedInstancesDaily
-	var parsedCost ResponseCost
 	reservations := make([]ReservationReport, 0)
 	err := json.Unmarshal(*resReservedInstances.Aggregations["accounts"], &parsedReservedInstances.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES ReservedInstances response", err)
 		return nil, err
-	}
-	if resCost != nil {
-		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
-		if err != nil {
-			logger.Error("Error while unmarshaling ES cost response", err)
-		}
 	}
 	for _, account := range parsedReservedInstances.Accounts.Buckets {
 		var lastDate = ""
@@ -137,24 +100,6 @@ func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInsta
 					reservations = append(reservations, getReservedInstancesInstanceReportResponse(reservation.Reservation))
 				}
 			}
-		}
-	}
-	return reservations, nil
-}
-
-// prepareResponseReservedInstancesMonthly parses the results from elasticsearch and returns an array of ReservedInstances monthly reservations report
-func prepareResponseReservedInstancesMonthly(ctx context.Context, resReservedInstances *elastic.SearchResult) ([]ReservationReport, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var response ResponseReservedInstancesMonthly
-	reservations := make([]ReservationReport, 0)
-	err := json.Unmarshal(*resReservedInstances.Aggregations["accounts"], &response.Accounts)
-	if err != nil {
-		logger.Error("Error while unmarshaling ES ReservedInstances response", err)
-		return nil, errors.GetErrorMessage(ctx, err)
-	}
-	for _, account := range response.Accounts.Buckets {
-		for _, reservation := range account.Reservations.Hits.Hits {
-			reservations = append(reservations, getReservedInstancesInstanceReportResponse(reservation.Reservation))
 		}
 	}
 	return reservations, nil

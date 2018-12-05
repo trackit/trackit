@@ -20,7 +20,7 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
-// getReservationTag formats []*reservedInstances.Tag to map[string]string
+// getReservationTag formats []*ec2.Tag to map[string]string
 func getReservationTag(tags []*ec2.Tag) []utils.Tag {
 	res := make([]utils.Tag, 0)
 	for _, tag := range tags {

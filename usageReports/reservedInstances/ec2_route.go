@@ -31,14 +31,6 @@ type (
 		IndexList   []string
 		Date        time.Time
 	}
-
-	// ReservedInstancesUnusedQueryParams will store the parsed query params
-	ReservedInstancesUnusedQueryParams struct {
-		AccountList []string
-		IndexList   []string
-		Date        time.Time
-		Count       int
-	}
 )
 
 var (
@@ -46,18 +38,6 @@ var (
 	reservedInstancesQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
-	}
-
-	// reservedInstancesUnusedQueryArgs allows to get required queryArgs params
-	reservedInstancesUnusedQueryArgs = []routes.QueryArg{
-		routes.AwsAccountsOptionalQueryArg,
-		routes.DateQueryArg,
-		routes.QueryArg{
-			Name:        "count",
-			Type:        routes.QueryArgInt{},
-			Description: "Number of element in the response, all if not precised or negative",
-			Optional:    true,
-		},
 	}
 )
 
