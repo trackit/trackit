@@ -16,7 +16,6 @@ package anomalies
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"net/http"
 	"time"
@@ -77,16 +76,24 @@ type (
 )
 
 // RunAnomaliesDetection run every anomaly detection algorithms and store results in ElasticSearch.
-func RunAnomaliesDetection(account aws.AwsAccount, ctx context.Context, tx *sql.Tx) error {
-	now := time.Now()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+func RunAnomaliesDetection(account aws.AwsAccount, lastUpdate time.Time, ctx context.Context) (time.Time, error) {
+	now := time.Now().UTC()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	begin := lastUpdate.Add(-1 * time.Hour * time.Duration(30*24))
+	end := today.Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59))
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Starting anomalies detection", map[string]interface{}{
+		"awsAccount": account.Id,
+		"begin": begin,
+		"end": end,
+	})
 	parsedParams := AnomalyEsQueryParams{
-		DateBegin: today.Add(-1 * time.Hour * time.Duration(7*24)),
-		DateEnd:   today.Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
+		DateBegin: begin,
+		DateEnd:   end,
 		Account:   account.AwsIdentity,
 		Index:     es.IndexNameForUserId(account.UserId, s3.IndexPrefixLineItem),
 	}
-	return runAnomaliesDetectionForProducts(parsedParams, account, ctx)
+	return today, runAnomaliesDetectionForProducts(parsedParams, account, ctx)
 }
 
 // deleteOffset deletes the offset set in createQueryTimeRange.
