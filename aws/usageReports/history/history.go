@@ -28,6 +28,7 @@ import (
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/usageReports"
 	"github.com/trackit/trackit-server/aws/usageReports/ec2"
+	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
 	tes "github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/es"
@@ -159,7 +160,7 @@ func concatErrors(tabError []error) error {
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var ec2Created, rdsCreated, esCreated bool
+	var ec2Created, rdsCreated, esCreated, elastiCacheCreated bool
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
@@ -173,8 +174,12 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	if esErr == nil {
 		esCreated, esErr = tes.PutEsMonthlyReport(ctx, esCost, aa, startDate, endDate)
 	}
-	reportsCreated := (ec2Created || rdsCreated || esCreated)
-	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr})
+	elastiCacheCost, elastiCacheErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonElastiCache")
+	if elastiCacheErr == nil {
+		elastiCacheCreated, elastiCacheErr = elasticache.PutElastiCacheMonthlyReport(ctx, elastiCacheCost, aa, startDate, endDate)
+	}
+	reportsCreated := (ec2Created || rdsCreated || esCreated || elastiCacheCreated)
+	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr, elastiCacheErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.

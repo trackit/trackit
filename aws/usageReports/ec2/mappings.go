@@ -30,7 +30,7 @@ const TemplateNameEC2Report = "ec2-reports"
 // put the ElasticSearch index for *-ec2-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameEC2Report).BodyString(TemplateLineItem).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(TemplateNameEC2Report).BodyString(TemplateEc2Report).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index EC2Report.", err)
 	} else {
@@ -39,7 +39,7 @@ func init() {
 	}
 }
 
-const TemplateLineItem = `
+const TemplateEc2Report = `
 {
 	"template": "*-ec2-reports",
 	"version": 6,
