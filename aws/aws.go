@@ -20,6 +20,7 @@ import (
 	"errors"
 	"log"
 	"regexp"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/service/sts"
 	"github.com/trackit/jsonlog"
@@ -218,7 +219,7 @@ func (a *AwsAccount) UpdateIdentityAwsAccount(ctx context.Context, tx *sql.Tx) e
 
 // GetAwsAccountIdentity returns the AWS identity of an AWS Account.
 func (a *AwsAccount) GetAwsAccountIdentity() (identity string, err error) {
-	if a.RoleArn == "" {
+	if strings.TrimSpace(a.RoleArn) == "" {
 		return a.AwsIdentity, nil
 	} else if reg, err := regexp.Compile("^arn:aws:iam::([0-9]{12}):.*$"); err != nil {
 		return "", err
