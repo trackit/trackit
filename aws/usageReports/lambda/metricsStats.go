@@ -16,14 +16,15 @@ package lambda
 
 import (
 	"context"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/trackit/jsonlog"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"time"
 )
 
 // getFunctionTag formats []*lambda.Tag to map[string]string
