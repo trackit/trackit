@@ -21,6 +21,7 @@ import (
 	"flag"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -86,7 +87,7 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccount) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, plugin := range core.RegisteredAccountPlugins {
-		if plugin.BillingDataOnly == false && aa.RoleArn == "" {
+		if plugin.BillingDataOnly == false && strings.TrimSpace(aa.RoleArn) == "" {
 			continue
 		}
 		accountId := aa.AwsIdentity
