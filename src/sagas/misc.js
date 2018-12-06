@@ -1,6 +1,9 @@
 import { select } from 'redux-saga/effects';
 import moment from "moment/moment";
 import UUID from "uuid/v4";
+import Validation from '../common/forms/AWSAccountForm';
+
+const getAccountIDFromRole = Validation.getAccountIDFromRole;
 
 const getTokenFromState = (state) => (state.auth.token);
 
@@ -8,7 +11,11 @@ export const getToken = () => {
   return select(getTokenFromState);
 };
 
-const getAWSAccountsFromState = (state) => (state.aws.accounts.selection.map((account) => (account.awsIdentity)));
+const getAWSAccountsFromState = (state) => (state.aws.accounts.selection.map((account) => {
+  if (account.hasOwnProperty("awsIdentity") && account.awsIdentity && account.awsIdentity.length === 12)
+    return (account.awsIdentity);
+  return getAccountIDFromRole(account.roleArn);
+}));
 
 export const getAWSAccounts = () => {
   return select(getAWSAccountsFromState);
