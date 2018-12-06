@@ -76,7 +76,7 @@ const TemplateLineItem = `
 							"type": "double"
 						},
 						"usageDuration": {
-							"type": "int"
+							"type": "integer"
 						},
 						"start": {
 							"type": "date"
