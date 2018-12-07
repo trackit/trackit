@@ -719,4 +719,3 @@ CREATE OR REPLACE VIEW aws_account_due_update AS
 --   limitations under the License.
 
 ALTER TABLE aws_account_update_job ADD riError VARCHAR(255) NOT NULL DEFAULT "";
-

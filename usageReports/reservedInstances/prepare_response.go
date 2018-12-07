@@ -61,7 +61,7 @@ type (
 	}
 )
 
-func getReservedInstancesInstanceReportResponse(oldReservation reservedInstances.ReservationReport) ReservationReport {
+func getReservedInstancesReportResponse(oldReservation reservedInstances.ReservationReport) ReservationReport {
 	tags := make(map[string]string, 0)
 	for _, tag := range oldReservation.Reservation.Tags {
 		tags[tag.Key] = tag.Value
@@ -97,7 +97,7 @@ func prepareResponseReservedInstancesDaily(ctx context.Context, resReservedInsta
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
 				for _, reservation := range date.Reservations.Hits.Hits {
-					reservations = append(reservations, getReservedInstancesInstanceReportResponse(reservation.Reservation))
+					reservations = append(reservations, getReservedInstancesReportResponse(reservation.Reservation))
 				}
 			}
 		}
