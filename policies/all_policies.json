@@ -19,6 +19,7 @@
             "Action": [
                 "sts:GetCallerIdentity",
                 "rds:DescribeDBInstances",
+                "rds:ListTagsForResource",
                 "es:DescribeElasticsearchDomain",
                 "es:DescribeElasticsearchDomains",
                 "es:ListDomainNames",
@@ -31,7 +32,9 @@
                 "ec2:DescribeReservedInstancesOfferings",
                 "ec2:DescribeVolumes",
                 "ec2:DescribeAddresses",
-                "organizations:ListAccounts"
+                "organizations:ListAccounts",
+                "lambda:ListFunctions",
+                "lambda:ListTags"
             ],
             "Resource": "*"
         }

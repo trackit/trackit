@@ -5,6 +5,7 @@
       "Action": [
         "sts:GetCallerIdentity",
         "rds:DescribeDBInstances",
+        "rds:ListTagsForResource",
         "es:DescribeElasticsearchDomain",
         "es:DescribeElasticsearchDomains",
         "es:ListDomainNames",
@@ -16,7 +17,9 @@
         "ec2:DescribeReservedInstancesModifications",
         "ec2:DescribeReservedInstancesOfferings",
         "ec2:DescribeVolumes",
-        "ec2:DescribeAddresses"
+        "ec2:DescribeAddresses",
+        "lambda:ListFunctions",
+        "lambda:ListTags"
       ],
       "Effect": "Allow",
       "Resource": "*"
