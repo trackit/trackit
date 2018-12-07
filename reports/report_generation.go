@@ -45,6 +45,16 @@ var modules = []module{
 		ErrorName: "rdsUsageReportError",
 	},
 	{
+		Name:      "ElasticSearch Usage Report",
+		Function:  getEsUsageReport,
+		ErrorName: "esUsageReportError",
+	},
+	{
+		Name:      "ElastiCache Usage Report",
+		Function:  getElasticacheUsageReport,
+		ErrorName: "elasticacheUsageReportError",
+	},
+	{
 		Name:      "Cost Differentiator Report",
 		Function:  getCostDiff,
 		ErrorName: "CostDifferentiatorError",
@@ -75,7 +85,8 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]err
 				}
 			}
 		}
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file)
+		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file)
+//		errs["speadsheetError"] = saveSpreadsheet(ctx, file)
 	} else {
 		errs["speadsheetError"] = err
 	}
