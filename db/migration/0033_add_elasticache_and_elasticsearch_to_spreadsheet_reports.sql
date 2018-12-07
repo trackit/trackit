@@ -14,5 +14,6 @@
 
 ALTER TABLE aws_account_reports_job ADD (
   esUsageReportError VARCHAR(255) NOT NULL DEFAULT "",
-  elasticacheUsageReportError VARCHAR(255) NOT NULL DEFAULT ""
+  elasticacheUsageReportError VARCHAR(255) NOT NULL DEFAULT "",
+  elasticacheUsageReportError VARCHAR(255) NOT NULL DEFAULT "",
 );
