@@ -41,6 +41,7 @@ import (
 	_ "github.com/trackit/trackit-server/usageReports/ec2"
 	_ "github.com/trackit/trackit-server/usageReports/elasticache"
 	_ "github.com/trackit/trackit-server/usageReports/es"
+	_ "github.com/trackit/trackit-server/usageReports/lambda"
 	_ "github.com/trackit/trackit-server/usageReports/rds"
 	_ "github.com/trackit/trackit-server/users"
 	_ "github.com/trackit/trackit-server/users/shared_account"
