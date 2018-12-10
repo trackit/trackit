@@ -69,6 +69,18 @@ const TemplateLineItem = `
 						"type": {
 							"type": "keyword"
 						},
+						"offeringClass": {
+							"type": "keyword"
+						},
+						"offeringType": {
+							"type": "keyword"
+						},
+						"productDescription": {
+							"type": "keyword"
+						},
+						"state":{
+							"type": "keyword"
+						},
 						"fixedPrice": {
 							"type": "double"
 						},

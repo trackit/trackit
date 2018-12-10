@@ -41,16 +41,20 @@ type (
 
 	// ReservationBase contains basics information of a reserved instance
 	ReservationBase struct {
-		Id              string    `json:"id"`
-		Region          string    `json:"region"`
-		Type            string    `json:"type"`
-		FixedPrice      float64   `json:"fixed_price"`
-		UsagePrice      float64   `json:"usage_price"`
-		UsageDuration   int64     `json:"usage_duration"`
-		Start           time.Time `json:"start"`
-		End             time.Time `json:"end"`
-		InstanceCount   int64     `json:"instance_count"`
-		InstanceTenancy string    `json:"instance_tenancy"`
+		Id                 string    `json:"id"`
+		Region             string    `json:"region"`
+		Type               string    `json:"type"`
+		OfferingClass      string    `json:"offering_class"`
+		OfferingType       string    `json:"offering_type"`
+		ProductDescription string    `json:"product_description"`
+		State              string    `json:"state"`
+		FixedPrice         float64   `json:"fixed_price"`
+		UsagePrice         float64   `json:"usage_price"`
+		UsageDuration      int64     `json:"usage_duration"`
+		Start              time.Time `json:"start"`
+		End                time.Time `json:"end"`
+		InstanceCount      int64     `json:"instance_count"`
+		InstanceTenancy    string    `json:"instance_tenancy"`
 	}
 
 	// Reservation contains all the information of a reservation
