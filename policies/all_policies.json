@@ -27,6 +27,8 @@
                 "cloudwatch:GetMetricStatistics",
                 "ec2:DescribeRegions",
                 "ec2:DescribeInstances",
+                "ec2:DescribeReservedInstances",
+                "ec2:DescribeAvailabilityZones",
                 "ec2:DescribeReservedInstancesListings",
                 "ec2:DescribeReservedInstancesModifications",
                 "ec2:DescribeReservedInstancesOfferings",
