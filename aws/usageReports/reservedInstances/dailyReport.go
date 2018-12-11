@@ -45,10 +45,12 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 		return err
 	}
 	for _, reservation := range reservations.ReservedInstances {
+		charges := getRecurringCharges(reservation)
 		reservationChan <- Reservation{
 			ReservationBase: ReservationBase{
 				Id:                 aws.StringValue(reservation.ReservedInstancesId),
-				Region:             aws.StringValue(reservation.AvailabilityZone),
+				Region:             region,
+				AvailabilityZone:   aws.StringValue(reservation.AvailabilityZone),
 				Type:               aws.StringValue(reservation.InstanceType),
 				OfferingClass:      aws.StringValue(reservation.OfferingClass),
 				OfferingType:       aws.StringValue(reservation.OfferingType),
@@ -60,7 +62,8 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 				Start:              aws.TimeValue(reservation.Start),
 				End:                aws.TimeValue(reservation.End),
 				InstanceCount:      aws.Int64Value(reservation.InstanceCount),
-				InstanceTenancy:    aws.StringValue(reservation.InstanceTenancy),
+				Tenancy:    aws.StringValue(reservation.InstanceTenancy),
+				RecurringCharges:    charges,
 			},
 			Tags: getReservationTag(reservation.Tags),
 		}

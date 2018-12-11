@@ -21,6 +21,17 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
+func getRecurringCharges(reservation *ec2.ReservedInstances) []RecurringCharges {
+	charges := make([]RecurringCharges, len(reservation.RecurringCharges))
+	for i, key := range reservation.RecurringCharges {
+		charges[i] = RecurringCharges{
+			Amount:    aws.Float64Value(key.Amount),
+			Frequency: aws.StringValue(key.Frequency),
+		}
+	}
+	return charges
+}
+
 // getReservationTag formats []*ec2.Tag to map[string]string
 func getReservationTag(tags []*ec2.Tag) []utils.Tag {
 	res := make([]utils.Tag, 0)

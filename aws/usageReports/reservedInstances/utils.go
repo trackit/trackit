@@ -43,24 +43,31 @@ type (
 	ReservationBase struct {
 		Id                 string    `json:"id"`
 		Region             string    `json:"region"`
+		AvailabilityZone   string    `json:"availabilityZone"`
 		Type               string    `json:"type"`
-		OfferingClass      string    `json:"offering_class"`
-		OfferingType       string    `json:"offering_type"`
-		ProductDescription string    `json:"product_description"`
+		OfferingClass      string    `json:"offeringClass"`
+		OfferingType       string    `json:"offeringType"`
+		ProductDescription string    `json:"productDescription"`
 		State              string    `json:"state"`
-		FixedPrice         float64   `json:"fixed_price"`
-		UsagePrice         float64   `json:"usage_price"`
-		UsageDuration      int64     `json:"usage_duration"`
+		FixedPrice         float64   `json:"fixedPrice"`
+		UsagePrice         float64   `json:"usagePrice"`
+		UsageDuration      int64     `json:"usageDuration"`
 		Start              time.Time `json:"start"`
 		End                time.Time `json:"end"`
-		InstanceCount      int64     `json:"instance_count"`
-		InstanceTenancy    string    `json:"instance_tenancy"`
+		InstanceCount      int64     `json:"instanceCount"`
+		Tenancy    string    `json:"tenancy"`
+		RecurringCharges    []RecurringCharges `json:"recurringCharges"`
 	}
 
 	// Reservation contains all the information of a reservation
 	Reservation struct {
 		ReservationBase
 		Tags []utils.Tag `json:"tags"`
+	}
+
+	RecurringCharges struct {
+		Amount    float64
+		Frequency string
 	}
 )
 

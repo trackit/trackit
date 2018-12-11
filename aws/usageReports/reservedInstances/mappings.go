@@ -66,6 +66,9 @@ const TemplateLineItem = `
 						"region": {
 							"type": "keyword"
 						},
+						"availabilityZone": {
+							"type": "keyword"
+						},
 						"type": {
 							"type": "keyword"
 						},
@@ -101,6 +104,17 @@ const TemplateLineItem = `
 						},
 						"instanceTenancy": {
 							"type": "keyword"
+						},
+						"recurringCharges": {
+							"type": "nested",
+							"properties": {
+								"amount": {
+									"type": "double"
+								},
+								"frequency": {
+									"type": "keyword"
+								}
+							}
 						},
 						"tags": {
 							"type": "nested",
