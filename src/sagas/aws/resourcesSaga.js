@@ -10,7 +10,7 @@ export function* getEC2ReportSaga({date}) {
     const res = yield call(API.AWS.Resources.getEC2, token, date, accounts);
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_RESOURCES_GET_EC2_SUCCESS, report: res.data });
-    else if (res.success && res.data.hasOwnProperty("error"))
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       throw Error(res.data.error);
     else
       throw Error("Unable to retrieve report");
@@ -27,7 +27,7 @@ export function* getRDSReportSaga({date}) {
     yield put({ type: Constants.AWS_RESOURCES_GET_RDS_SUCCESS, report: [] });
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_RESOURCES_GET_RDS_SUCCESS, report: res.data });
-    else if (res.success && res.data.hasOwnProperty("error"))
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       throw Error(res.data.error);
     else
       throw Error("Unable to retrieve report");
@@ -43,7 +43,7 @@ export function* getESReportSaga({date}) {
     const res = yield call(API.AWS.Resources.getES, token, date, accounts);
     if (res.success && res.hasOwnProperty("data") && !res.data.hasOwnProperty("error"))
       yield put({ type: Constants.AWS_RESOURCES_GET_ES_SUCCESS, report: res.data });
-    else if (res.success && res.data.hasOwnProperty("error"))
+    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       throw Error(res.data.error);
     else
       throw Error("Unable to retrieve report");
