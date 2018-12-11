@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package rds
+package lambda
 
 import (
 	"context"
@@ -23,28 +23,28 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const TypeRDSReport = "rds-report"
-const IndexPrefixRDSReport = "rds-reports"
-const TemplateNameRDSReport = "rds-reports"
+const TypeLambdaReport = "lambda-report"
+const IndexPrefixLambdaReport = "lambda-reports"
+const TemplateNameLambdaReport = "lambda-reports"
 
-// put the ElasticSearch index for *-rds-reports indices at startup.
+// put the ElasticSearch index for *-lambda-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameRDSReport).BodyString(TemplateRdsReport).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(TemplateNameLambdaReport).BodyString(TemplateLineItem).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index rds-reports.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index LambdaReport.", err)
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index rds-reports.", res)
+		jsonlog.DefaultLogger.Info("Put ES index LambdaReport.", res)
 		ctxCancel()
 	}
 }
 
-const TemplateRdsReport = `
+const TemplateLineItem = `
 {
-	"template": "*-rds-reports",
-	"version": 5,
+	"template": "*-lambda-reports",
+	"version": 1,
 	"mappings": {
-		"rds-report": {
+		"lambda-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,26 +55,19 @@ const TemplateRdsReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instance": {
-					"type": "object",
+				"function": {
 					"properties": {
-						"id": {
+						"name": {
 							"type": "keyword"
 						},
-						"availabilityZone": {
+						"description": {
 							"type": "keyword"
 						},
-						"type": {
-							"type": "keyword"
-						},
-						"engine": {
-							"type": "keyword"
-						},
-						"allocatedStorage": {
+						"size": {
 							"type": "integer"
 						},
-						"multiAZ": {
-							"type": "boolean"
+						"memory": {
+							"type": "integer"
 						},
 						"tags": {
 							"type": "nested",
@@ -87,33 +80,27 @@ const TemplateRdsReport = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
-						},
 						"stats": {
 							"type": "object",
 							"properties": {
-								"cpu": {
+								"invocations": {
 									"type": "object",
 									"properties": {
-											"average": {
+											"total": {
 												"type": "double"
 											},
-											"peak": {
+											"error": {
 												"type": "double"
 											}
 									}
 								},
-								"freeSpace": {
+								"duration": {
 									"type": "object",
 									"properties": {
-											"minimum": {
+											"average": {
 												"type": "double"
 											},
 											"maximum": {
-												"type": "double"
-											},
-											"average": {
 												"type": "double"
 											}
 									}

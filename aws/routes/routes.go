@@ -90,6 +90,29 @@ func init() {
 
 func init() {
 	routes.MethodMuxer{
+		http.MethodPatch: routes.H(patchAwsSubaccount).With(
+			users.RequireAuthenticatedUser{users.ViewerCannot},
+			routes.RequestContentType{"application/json"},
+			routes.QueryArgs{routes.AwsAccountIdQueryArg},
+			routes.RequestBody{patchAwsSubaccountRequestBody{
+				RoleArn:  "arn:aws:iam::123456789012:role/example",
+				External: "LlzrwHeiM-SGKRLPgaGbeucx_CJC@QBl,_vOEF@o",
+			}},
+			routes.Documentation{
+				Summary:     "link a role to a subaccount",
+				Description: "Edits an AWS subaccount from the user's list of accounts.",
+			},
+		),
+	}.H().With(
+		db.RequestTransaction{db.Db},
+		routes.Documentation{
+			Summary: "interact with user's aws subaccounts",
+		},
+	).Register("/aws/subaccount")
+}
+
+func init() {
+	routes.MethodMuxer{
 		http.MethodGet: routes.H(aws.NextExternal).With(
 			db.RequestTransaction{db.Db},
 			users.RequireAuthenticatedUser{users.ViewerCannot},

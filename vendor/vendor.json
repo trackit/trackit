@@ -241,10 +241,22 @@
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
+			"checksumSHA1": "UR7K4m62MzrSPEB4KLLEQOsJ4mw=",
+			"path": "github.com/aws/aws-sdk-go/service/elasticache",
+			"revision": "3cf1f9e5abce217d906b66f1b092c86bae66209f",
+			"revisionTime": "2018-11-29T01:22:20Z"
+		},
+		{
 			"checksumSHA1": "V6KcC3YquAo1VcT4OoEX/QQyFUA=",
 			"path": "github.com/aws/aws-sdk-go/service/elasticsearchservice",
 			"revision": "1accf06a4370ec8a2602ffa86e92fd3a2bea9d6d",
 			"revisionTime": "2018-10-05T21:12:21Z"
+		},
+		{
+			"checksumSHA1": "yJQyav77BKJ6nmlW2+bvJ5gnuxE=",
+			"path": "github.com/aws/aws-sdk-go/service/lambda",
+			"revision": "dbd68419518a1846f7cf787f424af62c2d0bb4f2",
+			"revisionTime": "2018-11-28T00:23:26Z"
 		},
 		{
 			"checksumSHA1": "oai1+sRjzYrQqKArrBKx+bJ+t18=",
