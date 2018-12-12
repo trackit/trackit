@@ -29,9 +29,9 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
 	"github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
+	"github.com/trackit/trackit-server/aws/usageReports/lambda"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
-	"github.com/trackit/trackit-server/aws/usageReports/lambda"
 	"github.com/trackit/trackit-server/db"
 )
 
@@ -100,7 +100,6 @@ func registerAccountProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	}
 	return res.LastInsertId()
 }
-
 
 func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riErr, historyErr error, historyCreated bool) {
 	updateNextUpdateAccount(db, aaId)

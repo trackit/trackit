@@ -41,22 +41,22 @@ type (
 
 	// ReservationBase contains basics information of a reserved instance
 	ReservationBase struct {
-		Id                 string    `json:"id"`
-		Region             string    `json:"region"`
-		AvailabilityZone   string    `json:"availabilityZone"`
-		Type               string    `json:"type"`
-		OfferingClass      string    `json:"offeringClass"`
-		OfferingType       string    `json:"offeringType"`
-		ProductDescription string    `json:"productDescription"`
-		State              string    `json:"state"`
-		FixedPrice         float64   `json:"fixedPrice"`
-		UsagePrice         float64   `json:"usagePrice"`
-		UsageDuration      int64     `json:"usageDuration"`
-		Start              time.Time `json:"start"`
-		End                time.Time `json:"end"`
-		InstanceCount      int64     `json:"instanceCount"`
-		Tenancy    string    `json:"tenancy"`
-		RecurringCharges    []RecurringCharges `json:"recurringCharges"`
+		Id                 string             `json:"id"`
+		Region             string             `json:"region"`
+		AvailabilityZone   string             `json:"availabilityZone"`
+		Type               string             `json:"type"`
+		OfferingClass      string             `json:"offeringClass"`
+		OfferingType       string             `json:"offeringType"`
+		ProductDescription string             `json:"productDescription"`
+		State              string             `json:"state"`
+		FixedPrice         float64            `json:"fixedPrice"`
+		UsagePrice         float64            `json:"usagePrice"`
+		UsageDuration      int64              `json:"usageDuration"`
+		Start              time.Time          `json:"start"`
+		End                time.Time          `json:"end"`
+		InstanceCount      int64              `json:"instanceCount"`
+		Tenancy            string             `json:"tenancy"`
+		RecurringCharges   []RecurringCharges `json:"recurringCharges"`
 	}
 
 	// Reservation contains all the information of a reservation
