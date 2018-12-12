@@ -102,7 +102,7 @@ const TemplateLineItem = `
 						"instanceCount": {
 							"type": "integer"
 						},
-						"Tenancy": {
+						"tenancy": {
 							"type": "keyword"
 						},
 						"recurringCharges": {

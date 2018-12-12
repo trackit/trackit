@@ -22,8 +22,8 @@ import (
 	"net/http"
 	"strings"
 
-	"gopkg.in/olivere/elastic.v5"
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
 	terrors "github.com/trackit/trackit-server/errors"

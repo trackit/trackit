@@ -62,8 +62,8 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 				Start:              aws.TimeValue(reservation.Start),
 				End:                aws.TimeValue(reservation.End),
 				InstanceCount:      aws.Int64Value(reservation.InstanceCount),
-				Tenancy:    aws.StringValue(reservation.InstanceTenancy),
-				RecurringCharges:    charges,
+				Tenancy:            aws.StringValue(reservation.InstanceTenancy),
+				RecurringCharges:   charges,
 			},
 			Tags: getReservationTag(reservation.Tags),
 		}
