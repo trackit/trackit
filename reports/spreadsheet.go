@@ -53,6 +53,9 @@ func (c cell) setValueToCell(newCell *xlsx.Cell) {
 	case int:
 		newCell.SetInt(value)
 		break
+	case int64:
+		newCell.SetInt64(value)
+		break
 	case float64:
 		newCell.SetFloat(value)
 		break

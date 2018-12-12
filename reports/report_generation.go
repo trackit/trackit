@@ -45,6 +45,21 @@ var modules = []module{
 		ErrorName: "rdsUsageReportError",
 	},
 	{
+		Name:      "ElasticSearch Usage Report",
+		Function:  getEsUsageReport,
+		ErrorName: "esUsageReportError",
+	},
+	{
+		Name:      "ElastiCache Usage Report",
+		Function:  getElasticacheUsageReport,
+		ErrorName: "elasticacheUsageReportError",
+	},
+	{
+		Name:      "Lambda Usage Report",
+		Function:  getLambdaUsageReport,
+		ErrorName: "lambdaUsageReportError",
+	},
+	{
 		Name:      "Cost Differentiator Report",
 		Function:  getCostDiff,
 		ErrorName: "CostDifferentiatorError",
