@@ -18,6 +18,8 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
+const maxAggregationSize = 0x7FFFFFFF
+
 // createQueryAccountFilterPlugins creates and return a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilterPlugins(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
@@ -43,7 +45,7 @@ func GetElasticSearchPluginsParams(accountList []string, client *elastic.Client,
 		query = query.Filter(createQueryAccountFilterPlugins(accountList))
 	}
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("top_plugins_account", elastic.NewTermsAggregation().Field("accountPluginIdx").
+	search.Aggregation("top_plugins_account", elastic.NewTermsAggregation().Field("accountPluginIdx").Size(maxAggregationSize).
 		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
 	return search
 }
