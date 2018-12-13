@@ -17,7 +17,6 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -51,27 +50,20 @@ var esDomainFormat = [][]cell{{
 }}
 
 func formatEsDomain(domain es.Domain) []cell {
-	var cost float64
-	for _, value := range domain.Costs {
-		cost += value
-	}
-	tags := make([]string, 0)
-	for key, value := range domain.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+	tags := formatTags(domain.Tags)
 	return []cell{
 		newCell(domain.DomainID),
 		newCell(domain.DomainName),
 		newCell(domain.InstanceType),
 		newCell(domain.Region),
 		newCell(domain.InstanceCount),
-		newCell(cost),
+		newCell(getTotal(domain.Costs)),
 		newCell(domain.TotalStorageSpace),
-		newCell(domain.Stats.FreeSpace),
-		newCell(domain.Stats.Cpu.Average / 100),
-		newCell(domain.Stats.Cpu.Peak / 100),
-		newCell(domain.Stats.JVMMemoryPressure.Average),
-		newCell(domain.Stats.JVMMemoryPressure.Peak),
+		newCell(formatMetric(domain.Stats.FreeSpace)),
+		newCell(formatMetricPercentage(domain.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(domain.Stats.Cpu.Peak)),
+		newCell(formatMetric(domain.Stats.JVMMemoryPressure.Average)),
+		newCell(formatMetric(domain.Stats.JVMMemoryPressure.Peak)),
 		newCell(strings.Join(tags, ";")),
 	}
 }

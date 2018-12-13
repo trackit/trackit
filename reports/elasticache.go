@@ -17,7 +17,6 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -49,25 +48,18 @@ var elasticacheInstanceFormat = [][]cell{{
 }}
 
 func formatElasticacheInstance(instance elasticache.Instance) []cell {
-	var cost float64
-	for _, value := range instance.Costs {
-		cost += value
-	}
-	tags := make([]string, 0)
-	for key, value := range instance.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+	tags := formatTags(instance.Tags)
 	return []cell{
 		newCell(instance.Id),
 		newCell(instance.NodeType),
 		newCell(instance.Region),
-		newCell(cost),
+		newCell(getTotal(instance.Costs)),
 		newCell(instance.Engine),
 		newCell(instance.EngineVersion),
-		newCell(instance.Stats.Cpu.Average),
-		newCell(instance.Stats.Cpu.Peak),
-		newCell(instance.Stats.Network.In),
-		newCell(instance.Stats.Network.Out),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Peak)),
+		newCell(formatMetric(instance.Stats.Network.In)),
+		newCell(formatMetric(instance.Stats.Network.Out)),
 		newCell(strings.Join(tags, ";")),
 	}
 }

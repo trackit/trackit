@@ -46,25 +46,19 @@ var rdsInstanceFormat = [][]cell{{
 }}
 
 func formatRdsInstance(instance rds.Instance) []cell {
-	var cost float64
-
-	for _, value := range instance.Costs {
-		cost += value
-	}
-
 	return []cell{
 		newCell(instance.DBInstanceIdentifier),
 		newCell(instance.DBInstanceClass),
 		newCell(instance.AvailabilityZone),
-		newCell(cost),
+		newCell(getTotal(instance.Costs)),
 		newCell(instance.Engine),
 		newCell(instance.MultiAZ),
 		newCell(instance.AllocatedStorage),
-		newCell(instance.Stats.FreeSpace.Average),
-		newCell(instance.Stats.FreeSpace.Minimum),
-		newCell(instance.Stats.FreeSpace.Maximum),
-		newCell(instance.Stats.Cpu.Average),
-		newCell(instance.Stats.Cpu.Peak),
+		newCell(formatMetric(instance.Stats.FreeSpace.Average)),
+		newCell(formatMetric(instance.Stats.FreeSpace.Minimum)),
+		newCell(formatMetric(instance.Stats.FreeSpace.Maximum)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Peak)),
 	}
 }
 

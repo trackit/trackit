@@ -17,7 +17,6 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -52,38 +51,24 @@ var ec2InstanceFormat = [][]cell{{
 }}
 
 func formatEc2Instance(instance ec2.Instance) []cell {
-	var cost float64
-	for _, value := range instance.Costs {
-		cost += value
-	}
 	name := ""
 	if value, ok := instance.Tags["Name"]; ok {
 		name = value
 	}
-	ioRead, ioWrite := 0, 0
-	for _, size := range instance.Stats.Volumes.Read {
-		ioRead += int(size)
-	}
-	for _, size := range instance.Stats.Volumes.Write {
-		ioWrite += int(size)
-	}
-	tags := make([]string, 0)
-	for key, value := range instance.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+	tags := formatTags(instance.Tags)
 	return []cell{
 		newCell(instance.Id),
 		newCell(name),
 		newCell(instance.Type),
 		newCell(instance.Region),
 		newCell(instance.Purchasing),
-		newCell(cost),
-		newCell(instance.Stats.Cpu.Average / 100),
-		newCell(instance.Stats.Cpu.Peak / 100),
-		newCell(instance.Stats.Network.In),
-		newCell(instance.Stats.Network.Out),
-		newCell(ioRead),
-		newCell(ioWrite),
+		newCell(getTotal(instance.Costs)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Peak)),
+		newCell(formatMetric(instance.Stats.Network.In)),
+		newCell(formatMetric(instance.Stats.Network.Out)),
+		newCell(getTotal(instance.Stats.Volumes.Read)),
+		newCell(getTotal(instance.Stats.Volumes.Write)),
 		newCell(instance.KeyPair),
 		newCell(strings.Join(tags, ";")),
 	}

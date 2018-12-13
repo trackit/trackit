@@ -17,7 +17,6 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -47,20 +46,17 @@ var lambdaFunctionFormat = [][]cell{{
 }}
 
 func formatLambdaFunction(function lambda.Function) []cell {
-	tags := make([]string, 0)
-	for key, value := range function.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+	tags := formatTags(function.Tags)
 	return []cell{
 		newCell(function.Name),
 		newCell(function.Version),
 		newCell(function.Runtime),
 		newCell(function.Size),
 		newCell(function.Memory),
-		newCell(function.Stats.Invocations.Total),
-		newCell(function.Stats.Invocations.Failed),
-		newCell(function.Stats.Duration.Average),
-		newCell(function.Stats.Duration.Maximum),
+		newCell(formatMetric(function.Stats.Invocations.Total)),
+		newCell(formatMetric(function.Stats.Invocations.Failed)),
+		newCell(formatMetric(function.Stats.Duration.Average)),
+		newCell(formatMetric(function.Stats.Duration.Maximum)),
 		newCell(strings.Join(tags, ";")),
 	}
 }
