@@ -235,6 +235,12 @@
 			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
+			"checksumSHA1": "5ihD2edhf72YLmwWIgwO5nP2WQc=",
+			"path": "github.com/aws/aws-sdk-go/service/costexplorer",
+			"revision": "53eb8b070e9a5067829fd029539966181632032a",
+			"revisionTime": "2018-12-12T23:19:52Z"
+		},
+		{
 			"checksumSHA1": "a4Kb3tBW4zaoS8UFrkfU8MNHE8o=",
 			"path": "github.com/aws/aws-sdk-go/service/ec2",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
