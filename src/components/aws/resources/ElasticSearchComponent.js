@@ -9,7 +9,6 @@ import {formatPercent, formatPrice, formatMegaBytes, formatGigaBytes} from '../.
 import Misc from '../../misc';
 import Tags from './misc/Tags';
 import Costs from "./misc/Costs";
-import Tags from './misc/Tags';
 
 const Tooltip = Misc.Popover;
 const Collapsible = Misc.Collapsible;
