@@ -5,8 +5,8 @@ import Components from "../../../components";
 import Moment from "moment";
 
 const Panel = Components.Misc.Panel;
-const VMs = Components.AWS.Resources.VMs;
-const Databases = Components.AWS.Resources.Databases;
+const Ec2 = Components.AWS.Resources.Ec2;
+const Rds = Components.AWS.Resources.Rds;
 
 const props = {
   account: '42',
@@ -32,13 +32,13 @@ describe('<ResourcesContainer />', () => {
 
   it('renders an <VMs /> component', () => {
     const wrapper = shallow(<ResourcesContainer {...props}/>);
-    const block = wrapper.find(VMs);
+    const block = wrapper.find(Ec2);
     expect(block.length).toBe(1);
   });
 
   it('renders an <Databases /> component', () => {
     const wrapper = shallow(<ResourcesContainer {...props}/>);
-    const block = wrapper.find(Databases);
+    const block = wrapper.find(Rds);
     expect(block.length).toBe(1);
   });
 

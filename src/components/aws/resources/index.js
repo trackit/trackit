@@ -1,11 +1,11 @@
-import VMs from './VMsComponent';
-import Databases from './DatabasesComponent';
-import Storage from './StorageComponent';
+import Ec2 from './Ec2Component';
+import Rds from './RdsComponent';
 import ElasticSearch from './ElasticSearchComponent';
+import ElastiCache from './ElastiCacheComponent';
 
 export default {
-  VMs,
-  Databases,
-  Storage,
-  ElasticSearch
+  Ec2,
+  Rds,
+  ElasticSearch,
+  ElastiCache
 }

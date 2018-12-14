@@ -1,5 +1,5 @@
 import React from 'react';
-import { ElasticSearchComponent } from '../ElasticSearchComponent';
+import { RdsComponent } from '../RdsComponent';
 import { shallow } from 'enzyme';
 import ReactTable from 'react-table';
 import Moment from 'moment';
@@ -24,10 +24,13 @@ const propsWithData = {
       {
         account: '420',
         reportDate: Moment().toISOString(),
-        domain: {
-          domainId: 'id',
-          domainName: 'name',
-          region: 'us-west-1',
+        instance: {
+          id: 'name',
+          type: 'type',
+          availabilityZone: 'us-west-1',
+          engine: 'engine',
+          multiAZ: 'yes',
+          allocatedStorage: 42,
           costs: {
             instance: 42
           },
@@ -36,17 +39,11 @@ const propsWithData = {
               average: 42,
               peak: 42
             },
-            JVMMemoryPressure: {
-              average: 42,
-              peak: 42
-            },
-            freeSpace: 42
-          },
-          totalStorageSpace: 42,
-          instanceType: 'type',
-          instanceCount: 42,
-          tags: {
-            key: "value"
+            freeSpace: {
+              minimum: 42,
+              maximum: 42,
+              average: 42
+            }
           }
         }
       }
@@ -54,21 +51,21 @@ const propsWithData = {
   }
 };
 
-describe('<ElasticSearchComponent />', () => {
+describe('<RdsComponent />', () => {
 
-  it('renders a <ElasticSearchComponent /> component', () => {
-    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
+  it('renders a <RdsComponent /> component', () => {
+    const wrapper = shallow(<RdsComponent {...propsWithData}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <Collapsible /> component', () => {
-    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
+    const wrapper = shallow(<RdsComponent {...propsWithData}/>);
     const collapsible = wrapper.find(Collapsible);
     expect(collapsible.length).toBe(1);
   });
 
   it('renders a <ReactTable /> component', () => {
-    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
+    const wrapper = shallow(<RdsComponent {...propsWithData}/>);
     const table = wrapper.find(ReactTable);
     expect(table.length).toBe(1);
   });

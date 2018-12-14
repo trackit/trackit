@@ -1,5 +1,5 @@
 import React from 'react';
-import { ElasticSearchComponent } from '../ElasticSearchComponent';
+import { ElastiCacheComponent } from '../ElastiCacheComponent';
 import { shallow } from 'enzyme';
 import ReactTable from 'react-table';
 import Moment from 'moment';
@@ -24,10 +24,12 @@ const propsWithData = {
       {
         account: '420',
         reportDate: Moment().toISOString(),
-        domain: {
-          domainId: 'id',
-          domainName: 'name',
+        instance: {
+          id: 'id',
           region: 'us-west-1',
+          nodeType: 'm4.large',
+          engine: 'redis',
+          engineVersion: '3.1.4',
           costs: {
             instance: 42
           },
@@ -36,15 +38,11 @@ const propsWithData = {
               average: 42,
               peak: 42
             },
-            JVMMemoryPressure: {
-              average: 42,
-              peak: 42
-            },
-            freeSpace: 42
+            network: {
+              in: 42,
+              out: 42
+            }
           },
-          totalStorageSpace: 42,
-          instanceType: 'type',
-          instanceCount: 42,
           tags: {
             key: "value"
           }
@@ -54,21 +52,21 @@ const propsWithData = {
   }
 };
 
-describe('<ElasticSearchComponent />', () => {
+describe('<ElastiCacheComponent />', () => {
 
-  it('renders a <ElasticSearchComponent /> component', () => {
-    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
+  it('renders a <ElastiCacheComponent /> component', () => {
+    const wrapper = shallow(<ElastiCacheComponent {...propsWithData}/>);
     expect(wrapper.length).toBe(1);
   });
 
   it('renders a <Collapsible /> component', () => {
-    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
+    const wrapper = shallow(<ElastiCacheComponent {...propsWithData}/>);
     const collapsible = wrapper.find(Collapsible);
     expect(collapsible.length).toBe(1);
   });
 
   it('renders a <ReactTable /> component', () => {
-    const wrapper = shallow(<ElasticSearchComponent {...propsWithData}/>);
+    const wrapper = shallow(<ElastiCacheComponent {...propsWithData}/>);
     const table = wrapper.find(ReactTable);
     expect(table.length).toBe(1);
   });

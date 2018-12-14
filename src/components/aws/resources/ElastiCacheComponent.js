@@ -5,11 +5,10 @@ import Actions from "../../../actions";
 import Spinner from "react-spinkit";
 import Moment from 'moment';
 import ReactTable from 'react-table';
-import {formatPercent, formatPrice, formatMegaBytes, formatGigaBytes} from '../../../common/formatters';
+import {formatPercent, formatPrice, formatBytes} from '../../../common/formatters';
 import Misc from '../../misc';
 import Tags from './misc/Tags';
 import Costs from "./misc/Costs";
-import Tags from './misc/Tags';
 
 const Tooltip = Misc.Popover;
 const Collapsible = Misc.Collapsible;
@@ -20,7 +19,7 @@ const getTotalCost = (costs) => {
   return total;
 };
 
-export class ElasticSearchComponent extends Component {
+export class ElastiCacheComponent extends Component {
 
   componentWillMount() {
     this.props.getData(this.props.dates.startDate);
@@ -36,9 +35,9 @@ export class ElasticSearchComponent extends Component {
     const error = (this.props.data.error ? (<div className="alert alert-warning" role="alert">Error while getting data ({this.props.data.error.message})</div>) : null);
 
     let reportDate = null;
-    let domains = [];
+    let instances = [];
     if (this.props.data.status && this.props.data.hasOwnProperty("value") && this.props.data.value) {
-      domains = this.props.data.value.map((item) => item.domain);
+      instances = this.props.data.value.map((item) => item.instance);
       const reportsDates = this.props.data.value.map((account) => (Moment(account.reportDate)));
       const oldestReport = Moment.min(reportsDates);
       const newestReport = Moment.max(reportsDates);
@@ -47,19 +46,27 @@ export class ElasticSearchComponent extends Component {
 
     const regions = [];
     const types = [];
-    if (domains)
-      domains.forEach((domain) => {
-        if (regions.indexOf(domain.region) === -1)
-          regions.push(domain.region);
-        if (types.indexOf(domain.type) === -1)
-          types.push(domain.type);
+    const engines = [];
+    const versions = [];
+    if (instances)
+      instances.forEach((instance) => {
+        if (regions.indexOf(instance.region) === -1)
+          regions.push(instance.region);
+        if (types.indexOf(instance.nodeType) === -1)
+          types.push(instance.nodeType);
+        if (engines.indexOf(instance.engine) === -1)
+          engines.push(instance.engine);
+        if (versions.indexOf(instance.engineVersion) === -1)
+          versions.push(instance.engineVersion);
       });
     regions.sort();
     types.sort();
+    engines.sort();
+    versions.sort();
 
     const list = (!loading && !error ? (
       <ReactTable
-        data={domains}
+        data={instances}
         noDataText="No instances available"
         filterable
         defaultFilterMethod={(filter, row) => String(row[filter.id]).toLowerCase().includes(filter.value)}
@@ -74,19 +81,13 @@ export class ElasticSearchComponent extends Component {
               (<Tooltip placement="left" icon={<i className="fa fa-tag disabled"/>} tooltip="No tags"/>))
           },
           {
-            Header: 'Name',
-            accessor: 'domainName',
-            minWidth: 150,
-            Cell: row => (<strong>{row.value}</strong>)
-          },
-          {
             Header: 'ID',
-            accessor: 'domainId',
+            accessor: 'id',
             Cell: row => (<strong>{row.value}</strong>)
           },
           {
             Header: 'Type',
-            accessor: 'instanceType',
+            accessor: 'nodeType',
             filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
             Filter: ({ filter, onChange }) => (
               <select
@@ -100,12 +101,6 @@ export class ElasticSearchComponent extends Component {
             )
           },
           {
-            Header: 'Instances',
-            accessor: 'instanceCount',
-            maxWidth: 100,
-            filterable: false
-          },
-          {
             Header: 'Region',
             accessor: 'region',
             filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
@@ -117,6 +112,36 @@ export class ElasticSearchComponent extends Component {
               >
                 <option value="all">Show All</option>
                 {regions.map((region, index) => (<option key={index} value={region}>{region}</option>))}
+              </select>
+            )
+          },
+          {
+            Header: 'Engine',
+            accessor: 'engine',
+            filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
+            Filter: ({ filter, onChange }) => (
+              <select
+                onChange={event => onChange(event.target.value)}
+                style={{ width: "100%" }}
+                value={filter ? filter.value : "all"}
+              >
+                <option value="all">Show All</option>
+                {engines.map((type, index) => (<option key={index} value={type}>{type}</option>))}
+              </select>
+            )
+          },
+          {
+            Header: 'Engine Version',
+            accessor: 'engineVersion',
+            filterMethod: (filter, row) => (filter.value === "all" ? true : (filter.value === row[filter.id])),
+            Filter: ({ filter, onChange }) => (
+              <select
+                onChange={event => onChange(event.target.value)}
+                style={{ width: "100%" }}
+                value={filter ? filter.value : "all"}
+              >
+                <option value="all">Show All</option>
+                {versions.map((type, index) => (<option key={index} value={type}>{type}</option>))}
               </select>
             )
           },
@@ -139,24 +164,6 @@ export class ElasticSearchComponent extends Component {
                 </span>
               )
             )
-          },
-          {
-            Header: 'Storage',
-            columns: [
-              {
-                Header: 'Total',
-                accessor: 'totalStorageSpace',
-                filterable: false,
-                Cell: row => formatGigaBytes(row.value)
-              },
-              {
-                Header: 'Unused',
-                id: 'freeStorageSpace',
-                accessor: d => d.stats.freeSpace,
-                filterable: false,
-                Cell: row => formatMegaBytes(row.value)
-              },
-            ]
           },
           {
             Header: 'CPU',
@@ -234,77 +241,21 @@ export class ElasticSearchComponent extends Component {
             ]
           },
           {
-            Header: 'Memory Pressure',
+            Header: 'Network',
             columns: [
               {
-                Header: 'Average',
-                id: 'jvmMemoryPressureAverage',
-                accessor: d => d.stats.JVMMemoryPressure.average,
+                Header: 'In',
+                id: 'networkIn',
+                accessor: d => d.stats.network.in,
                 filterable: false,
-                Cell: row => (
-                  <div className="jvm-memory-pressure-stats">
-                    <Tooltip
-                      placement="left"
-                      icon={(
-                        <div
-                          style={{
-                            height: '100%',
-                            backgroundColor: '#dddddd',
-                            borderRadius: '2px',
-                            flex: 1
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${row.value}%`,
-                              height: '100%',
-                              backgroundColor: row.value > 85 ? '#d6413b'
-                                : row.value > 75 ? '#ff9800'
-                                  : '#4caf50',
-                              borderRadius: '2px'
-                            }}
-                          />
-                        </div>
-                      )}
-                      tooltip={formatPercent(row.value, 2, false)}
-                    />
-                  </div>
-                )
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
               },
               {
-                Header: 'Peak',
-                id: 'jvmMemoryPressurePeak',
-                accessor: d => d.stats.JVMMemoryPressure.peak,
+                Header: 'Out',
+                id: 'networkOut',
+                accessor: d => d.stats.network.out,
                 filterable: false,
-                Cell: row => (
-                  <div className="jvm-memory-pressure-stats">
-                    <Tooltip
-                      placement="right"
-                      icon={(
-                        <div
-                          style={{
-                            height: '100%',
-                            backgroundColor: '#dddddd',
-                            borderRadius: '2px',
-                            flex: 1
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: `${row.value}%`,
-                              height: '100%',
-                              backgroundColor: row.value > 85 ? '#d6413b'
-                                : row.value > 75 ? '#ff9800'
-                                  : '#4caf50',
-                              borderRadius: '2px'
-                            }}
-                          />
-                        </div>
-                      )}
-                      tooltip={formatPercent(row.value, 2, false)}
-                    />
-                  </div>
-                )
+                Cell: row => (row.value && row.value >= 0 ? formatBytes(row.value) : "N/A")
               }
             ]
           }
@@ -320,9 +271,9 @@ export class ElasticSearchComponent extends Component {
     const header = (
       <div>
         <h4 className="white-box-title no-padding inline-block">
-          <i className="menu-icon fa fa-search-plus"/>
+          <i className="menu-icon fa fa-list-alt"/>
           &nbsp;
-          ElasticSearch
+          ElastiCache
           {reportDate}
         </h4>
         {loading}
@@ -342,7 +293,7 @@ export class ElasticSearchComponent extends Component {
 
 }
 
-ElasticSearchComponent.propTypes = {
+ElastiCacheComponent.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
     status: PropTypes.bool.isRequired,
@@ -350,26 +301,24 @@ ElasticSearchComponent.propTypes = {
     value: PropTypes.arrayOf(PropTypes.shape({
       account: PropTypes.string.isRequired,
       reportDate: PropTypes.string.isRequired,
-      domain: PropTypes.shape({
-        domainId: PropTypes.string.isRequired,
-        domainName: PropTypes.string.isRequired,
+      instance: PropTypes.shape({
+        id: PropTypes.string.isRequired,
         region: PropTypes.string.isRequired,
+        nodeType: PropTypes.string.isRequired,
+        engine: PropTypes.string.isRequired,
+        engineVersion: PropTypes.string.isRequired,
         costs: PropTypes.object,
+        tags: PropTypes.object.isRequired,
         stats: PropTypes.shape({
           cpu: PropTypes.shape({
             average: PropTypes.number,
             peak: PropTypes.number
           }),
-          JVMMemoryPressure: PropTypes.shape({
-            average: PropTypes.number,
-            peak: PropTypes.number
+          network: PropTypes.shape({
+            in: PropTypes.number,
+            out: PropTypes.number
           }),
-          freeSpace: PropTypes.number.isRequired,
-        }),
-        totalStorageSpace: PropTypes.number.isRequired,
-        instanceType: PropTypes.string.isRequired,
-        instanceCount: PropTypes.number.isRequired,
-        tags: PropTypes.object.isRequired
+        })
       })
     }))
   }),
@@ -382,17 +331,17 @@ ElasticSearchComponent.propTypes = {
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.selection,
   dates: aws.resources.dates,
-  data: aws.resources.ES
+  data: aws.resources.ElastiCache
 });
 
 /* istanbul ignore next */
 const mapDispatchToProps = (dispatch) => ({
   getData: (date) => {
-    dispatch(Actions.AWS.Resources.get.ES(date));
+    dispatch(Actions.AWS.Resources.get.ELASTICACHE(date));
   },
   clear: () => {
-    dispatch(Actions.AWS.Resources.clear.ES());
+    dispatch(Actions.AWS.Resources.clear.ELASTICACHE());
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(ElasticSearchComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(ElastiCacheComponent);

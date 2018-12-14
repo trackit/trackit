@@ -12,6 +12,7 @@ import UnusedStorage from './misc/UnusedStorage';
 import Costs from "./misc/Costs";
 
 const Tooltip = Misc.Popover;
+const Collapsible = Misc.Collapsible;
 
 const getTotalCost = (costs) => {
   let total = 0;
@@ -19,7 +20,7 @@ const getTotalCost = (costs) => {
   return total;
 };
 
-export class DatabasesComponent extends Component {
+export class RdsComponent extends Component {
 
   componentWillMount() {
     this.props.getData(this.props.dates.startDate);
@@ -274,24 +275,32 @@ export class DatabasesComponent extends Component {
       />
     ) : null);
 
-    return (
-      <div className="clearfix resources dbs">
+    const header = (
+      <div>
         <h4 className="white-box-title no-padding inline-block">
           <i className="menu-icon fa fa-database"/>
           &nbsp;
-          Databases
+          RDS
           {reportDate}
         </h4>
         {loading}
         {error}
-        {list}
       </div>
-    )
+    );
+
+    return (
+      <Collapsible
+        className="clearfix resources dbs"
+        header={header}
+      >
+        {list}
+      </Collapsible>
+    );
   }
 
 }
 
-DatabasesComponent.propTypes = {
+RdsComponent.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
     status: PropTypes.bool.isRequired,
@@ -344,4 +353,4 @@ const mapDispatchToProps = (dispatch) => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(DatabasesComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(RdsComponent);

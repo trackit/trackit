@@ -9,6 +9,7 @@ import Popover from './Popover';
 import Selector from './Selector';
 import Picture from './Picture';
 import SnackBar from './Snackbar';
+import Collapsible from './Collapsible';
 
 export default {
   Panel,
@@ -21,5 +22,6 @@ export default {
   Popover,
   Selector,
   Picture,
-  SnackBar
+  SnackBar,
+  Collapsible
 };
