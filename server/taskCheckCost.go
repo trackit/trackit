@@ -20,6 +20,7 @@ import (
 	"errors"
 	"flag"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -143,23 +144,36 @@ func runCostCheckForAccount(ctx context.Context, aa taws.AwsAccount) {
 		})
 		return
 	}
-	for i, esMonth := range esCosts.Children {
-		explorerMonthCostPtr := explorerCosts.ResultsByTime[i].Total["UnblendedCost"].Amount
+
+	esMonthlyCosts := map[string]int{}
+
+	for _, esMonth := range esCosts.Children {
+		esMonthlyCosts[strings.Split(esMonth.Key, "T")[0]] = int(esMonth.Value)
+	}
+
+	for _, explorerMonth := range explorerCosts.ResultsByTime {
+		explorerMonthCostPtr := explorerMonth.Total["UnblendedCost"].Amount
 		if explorerMonthCostPtr == nil {
 			logger.Error("Failed to get unblended cost from explorer", nil)
 			return
 		}
-		explorerMonthCost, err := strconv.ParseFloat(*explorerCosts.ResultsByTime[i].Total["UnblendedCost"].Amount, 64)
+		explorerMonthCost, err := strconv.ParseFloat(*explorerMonthCostPtr, 64)
 		if err != nil {
 			logger.Error("Failed to parse cost from explorer", err.Error())
 			return
 		}
-		// We do not want to compare the cents
-		if int(esMonth.Value) != int(explorerMonthCost) {
-			logger.Error("ES cost does not match explorer cost", map[string]interface{}{
-				"month":        esMonth.Key,
-				"esCost":       int(esMonth.Value),
-				"explorerCost": int(explorerMonthCost),
+		if val, ok := esMonthlyCosts[*explorerMonth.TimePeriod.Start]; ok {
+			if val != int(explorerMonthCost) {
+				logger.Error("ES cost does not match explorer cost", map[string]interface{}{
+					"month":        *explorerMonth.TimePeriod.Start,
+					"esCost":       val,
+					"explorerCost": int(explorerMonthCost),
+				})
+				return
+			}
+		} else {
+			logger.Error("Month not found in ES result", map[string]interface{}{
+				"month": *explorerMonth.TimePeriod.Start,
 			})
 			return
 		}
