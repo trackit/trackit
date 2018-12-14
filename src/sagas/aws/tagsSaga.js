@@ -1,5 +1,5 @@
 import {put, call, all} from 'redux-saga/effects';
-import {getToken, getAWSAccounts, initialTagsCharts, getTagsCharts} from '../misc';
+import {getToken, getAWSAccounts, initialTagsCharts, getTagsCharts, resetTagsDates} from '../misc';
 import API from '../../api';
 import Constants from '../../constants';
 import {getTagsCharts as getTagsChartsLS, setTagsCharts, unsetTagsCharts} from "../../common/localStorage";
@@ -106,7 +106,7 @@ export function* loadTagsChartsSaga() {
     else if (data.hasOwnProperty("charts") && data.hasOwnProperty("dates") && data.hasOwnProperty("filters"))
       yield all([
         put({type: Constants.AWS_TAGS_INSERT_CHARTS, charts: data.charts}),
-        put({type: Constants.AWS_TAGS_INSERT_DATES, dates: data.dates}),
+        put({type: Constants.AWS_TAGS_INSERT_DATES, dates: resetTagsDates(data.dates)}),
         put({type: Constants.AWS_TAGS_INSERT_FILTERS, filters: data.filters})
       ]);
     else
