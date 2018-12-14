@@ -6,6 +6,7 @@
   "dependencies": {
     "@material-ui/core": "^1.4.3",
     "@material-ui/icons": "^2.0.1",
+    "@sentry/browser": "^4.4.1",
     "animate.css": "~3.5.2",
     "autoprefixer": "7.1.2",
     "babel-core": "6.25.0",
@@ -68,6 +69,7 @@
     "react-test-renderer": "~16.0.0",
     "react-validation": "~3.0.6",
     "redux": "~3.7.2",
+    "redux-raven-middleware": "^1.2.0",
     "redux-saga": "~0.15.6",
     "style-loader": "0.18.2",
     "sw-precache-webpack-plugin": "0.11.4",
