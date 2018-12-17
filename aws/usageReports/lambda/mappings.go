@@ -37,7 +37,21 @@ func init() {
 		jsonlog.DefaultLogger.Info("Put ES index LambdaReport.", res)
 		ctxCancel()
 	}
+	ctx, ctxCancel = context.WithTimeout(context.Background(), 10*time.Second)
+	res2, err := es.Client.IndexPutSettings("*-lambda-reports").BodyString(SettingsLambdaReport).Do(ctx)
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to put Lambda settings in ES.", err)
+	} else {
+		jsonlog.DefaultLogger.Info("Put Lambda settings in ES.", res2)
+		ctxCancel()
+	}
 }
+
+const SettingsLambdaReport = `
+{
+	"index.max_result_window": "2147483647"
+}
+`
 
 const TemplateLineItem = `
 {

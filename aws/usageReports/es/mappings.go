@@ -37,7 +37,21 @@ func init() {
 		jsonlog.DefaultLogger.Info("Put ES index ESReport.", res)
 		ctxCancel()
 	}
+	ctx, ctxCancel = context.WithTimeout(context.Background(), 10*time.Second)
+	res2, err := es.Client.IndexPutSettings("*-es-reports").BodyString(SettingsEsReport).Do(ctx)
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to put ES settings in ES.", err)
+	} else {
+		jsonlog.DefaultLogger.Info("Put ES settings in ES.", res2)
+		ctxCancel()
+	}
 }
+
+const SettingsEsReport = `
+{
+	"index.max_result_window": "2147483647"
+}
+`
 
 const TemplateEsReport = `
 {

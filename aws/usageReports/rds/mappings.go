@@ -37,7 +37,21 @@ func init() {
 		jsonlog.DefaultLogger.Info("Put ES index rds-reports.", res)
 		ctxCancel()
 	}
+	ctx, ctxCancel = context.WithTimeout(context.Background(), 10*time.Second)
+	res2, err := es.Client.IndexPutSettings("*-rds-reports").BodyString(SettingsRdsReport).Do(ctx)
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to put RDS settings in ES.", err)
+	} else {
+		jsonlog.DefaultLogger.Info("Put RDS settings in ES.", res2)
+		ctxCancel()
+	}
 }
+
+const SettingsRdsReport = `
+{
+	"index.max_result_window": "2147483647"
+}
+`
 
 const TemplateRdsReport = `
 {

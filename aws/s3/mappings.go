@@ -37,7 +37,21 @@ func init() {
 		jsonlog.DefaultLogger.Info("Put ES index lineitems.", res)
 		ctxCancel()
 	}
+	ctx, ctxCancel = context.WithTimeout(context.Background(), 10*time.Second)
+	res2, err := es.Client.IndexPutSettings("*-lineitems").BodyString(SettingsLineItem).Do(ctx)
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to put lineitems settings in ES.", err)
+	} else {
+		jsonlog.DefaultLogger.Info("Put lineitems settings in ES.", res2)
+		ctxCancel()
+	}
 }
+
+const SettingsLineItem = `
+{
+	"index.max_result_window": "2147483647"
+}
+`
 
 const TemplateLineItem = `
 {

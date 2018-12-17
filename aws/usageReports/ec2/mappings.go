@@ -37,7 +37,21 @@ func init() {
 		jsonlog.DefaultLogger.Info("Put ES index EC2Report.", res)
 		ctxCancel()
 	}
+	ctx, ctxCancel = context.WithTimeout(context.Background(), 10*time.Second)
+	res2, err := es.Client.IndexPutSettings("*-ec2-reports").BodyString(SettingsEc2Report).Do(ctx)
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to put EC2 settings in ES.", err)
+	} else {
+		jsonlog.DefaultLogger.Info("Put EC2 settings in ES.", res2)
+		ctxCancel()
+	}
 }
+
+const SettingsEc2Report = `
+{
+	"index.max_result_window": "2147483647"
+}
+`
 
 const TemplateEc2Report = `
 {
