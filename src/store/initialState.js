@@ -81,6 +81,14 @@ export default {
       ES: {
         status: true,
         value: null
+      },
+      ElastiCache: {
+        status: true,
+        value: null
+      },
+      Lambdas: {
+        status: true,
+        value: null
       }
     },
   },

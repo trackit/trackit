@@ -11,6 +11,7 @@ const Ec2 = Components.AWS.Resources.Ec2;
 const Rds = Components.AWS.Resources.Rds;
 const ElasticSearch = Components.AWS.Resources.ElasticSearch;
 const ElastiCache = Components.AWS.Resources.ElastiCache;
+const Lambda = Components.AWS.Resources.Lambda;
 
 export class ResourcesContainer extends Component {
 
@@ -36,6 +37,7 @@ export class ResourcesContainer extends Component {
         <Rds/>
         <ElasticSearch/>
         <ElastiCache/>
+        <Lambda/>
       </Panel>
     );
   }
