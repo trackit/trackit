@@ -10,15 +10,21 @@ import Misc from '../../misc';
 import Tags from './misc/Tags';
 const Tooltip = Misc.Popover;
 
+const getInvocationPercentage = (invocations) => {
+  if (invocations && invocations.total >= 0 && invocations.failed >= 0)
+    return (100 - (invocations.failed * 100 / invocations.total));
+  return null;
+};
+
 const formatInvocationPercentage = (invocations) => {
-  if (invocations && invocations.total >= 0 && invocations.failed >= 0) {
-    const success = (100 - (invocations.failed * 100 / invocations.total)).toFixed(2);
+  const percentage = getInvocationPercentage(invocations);
+  if (percentage !== null) {
     const style = {
-      color: (success > 90 ? '#4caf50' : (success > 75 ? '#ff9800' : '#d6413b'))
+      color: (percentage > 90 ? '#4caf50' : (percentage > 75 ? '#ff9800' : '#d6413b'))
     };
     return (
       <div className="success-percentage">
-        <span className="success-percentage-value" style={style}>{success} %</span>
+        <span className="success-percentage-value" style={style}>{percentage.toFixed(2)} %</span>
         <Tooltip placement="right" info tooltip={`Failed : ${invocations.failed}`}/>
       </div>
     );
@@ -108,12 +114,14 @@ export class LambdaComponent extends Component {
             Header: 'Size',
             accessor: 'size',
             minWidth: 100,
+            filterable: false,
             Cell: row => (formatBytes(row.value))
           },
           {
             Header: 'Memory',
             accessor: 'memory',
             minWidth: 100,
+            filterable: false,
             Cell: row => (formatMegaBytes(row.value))
           },
           {
@@ -133,7 +141,17 @@ export class LambdaComponent extends Component {
                 accessor: d => d.stats.invocations,
                 minWidth: 125,
                 filterable: false,
-                Cell: row => (formatInvocationPercentage(row.value))
+                Cell: row => (formatInvocationPercentage(row.value)),
+                sortMethod: (a, b) => {
+                  const valA = getInvocationPercentage(a);
+                  const valB = getInvocationPercentage(b);
+                  if (valA === null)
+                    return -1;
+                  else if (valB === null)
+                    return 1;
+                  else
+                    return (valA > valB ? 1 : -1);
+                }
               }
             ]
           },
