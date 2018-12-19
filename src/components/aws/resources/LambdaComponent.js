@@ -221,7 +221,7 @@ LambdaComponent.propTypes = {
 const mapStateToProps = ({aws}) => ({
   accounts: aws.accounts.selection,
   dates: aws.resources.dates,
-  data: aws.resources.lambdas
+  data: aws.resources.Lambdas
 });
 
 /* istanbul ignore next */

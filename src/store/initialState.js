@@ -82,7 +82,11 @@ export default {
         status: true,
         value: null
       },
-      lambdas: {
+      ElastiCache: {
+        status: true,
+        value: null
+      },
+      Lambdas: {
         status: true,
         value: null
       }
