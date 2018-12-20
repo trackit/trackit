@@ -21,7 +21,8 @@
         "ec2:DescribeVolumes",
         "ec2:DescribeAddresses",
         "lambda:ListFunctions",
-        "lambda:ListTags"
+        "lambda:ListTags",
+        "ce:GetReservationCoverage"
       ],
       "Effect": "Allow",
       "Resource": "*"
