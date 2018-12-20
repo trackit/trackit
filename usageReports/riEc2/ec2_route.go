@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reservedInstances
+package riEc2
 
 import (
 	"database/sql"
@@ -52,7 +52,7 @@ func init() {
 				Description: "Responds with the list of Reserved Instances based on the queryparams passed to it",
 			},
 		),
-	}.H().Register("/ri")
+	}.H().Register("/ri/ec2")
 }
 
 // getReservedInstances returns the list of Reserved Instances reports based on the query params, in JSON format.
