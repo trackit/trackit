@@ -17,6 +17,7 @@ package db
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
@@ -54,7 +55,10 @@ func (d RequestTransaction) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 					transaction.Rollback()
 					status = http.StatusInternalServerError
 					output = errors.New("server suffered irrecoverable error")
-					logger.Error("Route handler panicked.", rec)
+					logger.Error("Route handler panicked.", map[string]interface{}{
+						"error":         rec,
+						"argumentsDump": fmt.Sprintf("%+v", a),
+					})
 				} else if _, ok := output.(error); ok {
 					transaction.Rollback()
 				} else {
