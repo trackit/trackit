@@ -17,6 +17,7 @@ package reports
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 	"time"
 
@@ -29,12 +30,13 @@ import (
 )
 
 var elasticacheInstanceFormat = [][]cell{{
-	newCell("", 4).addStyle(textCenter, backgroundGrey),
+	newCell("", 5).addStyle(textCenter, backgroundGrey),
 	newCell("Engine", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Network (Bytes)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("", 1).addStyle(textCenter, backgroundGrey),
 }, {
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("ID").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Region").addStyle(textCenter, textBold, backgroundGrey),
@@ -48,10 +50,13 @@ var elasticacheInstanceFormat = [][]cell{{
 	newCell("Tags").addStyle(textCenter, textBold, backgroundGrey),
 }}
 
-func formatElasticacheInstance(instance elasticache.Instance) []cell {
+func formatElasticacheInstance(report elasticache.InstanceReport) []cell {
+	instance := report.Instance
 	tags := formatTags(instance.Tags)
 	return []cell{
+		newCell(report.Account),
 		newCell(instance.Id),
+		newCell(instance.NodeType),
 		newCell(instance.NodeType),
 		newCell(instance.Region),
 		newCell(getTotal(instance.Costs)),
@@ -65,7 +70,7 @@ func formatElasticacheInstance(instance elasticache.Instance) []cell {
 	}
 }
 
-func getElasticacheUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
+func getElasticacheUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -77,23 +82,28 @@ func getElasticacheUsageReport(ctx context.Context, aa aws.AwsAccount, date time
 		date, _ = history.GetHistoryDate()
 	}
 
-	identity, err := aa.GetAwsAccountIdentity()
-	if err != nil {
+	if len(aas) < 1 {
+		err = errors.New("Missing AWS Account for Elasticache Usage Report")
 		return
 	}
 
-	user, err := users.GetUserWithId(tx, aa.UserId)
+	identities := make([]string, 0)
+	for _, account := range aas {
+		identities = append(identities, account.AwsIdentity)
+	}
+
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
 
 	parameters := elasticache.ElastiCacheQueryParams{
-		AccountList: []string{identity},
+		AccountList: identities,
 		Date:        date,
 	}
 
 	logger.Debug("Getting Elasticache Usage Report for account", map[string]interface{}{
-		"account": aa,
+		"accounts": aas,
 	})
 	_, reports, err := elasticache.GetElastiCacheData(ctx, parameters, user, tx)
 	if err != nil {
@@ -102,7 +112,7 @@ func getElasticacheUsageReport(ctx context.Context, aa aws.AwsAccount, date time
 
 	if reports != nil && len(reports) > 0 {
 		for _, report := range reports {
-			row := formatElasticacheInstance(report.Instance)
+			row := formatElasticacheInstance(report)
 			data = append(data, row)
 		}
 	}

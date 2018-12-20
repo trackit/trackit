@@ -17,6 +17,7 @@ package reports
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 	"time"
 
@@ -29,12 +30,13 @@ import (
 )
 
 var esDomainFormat = [][]cell{{
-	newCell("", 6).addStyle(textCenter, backgroundGrey),
+	newCell("", 7).addStyle(textCenter, backgroundGrey),
 	newCell("Storage", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Memory Pressure (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("", 1).addStyle(textCenter, backgroundGrey),
 }, {
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("ID").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
@@ -50,9 +52,11 @@ var esDomainFormat = [][]cell{{
 	newCell("Tags").addStyle(textCenter, textBold, backgroundGrey),
 }}
 
-func formatEsDomain(domain es.Domain) []cell {
+func formatEsDomain(report es.DomainReport) []cell {
+	domain := report.Domain
 	tags := formatTags(domain.Tags)
 	return []cell{
+		newCell(report.Account),
 		newCell(domain.DomainID),
 		newCell(domain.DomainName),
 		newCell(domain.InstanceType),
@@ -69,7 +73,7 @@ func formatEsDomain(domain es.Domain) []cell {
 	}
 }
 
-func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
+func getEsUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -81,23 +85,28 @@ func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx
 		date, _ = history.GetHistoryDate()
 	}
 
-	identity, err := aa.GetAwsAccountIdentity()
-	if err != nil {
+	if len(aas) < 1 {
+		err = errors.New("Missing AWS Account for ElasticSearch Usage Report")
 		return
 	}
 
-	user, err := users.GetUserWithId(tx, aa.UserId)
+	identities := make([]string, 0)
+	for _, account := range aas {
+		identities = append(identities, account.AwsIdentity)
+	}
+
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
 
 	parameters := es.EsQueryParams{
-		AccountList: []string{identity},
+		AccountList: identities,
 		Date:        date,
 	}
 
 	logger.Debug("Getting ES Usage Report for account", map[string]interface{}{
-		"account": aa,
+		"accounts": aas,
 	})
 	_, reports, err := es.GetEsData(ctx, parameters, user, tx)
 	if err != nil {
@@ -106,7 +115,7 @@ func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx
 
 	if reports != nil && len(reports) > 0 {
 		for _, report := range reports {
-			row := formatEsDomain(report.Domain)
+			row := formatEsDomain(report)
 			data = append(data, row)
 		}
 	}

@@ -72,8 +72,8 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 			account := aws.AwsAccountFromDbAwsAccount(*dbAccount)
 			accounts = append(accounts, account)
 		}
-		speadsheetErr := reports.GenerateMasterReport(ctx, aa, accounts, date)
-		updateMasterAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, speadsheetErr, forceGeneration)
+		errs := reports.GenerateMasterReport(ctx, aa, accounts, date)
+		updateMasterAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
 	}
 	if err != nil {
 		logger.Error("Error while generating spreadsheet report.", map[string]interface{}{
@@ -156,8 +156,8 @@ func registerMasterAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64
 	return int64(dbReportGeneration.ID), err
 }
 
-func updateMasterAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, speadsheetErr error, forceGeneration bool) {
-	rErr := registerMasterAccountReportGenerationCompletion(db, aaId, updateId, jobErr, speadsheetErr, forceGeneration)
+func updateMasterAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) {
+	rErr := registerMasterAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs, forceGeneration)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -168,7 +168,7 @@ func updateMasterAccountReportGenerationCompletion(ctx context.Context, aaId int
 	}
 }
 
-func registerMasterAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, speadsheetErr error, forceGeneration bool) error {
+func registerMasterAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) error {
 	dbAccountReports, err := models.AwsAccountMasterReportsJobByID(db, int(updateId))
 	if err != nil {
 		return err
@@ -176,7 +176,13 @@ func registerMasterAccountReportGenerationCompletion(db *sql.DB, aaId int, updat
 	date := time.Now()
 	dbAccountReports.Completed = date
 	dbAccountReports.Joberror = errToStr(jobErr)
-	dbAccountReports.Spreadsheeterror = errToStr(speadsheetErr)
+	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
+	dbAccountReports.Costdifferror = errToStr(errs["costDiffError"])
+	dbAccountReports.Ec2usagereporterror = errToStr(errs["ec2UsageReportError"])
+	dbAccountReports.Rdsusagereporterror = errToStr(errs["rdsUsageReportError"])
+	dbAccountReports.Esusagereporterror = errToStr(errs["esUsageReportError"])
+	dbAccountReports.Elasticacheusagereporterror = errToStr(errs["elasticacheUsageReportError"])
+	dbAccountReports.Lambdausagereporterror = errToStr(errs["lambdaUsageReportError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err

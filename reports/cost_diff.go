@@ -17,8 +17,7 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"sort"
-	"strings"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -27,102 +26,107 @@ import (
 	"github.com/trackit/trackit-server/costs/diff"
 )
 
-type costDiffValue struct {
-	Cost      float64
-	Variation float64
-}
+type costDiffProduct map[time.Time]diff.PricePoint
 
-type costDiffProduct map[string]costDiffValue
+var costDiffHeader = [][]cell{{
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
+	newCell("Product").addStyle(textCenter, textBold, backgroundGrey),
+}}
 
-func isInList(dateList []string, date string) bool {
-	for _, item := range dateList {
-		if item == date {
-			return true
-		}
-	}
-	return false
-}
-
-func getDates(rawData map[string]costDiffProduct) (dateList []string) {
-	dateList = make([]string, 0)
-	for _, product := range rawData {
-		for date := range product {
-			if !isInList(dateList, date) {
-				dateList = append(dateList, date)
-			}
-		}
-	}
-	sort.Strings(dateList)
-	return
-}
-
-func formatCostDiff(data []diff.PricePoint) (values costDiffProduct) {
+func formatCostDiff(data []diff.PricePoint) (values costDiffProduct, err error) {
 	values = make(costDiffProduct)
-	for _, key := range data {
-		var date string
-		if splittedDate := strings.Split(key.Date, "T"); len(splittedDate) > 0 {
-			date = splittedDate[0]
-		} else {
-			date = key.Date
+	for _, value := range data {
+		date, err := time.Parse("2006-01-02T15:04:05.000Z", value.Date)
+		if err != nil {
+			return values, err
 		}
-		values[date] = costDiffValue{
-			Cost: key.Cost,
-			Variation: key.PercentVariation / 100,
-		}
+		values[date] = value
 	}
 	return
 }
 
-func getCostDiff(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
+func getValueForDate(values costDiffProduct, date time.Time) *diff.PricePoint {
+	if value, ok := values[date] ; ok {
+		return &value
+	}
+	return nil
+}
+
+func getCostDiff(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Getting Cost Differentiator Report for account", map[string]interface{}{
-		"account": aa,
+		"accounts": aas,
 	})
 
 	data = make([][]cell, 0)
 	header := make([]cell, 0)
-	header = append(header, newCell("Product").addStyle(textCenter, textBold, backgroundGrey))
+	header = append(header, costDiffHeader[0]...)
 
-	rawData := make(map[string]costDiffProduct)
-
-	report, err := diff.TaskDiffData(ctx, aa, date)
-	if err != nil {
-		logger.Error("An error occured while generating a cost differentiator report", err)
-		return
-	}
-	for product, data := range report {
-		rawData[product] = formatCostDiff(data)
+	var dateBegin, dateEnd time.Time
+	if date.IsZero() {
+		dateBegin, dateEnd = history.GetHistoryDate()
+	} else {
+		dateBegin = date
+		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
 	}
 
-	dates := getDates(rawData)
-	for _, date := range dates {
+	dates := make([]time.Time, dateEnd.Day())
+	for index := range dates {
+		dates[index] = dateBegin.AddDate(0, 0, index)
+		date := dates[index].Format("2006-01-02")
 		header = append(header, newCell(date + " - Cost").addStyle(textCenter, textBold, backgroundGrey))
 		if len(header) > 2 {
 			header = append(header, newCell(date + " - Variation").addStyle(textCenter, textBold, backgroundGrey),)
 		}
 	}
+
 	data = append(data, header)
-	for product, value := range rawData {
-		row := make([]cell, 0)
-		row = append(row, newCell(product).addStyle(backgroundLightGrey))
-		for _, date := range dates {
-			if cost, ok := value[date] ; ok {
-				row = append(row, newCell(cost.Cost))
-				if len(row) > 2 {
-					cell := newCell(cost.Variation)
-					if cost.Variation < 0 {
-						cell.addStyle(backgroundGreen)
-					} else if cost.Variation > 0 {
-						cell.addStyle(backgroundRed)
-					}
-					row = append(row, cell)
-				}
-			} else {
-				row = append(row, newCell("N/A"))
-				row = append(row, newCell("N/A"))
-			}
+
+	for _, aa := range aas {
+		report, err := diff.TaskDiffData(ctx, aa, date)
+		if err != nil {
+			logger.Error("An error occured while generating a cost differentiator report", map[string]interface{}{
+				"error": err,
+				"account": aa,
+			})
+			return data, err
 		}
-		data = append(data, row)
+		for product, values := range report {
+			row := make([]cell, 0)
+			row = append(row, newCell(aa.AwsIdentity).addStyle(backgroundLightGrey))
+			row = append(row, newCell(product).addStyle(backgroundLightGrey))
+			formattedValues, err := formatCostDiff(values)
+			if err != nil {
+				logger.Error("An error occured while parsing timestamp", map[string]interface{}{
+					"error": err,
+					"account": aa,
+					"values": values,
+				})
+				return data, err
+			}
+			for _, date := range dates {
+				value := getValueForDate(formattedValues, date)
+				if value != nil {
+					row = append(row, newCell(value.Cost))
+				} else {
+					row = append(row, newCell("N/A"))
+				}
+				if len(row) > 4 {
+					if value != nil {
+						cell := newCell(value.PercentVariation / 100)
+						if value.PercentVariation < 0 {
+							cell.addStyle(backgroundGreen)
+						} else if value.PercentVariation > 0 {
+							cell.addStyle(backgroundRed)
+						}
+						row = append(row, cell)
+					} else {
+						row = append(row, newCell("N/A"))
+					}
+				}
+			}
+			data = append(data, row)
+		}
 	}
 	return
 }
