@@ -17,12 +17,12 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"time"
 
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/costs/diff"
 )
 
@@ -54,7 +54,7 @@ func getValueForDate(values costDiffProduct, date time.Time) *diff.PricePoint {
 
 func getCostDiff(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("Getting Cost Differentiator Report for account", map[string]interface{}{
+	logger.Debug("Getting Cost Differentiator Report for accounts", map[string]interface{}{
 		"accounts": aas,
 	})
 

@@ -31,7 +31,6 @@ type module struct {
 	Name      string
 	Function  func(context.Context, []aws.AwsAccount, time.Time, *sql.Tx) ([][]cell, error)
 	ErrorName string
-	Header    [][]cell
 }
 
 var modules = []module{
@@ -39,37 +38,31 @@ var modules = []module{
 		Name:      "EC2 Usage Report",
 		Function:  getEc2UsageReport,
 		ErrorName: "ec2UsageReportError",
-		Header:    ec2InstanceFormat,
 	},
 	{
 		Name:      "RDS Usage Report",
 		Function:  getRdsUsageReport,
 		ErrorName: "rdsUsageReportError",
-		Header:    rdsInstanceFormat,
 	},
 	{
 		Name:      "ElasticSearch Usage Report",
 		Function:  getEsUsageReport,
 		ErrorName: "esUsageReportError",
-		Header:    esDomainFormat,
 	},
 	{
 		Name:      "ElastiCache Usage Report",
 		Function:  getElasticacheUsageReport,
 		ErrorName: "elasticacheUsageReportError",
-		Header:    elasticacheInstanceFormat,
 	},
 	{
 		Name:      "Lambda Usage Report",
 		Function:  getLambdaUsageReport,
 		ErrorName: "lambdaUsageReportError",
-		Header:    lambdaFunctionFormat,
 	},
 	{
 		Name:      "Cost Differentiator Report",
 		Function:  getCostDiff,
 		ErrorName: "CostDifferentiatorError",
-		Header:    costDiffHeader,
 	},
 }
 
@@ -103,7 +96,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, date time.Time) (err
 				}
 			}
 		}
-		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, false)
+		errs["speadsheetError"] = saveSpreadsheet(ctx, file, false)
 	} else {
 		errs["speadsheetError"] = err
 	}
@@ -141,26 +134,11 @@ func GenerateMasterReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsA
 				}
 			}
 		}
-		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, true)
+		errs["speadsheetError"] = saveSpreadsheet(ctx, file, true)
 	} else {
 		errs["speadsheetError"] = err
 	}
 	return
-/*
-	for _, account := range aas {
-		if file, err := loadSpreadsheetLocally(ctx, account, reportDate, false); err != nil {
-			errs[account.Id] = err
-		} else {
-			files = append(files, file)
-		}
-	}
-
-	masterFile, err := generateMasterSpreadsheet(ctx, aa, reportDate, files)
-	if err != nil {
-		logger.Error("Error while generating master spreadsheet", err)
-		return err
-	}
-	return saveSpreadsheetLocally(ctx, masterFile, true)*/
 }
 
 func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) ([]sheet, map[string]error) {

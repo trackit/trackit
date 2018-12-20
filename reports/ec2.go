@@ -17,7 +17,7 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"github.com/pkg/errors"
+	"errors"
 	"strings"
 	"time"
 
@@ -111,7 +111,7 @@ func getEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time
 		Date:        date,
 	}
 
-	logger.Debug("Getting EC2 Usage Report for account", map[string]interface{}{
+	logger.Debug("Getting EC2 Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 	})
 	_, reports, err := ec2.GetEc2Data(ctx, parameters, user, tx)

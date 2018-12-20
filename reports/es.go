@@ -105,7 +105,7 @@ func getEsUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time,
 		Date:        date,
 	}
 
-	logger.Debug("Getting ES Usage Report for account", map[string]interface{}{
+	logger.Debug("Getting ES Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 	})
 	_, reports, err := es.GetEsData(ctx, parameters, user, tx)

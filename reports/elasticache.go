@@ -102,7 +102,7 @@ func getElasticacheUsageReport(ctx context.Context, aas []aws.AwsAccount, date t
 		Date:        date,
 	}
 
-	logger.Debug("Getting Elasticache Usage Report for account", map[string]interface{}{
+	logger.Debug("Getting Elasticache Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 	})
 	_, reports, err := elasticache.GetElastiCacheData(ctx, parameters, user, tx)

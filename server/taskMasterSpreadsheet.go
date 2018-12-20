@@ -16,10 +16,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"time"
 
-	"database/sql"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"

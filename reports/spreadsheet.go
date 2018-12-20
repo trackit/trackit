@@ -153,25 +153,6 @@ func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet, masterReport
 	return
 }
 
-func loadSpreadsheetLocally(ctx context.Context, account taws.AwsAccount, date string, masterReport bool) (file *spreadsheet, err error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	file = &spreadsheet{
-		account,
-		date,
-		nil,
-	}
-
-	filename := getFilenameLocally(account, date, masterReport)
-
-	if openedFile, err := xlsx.OpenFile(filename); err != nil {
-		logger.Error("Error while opening file", err)
-	} else {
-		file.file = openedFile
-	}
-
-	return
-}
-
 func saveSpreadsheet(ctx context.Context, file *spreadsheet, masterReport bool) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 

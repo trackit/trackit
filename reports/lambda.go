@@ -98,7 +98,7 @@ func getLambdaUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.T
 		Date:        date,
 	}
 
-	logger.Debug("Getting Lambda Usage Report for account", map[string]interface{}{
+	logger.Debug("Getting Lambda Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 	})
 	_, reports, err := lambda.GetLambdaData(ctx, parameters, user, tx)
