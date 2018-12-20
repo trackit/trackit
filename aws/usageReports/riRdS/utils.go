@@ -32,13 +32,13 @@ import (
 const RDSStsSessionName = "fetch-rds"
 
 type (
-	// InstanceReport is saved in ES to have all the information of an RDS instance
+	// InstanceReport is saved in ES to have all the information of an RDS reserved instance
 	InstanceReport struct {
 		utils.ReportBase
 		Instance Instance `json:"instance"`
 	}
 
-	// InstanceBase contains basics information of an RDS instance
+	// InstanceBase contains basics information of an RDS reserved instance
 	InstanceBase struct {
 		DBInstanceIdentifier string             `json:"id"`
 		DBInstanceOfferingId string             `json:"offeringId"`
@@ -56,7 +56,7 @@ type (
 		RecurringCharges     []RecurringCharges `json:"recurringCharges"`
 	}
 
-	// Instance contains the information of an RDS instance
+	// Instance contains the information of an RDS reserved instance
 	Instance struct {
 		InstanceBase
 		Tags []utils.Tag `json:"tags"`
@@ -69,11 +69,11 @@ type (
 	}
 )
 
-// importInstancesToEs imports RDS instances in ElasticSearch.
+// importInstancesToEs imports RDS reserved instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
 func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating RDS instances for AWS account.", map[string]interface{}{
+	logger.Info("Updating RDS reserved instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
 	index := es.IndexNameForUserId(aa.UserId, IndexPrefixReservedRDSReport)
@@ -93,10 +93,10 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put RDS instances in ES", err.Error())
+		logger.Error("Fail to put RDS reserved instances in ES", err.Error())
 		return err
 	}
-	logger.Info("RDS instances put in ES", nil)
+	logger.Info("RDS reserved instances put in ES", nil)
 	return nil
 }
 

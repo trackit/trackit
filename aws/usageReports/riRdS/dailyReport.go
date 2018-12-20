@@ -29,7 +29,7 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-// fetchDailyInstancesList fetches the list of instances for a specific region
+// fetchDailyInstancesList fetches the list of reserved RDS for a specific region
 func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, InstanceChan chan Instance) error {
 	defer close(InstanceChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)

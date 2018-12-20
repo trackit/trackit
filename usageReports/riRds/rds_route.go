@@ -55,7 +55,7 @@ func init() {
 	}.H().Register("/ri/rds")
 }
 
-// getReservedInstances returns the list of Reserved Instances reports based on the query params, in JSON format.
+// getReservedInstances returns the list of RDS reserved instances reports based on the query params, in JSON format.
 func getReservedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
