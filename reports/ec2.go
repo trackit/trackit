@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -74,7 +75,7 @@ func formatEc2Instance(instance ec2.Instance) []cell {
 	}
 }
 
-func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -82,7 +83,9 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
 	identity, err := aa.GetAwsAccountIdentity()
 	if err != nil {

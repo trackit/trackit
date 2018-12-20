@@ -17,6 +17,7 @@ package reports
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -62,7 +63,7 @@ func formatRdsInstance(instance rds.Instance) []cell {
 	}
 }
 
-func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -70,7 +71,9 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
 	identity, err := aa.GetAwsAccountIdentity()
 	if err != nil {

@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -72,7 +73,7 @@ func formatCostDiff(data []diff.PricePoint) (values costDiffProduct) {
 	return
 }
 
-func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getCostDiff(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Getting Cost Differentiator Report for account", map[string]interface{}{
 		"account": aa,
@@ -84,7 +85,7 @@ func getCostDiff(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]c
 
 	rawData := make(map[string]costDiffProduct)
 
-	report, err := diff.TaskDiffData(ctx, aa)
+	report, err := diff.TaskDiffData(ctx, aa, date)
 	if err != nil {
 		logger.Error("An error occured while generating a cost differentiator report", err)
 		return

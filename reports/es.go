@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -68,7 +69,7 @@ func formatEsDomain(domain es.Domain) []cell {
 	}
 }
 
-func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -76,7 +77,9 @@ func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data 
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
 	identity, err := aa.GetAwsAccountIdentity()
 	if err != nil {

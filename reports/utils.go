@@ -3,14 +3,14 @@ package reports
 import "fmt"
 
 func formatMetric(value float64) interface{} {
-	if value < -1 {
+	if value == -1 {
 		return "N/A"
 	}
 	return value
 }
 
 func formatMetricPercentage(value float64) interface{} {
-	if value < -1 {
+	if value == -1 {
 		return "N/A"
 	}
 	return value / 100

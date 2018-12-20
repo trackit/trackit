@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -64,7 +65,7 @@ func formatElasticacheInstance(instance elasticache.Instance) []cell {
 	}
 }
 
-func getElasticacheUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getElasticacheUsageReport(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -72,7 +73,9 @@ func getElasticacheUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.T
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
 	identity, err := aa.GetAwsAccountIdentity()
 	if err != nil {

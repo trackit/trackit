@@ -38,20 +38,45 @@ func taskSpreadsheet(ctx context.Context) error {
 	logger.Debug("Running task 'Spreadsheet'.", map[string]interface{}{
 		"args": args,
 	})
-	if len(args) != 1 {
-		return errors.New("taskSpreadsheet requires an integer argument")
-	} else if aaId, err := strconv.Atoi(args[0]); err != nil {
+
+	aaId, date, err := checkArguments(args)
+	if err != nil {
 		return err
 	} else {
-		return generateReport(ctx, aaId)
+		return generateReport(ctx, aaId, date)
 	}
 }
 
-func generateReport(ctx context.Context, aaId int) (err error) {
+func checkArguments(args []string) (int, time.Time, error) {
+	var aaId int
+	var date time.Time
+	if len(args) != 1 && len(args) != 3 {
+		return -1, time.Time{}, errors.New("taskSpreadsheet requires an integer argument (AWS Account ID) or three integer arguments (AWS Account ID, month and year)")
+	} else if id, err := strconv.Atoi(args[0]); err != nil {
+		return -1, time.Time{}, err
+	} else {
+		aaId = id
+	}
+	if len(args) == 3 {
+		if month, err := strconv.Atoi(args[1]); err != nil {
+			return -1, time.Time{}, err
+		} else if year, err := strconv.Atoi(args[2]); err != nil {
+			return -1, time.Time{}, err
+		} else {
+			now := time.Now().UTC()
+			formattedMonth := time.Month(month)
+			date = time.Date(year, formattedMonth, 1, 0, 0, 0, 0, now.Location()).UTC()
+		}
+	}
+	return aaId, date, nil
+}
+
+func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var updateId int64
 	var generation bool
+	forceGeneration := !date.IsZero()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -64,24 +89,27 @@ func generateReport(ctx context.Context, aaId int) (err error) {
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if generation, err = checkReportGeneration(ctx, db.Db, aa); err != nil || !generation {
+	} else if generation, err = checkReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
 	} else {
-		errs := reports.GenerateReport(ctx, aa)
-		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs)
+		errs := reports.GenerateReport(ctx, aa, date)
+		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
 	}
 	if err != nil {
 		logger.Error("Error while generating spreadsheet report.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
 		})
-		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, err, nil)
+		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, err, nil, forceGeneration)
 	}
 	return
 }
 
-func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount) (bool, error) {
+func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, forceGeneration bool) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	if forceGeneration {
+		return true, nil
+	}
 	startDate, endDate := history.GetHistoryDate()
 	logger.Info("Checking report generation conditions", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -154,8 +182,8 @@ func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, erro
 	return int64(dbReportGeneration.ID), err
 }
 
-func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error) {
-	rErr := registerAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs)
+func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) {
+	rErr := registerAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs, forceGeneration)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -166,7 +194,7 @@ func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *
 	}
 }
 
-func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error) error {
+func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) error {
 	dbAccountReports, err := models.AwsAccountReportsJobByID(db, int(updateId))
 	if err != nil {
 		return err
@@ -185,11 +213,13 @@ func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId in
 	if err != nil {
 		return err
 	}
-	dbAccount, err := models.AwsAccountByID(db, aaId)
-	if err != nil {
-		return err
+	if !forceGeneration {
+		dbAccount, err := models.AwsAccountByID(db, aaId)
+		if err != nil {
+			return err
+		}
+		dbAccount.LastSpreadsheetReportGeneration = date
+		err = dbAccount.Update(db)
 	}
-	dbAccount.LastSpreadsheetReportGeneration = date
-	err = dbAccount.Update(db)
 	return err
 }

@@ -29,7 +29,7 @@ import (
 
 type module struct {
 	Name      string
-	Function  func(context.Context, aws.AwsAccount, *sql.Tx) ([][]cell, error)
+	Function  func(context.Context, aws.AwsAccount, time.Time, *sql.Tx) ([][]cell, error)
 	ErrorName string
 }
 
@@ -66,22 +66,28 @@ var modules = []module{
 	},
 }
 
-func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]error) {
+func GenerateReport(ctx context.Context, aa aws.AwsAccount, date time.Time) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	now := time.Now()
+	var reportDate string
+	if date.IsZero() {
+		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+	} else {
+		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
+	}
 	logger.Info("Generating spreadsheet for account", map[string]interface{}{
 		"account": aa,
+		"date": reportDate,
 	})
-	now := time.Now()
-	date := fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
 	errs = make(map[string]error)
 
 	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
-		sheets, errs := getSpreadsheetData(ctx, aa, tx)
+		sheets, errs := getSpreadsheetData(ctx, aa, date, tx)
 		if len(errs) > 0 {
 			logger.Error("Error while getting spreadsheet data", errs)
 		}
 
-		file, spreadsheetErrors := generateSpreadsheet(ctx, aa, date, sheets)
+		file, spreadsheetErrors := generateSpreadsheet(ctx, aa, reportDate, sheets)
 		if len(spreadsheetErrors) > 0 {
 			logger.Error("Error while generating spreadsheet", spreadsheetErrors)
 			for errorKey := range spreadsheetErrors {
@@ -90,19 +96,58 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount) (errs map[string]err
 				}
 			}
 		}
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file)
+		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, false)
 	} else {
 		errs["speadsheetError"] = err
 	}
 	return
 }
 
-func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) ([]sheet, map[string]error) {
+func GenerateMasterReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount, date time.Time) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	now := time.Now()
+	var reportDate string
+	if date.IsZero() {
+		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+	} else {
+		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
+	}
+	logger.Info("Generating master spreadsheet for accounts", map[string]interface{}{
+		"masterAccount": aa,
+		"accounts": aas,
+		"date": reportDate,
+	})
+
+	files := make([]*spreadsheet, 0)
+	errs := make(map[int]error)
+
+	for _, account := range aas {
+		if file, err := loadSpreadsheetLocally(ctx, account, reportDate, false); err != nil {
+			errs[account.Id] = err
+		} else {
+			files = append(files, file)
+			logger.Debug("FILE-----------", map[string]interface{}{
+				"file": file.file == nil,
+				"account": file.account,
+				"date": file.date,
+			})
+		}
+	}
+
+	masterFile, err := generateMasterSpreadsheet(ctx, aa, reportDate, files)
+	if err != nil {
+		logger.Error("Error while generating master spreadsheet", err)
+		return err
+	}
+	return saveSpreadsheetLocally(ctx, masterFile, true)
+}
+
+func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) ([]sheet, map[string]error) {
 	sheets := make([]sheet, 0)
 	errors := make(map[string]error)
 
 	for _, module := range modules {
-		data, err := module.Function(ctx, aa, tx)
+		data, err := module.Function(ctx, aa, date, tx)
 		if err != nil {
 			errors[module.ErrorName] = err
 		} else {
