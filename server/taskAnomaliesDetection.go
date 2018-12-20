@@ -22,6 +22,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/anomaliesDetection"
@@ -68,7 +69,7 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 	} else if lastUpdate, err = anomalies.RunAnomaliesDetection(aa, dbaa.LastAnomaliesUpdate, ctx); err == nil {
 		err = registerAnomaliesUpdate(tx, lastUpdate, aa.Id)
 	}
-	if err != nil {
+	if err != nil && !elastic.IsNotFound(err) {
 		logger.Error("Failed to detect anomalies.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
