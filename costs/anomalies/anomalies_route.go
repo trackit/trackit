@@ -155,7 +155,6 @@ func getAnomalyLevel(typedDocument esProductAnomalyTypedResult) (int, string) {
 func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomaliesDetectionResponse, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	res := make(anomaliesDetectionResponse)
-	logger.Info("res", res)
 	for i := range raw.Hits.Hits {
 		var typedDocument esProductAnomalyTypedResult
 		if err := json.Unmarshal(*raw.Hits.Hits[i].Source, &typedDocument); err != nil {
