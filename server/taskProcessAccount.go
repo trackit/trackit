@@ -31,8 +31,8 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/lambda"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"github.com/trackit/trackit-server/aws/usageReports/riEC2"
-	"github.com/trackit/trackit-server/aws/usageReports/riRDS"
+	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
+	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
 	"github.com/trackit/trackit-server/db"
 )
 
@@ -76,8 +76,8 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		esErr := processAccountES(ctx, aa)
 		elastiCacheErr := processAccountElastiCache(ctx, aa)
 		lambdaErr := processAccountLambda(ctx, aa)
-		riEc2Err := riEC2.FetchDailyReservationsStats(ctx, aa)
-		riRdsErr := riRDS.FetchDailyInstancesStats(ctx, aa)
+		riEc2Err := riEc2.FetchDailyReservationsStats(ctx, aa)
+		riRdsErr := riRdS.FetchDailyInstancesStats(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, historyErr, historyCreated)
 	}

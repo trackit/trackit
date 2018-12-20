@@ -22,7 +22,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/aws/usageReports/riRDS"
+	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
 )
 
 type (
@@ -37,7 +37,7 @@ type (
 						Reservations struct {
 							Hits struct {
 								Hits []struct {
-									Reservation riRDS.InstanceReport `json:"_source"`
+									Reservation riRdS.InstanceReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"reservations"`
@@ -55,12 +55,12 @@ type (
 
 	// Reservation contains the information of an ReservedInstances reservation
 	Reservation struct {
-		riRDS.InstanceBase
+		riRdS.InstanceBase
 		Tags map[string]string `json:"tags"`
 	}
 )
 
-func getReservedInstancesReportResponse(oldReservation riRDS.InstanceReport) ReservationReport {
+func getReservedInstancesReportResponse(oldReservation riRdS.InstanceReport) ReservationReport {
 	tags := make(map[string]string, 0)
 	for _, tag := range oldReservation.Instance.Tags {
 		tags[tag.Key] = tag.Value
