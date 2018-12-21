@@ -134,11 +134,15 @@ func generateSpreadsheet(ctx context.Context, aa taws.AwsAccount, date string, s
 }
 
 func getFilenameLocally(account taws.AwsAccount, date string, masterReport bool) string {
+	return fmt.Sprintf("/reports/%s", getFilename(account, date, masterReport))
+}
+
+func getFilename(account taws.AwsAccount, date string, masterReport bool) string {
 	masterReportName := ""
 	if masterReport {
 		masterReportName = "MasterReport_"
 	}
-	return fmt.Sprintf("/reports/TRACKIT_%s%s_%s.xlsx", masterReportName, account.Pretty, date)
+	return fmt.Sprintf("TRACKIT_%s%s_%s.xlsx", masterReportName, account.Pretty, date)
 }
 
 func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet, masterReport bool) (err error) {
@@ -156,7 +160,7 @@ func saveSpreadsheetLocally(ctx context.Context, file *spreadsheet, masterReport
 func saveSpreadsheet(ctx context.Context, file *spreadsheet, masterReport bool) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	filename := fmt.Sprintf("TRACKIT_%s_%s.xlsx", file.account.Pretty, file.date)
+	filename := getFilename(file.account, file.date, masterReport)
 	reportPath := path.Join(strconv.Itoa(file.account.Id), "generated-report", filename)
 
 	logger.Info("Uploading spreadsheet", reportPath)
