@@ -63,7 +63,6 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []Re
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return false, err
 	}
-	logger.Info("le report", reservations)
 	for _, reservation := range reservations {
 		id, err := generateId(reservation)
 		if err != nil {
