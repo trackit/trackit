@@ -222,7 +222,7 @@ func productGetTotalCostByDay(typedDocument esProductTypedResult) totalCostByDay
 // productGetAnomaliesData returns product anomalies based on query params, in JSON format.
 func productGetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams) (AnalyzedCosts, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	sr, _, err := makeElasticSearchRequest(ctx, getProductElasticSearchParams, params)
+	sr, err := makeElasticSearchRequest(ctx, getProductElasticSearchParams, params)
 	if err != nil {
 		return nil, err
 	}
