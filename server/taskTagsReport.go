@@ -40,7 +40,7 @@ type (
 		Tags map[string]string `json:"-"`
 	}
 
-	TagsReport map[string]map[string][]Resource
+	TagsReport map[string]map[string][]string
 )
 
 func taskTagsReport(ctx context.Context) error {
@@ -59,7 +59,7 @@ func taskTagsReport(ctx context.Context) error {
 }
 
 func prepareTagsReport(ctx context.Context, aaId int) (err error) {
-	var report TagsReport
+	var report map[string]TagsReport
 	var tx *sql.Tx
 	date, _ := history.GetHistoryDate()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -85,46 +85,29 @@ func prepareTagsReport(ctx context.Context, aaId int) (err error) {
 	return
 }
 
-func generateTagsReport(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) (TagsReport, error) {
+func generateTagsReport(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) (map[string]TagsReport, error) {
 	ec2Resources := getEc2Resources(ctx, tx, aa, user, date)
 	rdsResources := getRdsResources(ctx, tx, aa, user, date)
 	esResources := getEsResources(ctx, tx, aa, user, date)
-	resources := [][]Resource{ec2Resources, rdsResources, esResources}
-	report := make(TagsReport, 0)
-	for _, resourceType := range resources {
-		for _, resource := range resourceType {
-			for key := range resource.Tags {
-				report[key] = make(map[string][]Resource, 0)
-			}
-		}
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	reports := map[string]TagsReport{
+		"EC2": ec2Resources,
+		"RDS": rdsResources,
+		"ES": esResources,
 	}
-	for reportKey := range report {
-		for _, resourceType := range resources {
-			for _, resource := range resourceType {
-				var gotKey bool = false
-				for key, tag := range resource.Tags {
-					if key == reportKey && tag != "" {
-						report[reportKey][tag] = append(report[reportKey][tag], resource)
-						gotKey = true
-						break
-					}
-				}
-				if gotKey == false {
-					report[reportKey]["noTag"] = append(report[reportKey]["noTag"], resource)
-				}
-			}
-		}
+	for product, report := range reports {
+		logger.Info(product, report)
 	}
-	return report, nil
+	return reports, nil
 }
 
-func getEc2Resources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) []Resource {
+func getEc2Resources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) TagsReport {
 	resources := make([]Resource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	_, instances, err := ec2.GetEc2Data(ctx, ec2.Ec2QueryParams{[]string{aa.AwsIdentity}, nil, date}, user, tx)
 	if err != nil {
 		logger.Error("Failed to get EC2 instances", err.Error())
-		return resources
+		return nil
 	}
 	for _, instance := range instances {
 		resources = append(resources, Resource{
@@ -133,16 +116,41 @@ func getEc2Resources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user us
 			Tags: instance.Instance.Tags,
 		})
 	}
-	return resources
+	report := make(TagsReport, 0)
+	for _, resource := range resources {
+		for key := range resource.Tags {
+			report[key] = make(map[string][]string, 0)
+		}
+	}
+	for reportKey := range report {
+		for _, resource := range resources {
+			var gotKey bool = false
+			for key, tag := range resource.Tags {
+				if key == reportKey && tag != "" {
+					report[reportKey][tag] = append(report[reportKey][tag], resource.ResourceName)
+					gotKey = true
+					break
+				} else if key == reportKey {
+					report[reportKey]["noTag"] = append(report[reportKey]["noTag"], resource.ResourceName)
+					gotKey = true
+					break
+				}
+			}
+			if gotKey == false {
+				report[reportKey]["keyNotSet"] = append(report[reportKey]["keyNotSet"], resource.ResourceName)
+			}
+		}
+	}
+	return report
 }
 
-func getRdsResources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) []Resource {
+func getRdsResources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) TagsReport{
 	resources := make([]Resource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	_, instances, err := rds.GetRdsData(ctx, rds.RdsQueryParams{[]string{aa.AwsIdentity}, nil, date}, user, tx)
 	if err != nil {
 		logger.Error("Failed to get EC2 instances", err.Error())
-		return resources
+		return nil
 	}
 	for _, instance := range instances {
 		resources = append(resources, Resource{
@@ -151,16 +159,41 @@ func getRdsResources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user us
 			Tags: instance.Instance.Tags,
 		})
 	}
-	return resources
+	report := make(TagsReport, 0)
+	for _, resource := range resources {
+		for key := range resource.Tags {
+			report[key] = make(map[string][]string, 0)
+		}
+	}
+	for reportKey := range report {
+		for _, resource := range resources {
+			var gotKey bool = false
+			for key, tag := range resource.Tags {
+				if key == reportKey && tag != "" {
+					report[reportKey][tag] = append(report[reportKey][tag], resource.ResourceName)
+					gotKey = true
+					break
+				} else if key == reportKey {
+					report[reportKey]["noTag"] = append(report[reportKey]["noTag"], resource.ResourceName)
+					gotKey = true
+					break
+				}
+			}
+			if gotKey == false {
+				report[reportKey]["keyNotSet"] = append(report[reportKey]["keyNotSet"], resource.ResourceName)
+			}
+		}
+	}
+	return report
 }
 
-func getEsResources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) []Resource {
+func getEsResources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user users.User, date time.Time) TagsReport {
 	resources := make([]Resource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	_, instances, err := es.GetEsData(ctx, es.EsQueryParams{[]string{aa.AwsIdentity}, nil, date}, user, tx)
 	if err != nil {
 		logger.Error("Failed to get EC2 instances", err.Error())
-		return resources
+		return nil
 	}
 	for _, instance := range instances {
 		resources = append(resources, Resource{
@@ -169,5 +202,30 @@ func getEsResources(ctx context.Context, tx *sql.Tx, aa aws.AwsAccount, user use
 			Tags: instance.Domain.Tags,
 		})
 	}
-	return resources
+	report := make(TagsReport, 0)
+	for _, resource := range resources {
+		for key := range resource.Tags {
+			report[key] = make(map[string][]string, 0)
+		}
+	}
+	for reportKey := range report {
+		for _, resource := range resources {
+			var gotKey bool = false
+			for key, tag := range resource.Tags {
+				if key == reportKey && tag != ""{
+					report[reportKey][tag] = append(report[reportKey][tag], resource.ResourceName)
+					gotKey = true
+					break
+				} else if key == reportKey {
+					report[reportKey]["noTag"] = append(report[reportKey]["noTag"], resource.ResourceName)
+					gotKey = true
+					break
+				}
+			}
+			if gotKey == false {
+				report[reportKey]["keyNotSet"] = append(report[reportKey]["keyNotSet"], resource.ResourceName)
+			}
+		}
+	}
+	return report
 }
