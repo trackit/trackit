@@ -141,9 +141,19 @@ class ChartComponent extends Component {
     }
     else if (this.props.keys !== nextProps.keys && nextProps.keys.status
       && nextProps.keys.hasOwnProperty("values") && nextProps.keys.values.length)
-      nextProps.selectKey(nextProps.id, nextProps.keys.values[0]);
+      nextProps.selectKey(nextProps.id, this.selectDefaultKey(nextProps.keys.values));
     else if ((this.props.tag !== nextProps.tag && nextProps.tag !== "") || (this.props.filter !== nextProps.filter && nextProps.filter !== ""))
       nextProps.getValues(nextProps.id, nextProps.dates.startDate, nextProps.dates.endDate, nextProps.filter, nextProps.tag);
+  }
+
+  selectDefaultKey(keys) {
+    if (keys.indexOf("name") !== -1) {
+      return keys[keys.indexOf("name")];
+    } else if (keys.indexOf("Name") !== -1) {
+      return keys[keys.indexOf("Name")];
+    } else {
+      return keys[0];
+    }
   }
 
   render() {

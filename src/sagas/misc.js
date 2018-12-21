@@ -63,6 +63,14 @@ const getTagsChartsFromState = (state) => {
   return data;
 };
 
+export const resetTagsDates = (dates) => {
+  Object.keys(dates).forEach((id) => {
+    dates[id].startDate = moment().subtract(30, 'days');
+    dates[id].endDate = moment();
+  });
+  return dates;
+}
+
 export const getTagsCharts = () => {
   return select(getTagsChartsFromState);
 };
@@ -149,8 +157,8 @@ export const initialTagsCharts = () => {
   let dates = {};
   Object.keys(charts).forEach((id) => {
     dates[id] = {
-      startDate: moment().subtract(1, 'month').startOf('month'),
-      endDate: moment().subtract(1, 'month').endOf('month')
+      startDate: moment().subtract(30, 'days'),
+      endDate: moment()
     };
   });
   let filters = {};
