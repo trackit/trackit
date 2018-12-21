@@ -20,6 +20,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 

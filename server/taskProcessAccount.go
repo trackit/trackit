@@ -141,7 +141,7 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 		elastiCacheError=?,
 		lambdaError=?,
 		riEc2Error=?,
-		riRdsError=?
+		riRdsError=?,
 		historyError=?,
 		monthly_reports_generated=?
 	WHERE id=?`

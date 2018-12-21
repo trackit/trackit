@@ -23,11 +23,11 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const TypeReservedInstancesReport = "reserved-instances-report"
-const IndexPrefixReservedInstancesReport = "reserved-instances-reports"
-const TemplateNameReservedInstancesReport = "reserved-instances-reports"
+const TypeReservedInstancesReport = "ri-ec2-report"
+const IndexPrefixReservedInstancesReport = "ri-ec2-reports"
+const TemplateNameReservedInstancesReport = "ri-ec2-reports"
 
-// put the ElasticSearch index for *-reserved-instances-reports indices at startup.
+// put the ElasticSearch index for *-ri-ec2-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	res, err := es.Client.IndexPutTemplate(TemplateNameReservedInstancesReport).BodyString(TemplateLineItem).Do(ctx)
@@ -41,10 +41,10 @@ func init() {
 
 const TemplateLineItem = `
 {
-	"template": "*-reserved-instances-reports",
+	"template": "*-ri-ec2-reports",
 	"version": 1,
 	"mappings": {
-		"reserved-instances-report": {
+		"ri-ec2-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

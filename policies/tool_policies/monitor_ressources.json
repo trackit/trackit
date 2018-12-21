@@ -20,6 +20,7 @@
         "ec2:DescribeReservedInstancesOfferings",
         "ec2:DescribeVolumes",
         "ec2:DescribeAddresses",
+        "rds:DescribeDBInstances",
         "lambda:ListFunctions",
         "lambda:ListTags"
       ],
