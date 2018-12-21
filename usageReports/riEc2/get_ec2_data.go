@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reservedInstances
+package riEc2
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
+	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
 	terrors "github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/users"
@@ -85,7 +85,7 @@ func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQuer
 
 // GetReservedInstancesData gets Reserved Instances daily reports
 func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, reservedInstances.IndexPrefixReservedInstancesReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, riEc2.IndexPrefixReservedInstancesReport)
 	if err != nil {
 		return returnCode, nil, err
 	}

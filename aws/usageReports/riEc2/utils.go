@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reservedInstances
+package riEc2
 
 import (
 	"context"
@@ -35,7 +35,6 @@ type (
 	// ReservationReport is saved in ES to have all the information of a reservation
 	ReservationReport struct {
 		utils.ReportBase
-		Service     string      `json:"service"`
 		Reservation Reservation `json:"reservation"`
 	}
 

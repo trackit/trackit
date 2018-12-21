@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reservedInstances
+package riRds
 
 import (
 	"database/sql"
@@ -52,10 +52,10 @@ func init() {
 				Description: "Responds with the list of Reserved Instances based on the queryparams passed to it",
 			},
 		),
-	}.H().Register("/ri")
+	}.H().Register("/ri/rds")
 }
 
-// getReservedInstances returns the list of Reserved Instances reports based on the query params, in JSON format.
+// getReservedInstances returns the list of RDS reserved instances reports based on the query params, in JSON format.
 func getReservedInstances(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)

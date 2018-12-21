@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reservedInstances
+package riRdS
 
 import (
 	"context"
@@ -23,28 +23,28 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const TypeReservedInstancesReport = "reserved-instances-report"
-const IndexPrefixReservedInstancesReport = "reserved-instances-reports"
-const TemplateNameReservedInstancesReport = "reserved-instances-reports"
+const TypeReservedRDSReport = "rds-ri-report"
+const IndexPrefixReservedRDSReport = "rds-ri-reports"
+const TemplateNameReservedRDSReport = "rds-ri-reports"
 
-// put the ElasticSearch index for *-reserved-instances-reports indices at startup.
+// put the ElasticSearch index for *-rds-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameReservedInstancesReport).BodyString(TemplateLineItem).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(TemplateNameReservedRDSReport).BodyString(TemplateReservedRdsReport).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index ReservedInstancesReport.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index rds-ri-reports.", err)
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index ReservedInstancesReport.", res)
+		jsonlog.DefaultLogger.Info("Put ES index rds-ri-reports.", res)
 		ctxCancel()
 	}
 }
 
-const TemplateLineItem = `
+const TemplateReservedRdsReport = `
 {
-	"template": "*-reserved-instances-reports",
+	"template": "*-rds-ri-reports",
 	"version": 1,
 	"mappings": {
-		"reserved-instances-report": {
+		"rds-ri-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,55 +55,47 @@ const TemplateLineItem = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"service": {
-					"type": "keyword"
-				},
-				"reservation": {
+				"instance": {
+					"type": "object",
 					"properties": {
 						"id": {
 							"type": "keyword"
 						},
-						"region": {
+						"offeringId": {
 							"type": "keyword"
 						},
 						"availabilityZone": {
 							"type": "keyword"
 						},
-						"type": {
+						"instanceClass": {
 							"type": "keyword"
 						},
-						"offeringClass": {
+						"instanceCount": {
+							"type": "integer"
+						},
+						"duration": {
+							"type": "integer"
+						},
+						"fixedPrice": {
+							"type": "double"
+						},
+						"multiAz": {
+							"type": "boolean"
+						},
+						"productDescription": {
 							"type": "keyword"
 						},
 						"offeringType": {
 							"type": "keyword"
 						},
-						"productDescription": {
+						"state": {
 							"type": "keyword"
 						},
-						"state":{
-							"type": "keyword"
-						},
-						"fixedPrice": {
-							"type": "double"
+						"startTime": {
+							"type": "date"
 						},
 						"usagePrice": {
 							"type": "double"
-						},
-						"usageDuration": {
-							"type": "integer"
-						},
-						"start": {
-							"type": "date"
-						},
-						"end": {
-							"type": "date"
-						},
-						"instanceCount": {
-							"type": "integer"
-						},
-						"tenancy": {
-							"type": "keyword"
 						},
 						"recurringCharges": {
 							"type": "nested",
@@ -112,17 +104,6 @@ const TemplateLineItem = `
 									"type": "double"
 								},
 								"frequency": {
-									"type": "keyword"
-								}
-							}
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
 									"type": "keyword"
 								}
 							}

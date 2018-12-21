@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reservedInstances
+package riRds
 
 import (
 	"context"
@@ -22,7 +22,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/aws/usageReports/reservedInstances"
+	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
 )
 
 type (
@@ -37,7 +37,7 @@ type (
 						Reservations struct {
 							Hits struct {
 								Hits []struct {
-									Reservation reservedInstances.ReservationReport `json:"_source"`
+									Reservation riRdS.InstanceReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"reservations"`
@@ -50,28 +50,26 @@ type (
 	// ReservationReport has all the information of an ReservedInstances reservation report
 	ReservationReport struct {
 		utils.ReportBase
-		Service     string      `json:"service"`
 		Reservation Reservation `json:"reservation"`
 	}
 
 	// Reservation contains the information of an ReservedInstances reservation
 	Reservation struct {
-		reservedInstances.ReservationBase
+		riRdS.InstanceBase
 		Tags map[string]string `json:"tags"`
 	}
 )
 
-func getReservedInstancesReportResponse(oldReservation reservedInstances.ReservationReport) ReservationReport {
+func getReservedInstancesReportResponse(oldReservation riRdS.InstanceReport) ReservationReport {
 	tags := make(map[string]string, 0)
-	for _, tag := range oldReservation.Reservation.Tags {
+	for _, tag := range oldReservation.Instance.Tags {
 		tags[tag.Key] = tag.Value
 	}
 	newReservation := ReservationReport{
 		ReportBase: oldReservation.ReportBase,
-		Service:    oldReservation.Service,
 		Reservation: Reservation{
-			ReservationBase: oldReservation.Reservation.ReservationBase,
-			Tags:            tags,
+			InstanceBase: oldReservation.Instance.InstanceBase,
+			Tags:         tags,
 		},
 	}
 	return newReservation
