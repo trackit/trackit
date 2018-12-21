@@ -50,7 +50,7 @@ type (
 	}
 )
 
-// importReservationsToEs imports EC2 Coverage report in ElasticSearch.
+// importReportsToEs imports EC2 Coverage report in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
 func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []ReservationReport) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -74,7 +74,7 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []Re
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put EC2 Coverage report in ES", err.Error())
+		logger.Error("Failed to put EC2 Coverage report in ES", err.Error())
 		return false, err
 	}
 	logger.Info("EC2 Coverage report put in ES", nil)
