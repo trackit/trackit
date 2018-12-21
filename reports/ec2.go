@@ -17,8 +17,9 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -29,12 +30,13 @@ import (
 )
 
 var ec2InstanceFormat = [][]cell{{
-	newCell("", 6).addStyle(textCenter, backgroundGrey),
+	newCell("", 7).addStyle(textCenter, backgroundGrey),
 	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Network (Bytes)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("I/O (Bytes)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("", 2).addStyle(textCenter, backgroundGrey),
 }, {
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("ID").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
@@ -51,45 +53,33 @@ var ec2InstanceFormat = [][]cell{{
 	newCell("Tags").addStyle(textCenter, textBold, backgroundGrey),
 }}
 
-func formatEc2Instance(instance ec2.Instance) []cell {
-	var cost float64
-	for _, value := range instance.Costs {
-		cost += value
-	}
+func formatEc2Instance(report ec2.InstanceReport) []cell {
+	instance := report.Instance
 	name := ""
 	if value, ok := instance.Tags["Name"]; ok {
 		name = value
 	}
-	ioRead, ioWrite := 0, 0
-	for _, size := range instance.Stats.Volumes.Read {
-		ioRead += int(size)
-	}
-	for _, size := range instance.Stats.Volumes.Write {
-		ioWrite += int(size)
-	}
-	tags := make([]string, 0)
-	for key, value := range instance.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+	tags := formatTags(instance.Tags)
 	return []cell{
+		newCell(report.Account),
 		newCell(instance.Id),
 		newCell(name),
 		newCell(instance.Type),
 		newCell(instance.Region),
 		newCell(instance.Purchasing),
-		newCell(cost),
-		newCell(instance.Stats.Cpu.Average / 100),
-		newCell(instance.Stats.Cpu.Peak / 100),
-		newCell(instance.Stats.Network.In),
-		newCell(instance.Stats.Network.Out),
-		newCell(ioRead),
-		newCell(ioWrite),
+		newCell(getTotal(instance.Costs)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Peak)),
+		newCell(formatMetric(instance.Stats.Network.In)),
+		newCell(formatMetric(instance.Stats.Network.Out)),
+		newCell(getTotal(instance.Stats.Volumes.Read)),
+		newCell(getTotal(instance.Stats.Volumes.Write)),
 		newCell(instance.KeyPair),
 		newCell(strings.Join(tags, ";")),
 	}
 }
 
-func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -97,25 +87,32 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
-	identity, err := aa.GetAwsAccountIdentity()
-	if err != nil {
+	if len(aas) < 1 {
+		err = errors.New("Missing AWS Account for EC2 Usage Report")
 		return
 	}
 
-	user, err := users.GetUserWithId(tx, aa.UserId)
+	identities := make([]string, 0)
+	for _, account := range aas {
+		identities = append(identities, account.AwsIdentity)
+	}
+
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
 
 	parameters := ec2.Ec2QueryParams{
-		AccountList: []string{identity},
+		AccountList: identities,
 		Date:        date,
 	}
 
-	logger.Debug("Getting EC2 Usage Report for account", map[string]interface{}{
-		"account": aa,
+	logger.Debug("Getting EC2 Usage Report for accounts", map[string]interface{}{
+		"accounts": aas,
 	})
 	_, reports, err := ec2.GetEc2Data(ctx, parameters, user, tx)
 	if err != nil {
@@ -124,7 +121,7 @@ func getEc2UsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 
 	if reports != nil && len(reports) > 0 {
 		for _, report := range reports {
-			row := formatEc2Instance(report.Instance)
+			row := formatEc2Instance(report)
 			data = append(data, row)
 		}
 	}

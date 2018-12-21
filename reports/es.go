@@ -17,8 +17,9 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -29,12 +30,13 @@ import (
 )
 
 var esDomainFormat = [][]cell{{
-	newCell("", 6).addStyle(textCenter, backgroundGrey),
+	newCell("", 7).addStyle(textCenter, backgroundGrey),
 	newCell("Storage", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Memory Pressure (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("", 1).addStyle(textCenter, backgroundGrey),
 }, {
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("ID").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
@@ -50,33 +52,28 @@ var esDomainFormat = [][]cell{{
 	newCell("Tags").addStyle(textCenter, textBold, backgroundGrey),
 }}
 
-func formatEsDomain(domain es.Domain) []cell {
-	var cost float64
-	for _, value := range domain.Costs {
-		cost += value
-	}
-	tags := make([]string, 0)
-	for key, value := range domain.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+func formatEsDomain(report es.DomainReport) []cell {
+	domain := report.Domain
+	tags := formatTags(domain.Tags)
 	return []cell{
+		newCell(report.Account),
 		newCell(domain.DomainID),
 		newCell(domain.DomainName),
 		newCell(domain.InstanceType),
 		newCell(domain.Region),
 		newCell(domain.InstanceCount),
-		newCell(cost),
+		newCell(getTotal(domain.Costs)),
 		newCell(domain.TotalStorageSpace),
-		newCell(domain.Stats.FreeSpace),
-		newCell(domain.Stats.Cpu.Average / 100),
-		newCell(domain.Stats.Cpu.Peak / 100),
-		newCell(domain.Stats.JVMMemoryPressure.Average),
-		newCell(domain.Stats.JVMMemoryPressure.Peak),
+		newCell(formatMetric(domain.Stats.FreeSpace)),
+		newCell(formatMetricPercentage(domain.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(domain.Stats.Cpu.Peak)),
+		newCell(formatMetric(domain.Stats.JVMMemoryPressure.Average)),
+		newCell(formatMetric(domain.Stats.JVMMemoryPressure.Peak)),
 		newCell(strings.Join(tags, ";")),
 	}
 }
 
-func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getEsUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -84,25 +81,32 @@ func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data 
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
-	identity, err := aa.GetAwsAccountIdentity()
-	if err != nil {
+	if len(aas) < 1 {
+		err = errors.New("Missing AWS Account for ElasticSearch Usage Report")
 		return
 	}
 
-	user, err := users.GetUserWithId(tx, aa.UserId)
+	identities := make([]string, 0)
+	for _, account := range aas {
+		identities = append(identities, account.AwsIdentity)
+	}
+
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
 
 	parameters := es.EsQueryParams{
-		AccountList: []string{identity},
+		AccountList: identities,
 		Date:        date,
 	}
 
-	logger.Debug("Getting ES Usage Report for account", map[string]interface{}{
-		"account": aa,
+	logger.Debug("Getting ES Usage Report for accounts", map[string]interface{}{
+		"accounts": aas,
 	})
 	_, reports, err := es.GetEsData(ctx, parameters, user, tx)
 	if err != nil {
@@ -111,7 +115,7 @@ func getEsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data 
 
 	if reports != nil && len(reports) > 0 {
 		for _, report := range reports {
-			row := formatEsDomain(report.Domain)
+			row := formatEsDomain(report)
 			data = append(data, row)
 		}
 	}

@@ -17,8 +17,9 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"errors"
 	"strings"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -29,11 +30,12 @@ import (
 )
 
 var lambdaFunctionFormat = [][]cell{{
-	newCell("", 5).addStyle(textCenter, backgroundGrey),
+	newCell("", 6).addStyle(textCenter, backgroundGrey),
 	newCell("Invocations", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Duration", 2).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("", 1).addStyle(textCenter, backgroundGrey),
 }, {
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Version").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Runtime").addStyle(textCenter, textBold, backgroundGrey),
@@ -46,26 +48,25 @@ var lambdaFunctionFormat = [][]cell{{
 	newCell("Tags").addStyle(textCenter, textBold, backgroundGrey),
 }}
 
-func formatLambdaFunction(function lambda.Function) []cell {
-	tags := make([]string, 0)
-	for key, value := range function.Tags {
-		tags = append(tags, fmt.Sprintf("%s:%s", key, value))
-	}
+func formatLambdaFunction(report lambda.FunctionReport) []cell {
+	function := report.Function
+	tags := formatTags(function.Tags)
 	return []cell{
+		newCell(report.Account),
 		newCell(function.Name),
 		newCell(function.Version),
 		newCell(function.Runtime),
 		newCell(function.Size),
 		newCell(function.Memory),
-		newCell(function.Stats.Invocations.Total),
-		newCell(function.Stats.Invocations.Failed),
-		newCell(function.Stats.Duration.Average),
-		newCell(function.Stats.Duration.Maximum),
+		newCell(formatMetric(function.Stats.Invocations.Total)),
+		newCell(formatMetric(function.Stats.Invocations.Failed)),
+		newCell(formatMetric(function.Stats.Duration.Average)),
+		newCell(formatMetric(function.Stats.Duration.Maximum)),
 		newCell(strings.Join(tags, ";")),
 	}
 }
 
-func getLambdaUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getLambdaUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -73,25 +74,32 @@ func getLambdaUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (d
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
-	identity, err := aa.GetAwsAccountIdentity()
-	if err != nil {
+	if len(aas) < 1 {
+		err = errors.New("Missing AWS Account for Lambda Usage Report")
 		return
 	}
 
-	user, err := users.GetUserWithId(tx, aa.UserId)
+	identities := make([]string, 0)
+	for _, account := range aas {
+		identities = append(identities, account.AwsIdentity)
+	}
+
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
 
 	parameters := lambda.LambdaQueryParams{
-		AccountList: []string{identity},
+		AccountList: identities,
 		Date:        date,
 	}
 
-	logger.Debug("Getting Lambda Usage Report for account", map[string]interface{}{
-		"account": aa,
+	logger.Debug("Getting Lambda Usage Report for accounts", map[string]interface{}{
+		"accounts": aas,
 	})
 	_, reports, err := lambda.GetLambdaData(ctx, parameters, user, tx)
 	if err != nil {
@@ -100,7 +108,7 @@ func getLambdaUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (d
 
 	if reports != nil && len(reports) > 0 {
 		for _, report := range reports {
-			row := formatLambdaFunction(report.Function)
+			row := formatLambdaFunction(report)
 			data = append(data, row)
 		}
 	}
