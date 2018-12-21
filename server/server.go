@@ -39,6 +39,7 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/usageReports/ec2"
+	_ "github.com/trackit/trackit-server/usageReports/ec2Coverage"
 	_ "github.com/trackit/trackit-server/usageReports/elasticache"
 	_ "github.com/trackit/trackit-server/usageReports/es"
 	_ "github.com/trackit/trackit-server/usageReports/lambda"
