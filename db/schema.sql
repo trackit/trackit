@@ -770,5 +770,5 @@ ALTER TABLE aws_account_reports_job ADD (
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-ALTER TABLE aws_account_update_job CHANGE COLUMN riError riEc2error VARCHAR(255);
+ALTER TABLE aws_account_update_job CHANGE COLUMN riError riEc2Error VARCHAR(255);
 ALTER TABLE aws_account_update_job ADD riRdsError VARCHAR(255) NOT NULL DEFAULT "";
