@@ -30,9 +30,9 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/es"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/lambda"
-	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
 	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
+	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/db"
 )
 
@@ -214,7 +214,7 @@ func processAccountLambda(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountHistory processes EC2, RDS, ES, ElastiCache and Lambda data with billing data for an AwsAccount
+// processAccountHistory processes EC2, RDS, ES, ElastiCache, Lambda and EC2 Coverage data with billing data for an AwsAccount
 func processAccountHistory(ctx context.Context, aa aws.AwsAccount) (bool, error) {
 	status, err := history.FetchHistoryInfos(ctx, aa)
 	if err != nil && err != history.ErrBillingDataIncomplete {

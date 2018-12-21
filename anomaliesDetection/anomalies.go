@@ -16,8 +16,6 @@ package anomalies
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -25,7 +23,6 @@ import (
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 )
 
@@ -113,13 +110,8 @@ func deleteOffset(aCosts AnalyzedCosts, dateBegin time.Time) AnalyzedCosts {
 }
 
 // makeElasticSearchRequest prepares and run the request to retrieve the cost anomalies.
-// It will return the data, an http status code (as int) and an error.
-// Because an error can be generated, but is not critical and is not needed to be known by
-// the user (e.g if the index does not exists because it was not yet indexed) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
-// with empty data
-func makeElasticSearchRequest(ctx context.Context, esFct ElasticSearchFunction, parsedParams AnomalyEsQueryParams) (*elastic.SearchResult, int, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
+// It will return the data and an error.
+func makeElasticSearchRequest(ctx context.Context, esFct ElasticSearchFunction, parsedParams AnomalyEsQueryParams) (*elastic.SearchResult, error) {
 	searchService := esFct(
 		parsedParams.Account,
 		parsedParams.DateBegin,
@@ -130,21 +122,7 @@ func makeElasticSearchRequest(ctx context.Context, esFct ElasticSearchFunction, 
 	)
 	res, err := searchService.Do(ctx)
 	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
-				"index": parsedParams.Index,
-				"error": err.Error(),
-			})
-			return nil, http.StatusOK, errors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
-			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type":  fmt.Sprintf("%T", err),
-				"error": err,
-			})
-		} else {
-			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
-		}
-		return nil, http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
+		return nil, err
 	}
-	return res, http.StatusOK, nil
+	return res, nil
 }

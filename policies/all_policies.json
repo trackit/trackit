@@ -37,7 +37,8 @@
                 "rds:DescribeReservedDBInstances",
                 "organizations:ListAccounts",
                 "lambda:ListFunctions",
-                "lambda:ListTags"
+                "lambda:ListTags",
+                "ce:GetReservationCoverage"
             ],
             "Resource": "*"
         }

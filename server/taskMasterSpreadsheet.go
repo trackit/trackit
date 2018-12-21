@@ -16,12 +16,10 @@ package main
 
 import (
 	"context"
-	"errors"
+	"database/sql"
 	"flag"
-	"strconv"
 	"time"
 
-	"database/sql"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
@@ -31,11 +29,11 @@ import (
 	"github.com/trackit/trackit-server/reports"
 )
 
-// taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.
-func taskSpreadsheet(ctx context.Context) error {
+// taskMasterSpreadsheet generates Spreadsheet with reports for a master AwsAccount including subaccounts.
+func taskMasterSpreadsheet(ctx context.Context) error {
 	args := flag.Args()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("Running task 'Spreadsheet'.", map[string]interface{}{
+	logger.Debug("Running task 'Master Spreadsheet'.", map[string]interface{}{
 		"args": args,
 	})
 
@@ -43,35 +41,11 @@ func taskSpreadsheet(ctx context.Context) error {
 	if err != nil {
 		return err
 	} else {
-		return generateReport(ctx, aaId, date)
+		return generateMasterReport(ctx, aaId, date)
 	}
 }
 
-func checkArguments(args []string) (int, time.Time, error) {
-	var aaId int
-	var date time.Time
-	if len(args) != 1 && len(args) != 3 {
-		return -1, time.Time{}, errors.New("taskSpreadsheet requires an integer argument (AWS Account ID) or three integer arguments (AWS Account ID, month and year)")
-	} else if id, err := strconv.Atoi(args[0]); err != nil {
-		return -1, time.Time{}, err
-	} else {
-		aaId = id
-	}
-	if len(args) == 3 {
-		if month, err := strconv.Atoi(args[1]); err != nil {
-			return -1, time.Time{}, err
-		} else if year, err := strconv.Atoi(args[2]); err != nil {
-			return -1, time.Time{}, err
-		} else {
-			now := time.Now().UTC()
-			formattedMonth := time.Month(month)
-			date = time.Date(year, formattedMonth, 1, 0, 0, 0, 0, now.Location()).UTC()
-		}
-	}
-	return aaId, date, nil
-}
-
-func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
+func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var updateId int64
@@ -89,23 +63,53 @@ func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if generation, err = checkReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
-	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
+	} else if generation, err = checkMasterReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
+	} else if updateId, err = registerMasterAccountReportGeneration(db.Db, aa); err != nil {
+	} else if dbAccounts, err := getAccounts(ctx, db.Db, aa); err != nil {
 	} else {
-		errs := reports.GenerateReport(ctx, aa, date)
-		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
+		accounts := make([]aws.AwsAccount, 0)
+		for _, dbAccount := range dbAccounts {
+			account := aws.AwsAccountFromDbAwsAccount(*dbAccount)
+			accounts = append(accounts, account)
+		}
+		errs := reports.GenerateMasterReport(ctx, aa, accounts, date)
+		updateMasterAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
 	}
 	if err != nil {
 		logger.Error("Error while generating spreadsheet report.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
 		})
-		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, err, nil, forceGeneration)
+		updateMasterAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, err, nil, forceGeneration)
 	}
 	return
 }
 
-func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, forceGeneration bool) (bool, error) {
+func getAccounts(ctx context.Context, db *sql.DB, aa aws.AwsAccount) ([]*models.AwsAccount, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbAllAccounts := make([]*models.AwsAccount, 0)
+	dbMasterAccount, err := models.AwsAccountByID(db, aa.Id)
+	if err != nil {
+		logger.Info("Error while getting AWS account", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err,
+		})
+		return dbAllAccounts, err
+	}
+	dbAllAccounts = append(dbAllAccounts, dbMasterAccount)
+	dbSubAccounts, err := models.AwsAccountsByParentId(db, aa.Id)
+	if err != nil {
+		logger.Info("Error while getting AWS sub account", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err,
+		})
+		return dbAllAccounts, err
+	}
+	dbAllAccounts = append(dbAllAccounts, dbSubAccounts...)
+	return dbAllAccounts, nil
+}
+
+func checkMasterReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, forceGeneration bool) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if forceGeneration {
 		return true, nil
@@ -116,20 +120,11 @@ func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, f
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	complete, err := history.CheckBillingDataCompleted(ctx, startDate, endDate, aa)
+	dbAllAccounts, err := getAccounts(ctx, db, aa)
 	if err != nil {
-		logger.Info("Error while checking if billing data are completed", map[string]interface{}{
-			"awsAccountId": aa.Id,
-			"error":        err,
-		})
 		return false, err
-	} else if !complete {
-		logger.Info("Billing data are not completed", map[string]interface{}{
-			"awsAccountId": aa.Id,
-		})
-		return false, nil
 	}
-	dbAccount, err := models.AwsAccountByID(db, aa.Id)
+	dbMasterAccount, err := models.AwsAccountByID(db, aa.Id)
 	if err != nil {
 		logger.Info("Error while getting AWS account", map[string]interface{}{
 			"awsAccountId": aa.Id,
@@ -137,41 +132,20 @@ func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, f
 		})
 		return false, err
 	}
-	if dbAccount.LastSpreadsheetReportGeneration.Before(endDate) {
+	if dbMasterAccount.LastMasterSpreadsheetReportGeneration.Before(endDate) {
 		return true, nil
-	}
-	dbProcessAccountJobs, err := models.AwsAccountUpdateJobsByAwsAccountID(db, aa.Id)
-	if err != nil {
-		logger.Info("Error while getting process account job", map[string]interface{}{
-			"awsAccountId": aa.Id,
-			"error":        err,
-		})
-		return false, err
-	}
-	if len(dbProcessAccountJobs) == 0 {
-		return false, nil
 	}
 	generation := false
-	for _, job := range dbProcessAccountJobs {
-		if job.MonthlyReportsGenerated {
-			if dbAccount.LastSpreadsheetReportGeneration.Before(job.Completed) {
-				generation = true
-			}
+	for _, account := range dbAllAccounts {
+		if dbMasterAccount.LastMasterSpreadsheetReportGeneration.Before(account.LastSpreadsheetReportGeneration) {
+			generation = true
 		}
 	}
-	if generation {
-		return true, nil
-	} else {
-		logger.Info("No new monthly reports", map[string]interface{}{
-			"awsAccountId": aa.Id,
-			"error":        err,
-		})
-		return false, nil
-	}
+	return generation, nil
 }
 
-func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, error) {
-	dbReportGeneration := models.AwsAccountReportsJob{
+func registerMasterAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, error) {
+	dbReportGeneration := models.AwsAccountMasterReportsJob{
 		AwsAccountID: aa.Id,
 		WorkerID:     backendId,
 	}
@@ -182,8 +156,8 @@ func registerAccountReportGeneration(db *sql.DB, aa aws.AwsAccount) (int64, erro
 	return int64(dbReportGeneration.ID), err
 }
 
-func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) {
-	rErr := registerAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs, forceGeneration)
+func updateMasterAccountReportGenerationCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) {
+	rErr := registerMasterAccountReportGenerationCompletion(db, aaId, updateId, jobErr, errs, forceGeneration)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -194,8 +168,8 @@ func updateAccountReportGenerationCompletion(ctx context.Context, aaId int, db *
 	}
 }
 
-func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) error {
-	dbAccountReports, err := models.AwsAccountReportsJobByID(db, int(updateId))
+func registerMasterAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId int64, jobErr error, errs map[string]error, forceGeneration bool) error {
+	dbAccountReports, err := models.AwsAccountMasterReportsJobByID(db, int(updateId))
 	if err != nil {
 		return err
 	}
@@ -218,7 +192,7 @@ func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId in
 		if err != nil {
 			return err
 		}
-		dbAccount.LastSpreadsheetReportGeneration = date
+		dbAccount.LastMasterSpreadsheetReportGeneration = date
 		err = dbAccount.Update(db)
 	}
 	return err

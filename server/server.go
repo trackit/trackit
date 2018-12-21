@@ -39,6 +39,7 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	_ "github.com/trackit/trackit-server/s3/costs"
 	_ "github.com/trackit/trackit-server/usageReports/ec2"
+	_ "github.com/trackit/trackit-server/usageReports/ec2Coverage"
 	_ "github.com/trackit/trackit-server/usageReports/elasticache"
 	_ "github.com/trackit/trackit-server/usageReports/es"
 	_ "github.com/trackit/trackit-server/usageReports/lambda"
@@ -57,16 +58,17 @@ func init() {
 }
 
 var tasks = map[string]func(context.Context) error{
-	"server":                  taskServer,
-	"ingest":                  taskIngest,
-	"ingest-due":              taskIngestDue,
-	"process-account":         taskProcessAccount,
-	"process-account-plugins": taskProcessAccountPlugins,
-	"anomalies-detection":     taskAnomaliesDetection,
-	"check-user-entitlement":  taskCheckEntitlement,
-	"generate-spreadsheet":    taskSpreadsheet,
-	"update-aws-identity":     taskUpdateAwsIdentity,
-	"check-cost":              taskCheckCost,
+	"server":                      taskServer,
+	"ingest":                      taskIngest,
+	"ingest-due":                  taskIngestDue,
+	"process-account":             taskProcessAccount,
+	"process-account-plugins":     taskProcessAccountPlugins,
+	"anomalies-detection":         taskAnomaliesDetection,
+	"check-user-entitlement":      taskCheckEntitlement,
+	"generate-spreadsheet":        taskSpreadsheet,
+	"generate-master-spreadsheet": taskMasterSpreadsheet,
+	"update-aws-identity":         taskUpdateAwsIdentity,
+	"check-cost":                  taskCheckCost,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when

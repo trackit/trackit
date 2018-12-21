@@ -22,7 +22,8 @@
         "ec2:DescribeAddresses",
         "rds:DescribeReservedDBInstances",
         "lambda:ListFunctions",
-        "lambda:ListTags"
+        "lambda:ListTags",
+        "ce:GetReservationCoverage"
       ],
       "Effect": "Allow",
       "Resource": "*"

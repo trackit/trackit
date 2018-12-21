@@ -17,6 +17,8 @@ package reports
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"time"
 
 	"github.com/trackit/jsonlog"
 
@@ -27,10 +29,11 @@ import (
 )
 
 var rdsInstanceFormat = [][]cell{{
-	newCell("", 7).addStyle(textCenter, backgroundGrey),
+	newCell("", 8).addStyle(textCenter, backgroundGrey),
 	newCell("Storage - Available (Bytes)", 3).addStyle(textCenter, textBold, backgroundGrey),
 	newCell("CPU (Percentage)", 2).addStyle(textCenter, textBold, backgroundGrey),
 }, {
+	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Name").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Region").addStyle(textCenter, textBold, backgroundGrey),
@@ -45,30 +48,26 @@ var rdsInstanceFormat = [][]cell{{
 	newCell("Peak").addStyle(textCenter, textBold, backgroundGrey),
 }}
 
-func formatRdsInstance(instance rds.Instance) []cell {
-	var cost float64
-
-	for _, value := range instance.Costs {
-		cost += value
-	}
-
+func formatRdsInstance(report rds.InstanceReport) []cell {
+	instance := report.Instance
 	return []cell{
+		newCell(report.Account),
 		newCell(instance.DBInstanceIdentifier),
 		newCell(instance.DBInstanceClass),
 		newCell(instance.AvailabilityZone),
-		newCell(cost),
+		newCell(getTotal(instance.Costs)),
 		newCell(instance.Engine),
 		newCell(instance.MultiAZ),
 		newCell(instance.AllocatedStorage),
-		newCell(instance.Stats.FreeSpace.Average),
-		newCell(instance.Stats.FreeSpace.Minimum),
-		newCell(instance.Stats.FreeSpace.Maximum),
-		newCell(instance.Stats.Cpu.Average),
-		newCell(instance.Stats.Cpu.Peak),
+		newCell(formatMetric(instance.Stats.FreeSpace.Average)),
+		newCell(formatMetric(instance.Stats.FreeSpace.Minimum)),
+		newCell(formatMetric(instance.Stats.FreeSpace.Maximum)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Average)),
+		newCell(formatMetricPercentage(instance.Stats.Cpu.Peak)),
 	}
 }
 
-func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data [][]cell, err error) {
+func getRdsUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	data = make([][]cell, 0)
@@ -76,25 +75,32 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 		data = append(data, headerRow)
 	}
 
-	date, _ := history.GetHistoryDate()
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
 
-	identity, err := aa.GetAwsAccountIdentity()
-	if err != nil {
+	if len(aas) < 1 {
+		err = errors.New("Missing AWS Account for RDS Usage Report")
 		return
 	}
 
-	user, err := users.GetUserWithId(tx, aa.UserId)
+	identities := make([]string, 0)
+	for _, account := range aas {
+		identities = append(identities, account.AwsIdentity)
+	}
+
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
 
 	parameters := rds.RdsQueryParams{
-		AccountList: []string{identity},
+		AccountList: identities,
 		Date:        date,
 	}
 
-	logger.Debug("Getting RDS Usage Report for account", map[string]interface{}{
-		"account": aa,
+	logger.Debug("Getting RDS Usage Report for accounts", map[string]interface{}{
+		"accounts": aas,
 	})
 	_, reports, err := rds.GetRdsData(ctx, parameters, user, tx)
 	if err != nil {
@@ -103,7 +109,7 @@ func getRdsUsageReport(ctx context.Context, aa aws.AwsAccount, tx *sql.Tx) (data
 
 	if reports != nil && len(reports) > 0 {
 		for _, report := range reports {
-			row := formatRdsInstance(report.Instance)
+			row := formatRdsInstance(report)
 			data = append(data, row)
 		}
 	}

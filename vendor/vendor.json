@@ -237,8 +237,8 @@
 		{
 			"checksumSHA1": "5ihD2edhf72YLmwWIgwO5nP2WQc=",
 			"path": "github.com/aws/aws-sdk-go/service/costexplorer",
-			"revision": "53eb8b070e9a5067829fd029539966181632032a",
-			"revisionTime": "2018-12-12T23:19:52Z"
+			"revision": "410bbfb2566558b6c4e295406bccb4b9f4523363",
+			"revisionTime": "2018-12-19T00:15:04Z"
 		},
 		{
 			"checksumSHA1": "a4Kb3tBW4zaoS8UFrkfU8MNHE8o=",
