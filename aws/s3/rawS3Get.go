@@ -68,9 +68,9 @@ func (dm dumbS3Manager) rawS3GetObjectToReader(ctx context.Context, client *http
 // object.
 func (dm dumbS3Manager) rawS3GetObject(region, bucket, key string) (*http.Request, error) {
 	url := fmt.Sprintf(
-		"https://%s.s3.%s.amazonaws.com/%s",
-		bucket,
+		"https://s3.%s.amazonaws.com/%s/%s",
 		region,
+		bucket,
 		rest.EscapePath(key, false),
 	)
 	request, err := http.NewRequest(
