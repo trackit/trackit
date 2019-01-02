@@ -20,6 +20,7 @@ import (
 	"errors"
 	"flag"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -70,6 +71,13 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 		err = registerAnomaliesUpdate(tx, lastUpdate, aa.Id)
 	}
 	if err != nil && !elastic.IsNotFound(err) {
+		if strings.HasPrefix(err.Error(), "Data not available yet") {
+			logger.Warning("Failed to detect anomalies.", map[string]interface{}{
+				"awsAccountId": aaId,
+				"error":        err.Error(),
+			})
+			return
+		}
 		logger.Error("Failed to detect anomalies.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
