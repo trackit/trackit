@@ -13,13 +13,17 @@
         "cloudwatch:GetMetricStatistics",
         "ec2:DescribeRegions",
         "ec2:DescribeInstances",
+        "ec2:DescribeReservedInstances",
+        "ec2:DescribeAvailabilityZones",
         "ec2:DescribeReservedInstancesListings",
         "ec2:DescribeReservedInstancesModifications",
         "ec2:DescribeReservedInstancesOfferings",
         "ec2:DescribeVolumes",
         "ec2:DescribeAddresses",
+        "rds:DescribeReservedDBInstances",
         "lambda:ListFunctions",
-        "lambda:ListTags"
+        "lambda:ListTags",
+        "ce:GetReservationCoverage"
       ],
       "Effect": "Allow",
       "Resource": "*"

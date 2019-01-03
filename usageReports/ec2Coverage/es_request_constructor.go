@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package plugins_account_core
+package ec2Coverage
 
 import (
 	"gopkg.in/olivere/elastic.v5"
@@ -20,8 +20,8 @@ import (
 
 const maxAggregationSize = 0x7FFFFFFF
 
-// createQueryAccountFilterPlugins creates and return a new *elastic.TermsQuery on the accountList array
-func createQueryAccountFilterPlugins(accountList []string) *elastic.TermsQuery {
+// createQueryAccountFilterEc2Coverage creates and return a new *elastic.TermsQuery on the accountList array
+func createQueryAccountFilterEc2Coverage(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
 		accountListFormatted[i] = v
@@ -29,23 +29,26 @@ func createQueryAccountFilterPlugins(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// GetElasticSearchPluginsParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
-// 	- accountList []string : A slice of strings representing aws account ids
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+// getElasticSearchEc2CoverageMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
+// It takes as parameters :
+// 	- params Ec2CoverageQueryParams : contains the list of accounts and the date
+//	- client *elastic.Client : an reservation of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query.
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
+//	should be "ec2Coverage-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func GetElasticSearchPluginsParams(accountList []string, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSearchEc2CoverageMonthlyParams(params Ec2CoverageQueryParams, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(accountList) > 0 {
-		query = query.Filter(createQueryAccountFilterPlugins(accountList))
+	if len(params.AccountList) > 0 {
+		query = query.Filter(createQueryAccountFilterEc2Coverage(params.AccountList))
 	}
+	query = query.Filter(elastic.NewTermQuery("reportType", "monthly"))
+	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
-	search.Aggregation("top_plugins_account", elastic.NewTermsAggregation().Field("accountPluginIdx").Size(maxAggregationSize).
-		SubAggregation("top_reports_hits", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(1)))
+	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
+		SubAggregation("reservations", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
 	return search
 }
