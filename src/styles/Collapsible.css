@@ -1,0 +1,25 @@
+.collapsible-header {
+  position: relative;
+}
+
+.collapsible-header > * {
+  display: inline-block;
+}
+
+.collapsible-header .collapsible-header-content {
+  width: 100%;
+}
+
+.collapsible-header .collapsible-header-content .alert {
+  margin-bottom: 5px;
+}
+
+.collapsible-header svg {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+}
+
+.collapsible-content > * {
+  margin-top: 10px;
+}

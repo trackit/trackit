@@ -48,6 +48,21 @@ export const formatDate = (moment, precision) => {
   }
 };
 
+export const formatMillisecondsDuration = (duration) => {
+  const generateValue = (value) => (<span className="duration">{value}</span>);
+  if (duration < 1000) {
+    if (duration < 800)
+      return generateValue(`${Math.round(duration)} ms`);
+    else
+      return generateValue("< 1 s");
+  } else {
+    if (duration < 60000)
+      return generateValue(`${Math.round(duration / 10) / 100} s`);
+    else
+      return generateValue(`${Math.round(duration / 600) / 100} min`);
+  }
+};
+
 const getTotalPieChart = (data) => {
   let total = 0;
   if (Array.isArray(data))

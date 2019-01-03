@@ -29,6 +29,15 @@ import Containers from './containers';
 // Setup
 import configureStore from './store';
 
+// Sentry
+import * as Sentry from '@sentry/browser';
+import Config from './config';
+
+if (Config.sentryDSN)
+  Sentry.init({
+    dsn: Config.sentryDSN
+  });
+
 // Initialize store
 const store = configureStore();
 

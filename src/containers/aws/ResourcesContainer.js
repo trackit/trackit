@@ -7,9 +7,11 @@ import Actions from "../../actions";
 
 const Panel = Components.Misc.Panel;
 const IntervalNavigator = Components.Misc.IntervalNavigator;
-const VMs = Components.AWS.Resources.VMs;
-const Databases = Components.AWS.Resources.Databases;
+const Ec2 = Components.AWS.Resources.Ec2;
+const Rds = Components.AWS.Resources.Rds;
 const ElasticSearch = Components.AWS.Resources.ElasticSearch;
+const ElastiCache = Components.AWS.Resources.ElastiCache;
+const Lambda = Components.AWS.Resources.Lambda;
 
 export class ResourcesContainer extends Component {
 
@@ -31,9 +33,11 @@ export class ResourcesContainer extends Component {
             />
           </div>
         </div>
-        <VMs/>
-        <Databases/>
+        <Ec2/>
+        <Rds/>
         <ElasticSearch/>
+        <ElastiCache/>
+        <Lambda/>
       </Panel>
     );
   }

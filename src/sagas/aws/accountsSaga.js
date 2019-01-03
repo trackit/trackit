@@ -12,9 +12,19 @@ export function* getAccountsSaga() {
       yield put({type: Constants.LOGOUT_REQUEST});
       return;
     }
-    if (res.success && res.hasOwnProperty("data"))
+    if (res.success && res.hasOwnProperty("data")) {
+      for (let i = 0; i < res.data.length; i++) {
+        const element = res.data[i];
+        if (element.subAccounts && element.subAccounts.length) {
+          yield element.subAccounts.sort((a , b) => {
+            if (a.pretty.toLowerCase() < b.pretty.toLowerCase()) return -1;
+            if (a.pretty.toLowerCase() > b.pretty.toLowerCase()) return 1;
+            return 0;      
+          })
+        }  
+      }
       yield put({ type: Constants.AWS_GET_ACCOUNTS_SUCCESS, accounts: res.data });
-    else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
+    } else if (res.success && res.hasOwnProperty("data") && res.data.hasOwnProperty("error"))
       yield Error(res.data.error);
     else
       throw Error("Error with request");

@@ -43,17 +43,22 @@ const getAWSAccountStatus = (account) => {
     status.value = account.status.value;
     status.details.push("Account : " + account.status.detail);
   }
-  let hasBillRepositoryError = false;
-  getBillRepositoriesStatuses(account.billRepositories).forEach((billRepository) => {
-    if (billRepository) {
-      if (errors[status.value] > errors[billRepository.value])
-        status.value = billRepository.value;
-      if (billRepository.value === "error" && !hasBillRepositoryError) {
-        status.details.push("Bill locations : See in dedicated section for more details");
-        hasBillRepositoryError = true;
+  if (account.billRepositories) {
+    let hasBillRepositoryError = false;
+    getBillRepositoriesStatuses(account.billRepositories).forEach((billRepository) => {
+      if (billRepository) {
+        if (errors[status.value] > errors[billRepository.value])
+          status.value = billRepository.value;
+        if (billRepository.value === "error" && !hasBillRepositoryError) {
+          status.details.push("Bill locations : See in dedicated section for more details");
+          hasBillRepositoryError = true;
+        }
       }
-    }
-  });
+    });
+  } else if (!account.billRepositories && account.payer) {
+    status.value = "error";
+    status.details.push("This account doesn't have any bills location set up");
+  }
   return status;
 };
 

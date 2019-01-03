@@ -34,3 +34,31 @@ export const getES = (token, date, accounts=undefined) => {
     route += `&accounts=${accounts.join(',')}`;
   return call(route, 'GET', null, token);
 };
+
+export const getUnusedES = (token, date, accounts=undefined) => {
+  let route = `/es/unused?date=${date.format("YYYY-MM-DD")}`;
+  if (accounts && accounts.length)
+    route += `&accounts=${accounts.join(',')}`;
+  return call(route, 'GET', null, token);
+};
+
+export const getElastiCache = (token, date, accounts=undefined) => {
+  let route = `/elasticache?date=${date.format("YYYY-MM-DD")}`;
+  if (accounts && accounts.length)
+    route += `&accounts=${accounts.join(',')}`;
+  return call(route, 'GET', null, token);
+};
+
+export const getUnusedElastiCache = (token, date, accounts=undefined) => {
+  let route = `/elasticache/unused?date=${date.format("YYYY-MM-DD")}`;
+  if (accounts && accounts.length)
+    route += `&accounts=${accounts.join(',')}`;
+  return call(route, 'GET', null, token);
+};
+
+export const getLambdas = (token, date, accounts=undefined) => {
+  let route = `/lambda?date=${date.format("YYYY-MM-DD")}`;
+  if (accounts && accounts.length)
+    route += `&accounts=${accounts.join(',')}`;
+  return call(route, 'GET', null, token);
+};

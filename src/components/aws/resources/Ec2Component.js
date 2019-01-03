@@ -12,6 +12,7 @@ import Volumes from './misc/Volumes';
 import Costs from './misc/Costs';
 
 const Tooltip = Misc.Popover;
+const Collapsible = Misc.Collapsible;
 
 const getTotalCost = (costs) => {
   let total = 0;
@@ -19,7 +20,7 @@ const getTotalCost = (costs) => {
   return total;
 };
 
-export class VMsComponent extends Component {
+export class Ec2Component extends Component {
 
   componentWillMount() {
     this.props.getData(this.props.dates.startDate);
@@ -304,24 +305,32 @@ export class VMsComponent extends Component {
       />
     ) : null);
 
-    return (
-      <div className="clearfix resources vms">
+    const header = (
+      <div>
         <h4 className="white-box-title no-padding inline-block">
           <i className="menu-icon fa fa-desktop"/>
           &nbsp;
-          VMs
+          EC2
           {reportDate}
         </h4>
         {loading}
         {error}
-        {list}
       </div>
-    )
+    );
+
+    return (
+        <Collapsible
+          className="clearfix resources vms"
+          header={header}
+        >
+          {list}
+        </Collapsible>
+    );
   }
 
 }
 
-VMsComponent.propTypes = {
+Ec2Component.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   data: PropTypes.shape({
     status: PropTypes.bool.isRequired,
@@ -377,4 +386,4 @@ const mapDispatchToProps = (dispatch) => ({
   },
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(VMsComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(Ec2Component);

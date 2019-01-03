@@ -76,6 +76,7 @@ function getClientEnvironment(publicUrl) {
         PUBLIC_URL: publicUrl,
         API_URL: process.env.API_URL || 'http://localhost:8080',
         INTERCOM_ID: process.env.INTERCOM_ID || '',
+        SENTRY_DSN: process.env.SENTRY_DSN || '',
       }
     );
   // Stringify all values so we can feed into Webpack DefinePlugin
