@@ -3,9 +3,8 @@ package anomalies
 import (
 	"database/sql"
 	"encoding/json"
-	"net/http"
-	"reflect"
 	"errors"
+	"net/http"
 
 	"github.com/trackit/jsonlog"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
 )
 
 type (
@@ -30,25 +30,6 @@ type (
 	// and required by postAnomaliesFilters.
 	FiltersBody struct {
 		Filters Filters `json:"filters" req:"nonzero"`
-	}
-)
-
-var (
-	// availableRules lists all available rules
-	// with their data example.
-	// Examples are used to check the type sent in the body.
-	availableRules = map[string]interface{}{
-		"absolute_date_min": "2019-01-01 00:00:00",
-		"absolute_date_max": "2019-01-01 00:00:00",
-		"relative_date_min": "3600",
-		"relative_date_max": "3600",
-		"week_day":          []int{0, 1, 2, 3, 4, 5, 6},
-		"month_day":         []int{0, 1, 2, 3, 4, 5, 30},
-		"cost_min":          500.0,
-		"cost_max":          500.0,
-		"expected_cost_min": 100.0,
-		"expected_cost_max": 100.0,
-		"product":           []string{"AmazonEC2", "AmazonES"},
 	}
 )
 
@@ -127,25 +108,12 @@ func postAnomaliesFilters(r *http.Request, a routes.Arguments) (int, interface{}
 	return postAnomaliesFiltersWithValidBody(r, tx, dbUser, body)
 }
 
-// checkFilterValidity will check the filter name and type sent
-// in the body.
-func checkFilterValidity(filter Filter) bool {
-	for rule, dataType := range availableRules {
-		filterDataKind := reflect.ValueOf(filter.Data).Kind()
-		dataTypeKind := reflect.ValueOf(dataType).Kind()
-		if filter.Rule == rule && filterDataKind == dataTypeKind {
-			return true
-		}
-	}
-	return false
-}
-
 // postAnomaliesFiltersWithValidBody handles the logic assuming
 // the body is valid.
 func postAnomaliesFiltersWithValidBody(r *http.Request, tx *sql.Tx, dbUser *models.User, filters FiltersBody) (int, interface{}) {
 	for _, filter := range filters.Filters {
-		if !checkFilterValidity(filter) {
-			return http.StatusBadRequest, errors.New(filter.Rule + ": bad rule")
+		if err := anomalyFilters.Valid(filter.Rule, filter.Data); err != nil {
+			return http.StatusBadRequest, err
 		}
 	}
 	return postAnomaliesFiltersWithValidFilters(r, tx, dbUser, filters)

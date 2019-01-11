@@ -17,15 +17,16 @@ package anomalies
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"encoding/json"
 	"github.com/trackit/trackit-server/anomaliesDetection"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/db"
@@ -33,7 +34,6 @@ import (
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"strconv"
 )
 
 type (
@@ -182,6 +182,10 @@ func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomal
 	return res, nil
 }
 
+func applyFilters(res anomaliesDetectionResponse) anomaliesDetectionResponse {
+	return res
+}
+
 // getAnomaliesData checks the request and returns AnomaliesData.
 func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
@@ -213,5 +217,5 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return http.StatusOK, res
+	return http.StatusOK, applyFilters(res)
 }
