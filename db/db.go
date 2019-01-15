@@ -36,6 +36,7 @@ var Db *sql.DB
 func init() {
 	fatalIfError(initDb())
 	fatalIfError(attemptDbConnection())
+	Db.SetMaxIdleConns(0)
 }
 
 func fatalIfError(err error) {
