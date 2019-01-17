@@ -2,6 +2,7 @@ package anomalyFilters
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
 )
@@ -40,7 +41,7 @@ func (f product) apply(data interface{}, an anomalyType.ProductAnomaly, product 
 	if typed, ok := data.([]interface{}); !ok {
 	} else {
 		for _, p := range typed {
-			if product == p {
+			if strings.ToLower(product) == strings.ToLower(p) {
 				return false
 			}
 		}

@@ -8,12 +8,12 @@ import (
 
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
-	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
 )
 
 type (
@@ -41,10 +41,11 @@ func init() {
 			routes.RequestBody{FiltersBody{
 				Filters: anomalyType.Filters{
 					anomalyType.Filter{
-						Name: "Product filter",
-						Desc: "Filter selected products",
-						Rule: "product",
-						Data: []string{"NeededProduct1", "NeededProduct2"},
+						Name:     "Product filter",
+						Desc:     "Filter selected products",
+						Disabled: false,
+						Rule:     "product",
+						Data:     []string{"NeededProduct1", "NeededProduct2"},
 					},
 				},
 			}},
