@@ -89,7 +89,7 @@ func Apply(flts []anomalyType.Filter, res anomalyType.AnomaliesDetectionResponse
 			for anomaly, an := range res[account][product] {
 				if an.Abnormal && !an.Filtered {
 					for _, flt := range flts {
-						if filter, ok := filters[flt.Rule]; ok {
+						if filter, ok := filters[flt.Rule]; ok && !flt.Disabled {
 							if filter.apply(flt.Data, an, product) {
 								res[account][product][anomaly].Filtered = true
 								break

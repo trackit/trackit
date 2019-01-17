@@ -34,10 +34,11 @@ type (
 	// Filter represents a filter.
 	// A filter contains the rule and the associated data.
 	Filter struct {
-		Name string      `json:"name" req:"nonzero"`
-		Desc string      `json:"desc"`
-		Rule string      `json:"rule" req:"nonzero"`
-		Data interface{} `json:"data" req:"nonzero"`
+		Name     string      `json:"name" req:"nonzero"`
+		Desc     string      `json:"desc"`
+		Disabled bool        `json:"disabled" req:"nonzero"`
+		Rule     string      `json:"rule" req:"nonzero"`
+		Data     interface{} `json:"data" req:"nonzero"`
 	}
 
 	// Filters represents an array of filter.
