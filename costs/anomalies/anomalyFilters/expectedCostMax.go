@@ -1,6 +1,10 @@
 package anomalyFilters
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+)
 
 type (
 	// costMax will hide every entry whose
@@ -25,5 +29,6 @@ func (f expectedCostMax) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly results
-func (f expectedCostMax) apply() {
+func (f expectedCostMax) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	return res
 }

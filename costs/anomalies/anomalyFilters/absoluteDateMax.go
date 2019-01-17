@@ -1,5 +1,7 @@
 package anomalyFilters
 
+import "github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+
 type (
 	// absoluteDateMax will hide every entry after
 	// the given date.
@@ -19,5 +21,6 @@ func (f absoluteDateMax) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly results
-func (f absoluteDateMax) apply() {
+func (f absoluteDateMax) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	return res
 }

@@ -1,5 +1,7 @@
 package anomalyFilters
 
+import "github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+
 type (
 	// monthDay will only show entries dated
 	// the given month days.
@@ -19,5 +21,6 @@ func (f monthDay) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly results
-func (f monthDay) apply() {
+func (f monthDay) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	return res
 }

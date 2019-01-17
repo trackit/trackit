@@ -13,23 +13,14 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
 )
 
 type (
-	// Filter represents a filter.
-	// A filter contains the rule and the associated data.
-	Filter struct {
-		Rule string      `json:"rule" req:"nonzero"`
-		Data interface{} `json:"data" req:"nonzero"`
-	}
-
-	// Filters represents an array of filter.
-	Filters []Filter
-
 	// FiltersBody is the body sent by getAnomaliesFilters
 	// and required by postAnomaliesFilters.
 	FiltersBody struct {
-		Filters Filters `json:"filters" req:"nonzero"`
+		Filters anomalyType.Filters `json:"filters" req:"nonzero"`
 	}
 )
 
@@ -48,8 +39,8 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerCannot},
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{FiltersBody{
-				Filters: Filters{
-					Filter{
+				Filters: anomalyType.Filters{
+					anomalyType.Filter{
 						Rule: "product",
 						Data: []string{"NeededProduct1", "NeededProduct2"},
 					},
@@ -76,7 +67,7 @@ func getAnomaliesFilters(r *http.Request, a routes.Arguments) (int, interface{})
 		})
 		return http.StatusInternalServerError, errors.New("Failed to retrieve filters.")
 	} else {
-		filters := FiltersBody{Filters{}}
+		filters := FiltersBody{anomalyType.Filters{}}
 		if dbUser.AnomaliesFilters != nil {
 			if err := json.Unmarshal(dbUser.AnomaliesFilters, &filters.Filters); err != nil {
 				l.Error("Failed to unmarshal anomalies filters", map[string]interface{}{
@@ -136,7 +127,7 @@ func postAnomaliesFiltersWithValidFilters(r *http.Request, tx *sql.Tx, dbUser *m
 				"error":  err.Error(),
 			})
 		} else {
-			filters := FiltersBody{Filters{}}
+			filters := FiltersBody{anomalyType.Filters{}}
 			if dbUser.AnomaliesFilters != nil {
 				if err := json.Unmarshal(dbUser.AnomaliesFilters, &filters.Filters); err != nil {
 					l.Error("Failed to unmarshal anomalies filters", map[string]interface{}{

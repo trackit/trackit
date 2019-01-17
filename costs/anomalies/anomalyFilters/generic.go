@@ -3,6 +3,8 @@ package anomalyFilters
 import (
 	"fmt"
 	"time"
+
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
 )
 
 type (
@@ -12,7 +14,7 @@ type (
 	// All filters have to implement genericFilter.
 	genericFilter interface {
 		valid(data interface{}) error
-		apply()
+		apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse
 	}
 )
 
@@ -77,5 +79,14 @@ func Valid(filterName string, data interface{}) error {
 		return fmt.Errorf("%s: rule not found", filterName)
 	} else {
 		return filter.valid(data)
+	}
+}
+
+// Apply applies a filter on the response
+func Apply(flt anomalyType.Filter, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	if filter, ok := filters[flt.Rule]; !ok {
+		return res
+	} else {
+		return filter.apply(flt.Data, res)
 	}
 }

@@ -1,5 +1,7 @@
 package anomalyFilters
 
+import "github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+
 type (
 	// relativeDateMin will hide every entry before
 	// today minus the given duration.
@@ -19,5 +21,6 @@ func (f relativeDateMin) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly results
-func (f relativeDateMin) apply() {
+func (f relativeDateMin) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	return res
 }

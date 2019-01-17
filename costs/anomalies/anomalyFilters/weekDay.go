@@ -1,5 +1,7 @@
 package anomalyFilters
 
+import "github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+
 type (
 	// weekDay will only show entries dated
 	// the given week days.
@@ -19,5 +21,6 @@ func (f weekDay) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly results
-func (f weekDay) apply() {
+func (f weekDay) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	return res
 }

@@ -1,6 +1,10 @@
 package anomalyFilters
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+)
 
 type (
 	// product will only show entries in the
@@ -32,5 +36,6 @@ func (f product) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly results
-func (f product) apply() {
+func (f product) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	return res
 }
