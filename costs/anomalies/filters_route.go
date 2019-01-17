@@ -41,6 +41,8 @@ func init() {
 			routes.RequestBody{FiltersBody{
 				Filters: anomalyType.Filters{
 					anomalyType.Filter{
+						Name: "Product filter",
+						Desc: "Filter selected products",
 						Rule: "product",
 						Data: []string{"NeededProduct1", "NeededProduct2"},
 					},
