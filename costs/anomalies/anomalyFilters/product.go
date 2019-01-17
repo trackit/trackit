@@ -41,7 +41,7 @@ func (f product) apply(data interface{}, an anomalyType.ProductAnomaly, product 
 	if typed, ok := data.([]interface{}); !ok {
 	} else {
 		for _, p := range typed {
-			if strings.ToLower(product) == strings.ToLower(p) {
+			if ps, ok := p.(string); ok && strings.Contains(strings.ToLower(product), strings.ToLower(ps)) {
 				return false
 			}
 		}
