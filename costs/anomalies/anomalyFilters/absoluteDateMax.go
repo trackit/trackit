@@ -1,6 +1,10 @@
 package anomalyFilters
 
-import "github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+import (
+	"time"
+
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+)
 
 type (
 	// absoluteDateMax will hide every entry after
@@ -21,6 +25,11 @@ func (f absoluteDateMax) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly and returns the result.
-func (f absoluteDateMax) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+func (f absoluteDateMax) apply(data interface{}, an anomalyType.ProductAnomaly, product string) bool {
+	if typed, ok := data.(string); !ok {
+	} else if date, err := time.Parse("2006-01-02T15:04:05.000Z", typed); err != nil {
+	} else if an.Date.After(date) {
+		return true
+	}
 	return false
 }

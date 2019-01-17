@@ -28,6 +28,10 @@ func (f costMax) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly and returns the result.
-func (f costMax) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+func (f costMax) apply(data interface{}, an anomalyType.ProductAnomaly, product string) bool {
+	if typed, ok := data.(float64); !ok {
+	} else if an.Cost > typed {
+		return true
+	}
 	return false
 }

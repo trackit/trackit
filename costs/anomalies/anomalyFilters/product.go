@@ -36,6 +36,15 @@ func (f product) valid(data interface{}) error {
 }
 
 // apply applies the filter to the anomaly and returns the result.
-func (f product) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+func (f product) apply(data interface{}, an anomalyType.ProductAnomaly, product string) bool {
+	if typed, ok := data.([]interface{}); !ok {
+	} else {
+		for _, p := range typed {
+			if product == p {
+				return false
+			}
+		}
+		return true
+	}
 	return false
 }

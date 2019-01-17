@@ -14,7 +14,7 @@ type (
 	// All filters have to implement genericFilter.
 	genericFilter interface {
 		valid(data interface{}) error
-		apply(data interface{}, res anomalyType.ProductAnomaly) bool
+		apply(data interface{}, res anomalyType.ProductAnomaly, product string) bool
 	}
 )
 
@@ -54,7 +54,7 @@ func genericValidUnsignedInteger(filter genericFilter, data interface{}) error {
 
 // genericValidUnsignedIntegerArray is a generic validation function to
 // validate an array of positive integer.
-func genericValidUnsignedIntegerArray(filter genericFilter, data interface{}, maxBound int) error {
+func genericValidUnsignedIntegerArray(filter genericFilter, data interface{}, minBound, maxBound int) error {
 	if typed, ok := data.([]interface{}); !ok {
 		return fmt.Errorf("%s: not an array", filtersName[filter])
 	} else if len(typed) == 0 {
@@ -63,8 +63,8 @@ func genericValidUnsignedIntegerArray(filter genericFilter, data interface{}, ma
 		for i := range typed {
 			if elemTyped, ok := typed[i].(float64); !ok {
 				return fmt.Errorf("%s: not an array of number", filtersName[filter])
-			} else if elemTyped < 0 || elemTyped > float64(maxBound) {
-				return fmt.Errorf("%s: not an array of number between 0 and %d", filtersName[filter], maxBound)
+			} else if elemTyped < float64(minBound) || elemTyped > float64(maxBound) {
+				return fmt.Errorf("%s: not an array of number between %d and %d", filtersName[filter], minBound, maxBound)
 			} else if elemTyped != float64(int64(elemTyped)) {
 				return fmt.Errorf("%s: not an array of integer", filtersName[filter])
 			}
@@ -90,7 +90,7 @@ func Apply(flts []anomalyType.Filter, res anomalyType.AnomaliesDetectionResponse
 				if an.Abnormal && !an.Filtered {
 					for _, flt := range flts {
 						if filter, ok := filters[flt.Rule]; ok {
-							if filter.apply(flt.Data, an) {
+							if filter.apply(flt.Data, an, product) {
 								res[account][product][anomaly].Filtered = true
 								break
 							}

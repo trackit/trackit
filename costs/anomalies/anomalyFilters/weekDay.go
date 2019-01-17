@@ -1,6 +1,8 @@
 package anomalyFilters
 
-import "github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+import (
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+)
 
 type (
 	// weekDay will only show entries dated
@@ -17,10 +19,19 @@ func init() {
 
 // valid verifies the validity of the data
 func (f weekDay) valid(data interface{}) error {
-	return genericValidUnsignedIntegerArray(f, data, 6)
+	return genericValidUnsignedIntegerArray(f, data, 0, 6)
 }
 
 // apply applies the filter to the anomaly and returns the result.
-func (f weekDay) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+func (f weekDay) apply(data interface{}, an anomalyType.ProductAnomaly, product string) bool {
+	if typed, ok := data.([]interface{}); !ok {
+	} else {
+		for _, day := range typed {
+			if float64(an.Date.Weekday())-1 == day {
+				return false
+			}
+		}
+		return true
+	}
 	return false
 }
