@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/routes"
@@ -58,6 +59,7 @@ func (d RequestTransaction) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 					logger.Error("Route handler panicked.", map[string]interface{}{
 						"error":         rec,
 						"argumentsDump": fmt.Sprintf("%+v", a),
+						"stackTrace":    string(debug.Stack()),
 					})
 				} else if _, ok := output.(error); ok {
 					transaction.Rollback()
