@@ -195,9 +195,7 @@ func applyFilters(res anomalyType.AnomaliesDetectionResponse, user users.User, c
 					"error":  err.Error(),
 				})
 			} else {
-				for _, flt := range filters.Filters {
-					res = anomalyFilters.Apply(flt, res)
-				}
+				res = anomalyFilters.Apply(filters.Filters, res)
 			}
 		}
 	}

@@ -28,7 +28,7 @@ func (f expectedCostMax) valid(data interface{}) error {
 	return nil
 }
 
-// apply applies the filter to the anomaly results
-func (f expectedCostMax) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
-	return res
+// apply applies the filter to the anomaly and returns the result.
+func (f expectedCostMax) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+	return false
 }

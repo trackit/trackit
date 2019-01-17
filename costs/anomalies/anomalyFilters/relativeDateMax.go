@@ -20,7 +20,7 @@ func (f relativeDateMax) valid(data interface{}) error {
 	return genericValidUnsignedInteger(f, data)
 }
 
-// apply applies the filter to the anomaly results
-func (f relativeDateMax) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
-	return res
+// apply applies the filter to the anomaly and returns the result.
+func (f relativeDateMax) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+	return false
 }

@@ -14,7 +14,7 @@ type (
 	// All filters have to implement genericFilter.
 	genericFilter interface {
 		valid(data interface{}) error
-		apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse
+		apply(data interface{}, res anomalyType.ProductAnomaly) bool
 	}
 )
 
@@ -82,11 +82,23 @@ func Valid(filterName string, data interface{}) error {
 	}
 }
 
-// Apply applies a filter on the response
-func Apply(flt anomalyType.Filter, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
-	if filter, ok := filters[flt.Rule]; !ok {
-		return res
-	} else {
-		return filter.apply(flt.Data, res)
+// Apply applies filters on the response
+func Apply(flts []anomalyType.Filter, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	for account := range res {
+		for product := range res[account] {
+			for anomaly, an := range res[account][product] {
+				if an.Abnormal && !an.Filtered {
+					for _, flt := range flts {
+						if filter, ok := filters[flt.Rule]; ok {
+							if filter.apply(flt.Data, an) {
+								res[account][product][anomaly].Filtered = true
+								break
+							}
+						}
+					}
+				}
+			}
+		}
 	}
+	return res
 }

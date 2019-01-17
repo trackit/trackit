@@ -20,7 +20,7 @@ func (f monthDay) valid(data interface{}) error {
 	return genericValidUnsignedIntegerArray(f, data, 30)
 }
 
-// apply applies the filter to the anomaly results
-func (f monthDay) apply(data interface{}, res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
-	return res
+// apply applies the filter to the anomaly and returns the result.
+func (f monthDay) apply(data interface{}, res anomalyType.ProductAnomaly) bool {
+	return false
 }
