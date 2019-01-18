@@ -60,6 +60,16 @@ var modules = []module{
 		ErrorName: "lambdaUsageReportError",
 	},
 	{
+		Name:      "EC2 Reserved Instances Report",
+		Function:  getRiEc2Report,
+		ErrorName: "riEc2ReportError",
+	},
+	{
+		Name:      "RDS Reserved Instances Report",
+		Function:  getRiRdsReport,
+		ErrorName: "riRdsReportError",
+	},
+	{
 		Name:      "Cost Differentiator Report",
 		Function:  getCostDiff,
 		ErrorName: "CostDifferentiatorError",
@@ -68,13 +78,7 @@ var modules = []module{
 
 func GenerateReport(ctx context.Context, aa aws.AwsAccount, date time.Time) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	now := time.Now()
-	var reportDate string
-	if date.IsZero() {
-		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
-	} else {
-		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
-	}
+	reportDate := formatDate(date)
 	logger.Info("Generating spreadsheet for account", map[string]interface{}{
 		"account": aa,
 		"date": reportDate,
@@ -105,13 +109,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, date time.Time) (err
 
 func GenerateMasterReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount, date time.Time) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	now := time.Now()
-	var reportDate string
-	if date.IsZero() {
-		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
-	} else {
-		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
-	}
+	reportDate := formatDate(date)
 	logger.Info("Generating master spreadsheet for accounts", map[string]interface{}{
 		"masterAccount": aa,
 		"accounts": aas,
@@ -139,6 +137,13 @@ func GenerateMasterReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsA
 		errs["speadsheetError"] = err
 	}
 	return
+}
+
+func formatDate(date time.Time) string {
+	if date.IsZero() {
+		date = time.Now().AddDate(0, -1, 0)
+	}
+	return fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
 }
 
 func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) ([]sheet, map[string]error) {

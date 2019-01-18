@@ -46,13 +46,11 @@ type (
 		DBInstanceClass      string             `json:"type"`
 		DBInstanceCount      int64              `json:"dbInstanceCount"`
 		Duration             int64              `json:"duration"`
-		FixedPrice           float64            `json:"fixedPrice"`
 		MultiAZ              bool               `json:"multiAZ"`
 		ProductDescription   string             `json:"productDescription"`
 		OfferingType         string             `json:"offeringType"`
 		State                string             `json:"state"`
 		StartTime            time.Time          `json:"startTime"`
-		UsagePrice           float64            `json:"usagePrice"`
 		RecurringCharges     []RecurringCharges `json:"recurringCharges"`
 	}
 

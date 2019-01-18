@@ -82,7 +82,7 @@ func formatEc2Instance(report ec2.InstanceReport) []cell {
 func getEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	data = make([][]cell, 0)
+	data = make([][]cell, 0, len(ec2InstanceFormat))
 	for _, headerRow := range ec2InstanceFormat {
 		data = append(data, headerRow)
 	}
@@ -96,10 +96,7 @@ func getEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time
 		return
 	}
 
-	identities := make([]string, 0)
-	for _, account := range aas {
-		identities = append(identities, account.AwsIdentity)
-	}
+	identities := getIdentities(aas)
 
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
