@@ -40,13 +40,14 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 		From(durationBegin).To(durationEnd)
 }
 
-// GetProductElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
+// getProductElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
 // used to retrieve the average cost by usageType for each day.
 // It takes as parameters :
-// 	- accountList []string : A slice of string representing aws account number, in the format of the field
+// 	- account string : A string representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
 //	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
+//  - aggregationPeriod string : An aggregation period, can be "day"
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	- index string : The Elastic Search index on wich to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
@@ -64,6 +65,25 @@ func getProductElasticSearchParams(account string, durationBegin time.Time,
 	search.Aggregation("products", elastic.NewTermsAggregation().Field("productCode").Size(aggregationMaxSize).
 		SubAggregation("dates", elastic.NewDateHistogramAggregation().Field("usageStartDate").ExtendedBounds(durationBegin, durationEnd).Interval(aggregationPeriod).
 			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
+	return search
+}
+
+// getDateRangeElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
+// used to retrieve the start and end date depending on the first and the last product in ElasticSearch.
+// It takes as parameters :
+// 	- account string : A string representing aws account number, in the format of the field
+//	'awsdetailedlineitem.linked_account_id'
+//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	should be "awsdetailedlineitems"
+// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
+// it crash :
+//	- If the client is nil or malconfigured, it will crash
+//	- If the index is not an index present in the ES, it will crash
+func getDateRangeElasticSearchParams(account string, client *elastic.Client, index string) *elastic.SearchService {
+	query := elastic.NewBoolQuery()
+	query = query.Filter(createQueryAccountFilter(account))
+	search := client.Search().Index(index).Size(1).Sort("usageStartDate", true).Query(query)
 	return search
 }
 

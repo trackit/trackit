@@ -16,6 +16,8 @@ package anomalies
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -70,27 +72,66 @@ type (
 		client *elastic.Client,
 		index string,
 	) *elastic.SearchService
+
+	// elasticSearchDateElem is used to get usageStartDate from awsdetailedlineitems.
+	elasticSearchDateElem struct {
+		UsageStartDate string `json:"usageStartDate"`
+	}
 )
 
 // RunAnomaliesDetection run every anomaly detection algorithms and store results in ElasticSearch.
 func RunAnomaliesDetection(account aws.AwsAccount, lastUpdate time.Time, ctx context.Context) (time.Time, error) {
+	esIndex := es.IndexNameForUserId(account.UserId, s3.IndexPrefixLineItem)
 	now := time.Now().UTC()
-	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	begin := lastUpdate.Add(-1 * time.Hour * time.Duration(30*24))
-	end := today.Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59))
+	var begin, end time.Time
+	if lastUpdate.IsZero() {
+		var err error
+		begin, err = getDateRange(ctx, account.AwsIdentity, esIndex)
+		if err != nil {
+			return begin, err
+		}
+		end = begin.AddDate(0, 3, 0)
+	} else {
+		begin = time.Date(lastUpdate.Year(), lastUpdate.Month()-1, lastUpdate.Day(), 23, 59, 59, 0, lastUpdate.Location())
+		end = begin.AddDate(0, 4, 0)
+	}
+	if end.After(now) {
+		end = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
+	}
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting anomalies detection", map[string]interface{}{
 		"awsAccount": account.Id,
-		"begin": begin,
-		"end": end,
+		"begin":      begin,
+		"end":        end,
 	})
 	parsedParams := AnomalyEsQueryParams{
 		DateBegin: begin,
 		DateEnd:   end,
 		Account:   account.AwsIdentity,
-		Index:     es.IndexNameForUserId(account.UserId, s3.IndexPrefixLineItem),
+		Index:     esIndex,
 	}
-	return today, runAnomaliesDetectionForProducts(parsedParams, account, ctx)
+	return end, runAnomaliesDetectionForProducts(parsedParams, account, ctx)
+}
+
+// getDateRange gets the begin date when first is set to true, or the
+// end date when first is set to false.
+func getDateRange(ctx context.Context, account string, index string) (time.Time, error) {
+	searchService := getDateRangeElasticSearchParams(account, es.Client, index)
+	res, err := searchService.Do(ctx)
+	if err != nil {
+		return time.Time{}, err
+	}
+	if len(res.Hits.Hits) == 0 {
+		return time.Time{}, errors.New("Empty index")
+	}
+	raw, err := res.Hits.Hits[0].Source.MarshalJSON()
+	if err != nil {
+		return time.Time{}, err
+	}
+	var elem elasticSearchDateElem
+	json.Unmarshal(raw, &elem)
+	d, err := time.Parse("2006-01-02T15:04:05Z", elem.UsageStartDate)
+	return d, err
 }
 
 // deleteOffset deletes the offset set in createQueryTimeRange.
