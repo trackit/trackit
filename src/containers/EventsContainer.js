@@ -95,6 +95,10 @@ class EventsContainer extends Component {
                 Events
               </h3>
               <div className="inline-block pull-right">
+                <button className="btn btn-default">
+                  Display snoozed events
+                </button>
+                &nbsp;
                 {timerange}
               </div>
             </div>

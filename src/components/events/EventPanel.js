@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
@@ -112,7 +113,14 @@ class EventPanel extends Component {
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
                 </h5>
-                <h5 className="inline-block pull-right">{moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}</h5>
+                <h5 className="inline-block pull-right">
+                    {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}
+                    &nbsp;
+                    &nbsp;
+                    <OverlayTrigger placement="top" overlay={<Tooltip>Click this if you don't consider this an Anomaly</Tooltip>}>
+                        <button className="btn btn-primary btn-sm"><i className="fa fa-clock-o"></i> Snooze</button>
+                    </OverlayTrigger>
+                </h5>
                 <div className="clearfix"></div>
                 <p>On {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}, <strong>{service.length ? service : "Unknown service"}</strong> exceeded the maximum expected cost for this service by <strong>${exceededCost}</strong></p>
                 <hr />
