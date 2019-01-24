@@ -86,11 +86,14 @@ func RunAnomaliesDetection(account aws.AwsAccount, lastUpdate time.Time, ctx con
 	var begin, end time.Time
 	if lastUpdate.IsZero() {
 		var err error
-		begin, err = getDateRange(ctx, account.AwsIdentity, esIndex)
+		begin, end, err = getDateRange(ctx, account.AwsIdentity, esIndex)
 		if err != nil {
 			return begin, err
 		}
-		end = begin.AddDate(0, 3, 0)
+		regularEnd := begin.AddDate(0, 3, 0)
+		if end.After(regularEnd) {
+			end = regularEnd
+		}
 	} else {
 		begin = time.Date(lastUpdate.Year(), lastUpdate.Month()-1, lastUpdate.Day(), 23, 59, 59, 0, lastUpdate.Location())
 		end = begin.AddDate(0, 4, 0)
@@ -113,16 +116,15 @@ func RunAnomaliesDetection(account aws.AwsAccount, lastUpdate time.Time, ctx con
 	return end, runAnomaliesDetectionForProducts(parsedParams, account, ctx)
 }
 
-// getDateRange gets the begin date when first is set to true, or the
-// end date when first is set to false.
-func getDateRange(ctx context.Context, account string, index string) (time.Time, error) {
-	searchService := getDateRangeElasticSearchParams(account, es.Client, index)
+// makeElasticSearchDateRangeRequest makes the ElasticSearch request to get begin or end date
+func makeElasticSearchDateRangeRequest(ctx context.Context, begin bool, account string, index string) (time.Time, error) {
+	searchService := getDateRangeElasticSearchParams(account, begin, es.Client, index)
 	res, err := searchService.Do(ctx)
 	if err != nil {
 		return time.Time{}, err
 	}
 	if len(res.Hits.Hits) == 0 {
-		return time.Time{}, errors.New("Empty index")
+		return time.Time{}, errors.New("empty index")
 	}
 	raw, err := res.Hits.Hits[0].Source.MarshalJSON()
 	if err != nil {
@@ -130,8 +132,20 @@ func getDateRange(ctx context.Context, account string, index string) (time.Time,
 	}
 	var elem elasticSearchDateElem
 	json.Unmarshal(raw, &elem)
-	d, err := time.Parse("2006-01-02T15:04:05Z", elem.UsageStartDate)
-	return d, err
+	return time.Parse("2006-01-02T15:04:05Z", elem.UsageStartDate)
+}
+
+// getDateRange gets the begin and the end date.
+func getDateRange(ctx context.Context, account string, index string) (time.Time, time.Time, error) {
+	begin, err := makeElasticSearchDateRangeRequest(ctx, true, account, index)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	end, err := makeElasticSearchDateRangeRequest(ctx, false, account, index)
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	return begin, end, err
 }
 
 // deleteOffset deletes the offset set in createQueryTimeRange.

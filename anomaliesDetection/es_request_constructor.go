@@ -73,6 +73,7 @@ func getProductElasticSearchParams(account string, durationBegin time.Time,
 // It takes as parameters :
 // 	- account string : A string representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
+//  - begin bool : Returns the begin date if true, else returns the end date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	- index string : The Elastic Search index on wich to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
@@ -80,10 +81,10 @@ func getProductElasticSearchParams(account string, durationBegin time.Time,
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func getDateRangeElasticSearchParams(account string, client *elastic.Client, index string) *elastic.SearchService {
+func getDateRangeElasticSearchParams(account string, begin bool, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	query = query.Filter(createQueryAccountFilter(account))
-	search := client.Search().Index(index).Size(1).Sort("usageStartDate", true).Query(query)
+	search := client.Search().Index(index).Size(1).Sort("usageStartDate", begin).Query(query)
 	return search
 }
 
