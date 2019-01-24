@@ -48,9 +48,6 @@ type (
 		OfferingType       string             `json:"offeringType"`
 		ProductDescription string             `json:"productDescription"`
 		State              string             `json:"state"`
-		FixedPrice         float64            `json:"fixedPrice"`
-		UsagePrice         float64            `json:"usagePrice"`
-		UsageDuration      int64              `json:"usageDuration"`
 		Start              time.Time          `json:"start"`
 		End                time.Time          `json:"end"`
 		InstanceCount      int64              `json:"instanceCount"`
