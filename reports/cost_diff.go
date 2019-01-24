@@ -28,10 +28,10 @@ import (
 
 type costDiffProduct map[time.Time]diff.PricePoint
 
-var costDiffHeader = [][]cell{{
+var costDiffHeader = []cell{
 	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
 	newCell("Product").addStyle(textCenter, textBold, backgroundGrey),
-}}
+}
 
 func formatCostDiff(data []diff.PricePoint) (values costDiffProduct, err error) {
 	values = make(costDiffProduct)
@@ -59,8 +59,7 @@ func getCostDiff(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *
 	})
 
 	data = make([][]cell, 0)
-	header := make([]cell, 0)
-	header = append(header, costDiffHeader[0]...)
+	header := costDiffHeader
 
 	var dateBegin, dateEnd time.Time
 	if date.IsZero() {

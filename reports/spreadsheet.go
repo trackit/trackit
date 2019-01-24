@@ -20,6 +20,7 @@ import (
 	"io"
 	"path"
 	"strconv"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -64,6 +65,9 @@ func (c cell) setValueToCell(newCell *xlsx.Cell) {
 		break
 	case string:
 		newCell.SetString(value)
+		break
+	case time.Time:
+		newCell.SetDate(value)
 		break
 	default:
 		if defaultValue, ok := value.(string); ok {

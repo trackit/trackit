@@ -17,53 +17,29 @@ package anomalies
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"encoding/json"
 	"github.com/trackit/trackit-server/anomaliesDetection"
 	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
+	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
-	"strconv"
 )
 
 type (
-	// AnomalyEsQueryParams will store the parsed query params
-	AnomalyEsQueryParams struct {
-		DateBegin   time.Time
-		DateEnd     time.Time
-		AccountList []string
-		IndexList   []string
-		AnomalyType string
-	}
-
-	// productAnomaly represents one anomaly returned.
-	productAnomaly struct {
-		Date        time.Time `json:"date"`
-		Cost        float64   `json:"cost"`
-		UpperBand   float64   `json:"upper_band"`
-		Abnormal    bool      `json:"abnormal"`
-		Level       int       `json:"level"`
-		PrettyLevel string    `json:"pretty_level"`
-	}
-
-	// productAnomalies is used to respond to the request.
-	// Key is a product name.
-	productAnomalies map[string][]productAnomaly
-
-	// anomaliesDetectionResponse is used to respond to the request.
-	// Key is an AWS Account Identity.
-	anomaliesDetectionResponse map[string]productAnomalies
-
 	// esProductAnomalyTypedResult is used to store the raw ElasticSearch response.
 	esProductAnomalyTypedResult struct {
 		Account  string `json:"account"`
@@ -104,7 +80,7 @@ func init() {
 // the user (e.g if the index does not exists because it was not yet indexed) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequest(ctx context.Context, parsedParams AnomalyEsQueryParams) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, parsedParams anomalyType.AnomalyEsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.IndexList, ",")
 	searchService := getElasticSearchParams(
@@ -152,9 +128,9 @@ func getAnomalyLevel(typedDocument esProductAnomalyTypedResult) (int, string) {
 	return len(levels) - 1, prettyLevels[len(levels)-1]
 }
 
-func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomaliesDetectionResponse, error) {
+func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomalyType.AnomaliesDetectionResponse, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make(anomaliesDetectionResponse)
+	res := make(anomalyType.AnomaliesDetectionResponse)
 	for i := range raw.Hits.Hits {
 		var typedDocument esProductAnomalyTypedResult
 		if err := json.Unmarshal(*raw.Hits.Hits[i].Source, &typedDocument); err != nil {
@@ -162,14 +138,14 @@ func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomal
 			return nil, errors.GetErrorMessage(ctx, err)
 		}
 		if _, ok := res[typedDocument.Account]; !ok {
-			res[typedDocument.Account] = make(productAnomalies)
+			res[typedDocument.Account] = make(anomalyType.ProductAnomalies)
 		}
 		if _, ok := res[typedDocument.Account][typedDocument.Product]; !ok {
-			res[typedDocument.Account][typedDocument.Product] = make([]productAnomaly, 0)
+			res[typedDocument.Account][typedDocument.Product] = make([]anomalyType.ProductAnomaly, 0)
 		}
 		level, prettyLevel := getAnomalyLevel(typedDocument)
 		if date, err := time.Parse("2006-01-02T15:04:05.000Z", typedDocument.Date); err == nil {
-			res[typedDocument.Account][typedDocument.Product] = append(res[typedDocument.Account][typedDocument.Product], productAnomaly{
+			res[typedDocument.Account][typedDocument.Product] = append(res[typedDocument.Account][typedDocument.Product], anomalyType.ProductAnomaly{
 				Date:        date,
 				Cost:        typedDocument.Cost.Value,
 				UpperBand:   typedDocument.Cost.MaxExpected,
@@ -182,10 +158,54 @@ func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomal
 	return res, nil
 }
 
+// removeNormalProduct removes product without any anomalies.
+func removeNormalProduct(res anomalyType.AnomaliesDetectionResponse) anomalyType.AnomaliesDetectionResponse {
+	for account := range res {
+		keyToDelete := make([]string, 0)
+	pLoop:
+		for product := range res[account] {
+			for _, an := range res[account][product] {
+				if an.Abnormal {
+					continue pLoop
+				}
+			}
+			keyToDelete = append(keyToDelete, product)
+		}
+		for _, key := range keyToDelete {
+			delete(res[account], key)
+		}
+	}
+	return res
+}
+
+// applyFilters will apply all filters to the response.
+func applyFilters(res anomalyType.AnomaliesDetectionResponse, user users.User, ctx context.Context, tx *sql.Tx) anomalyType.AnomaliesDetectionResponse {
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	if dbUser, err := models.UserByID(tx, user.Id); err != nil {
+		l.Error("Failed to get user with id", map[string]interface{}{
+			"userId": user.Id,
+			"error":  err.Error(),
+		})
+	} else {
+		filters := FiltersBody{anomalyType.Filters{}}
+		if dbUser.AnomaliesFilters != nil {
+			if err := json.Unmarshal(dbUser.AnomaliesFilters, &filters.Filters); err != nil {
+				l.Error("Failed to unmarshal anomalies filters", map[string]interface{}{
+					"userId": user.Id,
+					"error":  err.Error(),
+				})
+			} else {
+				res = anomalyFilters.Apply(filters.Filters, res)
+			}
+		}
+	}
+	return res
+}
+
 // getAnomaliesData checks the request and returns AnomaliesData.
 func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := AnomalyEsQueryParams{
+	parsedParams := anomalyType.AnomalyEsQueryParams{
 		AccountList: []string{},
 		DateBegin:   a[anomalyQueryArgs[1]].(time.Time),
 		DateEnd:     a[anomalyQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
@@ -213,5 +233,6 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	return http.StatusOK, res
+	res = removeNormalProduct(res)
+	return http.StatusOK, applyFilters(res, user, request.Context(), tx)
 }
