@@ -42,6 +42,7 @@ import (
 type (
 	// esProductAnomalyTypedResult is used to store the raw ElasticSearch response.
 	esProductAnomalyTypedResult struct {
+		Id       string `json:"-"`
 		Account  string `json:"account"`
 		Date     string `json:"date"`
 		Product  string `json:"product"`
@@ -112,6 +113,20 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams anomalyType.Anom
 	return res, http.StatusOK, nil
 }
 
+// getSnoozedAnomalies get all snoozed anomalies in database.
+func getSnoozedAnomalies(userId int, tx *sql.Tx) (map[string]bool, error) {
+	if snoozedAnomalies, err := models.AnomalySnoozingsByUserID(tx, userId); err != nil {
+		return nil, err
+	} else {
+		res := make(map[string]bool)
+		for _, snoozedAnomaly := range snoozedAnomalies {
+			res[snoozedAnomaly.AnomalyID] = true
+		}
+		return res, nil
+	}
+}
+
+// getAnomalyLevel get anomaly level depending on their cost.
 func getAnomalyLevel(typedDocument esProductAnomalyTypedResult) (int, string) {
 	if !typedDocument.Abnormal {
 		return 0, ""
@@ -128,11 +143,12 @@ func getAnomalyLevel(typedDocument esProductAnomalyTypedResult) (int, string) {
 	return len(levels) - 1, prettyLevels[len(levels)-1]
 }
 
-func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomalyType.AnomaliesDetectionResponse, error) {
+func formatAnomaliesData(raw *elastic.SearchResult, snoozedAnomalies map[string]bool, ctx context.Context) (anomalyType.AnomaliesDetectionResponse, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	res := make(anomalyType.AnomaliesDetectionResponse)
 	for i := range raw.Hits.Hits {
 		var typedDocument esProductAnomalyTypedResult
+		typedDocument.Id = raw.Hits.Hits[i].Id
 		if err := json.Unmarshal(*raw.Hits.Hits[i].Source, &typedDocument); err != nil {
 			logger.Error("Failed to parse elasticsearch document.", err.Error())
 			return nil, errors.GetErrorMessage(ctx, err)
@@ -146,10 +162,13 @@ func formatAnomaliesData(raw *elastic.SearchResult, ctx context.Context) (anomal
 		level, prettyLevel := getAnomalyLevel(typedDocument)
 		if date, err := time.Parse("2006-01-02T15:04:05.000Z", typedDocument.Date); err == nil {
 			res[typedDocument.Account][typedDocument.Product] = append(res[typedDocument.Account][typedDocument.Product], anomalyType.ProductAnomaly{
+				Id:          typedDocument.Id,
 				Date:        date,
 				Cost:        typedDocument.Cost.Value,
 				UpperBand:   typedDocument.Cost.MaxExpected,
 				Abnormal:    typedDocument.Abnormal,
+				Filtered:    false,
+				Snoozed:     snoozedAnomalies[typedDocument.Id],
 				Level:       level,
 				PrettyLevel: prettyLevel,
 			})
@@ -229,7 +248,11 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 			return http.StatusInternalServerError, err
 		}
 	}
-	res, err := formatAnomaliesData(raw, request.Context())
+	snoozedAnomalies, err := getSnoozedAnomalies(user.Id, tx)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	res, err := formatAnomaliesData(raw, snoozedAnomalies, request.Context())
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
