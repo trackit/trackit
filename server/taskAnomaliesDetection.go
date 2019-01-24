@@ -29,7 +29,6 @@ import (
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
-	"io"
 )
 
 // taskAnomaliesDetection processes an AwsAccount to email
@@ -70,7 +69,7 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 	} else if lastUpdate, err = anomalies.RunAnomaliesDetection(aa, dbaa.LastAnomaliesUpdate, ctx); err == nil {
 		err = registerAnomaliesUpdate(tx, lastUpdate, aa.Id)
 	}
-	if err != nil && !elastic.IsNotFound(err) && err != io.EOF {
+	if err != nil && !elastic.IsNotFound(err) {
 		logger.Error("Failed to detect anomalies.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
