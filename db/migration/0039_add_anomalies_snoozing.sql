@@ -18,6 +18,6 @@ CREATE TABLE anomaly_snoozing (
 	user_id  INTEGER      NOT NULL,
 	anomaly_id   VARCHAR(255) NOT NULL,
 	CONSTRAINT PRIMARY KEY (id),
-	CONSTRAINT UNIQUE (anomaly_id),
+	CONSTRAINT UNIQUE (user_id, anomaly_id),
 	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );

@@ -134,32 +134,6 @@ func (as *AnomalySnoozing) User(db XODB) (*User, error) {
 	return UserByID(db, as.UserID)
 }
 
-// AnomalySnoozingByAnomalyID retrieves a row from 'trackit.anomaly_snoozing' as a AnomalySnoozing.
-//
-// Generated from index 'anomaly_id'.
-func AnomalySnoozingByAnomalyID(db XODB, anomalyID string) (*AnomalySnoozing, error) {
-	var err error
-
-	// sql query
-	const sqlstr = `SELECT ` +
-		`id, user_id, anomaly_id ` +
-		`FROM trackit.anomaly_snoozing ` +
-		`WHERE anomaly_id = ?`
-
-	// run query
-	XOLog(sqlstr, anomalyID)
-	as := AnomalySnoozing{
-		_exists: true,
-	}
-
-	err = db.QueryRow(sqlstr, anomalyID).Scan(&as.ID, &as.UserID, &as.AnomalyID)
-	if err != nil {
-		return nil, err
-	}
-
-	return &as, nil
-}
-
 // AnomalySnoozingByID retrieves a row from 'trackit.anomaly_snoozing' as a AnomalySnoozing.
 //
 // Generated from index 'anomaly_snoozing_id_pkey'.
@@ -186,41 +160,28 @@ func AnomalySnoozingByID(db XODB, id int) (*AnomalySnoozing, error) {
 	return &as, nil
 }
 
-// AnomalySnoozingsByUserID retrieves a row from 'trackit.anomaly_snoozing' as a AnomalySnoozing.
+// AnomalySnoozingByUserIDAnomalyID retrieves a row from 'trackit.anomaly_snoozing' as a AnomalySnoozing.
 //
-// Generated from index 'foreign_user'.
-func AnomalySnoozingsByUserID(db XODB, userID int) ([]*AnomalySnoozing, error) {
+// Generated from index 'user_id'.
+func AnomalySnoozingByUserIDAnomalyID(db XODB, userID int, anomalyID string) (*AnomalySnoozing, error) {
 	var err error
 
 	// sql query
 	const sqlstr = `SELECT ` +
 		`id, user_id, anomaly_id ` +
 		`FROM trackit.anomaly_snoozing ` +
-		`WHERE user_id = ?`
+		`WHERE user_id = ? AND anomaly_id = ?`
 
 	// run query
-	XOLog(sqlstr, userID)
-	q, err := db.Query(sqlstr, userID)
+	XOLog(sqlstr, userID, anomalyID)
+	as := AnomalySnoozing{
+		_exists: true,
+	}
+
+	err = db.QueryRow(sqlstr, userID, anomalyID).Scan(&as.ID, &as.UserID, &as.AnomalyID)
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
 
-	// load results
-	res := []*AnomalySnoozing{}
-	for q.Next() {
-		as := AnomalySnoozing{
-			_exists: true,
-		}
-
-		// scan
-		err = q.Scan(&as.ID, &as.UserID, &as.AnomalyID)
-		if err != nil {
-			return nil, err
-		}
-
-		res = append(res, &as)
-	}
-
-	return res, nil
+	return &as, nil
 }
