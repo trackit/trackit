@@ -122,7 +122,7 @@ class EventPanel extends Component {
                     {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}
                     &nbsp;
                     &nbsp;
-                    <OverlayTrigger placement="top" overlay={<Tooltip>Click this if you don't consider this an Anomaly</Tooltip>}>
+                    <OverlayTrigger placement="top" overlay={<Tooltip id="snoozeButton">{abnormalElement.snoozed ? 'Click this if you do consider this an Anomaly' : 'Click this if you don\'t consider this an Anomaly'}</Tooltip>}>
                         <button className="btn btn-primary btn-sm" onClick={this.handleSnooze.bind(this)}>
                             <i className="fa fa-clock-o"></i> {abnormalElement.snoozed ? 'Unsnooze' : 'Snooze'}
                         </button>
