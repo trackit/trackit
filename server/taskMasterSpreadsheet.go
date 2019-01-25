@@ -72,7 +72,7 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 			account := aws.AwsAccountFromDbAwsAccount(*dbAccount)
 			accounts = append(accounts, account)
 		}
-		errs := reports.GenerateMasterReport(ctx, aa, accounts, date)
+		errs := reports.GenerateReport(ctx, aa, accounts, date)
 		updateMasterAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
 	}
 	if err != nil {
