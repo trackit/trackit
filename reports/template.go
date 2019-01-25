@@ -25,6 +25,7 @@ import (
 	"github.com/trackit/trackit-server/aws"
 )
 
+/* TODO: Add png into container or store into S3 bucket */
 const img = "./reports/introduction.png"
 
 const templateSheetName = "Introduction"

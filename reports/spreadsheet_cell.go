@@ -97,6 +97,7 @@ func (cs cells)setValues(file *excelize.File, sheet string) {
 	}
 }
 
+/* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
 func (c cell)setValue(file *excelize.File, sheet string) {
 	if len(c.formula) > 0 {
 		file.SetCellFormula(sheet, c.location, c.formula)

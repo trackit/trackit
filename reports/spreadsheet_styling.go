@@ -22,6 +22,7 @@ import (
 
 var stylesList = map[string]int{}
 
+/* TODO: Store into JSON file ? */
 var stylesRaw = map[string]string{
 	"borders": `{"border": [{"type": "left", "color": "#000000", "style": 1},
 							{"type": "right", "color": "#000000", "style": 1},

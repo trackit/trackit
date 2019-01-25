@@ -40,8 +40,8 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 		aas = []aws.AwsAccount{aa}
 		masterReport = false
 		logger.Info("Generating spreadsheet for account", map[string]interface{}{
-			"account":      aa,
-			"date":          reportDate,
+			"account": aa,
+			"date":    reportDate,
 		})
 	} else {
 		masterReport = true
