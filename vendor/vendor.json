@@ -7,6 +7,12 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "AXcqz0Yll8+JTaGbvw31RJGEot8=",
+			"path": "github.com/360EntSecGroup-Skylar/excelize",
+			"revision": "0c5c99e2ad1478499e634d3cc42c9c261e89bba0",
+			"revisionTime": "2019-01-17T02:35:43Z"
+		},
+		{
 			"checksumSHA1": "gzgvEqDuC40n5CGizmCXAoQ0SH8=",
 			"path": "github.com/alexflint/go-arg",
 			"revision": "59fccacb2679dde66e0b20ed65bd26178fcbf54e",
