@@ -14,87 +14,60 @@
 
 package reports
 
-import "github.com/tealeg/xlsx"
+import (
+	"strings"
 
-type style interface{ apply(*cell) }
+	"github.com/360EntSecGroup-Skylar/excelize"
+)
 
-func (c cell) addStyle(options ...style) cell {
-	for _, option := range options {
-		option.apply(&c)
+var stylesList = map[string]int{}
+
+var stylesRaw = map[string]string{
+	"borders": `{"border": [{"type": "left", "color": "#000000", "style": 1},
+							{"type": "right", "color": "#000000", "style": 1},
+							{"type": "top", "color": "#000000", "style": 1},
+							{"type": "bottom", "color": "#000000", "style": 1}]}`,
+	"bold": `{"font": {"bold": true}}`,
+	"centerText": `{"alignment": {"horizontal": "center", "vertical": "center"}}`,
+	"price": `{"number_format": 176, "decimal_places": 3}`,
+	"percentage": `{"number_format": 10}`,
+	"green": `{"font": {"color": "#006600"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#CCFFCC"]}}`,
+	"orange": `{"font": {"color": "#C65911"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#F8CBAD"]}}`,
+	"red": `{"font": {"color": "#CC0000"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#FFCCCC"]}}`,
+}
+
+func getStyleId(file *excelize.File, styles []string) (int, error){
+	name := strings.Join(styles, "")
+	if id, ok := stylesList[name]; ok {
+		return id, nil
+	} else {
+		style, err := generateStyle(styles)
+		if err != nil {
+			return -1, err
+		}
+		return registerStyle(file, name, style)
 	}
-	return c
 }
 
-type defaultStyle struct{ style }
-
-func (defaultStyle) apply(item *cell) {
-	item.style.Border = *xlsx.NewBorder("thin", "thin", "thin", "thin")
-	item.style.ApplyBorder = true
+func generateStyle(styles []string) (string, error) {
+	output := "{}"
+	for _, styleName := range styles {
+		if style, ok := stylesRaw[styleName]; ok {
+			merged, err := mergeStringJson(output, style)
+			if err != nil {
+				return "", err
+			}
+			output = merged
+		}
+	}
+	return output, nil
 }
 
-type textBoldStyle struct{ style }
-
-var textBold = textBoldStyle{}
-
-func (textBoldStyle) apply(item *cell) {
-	item.style.Font.Bold = true
-	item.style.ApplyFont = true
-}
-
-type textItalicStyle struct{ style }
-
-var textItalic = textItalicStyle{}
-
-func (textItalicStyle) apply(item *cell) {
-	item.style.Font.Italic = true
-	item.style.ApplyFont = true
-}
-
-type textCenterStyle struct{ style }
-
-var textCenter = textCenterStyle{}
-
-func (textCenterStyle) apply(item *cell) {
-	item.style.Alignment.Horizontal = "center"
-	item.style.ApplyAlignment = true
-}
-
-type backgroundGreenStyle struct{ style }
-
-var backgroundGreen = backgroundGreenStyle{}
-
-func (backgroundGreenStyle) apply(item *cell) {
-	item.style.Fill.PatternType = "solid"
-	item.style.Fill.FgColor = "FFB9F6CA"
-	item.style.Font.Color = "FF005005"
-}
-
-type backgroundRedStyle struct{ style }
-
-var backgroundRed = backgroundRedStyle{}
-
-func (backgroundRedStyle) apply(item *cell) {
-	item.style.Fill.PatternType = "solid"
-	item.style.Fill.FgColor = "FFFF8A80"
-	item.style.Font.Color = "FF8E0000"
-}
-
-type backgroundGreyStyle struct{ style }
-
-var backgroundGrey = backgroundGreyStyle{}
-
-func (backgroundGreyStyle) apply(item *cell) {
-	item.style.Fill.PatternType = "solid"
-	item.style.Fill.FgColor = "FFCCCCCC"
-	item.style.Font.Color = "FF000000"
-}
-
-type backgroundLightGreyStyle struct{ style }
-
-var backgroundLightGrey = backgroundLightGreyStyle{}
-
-func (backgroundLightGreyStyle) apply(item *cell) {
-	item.style.Fill.PatternType = "solid"
-	item.style.Fill.FgColor = "FFEEEEEE"
-	item.style.Font.Color = "FF000000"
+func registerStyle(file *excelize.File, name string, style string) (int, error) {
+	styleId, err := file.NewStyle(style)
+	if err != nil {
+		return -1, err
+	}
+	stylesList[name] = styleId
+	return styleId, nil
 }
