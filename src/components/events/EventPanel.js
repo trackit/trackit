@@ -97,6 +97,10 @@ class EventPanel extends Component {
                 return 'badge red-bg'
         }
     }
+
+    handleSnooze() {
+        this.props.abnormalElement.snoozed ? this.props.unsnoozeFunc(this.props.abnormalElement.id) : this.props.snoozeFunc(this.props.abnormalElement.id);
+    }
     
 
     render() {
@@ -109,6 +113,7 @@ class EventPanel extends Component {
                 <h5 className="inline-block">
                     <i className="fa fa-exclamation-circle"></i>
                     &nbsp;
+                    {abnormalElement.snoozed && '[Snoozed] '}
                     {service.length ? service : "Unknown service"}
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
@@ -118,7 +123,9 @@ class EventPanel extends Component {
                     &nbsp;
                     &nbsp;
                     <OverlayTrigger placement="top" overlay={<Tooltip>Click this if you don't consider this an Anomaly</Tooltip>}>
-                        <button className="btn btn-primary btn-sm"><i className="fa fa-clock-o"></i> Snooze</button>
+                        <button className="btn btn-primary btn-sm" onClick={this.handleSnooze.bind(this)}>
+                            <i className="fa fa-clock-o"></i> {abnormalElement.snoozed ? 'Unsnooze' : 'Snooze'}
+                        </button>
                     </OverlayTrigger>
                 </h5>
                 <div className="clearfix"></div>
@@ -150,6 +157,8 @@ EventPanel.propTypes = {
     dataSet: PropTypes.array.isRequired,
     abnormalElement: PropTypes.object.isRequired,
     service: PropTypes.string.isRequired,
+    snoozeFunc: PropTypes.func.isRequired,
+    unsnoozeFunc: PropTypes.func.isRequired,
 };
 
 export default EventPanel;

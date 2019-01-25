@@ -10,6 +10,13 @@ const TimerangeSelector = Components.Misc.TimerangeSelector;
 
 // EventsContainer Component
 class EventsContainer extends Component {
+  constructor() {
+    super();
+    this.state = {
+      showSnoozed : false,
+    }
+  }
+
   componentDidMount() {
     if (this.props.dates) {
       const dates = this.props.dates;
@@ -22,13 +29,17 @@ class EventsContainer extends Component {
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
-  formatEvents(events) {
+  toggleSnoozed() {
+    this.setState({ showSnoozed : !this.state.showSnoozed});
+  }
+
+  formatEvents(events, snoozed) {
     const abnormalsList = [];
 
     Object.keys(events).forEach((account) => {
       Object.keys(events[account]).forEach((key) => {
         const event = events[account][key];
-        const abnormals = event.filter((item) => (item.abnormal));
+        const abnormals = event.filter((item) => (snoozed ? item.abnormal : item.abnormal && !item.snoozed));
         abnormals.forEach((element) => {
           abnormalsList.push({element, key, event});
         });
@@ -47,6 +58,8 @@ class EventsContainer extends Component {
             dataSet={dataSet}
             abnormalElement={element}
             service={key}
+            snoozeFunc={this.props.snoozeEvent}
+            unsnoozeFunc={this.props.unsnoozeEvent}
           />
         </div>
       );
@@ -70,7 +83,7 @@ class EventsContainer extends Component {
 
     let events = [];
     if (this.props.values && this.props.values.status && this.props.values.values)
-      events = this.formatEvents(this.props.values.values);
+      events = this.formatEvents(this.props.values.values, this.state.showSnoozed);
 
     const emptyEvents = (!events.length && !loading && !noEvents ? (
       <div className="alert alert-success" role="alert">No events found for this timerange</div>
@@ -95,8 +108,8 @@ class EventsContainer extends Component {
                 Events
               </h3>
               <div className="inline-block pull-right">
-                <button className="btn btn-default">
-                  Display snoozed events
+                <button className="btn btn-default" onClick={this.toggleSnoozed.bind(this)}>
+                  {this.state.showSnoozed ? 'Hide snoozed events' : 'Display snoozed events'}
                 </button>
                 &nbsp;
                 {timerange}
@@ -134,7 +147,13 @@ const mapDispatchToProps = (dispatch) => ({
   },
   setDates: (startDate, endDate) => {
     dispatch(Actions.Events.setDates(startDate, endDate));
-  }
+  },
+  snoozeEvent: (id) => {
+    dispatch(Actions.Events.snoozeEvent(id));
+  },
+  unsnoozeEvent: (id) => {
+    dispatch(Actions.Events.unsnoozeEvent(id));
+  },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(EventsContainer);

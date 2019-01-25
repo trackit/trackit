@@ -6,3 +6,13 @@ export const getData = (token, begin, end, accounts=undefined) => {
     route += `&accounts=${accounts.join(',')}`;
   return call(route, 'GET', null, token);
 };
+
+export const snoozeEvent = (token, id) => {
+  let route = `/costs/anomalies/snooze`;
+  return call(route, 'PUT', { anomalies: [id]}, token);
+};
+
+export const unsnoozeEvent = (token, id) => {
+  let route = `/costs/anomalies/unsnooze`;
+  return call(route, 'PUT', { anomalies: [id]}, token);
+};

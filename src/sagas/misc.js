@@ -5,6 +5,12 @@ import Validation from '../common/forms/AWSAccountForm';
 
 const getAccountIDFromRole = Validation.getAccountIDFromRole;
 
+const getEventDateFromState = (state) => (state.events.dates);
+
+export const getEventDates = () => {
+  return select(getEventDateFromState);
+}
+
 const getTokenFromState = (state) => (state.auth.token);
 
 export const getToken = () => {
