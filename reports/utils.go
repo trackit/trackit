@@ -31,8 +31,8 @@ func formatAwsAccount(aa aws.AwsAccount) string {
 
 func getAwsIdentities(aas []aws.AwsAccount) []string {
 	identities := make([]string, len(aas))
-	for i, account := range aas {
-		identities[i] = account.AwsIdentity
+	for index, account := range aas {
+		identities[index] = account.AwsIdentity
 	}
 	return identities
 }

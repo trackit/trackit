@@ -3,8 +3,9 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"github.com/360EntSecGroup-Skylar/excelize"
 	"time"
+
+	"github.com/360EntSecGroup-Skylar/excelize"
 
 	"github.com/trackit/trackit-server/aws"
 )
