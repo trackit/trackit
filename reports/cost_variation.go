@@ -15,31 +15,37 @@
 package reports
 
 import (
-"context"
-"database/sql"
-"fmt"
-"strconv"
-"strings"
-"time"
+	"context"
+	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
 
-"github.com/360EntSecGroup-Skylar/excelize"
-"github.com/trackit/jsonlog"
+	"github.com/360EntSecGroup-Skylar/excelize"
+	"github.com/trackit/jsonlog"
 
-"github.com/trackit/trackit-server/aws"
-"github.com/trackit/trackit-server/aws/usageReports/history"
-"github.com/trackit/trackit-server/costs/diff"
+	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/aws/usageReports/history"
+	"github.com/trackit/trackit-server/costs/diff"
 )
 
-type costVariationProduct map[time.Time]diff.PricePoint
-type costVariationReport map[string]costVariationProduct
+type (
+	costVariationProduct map[time.Time]diff.PricePoint
+	costVariationReport map[string]costVariationProduct
+	costVariationFrequency struct {
+		SheetName   string
+		Title       string
+		Aggregation string
+		DateFormat  string
+		Dates       []time.Time
+	}
+)
 
 const (
-	freqDaily = iota
-	freqMonthly
+	costVariationLastMonthSheetName = "Cost Variations (Last Month)"
+	costVariationLast6MonthsSheetName = "Cost Variations (Last 6 Months)"
 )
-
-const costVariationLastMonthSheetName = "Cost Variations (Last Month)"
-const costVariationLast6MonthsSheetName = "Cost Variations (Last 6 Months)"
 
 var costVariationLastMonth = module {
 	Name:          "Cost Variations (Last Month)",
@@ -63,7 +69,12 @@ func costVariationGenerateLastMonth(ctx context.Context, aas []aws.AwsAccount, d
 		dateRange[0] = date
 		dateRange[1] = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
 	}
-	return costVariationGenerateSheet(ctx, aas, dateRange, freqDaily, file)
+	dates := make([]time.Time, dateRange[1].Day())
+	for index := range dates {
+		dates[index] = dateRange[0].AddDate(0, 0, index)
+	}
+	frequency := costVariationFrequency{costVariationLastMonthSheetName, "Daily Cost", "day", "2006-01-02", dates}
+	return costVariationGenerateSheet(ctx, aas, dateRange, frequency, file)
 }
 
 func costVariationGenerateLast6Months(ctx context.Context, aas []aws.AwsAccount, date time.Time, _ *sql.Tx, file *excelize.File) (err error) {
@@ -74,35 +85,34 @@ func costVariationGenerateLast6Months(ctx context.Context, aas []aws.AwsAccount,
 		dateRange[1] = time.Date(date.Year(), date.Month() + 1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
 	}
 	dateRange[0] = time.Date(dateRange[1].Year(), dateRange[1].Month() - 5, 1, 0, 0, 0, 0, dateRange[1].Location()).UTC()
-
-	return costVariationGenerateSheet(ctx, aas, dateRange, freqMonthly, file)
+	dates := make([]time.Time, 6)
+	for index := range dates {
+		dates[index] = dateRange[0].AddDate(0, index, 0)
+	}
+	frequency := costVariationFrequency{costVariationLast6MonthsSheetName, "Monthly Cost", "month", "2006-01", dates}
+	return costVariationGenerateSheet(ctx, aas, dateRange, frequency, file)
 }
 
-func costVariationGenerateSheet(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency int, file *excelize.File) (err error) {
+func costVariationGenerateSheet(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency, file *excelize.File) (err error) {
 	data, err := costVariationGetData(ctx, aas, dateRange, frequency)
 	if err == nil {
 		return costVariationInsertDataInSheet(ctx, aas, dateRange, frequency, file, data)
+	} else {
+		return err
 	}
-	return
 }
 
-func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency int) (data map[aws.AwsAccount]costVariationReport, err error){
+func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency) (data map[aws.AwsAccount]costVariationReport, err error){
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var aggregation string
-	if frequency == freqMonthly {
-		aggregation = "month"
-	} else {
-		aggregation = "day"
-	}
 	logger.Debug("Getting Cost Variation Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"dateStart": dateRange[0],
 		"dateEnd": dateRange[1],
-		"aggregation": aggregation,
+		"aggregation": frequency.Aggregation,
 	})
 	data = make(map[aws.AwsAccount]costVariationReport, len(aas))
 	for _, account := range aas {
-		report, err := diff.TaskDiffData(ctx, account, dateRange, aggregation)
+		report, err := diff.TaskDiffData(ctx, account, dateRange, frequency.Aggregation)
 		if err != nil {
 			logger.Error("An error occurred while generating a Cost Variation Report", map[string]interface{}{
 				"error":     err,
@@ -130,31 +140,18 @@ func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange [
 	return
 }
 
-func costVariationInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency int, file *excelize.File, data map[aws.AwsAccount]costVariationReport) (err error){
+func costVariationInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency, file *excelize.File, data map[aws.AwsAccount]costVariationReport) (err error){
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var sheetName string
-	dates := make([]time.Time, 0)
-	if frequency == freqMonthly {
-		sheetName = costVariationLast6MonthsSheetName
-		for index := 0; index < 6; index++ {
-			dates = append(dates, dateRange[0].AddDate(0, index, 0))
-		}
-	} else {
-		sheetName = costVariationLastMonthSheetName
-		for index := 0; index < dateRange[1].Day(); index++ {
-			dates = append(dates, dateRange[0].AddDate(0, 0, index))
-		}
-	}
-	file.NewSheet(sheetName)
-	costVariationGenerateHeader(file, sheetName, dates, frequency)
+	file.NewSheet(frequency.SheetName)
+	costVariationGenerateHeader(file, frequency.SheetName, frequency.Dates, frequency)
 	line := 4
 	for account, report := range data {
 		for product, values := range report {
-			cells := make(cells, 0, len(dates) * 2 + 2)
+			cells := make(cells, 0, len(frequency.Dates) * 2 + 2)
 			cells = append(cells, newCell(formatAwsAccount(account), "A" + strconv.Itoa(line)),
 									newCell(product, "B" + strconv.Itoa(line)))
-			totalNeededCols := make([]string, 0, len(dates))
-			for index, date := range dates {
+			totalNeededCols := make([]string, 0, len(frequency.Dates))
+			for index, date := range frequency.Dates {
 				value := costVariationGetValueForDate(values, date)
 				if index == 0 {
 					cells = append(cells, newCell(value.Cost, "C" + strconv.Itoa(line)).addStyles("price"))
@@ -171,10 +168,10 @@ func costVariationInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, d
 					totalNeededCols = append(totalNeededCols, costPos)
 				}
 			}
-			totalCol := len(dates) * 2 + 1
+			totalCol := len(frequency.Dates) * 2 + 1
 			formula := fmt.Sprintf("SUM(%s)", strings.Join(totalNeededCols, ","))
 			cells = append(cells, newFormula(formula, excelize.ToAlphaString(totalCol) + strconv.Itoa(line)).addStyles("price"))
-			cells.addStyles("borders", "centerText").setValues(file, sheetName)
+			cells.addStyles("borders", "centerText").setValues(file, frequency.SheetName)
 			line++
 		}
 	}
@@ -189,25 +186,21 @@ func costVariationInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, d
 	return
 }
 
-func costVariationGenerateHeader(file *excelize.File, sheetName string, dates []time.Time, frequency int) {
-	title := "Daily Cost"
-	if frequency == freqMonthly {
-		title = "Monthly Cost"
-	}
+func costVariationGenerateHeader(file *excelize.File, sheetName string, dates []time.Time, frequency costVariationFrequency) {
 	header := make(cells, 0, len(dates) * 3 + 2)
 	totalCol := excelize.ToAlphaString(len(dates) * 2 + 1)
 	header = append(header, newCell("Account", "A1").mergeTo("A3"),
 							newCell("Usage type", "B1").mergeTo("B3"),
-							newCell(title, "C1").mergeTo(excelize.ToAlphaString(len(dates) * 2) + "1"),
+							newCell(frequency.Title, "C1").mergeTo(excelize.ToAlphaString(len(dates) * 2) + "1"),
 							newCell("Total", totalCol + "1").mergeTo(totalCol + "3"))
 	for index, date := range dates {
 		if index == 0 {
-			header = append(header, newCell(costVariationFormatDate(date, frequency), "C2"),
+			header = append(header, newCell(date.Format(frequency.DateFormat), "C2"),
 									newCell("Cost", "C3"))
 		} else {
 			col1 := excelize.ToAlphaString(index * 2 + 1)
 			col2 := excelize.ToAlphaString(index * 2 + 2)
-			header = append(header, newCell(costVariationFormatDate(date, frequency), col1 + "2").mergeTo(col2 + "2"),
+			header = append(header, newCell(date.Format(frequency.DateFormat), col1 + "2").mergeTo(col2 + "2"),
 									newCell("Variation", col1 + "3"),
 									newCell("Cost", col2 + "3"))
 		}
@@ -221,14 +214,6 @@ func costVariationGenerateHeader(file *excelize.File, sheetName string, dates []
 	}
 	columns.setValues(file, sheetName)
 	return
-}
-
-func costVariationFormatDate(date time.Time, frequency int) string {
-	layout := "2006-01-02"
-	if frequency == freqMonthly {
-		layout = "2006-01"
-	}
-	return date.Format(layout)
 }
 
 func costVariationFormatCostDiff(data []diff.PricePoint) (values costVariationProduct, err error) {
@@ -246,6 +231,7 @@ func costVariationFormatCostDiff(data []diff.PricePoint) (values costVariationPr
 func costVariationGetValueForDate(values costVariationProduct, date time.Time) *diff.PricePoint {
 	if value, ok := values[date] ; ok {
 		return &value
+	} else {
+		return nil
 	}
-	return nil
 }

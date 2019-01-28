@@ -48,57 +48,57 @@ func newFormula(formula string, location string) cell {
 	return cell{"", formula, location, "", []string{}, conditionalFormats{}}
 }
 
-func (c cell)mergeTo(merge string) cell {
+func (c cell) mergeTo(merge string) cell {
 	c.merge = merge
 	return c
 }
 
-func (c cell)addStyles(styles ...string) cell {
+func (c cell) addStyles(styles ...string) cell {
 	for _, style := range styles {
 		c.styles = append(c.styles, style)
 	}
 	return c
 }
 
-func (cs cells)addStyles(styles ...string) cells {
+func (cs cells) addStyles(styles ...string) cells {
 	for index := range cs {
 		cs[index] = cs[index].addStyles(styles...)
 	}
 	return cs
 }
 
-func (c cell)addConditionalFormat(name string, styles ...string) cell {
+func (c cell) addConditionalFormat(name string, styles ...string) cell {
 	c.conditionalFormats = append(c.conditionalFormats, conditionalFormat{name, false, styles})
 	return c
 }
 
-func (c cell)addCustomConditionalFormat(condition string, styles ...string) cell {
+func (c cell) addCustomConditionalFormat(condition string, styles ...string) cell {
 	c.conditionalFormats = append(c.conditionalFormats, conditionalFormat{condition, true, styles})
 	return c
 }
 
-func (cs cells)addConditionalFormat(name string, styles ...string) cells {
+func (cs cells) addConditionalFormat(name string, styles ...string) cells {
 	for index := range cs {
 		cs[index] = cs[index].addConditionalFormat(name, styles...)
 	}
 	return cs
 }
 
-func (cs cells)addCustomConditionalFormat(condition string, styles ...string) cells {
+func (cs cells) addCustomConditionalFormat(condition string, styles ...string) cells {
 	for index := range cs {
 		cs[index] = cs[index].addCustomConditionalFormat(condition, styles...)
 	}
 	return cs
 }
 
-func (cs cells)setValues(file *excelize.File, sheet string) {
+func (cs cells) setValues(file *excelize.File, sheet string) {
 	for _, cell := range cs {
 		cell.setValue(file, sheet)
 	}
 }
 
 /* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
-func (c cell)setValue(file *excelize.File, sheet string) {
+func (c cell) setValue(file *excelize.File, sheet string) {
 	if len(c.formula) > 0 {
 		file.SetCellFormula(sheet, c.location, c.formula)
 	} else {
@@ -134,16 +134,16 @@ func newColumnWidth(column string, width float64) columnWidth {
 	return columnWidth{column, column, width}
 }
 
-func (c columnWidth)toColumn(column string) columnWidth {
+func (c columnWidth) toColumn(column string) columnWidth {
 	c.to = column
 	return c
 }
 
-func (c columnWidth)setValue(file *excelize.File, sheet string) {
+func (c columnWidth) setValue(file *excelize.File, sheet string) {
 	file.SetColWidth(sheet, c.from, c.to, c.width)
 }
 
-func (cs columnsWidth)setValues(file *excelize.File, sheet string) {
+func (cs columnsWidth) setValues(file *excelize.File, sheet string) {
 	for _, col := range cs {
 		col.setValue(file, sheet)
 	}
