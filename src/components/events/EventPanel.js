@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
@@ -96,6 +97,10 @@ class EventPanel extends Component {
                 return 'badge red-bg'
         }
     }
+
+    handleSnooze() {
+        this.props.abnormalElement.snoozed ? this.props.unsnoozeFunc(this.props.abnormalElement.id) : this.props.snoozeFunc(this.props.abnormalElement.id);
+    }
     
 
     render() {
@@ -108,11 +113,21 @@ class EventPanel extends Component {
                 <h5 className="inline-block">
                     <i className="fa fa-exclamation-circle"></i>
                     &nbsp;
+                    {abnormalElement.snoozed && '[Snoozed] '}
                     {service.length ? service : "Unknown service"}
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
                 </h5>
-                <h5 className="inline-block pull-right">{moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}</h5>
+                <h5 className="inline-block pull-right">
+                    {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}
+                    &nbsp;
+                    &nbsp;
+                    <OverlayTrigger placement="top" overlay={<Tooltip id="snoozeButton">{abnormalElement.snoozed ? 'Click this if you do consider this an Anomaly' : 'Click this if you don\'t consider this an Anomaly'}</Tooltip>}>
+                        <button className="btn btn-primary btn-sm" onClick={this.handleSnooze.bind(this)}>
+                            <i className="fa fa-clock-o"></i> {abnormalElement.snoozed ? 'Unsnooze' : 'Snooze'}
+                        </button>
+                    </OverlayTrigger>
+                </h5>
                 <div className="clearfix"></div>
                 <p>On {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}, <strong>{service.length ? service : "Unknown service"}</strong> exceeded the maximum expected cost for this service by <strong>${exceededCost}</strong></p>
                 <hr />
@@ -142,6 +157,8 @@ EventPanel.propTypes = {
     dataSet: PropTypes.array.isRequired,
     abnormalElement: PropTypes.object.isRequired,
     service: PropTypes.string.isRequired,
+    snoozeFunc: PropTypes.func.isRequired,
+    unsnoozeFunc: PropTypes.func.isRequired,
 };
 
 export default EventPanel;
