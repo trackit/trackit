@@ -69,6 +69,7 @@ var tasks = map[string]func(context.Context) error{
 	"generate-master-spreadsheet": taskMasterSpreadsheet,
 	"update-aws-identity":         taskUpdateAwsIdentity,
 	"check-cost":                  taskCheckCost,
+	"fetch-pricings":              taskFetchPricings,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
