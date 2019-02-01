@@ -21,6 +21,7 @@ type (
 		Cost        float64   `json:"cost"`
 		UpperBand   float64   `json:"upper_band"`
 		Abnormal    bool      `json:"abnormal"`
+		Recurrent   bool      `json:"recurrent"`
 		Filtered    bool      `json:"filtered"`
 		Snoozed     bool      `json:"snoozed"`
 		Level       int       `json:"level"`

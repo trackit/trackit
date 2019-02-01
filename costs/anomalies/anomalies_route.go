@@ -42,12 +42,13 @@ import (
 type (
 	// esProductAnomalyTypedResult is used to store the raw ElasticSearch response.
 	esProductAnomalyTypedResult struct {
-		Id       string `json:"-"`
-		Account  string `json:"account"`
-		Date     string `json:"date"`
-		Product  string `json:"product"`
-		Abnormal bool   `json:"abnormal"`
-		Cost     struct {
+		Id        string `json:"-"`
+		Account   string `json:"account"`
+		Date      string `json:"date"`
+		Product   string `json:"product"`
+		Abnormal  bool   `json:"abnormal"`
+		Recurrent bool   `json:"recurrent"`
+		Cost      struct {
 			Value       float64 `json:"value"`
 			MaxExpected float64 `json:"maxExpected"`
 		} `json:"cost"`
@@ -167,6 +168,7 @@ func formatAnomaliesData(raw *elastic.SearchResult, snoozedAnomalies map[string]
 				Cost:        typedDocument.Cost.Value,
 				UpperBand:   typedDocument.Cost.MaxExpected,
 				Abnormal:    typedDocument.Abnormal,
+				Recurrent:   typedDocument.Recurrent,
 				Filtered:    false,
 				Snoozed:     snoozedAnomalies[typedDocument.Id],
 				Level:       level,
