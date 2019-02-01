@@ -157,9 +157,9 @@ func getUnreservedInstances(instancesReport []ec2.InstanceReport, reservationsRe
 }
 
 // getEC2Pricings retrieves the EC2 pricings from the database
-// it returns a pricings.EC2Pricings and an error
-func getEC2Pricings(ctx context.Context) (pricings.EC2Pricings, error) {
-	ec2Pricings := pricings.EC2Pricings{}
+// it returns a pricings.EC2Pricing and an error
+func getEC2Pricings(ctx context.Context) (pricings.EC2Pricing, error) {
+	ec2Pricings := pricings.EC2Pricing{}
 	tx, err := db.Db.BeginTx(ctx, nil)
 	if err != nil {
 		return ec2Pricings, err
@@ -176,13 +176,13 @@ func getEC2Pricings(ctx context.Context) (pricings.EC2Pricings, error) {
 }
 
 // getPricingForSpecs returns the pricings for a given region/platform/type combination
-func getPricingForSpecs(region, platform, instanceType string, ec2Pricings pricings.EC2Pricings) (pricings.Specs, error) {
+func getPricingForSpecs(region, platform, instanceType string, ec2Pricings pricings.EC2Pricing) (pricings.EC2Specs, error) {
 	if platforms, ok := ec2Pricings.Region[region]; ok == false {
-		return pricings.Specs{}, errors.New("Region not found in EC2 pricings")
+		return pricings.EC2Specs{}, errors.New("Region not found in EC2 pricings")
 	} else if types, ok := platforms.Platform[platform]; ok == false {
-		return pricings.Specs{}, errors.New("Platform not found in EC2 pricings")
+		return pricings.EC2Specs{}, errors.New("EC2Platform not found in EC2 pricings")
 	} else if costSpecs, ok := types.Type[instanceType]; ok == false {
-		return pricings.Specs{}, errors.New("Type not found in EC2 pricings")
+		return pricings.EC2Specs{}, errors.New("EC2Type not found in EC2 pricings")
 	} else {
 		return *costSpecs, nil
 	}
@@ -190,20 +190,20 @@ func getPricingForSpecs(region, platform, instanceType string, ec2Pricings prici
 
 // getCurrentGenerationPricingEquivalent takes a previous generation InstancesSpecs and returns an equivalent pricing from
 // the current generation
-func getCurrentGenerationPricingEquivalent(unreservedSpec InstancesSpecs, ec2Pricings pricings.EC2Pricings) (string, pricings.Specs, error) {
+func getCurrentGenerationPricingEquivalent(unreservedSpec InstancesSpecs, ec2Pricings pricings.EC2Pricing) (string, pricings.EC2Specs, error) {
 	equivalentType, ok := PreviousToCurrentGeneration[unreservedSpec.Type]
 	if ok == false {
-		return "", pricings.Specs{}, errors.New("Equivalent instance type not found")
+		return "", pricings.EC2Specs{}, errors.New("Equivalent instance type not found")
 	}
 	pricing, err := getPricingForSpecs(unreservedSpec.Region, unreservedSpec.Platform, unreservedSpec.Type, ec2Pricings)
 	if err != nil {
-		return equivalentType, pricings.Specs{}, errors.New("Pricing not found for equivalent type")
+		return equivalentType, pricings.EC2Specs{}, errors.New("Pricing not found for equivalent type")
 	}
 	return equivalentType, pricing, nil
 }
 
 // calculateCosts calculates the on demand cost and the savings by switching to RI
-func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec2Pricings pricings.EC2Pricings, report OdToRiEc2Report) OdToRiEc2Report {
+func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec2Pricings pricings.EC2Pricing, report OdToRiEc2Report) OdToRiEc2Report {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, unreservedSpec := range unreservedIntances {
 		pricing, err := getPricingForSpecs(unreservedSpec.Region, unreservedSpec.Platform, unreservedSpec.Type, ec2Pricings)

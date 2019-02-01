@@ -31,27 +31,27 @@ var (
 	PricingApiEndpointRegion = "us-east-1"
 )
 
-// Specs stores the cost specifications for an instance type
-type Specs struct {
+// EC2Specs stores the cost specifications for an instance type
+type EC2Specs struct {
 	CurrentGeneration                     bool    `json:"currentGeneration"`
 	OnDemandHourlyCost                    float64 `json:"onDemandHourlyCost"`
 	OneYearStandardNoUpfrontHourlyCost    float64 `json:"oneYearStandardNoUpfrontHourlyCost"`
 	ThreeYearsStandardNoUpfrontHourlyCost float64 `json:"threeYearsStandardNoUpfrontHourlyCost"`
 }
 
-// Type maps an instance type to a Specs struct
-type Type struct {
-	Type map[string]*Specs `json:"type"`
+// EC2Type maps an instance type to a EC2Specs struct
+type EC2Type struct {
+	Type map[string]*EC2Specs `json:"type"`
 }
 
-// Platform maps a platform to a Type struct
-type Platform struct {
-	Platform map[string]Type `json:"platform"`
+// EC2Platform maps a platform to a EC2Type struct
+type EC2Platform struct {
+	Platform map[string]EC2Type `json:"platform"`
 }
 
-// EC2Pricings maps regions to a Platform struct
-type EC2Pricings struct {
-	Region map[string]Platform `json:"region"`
+// EC2Pricing maps regions to a EC2Platform struct
+type EC2Pricing struct {
+	Region map[string]EC2Platform `json:"region"`
 }
 
 // getPricingProductInput takes a locationName (human readable region) and returns
@@ -123,14 +123,14 @@ func getInstanceType(item aws.JSONValue) string {
 
 // isCurrentGeneration takes an item from the aws json pricing and returns
 // true if it is a current generation instance
-func isCurrentGeneration(item aws.JSONValue) *bool {
+func isCurrentGeneration(item aws.JSONValue) bool {
 	isCurrentGen := false
 	if attributes := getItemAttributes(item); attributes == nil {
 	} else if currentGen, ok := attributes["currentGeneration"]; ok == false {
 	} else {
 		isCurrentGen = currentGen.(string) == "Yes"
 	}
-	return &isCurrentGen
+	return isCurrentGen
 }
 
 // isBoxUsage takes an item from the aws json pricing and returs true if
@@ -260,15 +260,15 @@ func getRIStandardNoUpfrontCost(item aws.JSONValue, duration string) float64 {
 // The informations that are retrieved are the instance size, the platform,
 // the hourly costs for on demand, one year no upfront and 3 years no upfront
 // If one of the buying options is not available, its cost is set to -1.0
-// FetchEc2Pricings returns an EC2Pricings struct and an error
-func FetchEc2Pricings(ctx context.Context) (EC2Pricings, error) {
+// FetchEc2Pricings returns an EC2Pricing struct and an error
+func FetchEc2Pricings(ctx context.Context) (EC2Pricing, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	parsingError := false
-	ec2Pricings := EC2Pricings{Region: make(map[string]Platform, 0)}
+	ec2Pricings := EC2Pricing{Region: make(map[string]EC2Platform, 0)}
 	svc := getPricingClient()
 	for regionCode, locationName := range EC2RegionCodeToPricingLocationName {
 		logger.Info("Fetching pricings for region", map[string]interface{}{"region": regionCode})
-		ec2Pricings.Region[regionCode] = Platform{Platform: make(map[string]Type, 0)}
+		ec2Pricings.Region[regionCode] = EC2Platform{Platform: make(map[string]EC2Type, 0)}
 		input := getPricingProductInput(locationName)
 		err := svc.GetProductsPages(input,
 			func(page *pricing.GetProductsOutput, lastPage bool) bool {
@@ -280,7 +280,7 @@ func FetchEc2Pricings(ctx context.Context) (EC2Pricings, error) {
 					instanceType := getInstanceType(item)
 					currentGen := isCurrentGeneration(item)
 					onDemandCost := getOnDemandCost(item)
-					if platform == "" || instanceType == "" || currentGen == nil || onDemandCost == -1.0 {
+					if platform == "" || instanceType == "" || onDemandCost == -1.0 {
 						// This case should not happen unless the pricing format has changed
 						// In case of format change, the error will be logged at the end of the function
 						// to avoid sending multiple alerts
@@ -288,12 +288,12 @@ func FetchEc2Pricings(ctx context.Context) (EC2Pricings, error) {
 						continue
 					}
 					if _, ok := ec2Pricings.Region[regionCode].Platform[platform]; !ok {
-						ec2Pricings.Region[regionCode].Platform[platform] = Type{Type: make(map[string]*Specs, 0)}
+						ec2Pricings.Region[regionCode].Platform[platform] = EC2Type{Type: make(map[string]*EC2Specs, 0)}
 					}
 					if _, ok := ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType]; !ok {
-						ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType] = &Specs{}
+						ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType] = &EC2Specs{}
 					}
-					ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType].CurrentGeneration = *currentGen
+					ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType].CurrentGeneration = currentGen
 					ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType].OnDemandHourlyCost = onDemandCost
 					// We do not verify that RI costs where extracted successfuly because
 					// some instance types don't have reservations
