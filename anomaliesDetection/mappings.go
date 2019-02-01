@@ -42,7 +42,7 @@ func init() {
 const TemplateAnomaliesDetection = `
 {
 	"template": "*-` + IndexPrefixAnomaliesDetection + `",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"` + TypeProductAnomaliesDetection + `": {
 			"properties": {
@@ -56,6 +56,9 @@ const TemplateAnomaliesDetection = `
 					"type": "keyword"
 				},
 				"abnormal" : {
+					"type": "boolean"
+				},
+				"recurrent" : {
 					"type": "boolean"
 				},
 				"cost": {

@@ -22,8 +22,13 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-// aggregationMaxSize is the maximum size of an Elastic Search Aggregation
-const aggregationMaxSize = 0x7FFFFFFF
+const (
+	// aggregationMaxSize is the maximum size of an Elastic Search Aggregation
+	aggregationMaxSize = 0x7FFFFFFF
+
+	// queryMaxSize is the maximum size of an Elastic Search Query
+	queryMaxSize = 10000
+)
 
 // createQueryAccountFilter creates and return a new *elastic.TermQuery on the account
 func createQueryAccountFilter(account string) *elastic.TermQuery {
@@ -85,6 +90,28 @@ func getDateRangeElasticSearchParams(account string, begin bool, client *elastic
 	query := elastic.NewBoolQuery()
 	query = query.Filter(createQueryAccountFilter(account))
 	search := client.Search().Index(index).Size(1).Sort("usageStartDate", begin).Query(query)
+	return search
+}
+
+// getAnomalyElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
+// used to retrieve the anomalies.
+// It takes as parameters :
+// 	- account string : A string representing aws account number
+//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
+//	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
+//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	- index string : The Elastic Search index on which to execute the query.
+// This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
+// it crash :
+//	- If the client is nil or malconfigured, it will crash
+//	- If the index is not an index present in the ES, it will crash
+func getAnomalyElasticSearchParams(account string, durationBegin time.Time,
+	durationEnd time.Time, client *elastic.Client, index string, anomalyType string) *elastic.SearchService {
+	query := elastic.NewBoolQuery()
+	query = query.Filter(elastic.NewTermQuery("account", account))
+	query = query.Filter(elastic.NewRangeQuery("date").From(durationBegin).To(durationEnd))
+	query = query.Filter(elastic.NewTermQuery("abnormal", true))
+	search := client.Search().Index(index).Type(anomalyType).Size(queryMaxSize).Sort("date", true).Query(query)
 	return search
 }
 
