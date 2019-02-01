@@ -44,7 +44,7 @@ func removeRecurrence(ctx context.Context, params AnomalyEsQueryParams, account 
 		return err
 	} else {
 		res := transformAnomaliesToMap(raw)
-		var recurrentAnomalies []string
+		var recurrentAnomalies esProductAnomaliesWithId
 		for product := range res {
 			recurrentAnomalies = append(recurrentAnomalies, detectRecurrence(res[product])...)
 		}
@@ -55,7 +55,7 @@ func removeRecurrence(ctx context.Context, params AnomalyEsQueryParams, account 
 
 // applyRecurrentAnomaliesToEs will save in ElasticSearch all recurrent anomalies
 // by setting recurrent field to true.
-func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, recurrentAnomalies []string) error {
+func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, recurrentAnomalies esProductAnomaliesWithId) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating recurrent anomalies.", map[string]interface{}{
 		"awsAccount": account,
@@ -67,14 +67,12 @@ func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, re
 		return err
 	}
 	for _, recurrentAnomaly := range recurrentAnomalies {
-		doc := esProductRecurrentAnomaly{
-			Recurrent: true,
-		}
+		recurrentAnomaly.Source.Recurrent = true
 		if err != nil {
 			logger.Error("Error when marshaling recurrent anomalies var", err.Error())
 			return err
 		}
-		bp = addDocToBulkProcessor(bp, doc, TypeProductAnomaliesDetection, index, recurrentAnomaly)
+		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, TypeProductAnomaliesDetection, index, recurrentAnomaly.Id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -95,11 +93,11 @@ func approximateCostComparison(a, b float64) bool {
 }
 
 // detectRecurrence detects recurrent anomalies.
-func detectRecurrence(an anomaliesByDate) (res []string) {
+func detectRecurrence(an anomaliesByDate) (res esProductAnomaliesWithId) {
 	for date := range an {
 		prev := date.AddDate(0, -1, 0)
 		if an[prev].Source.Abnormal && approximateCostComparison(an[date].Source.Cost.Value, an[prev].Source.Cost.Value) {
-			res = append(res, an[date].Id)
+			res = append(res, an[date])
 		}
 	}
 	return res

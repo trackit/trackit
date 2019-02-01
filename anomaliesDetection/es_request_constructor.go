@@ -119,7 +119,6 @@ func getAnomalyElasticSearchParams(account string, durationBegin time.Time,
 func addDocToBulkProcessor(bp *elastic.BulkProcessor, doc interface{}, docType, index, id string) *elastic.BulkProcessor {
 	rq := elastic.NewBulkIndexRequest()
 	rq = rq.Index(index)
-	rq = rq.OpType("index")
 	rq = rq.Type(docType)
 	rq = rq.Id(id)
 	rq = rq.Doc(doc)
