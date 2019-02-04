@@ -114,6 +114,7 @@ class EventPanel extends Component {
                     <i className="fa fa-exclamation-circle"></i>
                     &nbsp;
                     {abnormalElement.snoozed && '[Snoozed] '}
+                    {abnormalElement.filtered && '[Filtered] '}
                     {service.length ? service : "Unknown service"}
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>

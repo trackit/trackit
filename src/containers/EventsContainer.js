@@ -14,7 +14,7 @@ class EventsContainer extends Component {
   constructor() {
     super();
     this.state = {
-      showSnoozed : false,
+      showHidden : false,
     }
   }
 
@@ -30,8 +30,8 @@ class EventsContainer extends Component {
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
-  toggleSnoozed() {
-    this.setState({ showSnoozed : !this.state.showSnoozed});
+  toggleHidden() {
+    this.setState({ showHidden : !this.state.showHidden});
   }
 
   formatEvents(events, snoozed) {
@@ -40,7 +40,7 @@ class EventsContainer extends Component {
     Object.keys(events).forEach((account) => {
       Object.keys(events[account]).forEach((key) => {
         const event = events[account][key];
-        const abnormals = event.filter((item) => (snoozed ? item.abnormal : item.abnormal && !item.snoozed));
+        const abnormals = event.filter((item) => (snoozed ? item.abnormal : item.abnormal && !item.snoozed && !item.filtered));
         abnormals.forEach((element) => {
           abnormalsList.push({element, key, event});
         });
@@ -84,7 +84,7 @@ class EventsContainer extends Component {
 
     let events = [];
     if (this.props.values && this.props.values.status && this.props.values.values)
-      events = this.formatEvents(this.props.values.values, this.state.showSnoozed);
+      events = this.formatEvents(this.props.values.values, this.state.showHidden);
 
     const emptyEvents = (!events.length && !loading && !noEvents ? (
       <div className="alert alert-success" role="alert">No events found for this timerange</div>
@@ -109,11 +109,10 @@ class EventsContainer extends Component {
                 Events
               </h3>
               <div className="inline-block pull-right">
-                <button className="btn btn-default inline-block" onClick={this.toggleSnoozed.bind(this)}>
-                  {this.state.showSnoozed ? 'Hide snoozed events' : 'Display snoozed events'}
+                <button className="btn btn-default inline-block" onClick={this.toggleHidden.bind(this)}>
+                  {this.state.showHidden ? 'Hide snoozed / filtered events' : 'Display snoozed / filtered events'}
                 </button>
                 &nbsp;
-                {timerange}
                 <div className="inline-block">
                   <Filters
                     filters={this.props.filters}
