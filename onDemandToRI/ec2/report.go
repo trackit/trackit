@@ -34,48 +34,60 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
+type Cost struct {
+	PerUnit float64 `json:"perUnit"`
+	Total   float64 `json:"total"`
+}
+
+type OnDemandCost struct {
+	Monthly    Cost `json:"monthly"`
+	OneYear    Cost `json:"oneYear"`
+	ThreeYears Cost `json:"threeYears"`
+}
+
+type ReservationCost struct {
+	Monthly Cost `json:"monthly"`
+	Global  Cost `json:"global"`
+	Saving  Cost `json:"saving"`
+}
+
+type OnDemandTotalCost struct {
+	MonthlyTotal    float64 `json:"monthly"`
+	OneYearTotal    float64 `json:"oneYear"`
+	ThreeYearsTotal float64 `json:"threeYears"`
+}
+
+type ReservationTotalCost struct {
+	MonthlyTotal float64 `json:"monthly"`
+	GlobalTotal  float64 `json:"global"`
+	SavingTotal  float64 `json:"saving"`
+}
+
 // InstancesSpecs stores the costs calculated for a given region/instance/platform
 // combination
 type InstancesSpecs struct {
-	Region                     string  `json:"region"`
-	Type                       string  `json:"instanceType"`
-	Platform                   string  `json:"platform"`
-	InstanceCount              int     `json:"instanceCount"`
-	OnDemandMonthlyCostPerUnit float64 `json:"onDemandMonthlyCostPerUnit"`
-	OnDemandMonthlyCostTotal   float64 `json:"onDemandMonthlyCostTotal"`
-	OnDemand1yrCostPerUnit     float64 `json:"onDemand1yrCostPerUnit"`
-	OnDemand1yrCostTotal       float64 `json:"onDemand1yrCostTotal"`
-	OnDemand3yrCostPerUnit     float64 `json:"onDemand3yrCostPerUnit"`
-	OnDemand3yrCostTotal       float64 `json:"onDemand3yrCostTotal"`
-	ReservationType            string  `json:"reservationType"`
-	Ri1yrMonthlyCostPerUnit    float64 `json:"ri1yrMonthlyCostPerUnit"`
-	Ri1yrMonthlyCostTotal      float64 `json:"ri1yrMonthlyCostTotal"`
-	Ri1yrCostPerUnit           float64 `json:"ri1yrCostPerUnit"`
-	Ri1yrCostTotal             float64 `json:"ri1yrCostTotal"`
-	Ri1yrSavingPerUnit         float64 `json:"ri1yrSavingPerUnit"`
-	Ri1yrSavingTotal           float64 `json:"ri1yrSavingTotal"`
-	Ri3yrMonthlyCostPerUnit    float64 `json:"ri3yrMonthlyCostPerUnit"`
-	Ri3yrMonthlyCostTotal      float64 `json:"ri3yrMonthlyCostTotal"`
-	Ri3yrCostPerUnit           float64 `json:"ri3yrCostPerUnit"`
-	Ri3yrCostTotal             float64 `json:"ri3yrCostTotal"`
-	Ri3yrSavingPerUnit         float64 `json:"ri3yrSavingPerUnit"`
-	Ri3yrSavingTotal           float64 `json:"ri3yrSavingTotal"`
+	Region        string       `json:"region"`
+	Type          string       `json:"instanceType"`
+	Platform      string       `json:"platform"`
+	InstanceCount int          `json:"instanceCount"`
+	OnDemand      OnDemandCost `json:"onDemand"`
+	Reservation   struct {
+		Type      string          `json:"type"`
+		OneYear   ReservationCost `json:"oneYear"`
+		ThreeYear ReservationCost `json:"threeYears"`
+	} `json:"reservation"`
 }
 
 // OdToRiEc2Report stores all the on demand to RI EC2 report infos
 type OdToRiEc2Report struct {
-	Account                  string           `json:"account"`
-	ReportDate               time.Time        `json:"reportDate"`
-	OnDemandMonthlyCostTotal float64          `json:"onDemandMonthlyCostTotal"`
-	OnDemand1yrCostTotal     float64          `json:"onDemand1yrCostTotal"`
-	OnDemand3yrCostTotal     float64          `json:"onDemand3yrCostTotal"`
-	Ri1yrMonthlyCostTotal    float64          `json:"ri1yrMonthlyCostTotal"`
-	Ri1yrCostTotal           float64          `json:"ri1yrCostTotal"`
-	Ri1yrSavingTotal         float64          `json:"ri1yrSavingTotal"`
-	Ri3yrMonthlyCostTotal    float64          `json:"ri3yrMonthlyCostTotal"`
-	Ri3yrCostTotal           float64          `json:"ri3yrCostTotal"`
-	Ri3yrSavingTotal         float64          `json:"ri3yrSavingTotal"`
-	Instances                []InstancesSpecs `json:"instances"`
+	Account     string            `json:"account"`
+	ReportDate  time.Time         `json:"reportDate"`
+	OnDemand    OnDemandTotalCost `json:"onDemand"`
+	Reservation struct {
+		OneYear   ReservationTotalCost `json:"oneYear"`
+		ThreeYear ReservationTotalCost `json:"threeYears"`
+	} `json:"reservation"`
+	Instances []InstancesSpecs `json:"instances"`
 }
 
 // addUnreservedInstance adds an instance from an ec2.InstanceReport to the list of
@@ -216,19 +228,24 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 			})
 			continue
 		}
-		unreservedSpec.OnDemandMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.OnDemandHourlyCost)
-		unreservedSpec.OnDemandMonthlyCostTotal = unreservedSpec.OnDemandMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
-		report.OnDemandMonthlyCostTotal += unreservedSpec.OnDemandMonthlyCostTotal
-		unreservedSpec.OnDemand1yrCostPerUnit = unreservedSpec.OnDemandMonthlyCostPerUnit * 12.0
-		unreservedSpec.OnDemand1yrCostTotal = unreservedSpec.OnDemandMonthlyCostTotal * 12.0
-		report.OnDemand1yrCostTotal += unreservedSpec.OnDemand1yrCostTotal
-		unreservedSpec.OnDemand3yrCostPerUnit = unreservedSpec.OnDemandMonthlyCostPerUnit * 36.0
-		unreservedSpec.OnDemand3yrCostTotal = unreservedSpec.OnDemandMonthlyCostTotal * 36.0
-		report.OnDemand3yrCostTotal += unreservedSpec.OnDemand3yrCostTotal
+
+		odMonthlyPerUnit := getMonthlyCostPerUnit(pricing.OnDemandHourlyCost)
+		odMonthlyTotal := odMonthlyPerUnit * float64(unreservedSpec.InstanceCount)
+
+		odMonthly := Cost{odMonthlyPerUnit, odMonthlyTotal}
+		report.OnDemand.MonthlyTotal += odMonthlyTotal
+		od1yr := Cost{odMonthlyPerUnit * 12.0, odMonthlyTotal * 12.0}
+		report.OnDemand.OneYearTotal += odMonthlyTotal * 12.0
+		od3yr := Cost{odMonthlyPerUnit * 36.0, odMonthlyTotal * 36.0}
+		report.OnDemand.ThreeYearsTotal += odMonthlyTotal * 36.0
+
+		unreservedSpec.OnDemand = OnDemandCost{odMonthly, od1yr, od3yr}
+
+		var ri1yrMonthlyCostPerUnit, ri3yrMonthlyCostPerUnit float64
 		if pricing.CurrentGeneration == true {
-			unreservedSpec.ReservationType = unreservedSpec.Type
-			unreservedSpec.Ri1yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.OneYearStandardNoUpfrontHourlyCost)
-			unreservedSpec.Ri3yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.ThreeYearsStandardNoUpfrontHourlyCost)
+			unreservedSpec.Reservation.Type = unreservedSpec.Type
+			ri1yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.OneYearStandardNoUpfrontHourlyCost)
+			ri3yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.ThreeYearsStandardNoUpfrontHourlyCost)
 		} else {
 			currenGenType, pricing, err := getCurrentGenerationPricingEquivalent(unreservedSpec, ec2Pricings)
 			if err != nil {
@@ -241,26 +258,33 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 				})
 				continue
 			}
-			unreservedSpec.ReservationType = currenGenType
-			unreservedSpec.Ri1yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.OneYearStandardNoUpfrontHourlyCost)
-			unreservedSpec.Ri3yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.ThreeYearsStandardNoUpfrontHourlyCost)
+			unreservedSpec.Reservation.Type = currenGenType
+			ri1yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.OneYearStandardNoUpfrontHourlyCost)
+			ri3yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.ThreeYearsStandardNoUpfrontHourlyCost)
 		}
-		unreservedSpec.Ri1yrMonthlyCostTotal = unreservedSpec.Ri1yrMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
-		report.Ri1yrMonthlyCostTotal += unreservedSpec.Ri1yrMonthlyCostTotal
-		unreservedSpec.Ri1yrCostPerUnit = unreservedSpec.Ri1yrMonthlyCostPerUnit * 12.0
-		unreservedSpec.Ri1yrCostTotal = unreservedSpec.Ri1yrMonthlyCostTotal * 12.0
-		report.Ri1yrCostTotal += unreservedSpec.Ri1yrCostTotal
-		unreservedSpec.Ri1yrSavingPerUnit = unreservedSpec.OnDemand1yrCostPerUnit - unreservedSpec.Ri1yrCostPerUnit
-		unreservedSpec.Ri1yrSavingTotal = unreservedSpec.OnDemand1yrCostTotal - unreservedSpec.Ri1yrCostTotal
-		report.Ri1yrSavingTotal += unreservedSpec.Ri1yrSavingTotal
-		unreservedSpec.Ri3yrMonthlyCostTotal = unreservedSpec.Ri3yrMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
-		report.Ri3yrMonthlyCostTotal += unreservedSpec.Ri3yrMonthlyCostTotal
-		unreservedSpec.Ri3yrCostPerUnit = unreservedSpec.Ri3yrMonthlyCostPerUnit * 36.0
-		unreservedSpec.Ri3yrCostTotal = unreservedSpec.Ri3yrMonthlyCostTotal * 36.0
-		report.Ri3yrCostTotal += unreservedSpec.Ri3yrCostTotal
-		unreservedSpec.Ri3yrSavingPerUnit = unreservedSpec.OnDemand3yrCostPerUnit - unreservedSpec.Ri3yrCostPerUnit
-		unreservedSpec.Ri3yrSavingTotal = unreservedSpec.OnDemand3yrCostTotal - unreservedSpec.Ri3yrCostTotal
-		report.Ri3yrSavingTotal += unreservedSpec.Ri3yrSavingTotal
+
+		ri1yrMonthlyCostTotal := ri1yrMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
+		ri1yrMonthly := Cost{ri1yrMonthlyCostPerUnit, ri1yrMonthlyCostTotal}
+		report.Reservation.OneYear.MonthlyTotal += ri1yrMonthlyCostTotal
+		ri1yrGlobal := Cost{ri1yrMonthlyCostPerUnit * 12.0, ri1yrMonthlyCostTotal * 12.0}
+		report.Reservation.OneYear.GlobalTotal += ri1yrMonthlyCostTotal * 12.0
+		ri1yrSavingPerUnit := (odMonthlyPerUnit * 12.0) - (ri1yrMonthlyCostPerUnit * 12.0)
+		ri1yrSavingTotal := (odMonthlyTotal * 12.0) - (ri1yrMonthlyCostTotal * 12.0)
+		ri1yrSaving := Cost{ri1yrSavingPerUnit, ri1yrSavingTotal}
+		report.Reservation.OneYear.SavingTotal += ri1yrSavingTotal
+		unreservedSpec.Reservation.OneYear = ReservationCost{ri1yrMonthly, ri1yrGlobal, ri1yrSaving}
+
+		ri3yrMonthlyCostTotal := ri3yrMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
+		ri3yrMonthly := Cost{ri3yrMonthlyCostPerUnit, ri3yrMonthlyCostTotal}
+		report.Reservation.ThreeYear.MonthlyTotal += ri3yrMonthlyCostTotal
+		ri3yrGlobal := Cost{ri3yrMonthlyCostPerUnit * 36.0, ri3yrMonthlyCostPerUnit * 36.0}
+		report.Reservation.ThreeYear.GlobalTotal += ri3yrMonthlyCostTotal * 36.0
+		ri3yrSavingPerUnit := (odMonthlyPerUnit * 12.0) - (ri3yrMonthlyCostPerUnit * 12.0)
+		ri3yrSavingTotal := (odMonthlyTotal * 12.0) - (ri3yrMonthlyCostTotal * 12.0)
+		ri3yrSaving := Cost{ri3yrSavingPerUnit, ri3yrSavingTotal}
+		report.Reservation.ThreeYear.SavingTotal += ri3yrSavingTotal
+		unreservedSpec.Reservation.ThreeYear = ReservationCost{ri3yrMonthly, ri3yrGlobal, ri3yrSaving}
+
 		report.Instances = append(report.Instances, unreservedSpec)
 	}
 	return report
