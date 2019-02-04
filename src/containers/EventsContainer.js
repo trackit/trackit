@@ -7,6 +7,7 @@ import Actions from '../actions';
 import Spinner from "react-spinkit";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
+const Filters = Components.Events.Filters.List;
 
 // EventsContainer Component
 class EventsContainer extends Component {
@@ -25,7 +26,7 @@ class EventsContainer extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts))
+    if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts || this.props.filters !== nextProps.filters))
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
@@ -108,9 +109,18 @@ class EventsContainer extends Component {
                 Events
               </h3>
               <div className="inline-block pull-right">
-                <button className="btn btn-default" onClick={this.toggleSnoozed.bind(this)}>
+                <button className="btn btn-default inline-block" onClick={this.toggleSnoozed.bind(this)}>
                   {this.state.showSnoozed ? 'Hide snoozed events' : 'Display snoozed events'}
                 </button>
+                &nbsp;
+                {timerange}
+                <div className="inline-block">
+                  <Filters
+                    filters={this.props.filters}
+                    filterEdition={this.props.setFilters}
+                    actions={this.props.filtersActions}
+                  />
+                </div>
                 &nbsp;
                 {timerange}
               </div>
@@ -131,6 +141,30 @@ EventsContainer.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   getData: PropTypes.func.isRequired,
   setDates: PropTypes.func.isRequired,
+  filtersActions: PropTypes.shape({
+    get: PropTypes.func.isRequired,
+    clear: PropTypes.func.isRequired,
+    set: PropTypes.func.isRequired,
+    clearSet: PropTypes.func.isRequired,
+  }).isRequired,
+  filters: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        desc: PropTypes.string.isRequired,
+        rule: PropTypes.string.isRequired,
+        data: PropTypes.isRequired,
+        disabled: PropTypes.bool.isRequired
+      })
+    )
+  }),
+  setFilters: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.array
+  }),
 };
 
 /* istanbul ignore next */
@@ -138,6 +172,8 @@ const mapStateToProps = ({aws, events}) => ({
   dates: events.dates,
   accounts: aws.accounts.selection,
   values: events.values,
+  filters: events.getFilters,
+  setFilters: events.setFilters
 });
 
 /* istanbul ignore next */
@@ -154,6 +190,20 @@ const mapDispatchToProps = (dispatch) => ({
   unsnoozeEvent: (id) => {
     dispatch(Actions.Events.unsnoozeEvent(id));
   },
+  filtersActions: {
+    get: () => {
+      dispatch(Actions.Events.getFilters());
+    },
+    clear: () => {
+      dispatch(Actions.Events.clearGetFilters());
+    },
+    set: (filters) => {
+      dispatch(Actions.Events.setFilters(filters));
+    },
+    clearSet: () => {
+      dispatch(Actions.Events.clearSetFilters());
+    },
+  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(EventsContainer);

@@ -97,7 +97,9 @@ export default {
       startDate: moment().subtract(30, 'days'),
       endDate : moment(),
     },
-    values: {}
+    values: {},
+    getFilters: { status: true, values: null },
+    setFilters: { status: true, values: null },
   },
   plugins: {
     data: {}

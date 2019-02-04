@@ -256,6 +256,7 @@ button {
     height: 38px;
     max-width: 100%;
     padding: 7px 12px;
+    margin: 0;
     transition: all 300ms linear 0s;
 }
 
@@ -697,4 +698,84 @@ h4.no-data {
     color: #4885ed;
     border-color: #f1f1f1;
     box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Events */
+
+.filters-list .filter-list-item {
+    display: block;
+    padding-left: 0;
+}
+
+.filters-list .filter-list-item:last-child {
+    border-bottom: none;
+}
+
+
+.filters-list .filter-list-item .checkbox.selected svg path,
+.filters-list .filter-list-item .checkbox.selected svg path {
+    fill: #4885ed;
+}
+
+.filters-list .filter-list-item .item-info > *,
+.filters-list .filter-list-item .item-info .item-name > *,
+.event-filter.event-filter-summary .event-filter-summary-value > * {
+    display: inline-block;
+}
+
+.filters-list .filter-list-item .item-info .item-name {
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    font-weight: 500;
+}
+
+.filters-list .filter-list-item .item-actions {
+    text-align: right;
+    margin-top: 15px;
+}
+
+.filters-list .filter-list-item .item-actions > * {
+    display: inline-block;
+    margin-left: 20px;
+}
+
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-invalid {
+    color: #d6413b;
+}
+
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-weekday strong:after,
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-monthday strong:after,
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-products strong:after {
+    content: ",";
+    margin: 0 3px;
+}
+
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-weekday strong:last-child:after,
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-monthday strong:last-child:after,
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-products strong:last-child:after {
+    content: none;
+    margin-right: 0;
+}
+
+.multiple-values > button {
+    margin-left: calc(100% - 40px);
+    width: 40px;
+}
+
+.multiple-values .multiple-values-item {
+    margin: 10px 0;
+}
+
+.multiple-values .multiple-values-item > * {
+    display: inline-block;
+}
+
+.multiple-values .multiple-values-item input {
+    width: calc(100% - 50px);
+}
+
+.multiple-values .multiple-values-item button {
+    float: right;
+    width: 40px;
+    color: #d6413b;
 }

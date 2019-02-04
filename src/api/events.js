@@ -7,6 +7,16 @@ export const getData = (token, begin, end, accounts=undefined) => {
   return call(route, 'GET', null, token);
 };
 
+export const getFilters = (token) => {
+  let route = `/costs/anomalies/filters`;
+  return call(route, 'GET', null, token);
+};
+
+export const setFilters = (token, filters) => {
+  let route = `/costs/anomalies/filters`;
+  return call(route, 'POST', {filters}, token);
+};
+
 export const snoozeEvent = (token, id) => {
   let route = `/costs/anomalies/snooze`;
   return call(route, 'PUT', { anomalies: [id]}, token);
