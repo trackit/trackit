@@ -52,107 +52,175 @@ const TemplateOdToRiEc2Report = `
 				"reportDate": {
 					"type": "date"
 				},
-        "onDemandMonthlyCostTotal": {
-          "type": "double"
-        },
-        "onDemand1yrCostTotal": {
-          "type": "double"
-        },
-        "onDemand3yrCostTotal": {
-          "type": "double"
-        },
-        "ri1yrMonthlyCostTotal": {
-          "type": "double"
-        },
-        "ri1yrCostTotal": {
-          "type": "double"
-        },
-        "ri1yrSavingTotal": {
-          "type": "double"
-        },
-        "ri3yrMonthlyCostTotal": {
-          "type": "double"
-        },
-        "ri3yrCostTotal": {
-          "type": "double"
-        },
-        "ri3yrSavingTotal": {
-          "type": "double"
-        },
-        "instances": {
-          "type": "nested",
-          "properties": {
-            "region": {
-              "type": "keyword"
-            },
-            "instanceType": {
-              "type": "keyword"
-            },
-            "platform": {
-              "type": "keyword"
-            },
-            "instanceCount": {
-              "type": "integer"
-            },
-            "onDemandMonthlyCostPerUnit": {
-              "type": "double"
-            },
-            "onDemandMonthlyCostTotal": {
-              "type": "double"
-            },
-            "onDemand1yrCostPerUnit": {
-              "type": "double"
-            },
-            "onDemand1yrCostTotal": {
-              "type": "double"
-            },
-            "onDemand3yrCostPerUnit": {
-              "type": "double"
-            },
-            "onDemand3yrCostTotal": {
-              "type": "double"
-            },
-            "reservationType": {
-              "type": "keyword"
-            },
-            "ri1yrMonthlyCostPerUnit": {
-              "type": "double"
-            },
-            "ri1yrMonthlyCostTotal": {
-              "type": "double"
-            },
-            "ri1yrCostPerUnit": {
-              "type": "double"
-            },
-            "ri1yrCostTotal": {
-              "type": "double"
-            },
-            "ri1yrSavingPerUnit": {
-              "type": "double"
-            },
-            "ri1yrSavingTotal": {
-              "type": "double"
-            },
-            "ri3yrMonthlyCostPerUnit": {
-              "type": "double"
-            },
-            "ri3yrMonthlyCostTotal": {
-              "type": "double"
-            },
-            "ri3yrCostPerUnit": {
-              "type": "double"
-            },
-            "ri3yrCostTotal": {
-              "type": "double"
-            },
-            "ri3yrSavingPerUnit": {
-              "type": "double"
-            },
-            "ri3yrSavingTotal": {
-              "type": "double"
-            }
-          }
-        }
+				"onDemand": {
+					"properties": {
+						"monthly": {
+							"type": "double"
+						},
+						"oneYear": {
+							"type": "double"
+						},
+						"threeYears": {
+							"type": "double"
+						}
+					}
+				},
+				"reservation": {
+					"properties": {
+						"oneYear": {
+							"properties": {
+								"monthly": {
+									"type": "double"
+								},
+								"global": {
+									"type": "double"
+								},
+								"saving": {
+									"type": "double"
+								}
+							}
+						},
+						"threeYears": {
+							"properties": {
+								"monthly": {
+									"type": "double"
+								},
+								"global": {
+									"type": "double"
+								},
+								"saving": {
+									"type": "double"
+								}
+							}
+						}
+					}
+				},
+				"instances": {
+					"type": "nested",
+					"properties": {
+						"region": {
+							"type": "keyword"
+						},
+						"instanceType": {
+							"type": "keyword"
+						},
+						"platform": {
+							"type": "keyword"
+						},
+						"instanceCount": {
+							"type": "integer"
+						},
+						"onDemand": {
+							"properties": {
+								"monthly": {
+									"properties": {
+										"perUnit": {
+											"type": "double"
+										},
+										"total": {
+											"type": "double"
+										}
+									}
+								},
+								"oneYear": {
+									"properties": {
+										"perUnit": {
+											"type": "double"
+										},
+										"total": {
+											"type": "double"
+										}
+									}
+								},
+								"threeYears": {
+									"properties": {
+										"perUnit": {
+											"type": "double"
+										},
+										"total": {
+											"type": "double"
+										}
+									}
+								}
+							}
+						},
+						"reservation": {
+							"properties": {
+								"type": {
+									"type": "keyword"
+								},
+								"oneYear": {
+									"properties": {
+										"monthly": {
+											"properties": {
+												"perUnit": {
+													"type": "double"
+												},
+												"total": {
+													"type": "double"
+												}
+											}
+										},
+										"global": {
+											"properties": {
+												"perUnit": {
+													"type": "double"
+												},
+												"total": {
+													"type": "double"
+												}
+											}
+										},
+										"saving": {
+											"properties": {
+												"perUnit": {
+													"type": "double"
+												},
+												"total": {
+													"type": "double"
+												}
+											}
+										}
+									}
+								},
+								"threeYears": {
+									"properties": {
+										"monthly": {
+											"properties": {
+												"perUnit": {
+													"type": "double"
+												},
+												"total": {
+													"type": "double"
+												}
+											}
+										},
+										"global": {
+											"properties": {
+												"perUnit": {
+													"type": "double"
+												},
+												"total": {
+													"type": "double"
+												}
+											}
+										},
+										"saving": {
+											"properties": {
+												"perUnit": {
+													"type": "double"
+												},
+												"total": {
+													"type": "double"
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
 			},
 			"_all": {
 				"enabled": false
