@@ -42,7 +42,7 @@ const (
 	// other keys, we don't to spend too much time reading the metadata of all
 	// keys. This means that it is the responsibility of the user to put their
 	// bills in a place where there isn't much of anything else.
-	MaxCheckedKeysByRepository = 1000
+	MaxCheckedKeysByRepository = 10000
 
 	ReadBillsStsSessionName = "read-bills"
 )

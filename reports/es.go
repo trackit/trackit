@@ -76,7 +76,7 @@ func formatEsDomain(report es.DomainReport) []cell {
 func getEsUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	data = make([][]cell, 0)
+	data = make([][]cell, 0, len(esDomainFormat))
 	for _, headerRow := range esDomainFormat {
 		data = append(data, headerRow)
 	}
@@ -90,10 +90,7 @@ func getEsUsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time,
 		return
 	}
 
-	identities := make([]string, 0)
-	for _, account := range aas {
-		identities = append(identities, account.AwsIdentity)
-	}
+	identities := getIdentities(aas)
 
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {

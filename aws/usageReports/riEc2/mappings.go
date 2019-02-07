@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ri-ec2-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"ri-ec2-report": {
 			"properties": {
@@ -83,15 +83,6 @@ const TemplateLineItem = `
 						},
 						"state":{
 							"type": "keyword"
-						},
-						"fixedPrice": {
-							"type": "double"
-						},
-						"usagePrice": {
-							"type": "double"
-						},
-						"usageDuration": {
-							"type": "integer"
 						},
 						"start": {
 							"type": "date"
