@@ -8,6 +8,7 @@ import Spinner from "react-spinkit";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
 const Filters = Components.Events.Filters.List;
+const Popover = Components.Misc.Popover;
 
 // EventsContainer Component
 class EventsContainer extends Component {
@@ -36,11 +37,13 @@ class EventsContainer extends Component {
 
   formatEvents(events, snoozed) {
     const abnormalsList = [];
+    let hiddenEvents = 0;
 
     Object.keys(events).forEach((account) => {
       Object.keys(events[account]).forEach((key) => {
         const event = events[account][key];
         const abnormals = event.filter((item) => (snoozed ? item.abnormal : item.abnormal && !item.snoozed && !item.filtered));
+        hiddenEvents += event.filter((item) => (item.snoozed || item.filtered)).length;
         abnormals.forEach((element) => {
           abnormalsList.push({element, key, event});
         });
@@ -49,7 +52,7 @@ class EventsContainer extends Component {
 
     abnormalsList.sort((a, b) => ((moment(a.element.date).isBefore(b.element.date)) ? 1 : -1));
 
-    return abnormalsList.map((abnormal) => {
+    const nodes = abnormalsList.map((abnormal) => {
       const element = abnormal.element;
       const key = abnormal.key;
       const dataSet = abnormal.event;
@@ -65,6 +68,8 @@ class EventsContainer extends Component {
         </div>
       );
     });
+
+    return {nodes, hiddenEvents};
   }
 
   render() {
@@ -83,8 +88,12 @@ class EventsContainer extends Component {
     ) : null);
 
     let events = [];
-    if (this.props.values && this.props.values.status && this.props.values.values)
-      events = this.formatEvents(this.props.values.values, this.state.showHidden);
+    let hiddenEvents = 0;
+    if (this.props.values && this.props.values.status && this.props.values.values) {
+      const data = this.formatEvents(this.props.values.values, this.state.showHidden);
+      events = data.nodes;
+      hiddenEvents = data.hiddenEvents;
+    }
 
     const emptyEvents = (!events.length && !loading && !noEvents ? (
       <div className="alert alert-success" role="alert">No events found for this timerange</div>
@@ -98,20 +107,38 @@ class EventsContainer extends Component {
       </div>
     ) : null);
 
+    const toggleHiddenButton = (hiddenEvents ? (
+      <div className="inline-block">
+        <Popover
+          icon={
+            <button className={"btn btn-default inline-block " + (this.state.showHidden ? "enabled" : "")} onClick={this.toggleHidden.bind(this)}>
+              <i className={"fa fa-eye" + (!this.state.showHidden ? "-slash" : "")}/>
+              &nbsp;
+              {hiddenEvents} hidden events
+            </button>
+          }
+          tooltip={"Click this to " + (this.state.showHidden ? "hide" : "see") + " snoozed / filtered events"}
+          placement="top"
+        />
+      </div>
+    ) : (
+      <div className="btn btn-default inline-block disabled">
+        No hidden events
+      </div>
+    ));
+
     return (
       <div>
         <div className="row">
           <div className="col-md-12">
             <div className="white-box">
               <h3 className="white-box-title no-padding inline-block">
-                <i className="fa fa-exclamation-triangle"></i>
+                <i className="fa fa-exclamation-triangle"/>
                 &nbsp;
                 Events
               </h3>
               <div className="inline-block pull-right">
-                <button className="btn btn-default inline-block" onClick={this.toggleHidden.bind(this)}>
-                  {this.state.showHidden ? 'Hide snoozed / filtered events' : 'Display snoozed / filtered events'}
-                </button>
+                {toggleHiddenButton}
                 &nbsp;
                 <div className="inline-block">
                   <Filters
@@ -140,6 +167,8 @@ EventsContainer.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   getData: PropTypes.func.isRequired,
   setDates: PropTypes.func.isRequired,
+  snoozeEvent: PropTypes.func.isRequired,
+  unsnoozeEvent: PropTypes.func.isRequired,
   filtersActions: PropTypes.shape({
     get: PropTypes.func.isRequired,
     clear: PropTypes.func.isRequired,

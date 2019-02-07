@@ -1,7 +1,7 @@
 import { put, call } from 'redux-saga/effects';
 import API from '../../api';
 import Constants from '../../constants';
-import {getAWSAccounts, getToken} from "../misc";
+import {getToken} from "../misc";
 
 export function* getEventsFiltersSaga() {
   try {

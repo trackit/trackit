@@ -145,9 +145,17 @@ class ListComponent extends Component {
         />))
     ) : null);
 
+
+    let enabledFilters;
+    if (this.props.filters.status && this.props.filters.hasOwnProperty("values") && this.props.filters.values) {
+      const count = this.props.filters.values.filter((filter) => (!filter.disabled)).length;
+      if (count)
+        enabledFilters = <span className="filters-badge badge">{count}</span>;
+    }
+
     return (
       <Dialog
-        buttonName={<span><i className="fa fa-filter"/> Filters</span>}
+        buttonName={<span><i className="fa fa-filter"/> Filters {enabledFilters}</span>}
         disabled={this.props.disabled}
         title="Events Filters"
         secondActionName="Close"

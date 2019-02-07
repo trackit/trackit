@@ -35,7 +35,7 @@ class Item extends Component {
     const selectMaster = !this.props.isSelected(this.props.account);
 
     this.props.select(this.props.account);
-    if (selectMaster)
+    if (selectMaster && this.props.account.subAccounts)
       this.props.account.subAccounts.forEach((subAccount) => {
         if (!this.props.isSelected(subAccount))
           this.props.select(subAccount);

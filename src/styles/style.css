@@ -702,6 +702,22 @@ h4.no-data {
 
 /* Events */
 
+.btn.enabled {
+    background: #4885ed;
+    color: #ffffff;
+}
+
+.btn.disabled,
+.event-hidden {
+    color: #666666;
+}
+
+.filters-badge {
+    background: #4885ed;
+    color: #ffffff;
+    margin-left: 5px;
+}
+
 .filters-list .filter-list-item {
     display: block;
     padding-left: 0;
@@ -710,7 +726,6 @@ h4.no-data {
 .filters-list .filter-list-item:last-child {
     border-bottom: none;
 }
-
 
 .filters-list .filter-list-item .checkbox.selected svg path,
 .filters-list .filter-list-item .checkbox.selected svg path {

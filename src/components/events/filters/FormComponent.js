@@ -9,13 +9,10 @@ import Input from 'react-validation/build/input';
 import Select from 'react-validation/build/select';
 import Button from 'react-validation/build/button';
 import Validations from '../../../common/forms';
-import Popover from '../../misc/Popover';
 import PropTypes from "prop-types";
 import * as Filters from '../../../common/eventsFilters';
-import Misc from '../../misc'
 
 const Validation = Validations.AWSAccount;
-const MultipleInput = Misc.MultipleInput;
 
 // Form Component for new AWS Account
 class FormComponent extends Component {
@@ -58,6 +55,7 @@ class FormComponent extends Component {
   };
 
   handleInputChange(event) {
+    const misc = {};
     const target = event.target;
     const name = target.name;
     const type = target.type;
@@ -72,6 +70,8 @@ class FormComponent extends Component {
       default:
         value = target.value;
     }
+    if (name === "rule")
+      misc.data = "";
     if (name === "data" && type === "select-multiple") {
       value = (Array.isArray(this.state.data) ? this.state.data : []);
       const newValue = parseInt(target.value, 10);
@@ -83,7 +83,8 @@ class FormComponent extends Component {
     }
 
     this.setState({
-      [name]: value
+      [name]: value,
+      ...misc
     });
   }
 
