@@ -45,7 +45,7 @@ const dateFilters = {
     },
     name: "Specific days of the month",
     icon: <i className="fa fa-calendar"/>,
-    validation: isWithPositiveIntegerInRangeArray(0, 30),
+    validation: isWithPositiveIntegerInRangeArray(1, 31),
     format: (value) =>(<span className="event-filter-value-monthday">{value.map((day, index) => (<strong key={index}>{day}</strong>))}</span>)
   }
 };

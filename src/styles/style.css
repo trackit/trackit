@@ -772,6 +772,91 @@ h4.no-data {
     margin-right: 0;
 }
 
+.filter-btn-group .filter-btn-group-items,
+.filter-btn-group .filter-btn-group-actions {
+    display: flex;
+    justify-content: space-around;
+    margin: 15px;
+}
+
+.filter-btn-group button {
+    flex: 1;
+}
+
+.filter-btn-group .filter-btn-group-actions button {
+    max-width: 200px;
+}
+
+.filter-btn-group .filter-btn-group-items button.active {
+    background: #4885ed;
+    color: #ffffff;
+}
+
+.filter-btn-group.week_day .filter-btn-group-items button {
+    max-width: 120px;
+    text-align: center;
+}
+
+.filter-btn-group.month_day .filter-btn-group-items {
+    flex-direction: column;
+}
+
+.filter-btn-group.month_day .filter-btn-group-items .week {
+    margin: 10px calc((100% - 700px) / 2);
+    width: 700px;
+}
+
+.filter-btn-group.month_day .filter-btn-group-items .week button {
+    width: 50px;
+    margin: 0 25px;
+    text-align: center;
+}
+
+.filter-btn-group.level .filter-btn-group-items button {
+    max-width: 100px;
+    text-align: center;
+}
+
+.filter-btn-group.level .filter-btn-group-items button[value="0"] {
+    border-color: #4caf50;
+    color: #4caf50;
+}
+
+.filter-btn-group.level .filter-btn-group-items button.active[value="0"] {
+    background: #4caf50;
+    color: #ffffff;
+}
+
+.filter-btn-group.level .filter-btn-group-items button[value="1"] {
+    border-color: #4885ed;
+    color: #4885ed;
+}
+
+.filter-btn-group.level .filter-btn-group-items button.active[value="1"] {
+    background: #4885ed;
+    color: #ffffff;
+}
+
+.filter-btn-group.level .filter-btn-group-items button[value="2"] {
+    border-color: #ff9800;
+    color: #ff9800;
+}
+
+.filter-btn-group.level .filter-btn-group-items button.active[value="2"] {
+    background: #ff9800;
+    color: #ffffff;
+}
+
+.filter-btn-group.level .filter-btn-group-items button[value="3"] {
+    border-color: #d6413b;
+    color: #d6413b;
+}
+
+.filter-btn-group.level .filter-btn-group-items button.active[value="3"] {
+    background: #d6413b;
+    color: #ffffff;
+}
+
 .multiple-values > button {
     margin-left: calc(100% - 40px);
     width: 40px;

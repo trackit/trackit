@@ -30,6 +30,8 @@ class FormComponent extends Component {
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
     this.submit = this.submit.bind(this);
+    this.toggleFilterDataValue = this.toggleFilterDataValue.bind(this);
+    this.toggleFilterDataMultipleValues = this.toggleFilterDataMultipleValues.bind(this);
     this.handleInputChange = this.handleInputChange.bind(this);
     this.addMultipleInputItem = this.addMultipleInputItem.bind(this);
     this.removeMultipleInputItem = this.removeMultipleInputItem.bind(this);
@@ -86,6 +88,24 @@ class FormComponent extends Component {
       [name]: value,
       ...misc
     });
+  }
+
+  toggleFilterDataValue(event) {
+    event.preventDefault();
+    const target = event.target;
+    const value = parseInt(target.value, 10);
+    const data = (Array.isArray(this.state.data) ? this.state.data : []);
+    const index = data.indexOf(value);
+    if (index === -1)
+      data.push(value);
+    else
+      data.splice(index, 1);
+    this.setState({data});
+  }
+
+  toggleFilterDataMultipleValues(event, values) {
+    event.preventDefault();
+    this.setState({data: values});
   }
 
   handleMultipleInputData(event, index=null) {
@@ -155,20 +175,53 @@ class FormComponent extends Component {
         let values;
         switch (inputType.format) {
           case "checkbox":
-            values = [];
-            if (Array.isArray(inputType.values))
-              values = inputType.values.map((value, index) => (<option key={index} value={value}>{value}</option>));
-            else
-              values = Object.keys(inputType.values).map((value, index) => (<option key={index} value={value}>{inputType.values[index]}</option>));
-            return (<select
-              multiple
-              name="data"
-              className="form-control"
-              value={Array.isArray(this.state.data) ? this.state.data : []}
-              onChange={this.handleInputChange}
-            >
-              {values}
-            </select>);
+            if (Array.isArray(inputType.values)) {
+              const days = [...inputType.values];
+              const arrays = [];
+              while (days.length > 0)
+                arrays.push(days.splice(0, 7));
+              values = arrays.map((week, index) => (
+                <div key={index} className="week">
+                  {week.map((value, idx) => (
+                    <button
+                      key={idx}
+                      className={"btn btn-default " + (this.state.data.indexOf(value) !== -1 ? "active" : "")}
+                      value={value}
+                      onClick={this.toggleFilterDataValue}
+                    >
+                      {value}
+                    </button>
+                    ))}
+                </div>
+              ));
+            } else {
+              console.log(this.state.data, Object.keys(inputType.values));
+              values = Object.keys(inputType.values).map((value, index) => (
+                <button
+                  key={index}
+                  className={"btn btn-default " + (this.state.data.indexOf(parseInt(value, 10)) !== -1 ? "active" : "")}
+                  value={value}
+                  onClick={this.toggleFilterDataValue}
+                >
+                  {inputType.values[index]}
+                </button>
+              ));
+            }
+            return (
+              <div className={"filter-btn-group " + this.state.rule}>
+                <div className="filter-btn-group-items">
+                  {values}
+                </div>
+                <div className="filter-btn-group-actions">
+                  <button className="btn btn-default" onClick={(e) => this.toggleFilterDataMultipleValues(e, (Array.isArray(inputType.values) ? inputType.values : Object.keys(inputType.values).map((value) => parseInt(value, 10))))}>
+                    Select all
+                  </button>
+                  <button className="btn btn-default" onClick={(e) => this.toggleFilterDataMultipleValues(e, [])}>
+                    Unselect all
+                  </button>
+                </div>
+              </div>
+            );
           case "array":
             values = [...(Array.isArray(this.state.data) ? this.state.data : [])];
             return (<div className="multiple-values">
