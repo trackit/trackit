@@ -9,7 +9,7 @@ const getEventDateFromState = (state) => (state.events.dates);
 
 export const getEventDates = () => {
   return select(getEventDateFromState);
-}
+};
 
 const getTokenFromState = (state) => (state.auth.token);
 
@@ -75,7 +75,7 @@ export const resetTagsDates = (dates) => {
     dates[id].endDate = moment();
   });
   return dates;
-}
+};
 
 export const getTagsCharts = () => {
   return select(getTagsChartsFromState);

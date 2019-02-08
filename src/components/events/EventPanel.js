@@ -1,9 +1,11 @@
 import React, {Component} from 'react';
-import { OverlayTrigger, Tooltip } from 'react-bootstrap';
 import moment from 'moment';
 import PropTypes from 'prop-types';
 import NVD3Chart from 'react-nvd3';
 import * as d3 from 'd3';
+import Misc from '../misc';
+
+const Popover = Misc.Popover;
 
 // For timezones compensation
 const timeOffset = new Date().getTimezoneOffset();
@@ -86,15 +88,15 @@ class EventPanel extends Component {
     getBadgeClasses(level) {
         switch (level) {
             case 0:
-                return 'badge green-bg'
+                return 'badge green-bg';
             case 1:
-                return 'badge orange-bg'
+                return 'badge orange-bg';
             case 2:
-                return 'badge red-bg'
+                return 'badge red-bg';
             case 3:
-                return 'badge red-bg'
+                return 'badge red-bg';
             default:
-                return 'badge red-bg'
+                return 'badge red-bg';
         }
     }
 
@@ -108,12 +110,23 @@ class EventPanel extends Component {
         const exceededCost = (abnormalElement.cost - abnormalElement.upper_band).toFixed(2);
         const badgeLabels = ['Low', 'Medium', 'High', 'Critical'];
         const anomalyLevel = abnormalElement.level;
+
+        const hidden = (abnormalElement.snoozed || abnormalElement.filtered || abnormalElement.recurrent);
+
+        const snoozeButton = (
+          <button className="btn btn-primary btn-sm" onClick={this.handleSnooze.bind(this)}>
+            <i className="fa fa-clock-o"></i> {abnormalElement.snoozed ? 'Unsnooze' : 'Snooze'}
+          </button>
+        );
+
         return (
-            <div className="white-box">
+            <div className={"white-box " + (hidden ? "event-hidden" : "")}>
                 <h5 className="inline-block">
                     <i className="fa fa-exclamation-circle"></i>
                     &nbsp;
                     {abnormalElement.snoozed && '[Snoozed] '}
+                    {abnormalElement.filtered && '[Filtered] '}
+                    {abnormalElement.recurrent && '[Recurrent] '}
                     {service.length ? service : "Unknown service"}
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
@@ -122,11 +135,13 @@ class EventPanel extends Component {
                     {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}
                     &nbsp;
                     &nbsp;
-                    <OverlayTrigger placement="top" overlay={<Tooltip id="snoozeButton">{abnormalElement.snoozed ? 'Click this if you do consider this an Anomaly' : 'Click this if you don\'t consider this an Anomaly'}</Tooltip>}>
-                        <button className="btn btn-primary btn-sm" onClick={this.handleSnooze.bind(this)}>
-                            <i className="fa fa-clock-o"></i> {abnormalElement.snoozed ? 'Unsnooze' : 'Snooze'}
-                        </button>
-                    </OverlayTrigger>
+                    <div className="inline-block">
+                      <Popover
+                        icon={snoozeButton}
+                        tooltip={abnormalElement.snoozed ? 'Click this if you do consider this an Anomaly' : 'Click this if you don\'t consider this an Anomaly'}
+                        placement="top"
+                      />
+                    </div>
                 </h5>
                 <div className="clearfix"></div>
                 <p>On {moment(abnormalElement.date).add(timeOffset, 'm').format("ddd, MMM Do Y")}, <strong>{service.length ? service : "Unknown service"}</strong> exceeded the maximum expected cost for this service by <strong>${exceededCost}</strong></p>
