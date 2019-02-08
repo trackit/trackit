@@ -61,13 +61,17 @@ class FormComponent extends Component {
     const target = event.target;
     const name = target.name;
     const type = target.type;
-    let value;
+    let value = target.value;
+    console.log(value);
     switch (type) {
       case 'checkbox':
         value = target.checked;
         break;
       case 'number':
-        value = parseFloat(target.value);
+        if (isNaN(value))
+          value = 0;
+        else
+          value = parseFloat(value);
         break;
       default:
         value = target.value;
@@ -195,7 +199,6 @@ class FormComponent extends Component {
                 </div>
               ));
             } else {
-              console.log(this.state.data, Object.keys(inputType.values));
               values = Object.keys(inputType.values).map((value, index) => (
                 <button
                   key={index}
@@ -213,7 +216,7 @@ class FormComponent extends Component {
                   {values}
                 </div>
                 <div className="filter-btn-group-actions">
-                  <button className="btn btn-default" onClick={(e) => this.toggleFilterDataMultipleValues(e, (Array.isArray(inputType.values) ? inputType.values : Object.keys(inputType.values).map((value) => parseInt(value, 10))))}>
+                  <button className="btn btn-default" onClick={(e) => this.toggleFilterDataMultipleValues(e, (Array.isArray(inputType.values) ? [...inputType.values] : Object.keys(inputType.values).map((value) => parseInt(value, 10))))}>
                     Select all
                   </button>
                   <button className="btn btn-default" onClick={(e) => this.toggleFilterDataMultipleValues(e, [])}>

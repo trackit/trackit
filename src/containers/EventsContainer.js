@@ -42,7 +42,7 @@ class EventsContainer extends Component {
     Object.keys(events).forEach((account) => {
       Object.keys(events[account]).forEach((key) => {
         const event = events[account][key];
-        const abnormals = event.filter((item) => (snoozed ? item.abnormal : item.abnormal && !item.snoozed && !item.filtered));
+        const abnormals = event.filter((item) => (snoozed ? item.abnormal : item.abnormal && !item.snoozed && !item.filtered && !item.recurrent));
         hiddenEvents += event.filter((item) => (item.snoozed || item.filtered)).length;
         abnormals.forEach((element) => {
           abnormalsList.push({element, key, event});

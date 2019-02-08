@@ -46,7 +46,17 @@ const dateFilters = {
     name: "Specific days of the month",
     icon: <i className="fa fa-calendar"/>,
     validation: isWithPositiveIntegerInRangeArray(1, 31),
-    format: (value) =>(<span className="event-filter-value-monthday">{value.map((day, index) => (<strong key={index}>{day}</strong>))}</span>)
+    format: (value) =>{
+      const days = [...value];
+      const arrays = [];
+      while (days.length)
+        arrays.push(days.splice(0, 10));
+      return (<div className="event-filter-value-monthday">
+        {arrays.map((values, idx) => (<span key={idx} className="event-filter-value-monthday-group">
+          {values.map((day, index) => (<strong key={index}>{day}</strong>))}
+        </span>))}
+      </div>);
+    }
   }
 };
 
@@ -143,7 +153,9 @@ export const showFilter = (filter) => {
         {getFilterName(filter.rule)}
       </div>
       <div className="event-filter-summary-value">
-        Value : {getFilterValue(filter.rule, filter.data)}
+        <span>Value :</span>
+        &nbsp;
+        {getFilterValue(filter.rule, filter.data)}
       </div>
     </div>
   )

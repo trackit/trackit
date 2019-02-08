@@ -738,6 +738,15 @@ h4.no-data {
     display: inline-block;
 }
 
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-monthday {
+    float: right;
+}
+
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-monthday,
+.event-filter.event-filter-summary .event-filter-summary-value .event-filter-value-monthday > span {
+    display: block;
+}
+
 .filters-list .filter-list-item .item-info .item-name {
     margin-bottom: 15px;
     font-size: 1.2em;

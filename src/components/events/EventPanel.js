@@ -111,7 +111,7 @@ class EventPanel extends Component {
         const badgeLabels = ['Low', 'Medium', 'High', 'Critical'];
         const anomalyLevel = abnormalElement.level;
 
-        const hidden = (abnormalElement.snoozed || abnormalElement.filtered);
+        const hidden = (abnormalElement.snoozed || abnormalElement.filtered || abnormalElement.recurrent);
 
         const snoozeButton = (
           <button className="btn btn-primary btn-sm" onClick={this.handleSnooze.bind(this)}>
@@ -126,6 +126,7 @@ class EventPanel extends Component {
                     &nbsp;
                     {abnormalElement.snoozed && '[Snoozed] '}
                     {abnormalElement.filtered && '[Filtered] '}
+                    {abnormalElement.recurrent && '[Recurrent] '}
                     {service.length ? service : "Unknown service"}
                     &nbsp;
                     <span className={this.getBadgeClasses(anomalyLevel)}>{badgeLabels[anomalyLevel]}</span>
