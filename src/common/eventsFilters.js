@@ -3,9 +3,9 @@ import React from 'react';
 const isUniqueInArray = (value, index, array) => (array.every((elem, idx) => (elem !== value || index === idx)));
 const isString = (value) => (typeof value === "string");
 const isNumber = (value) => (!isNaN(value));
-const isPositiveInteger = (value) => (isNumber(value) && Number.isInteger(parseFloat(value)) && parseInt(value, 10) >= 0);
+const isPositiveInteger = (value) => (isNumber(value) && Number.isInteger(value) && value >= 0);
 const isPositiveIntegerInRange = (min, max) => (value) => (isPositiveInteger(value) && value >= min && value <= max);
-const isArray = (value) => (Array.isArray(value) && value.every(isUniqueInArray));
+const isArray = (value) => (Array.isArray(value) && value.length > 0 && value.every(isUniqueInArray));
 const isWithPositiveIntegerInRangeArray = (min, max) => (value) => (isArray(value) && value.every(isPositiveIntegerInRange(min, max)));
 const isStringArray = (value) => (isArray(value) && value.every(isString));
 

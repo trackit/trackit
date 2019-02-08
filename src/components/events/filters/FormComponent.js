@@ -25,7 +25,8 @@ class FormComponent extends Component {
       desc : (props.filter !== undefined ? props.filter.desc : ""),
       rule : (props.filter !== undefined ? props.filter.rule : Object.keys(Filters.filters)[0]),
       data : (props.filter !== undefined ? props.filter.data : ""),
-      enabled : (props.filter !== undefined ? props.filter.enabled : true)
+      enabled : (props.filter !== undefined ? props.filter.enabled : true),
+      error: null
     };
     this.openDialog = this.openDialog.bind(this);
     this.closeDialog = this.closeDialog.bind(this);
@@ -45,14 +46,15 @@ class FormComponent extends Component {
       desc : (this.props.filter !== undefined ? this.props.filter.desc : ""),
       rule : (this.props.filter !== undefined ? this.props.filter.rule : Object.keys(Filters.filters)[0]),
       data : (this.props.filter !== undefined ? this.props.filter.data : ""),
-      disabled : (this.props.filter !== undefined ? this.props.filter.disabled : false)
+      disabled : (this.props.filter !== undefined ? this.props.filter.disabled : false),
+      error: null
     });
     this.props.clear();
   };
 
   closeDialog = (e) => {
     e.preventDefault();
-    this.setState({open: false});
+    this.setState({open: false, error: null});
     this.props.clear();
   };
 
@@ -162,12 +164,18 @@ class FormComponent extends Component {
       disabled: this.state.disabled,
       id: (this.props.filter && this.props.filter.hasOwnProperty("id") ? this.props.filter.id : null)
     };
-    this.props.submit(body);
+    const error = !Filters.checkFilterValue(this.state.rule, this.state.data);
+    if (error)
+      this.setState({error : "Data format is invalid."});
+    else {
+      this.props.submit(body);
+      this.setState({error: null});
+    }
   };
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.status && nextProps.status.status && nextProps.status.values && !nextProps.status.hasOwnProperty("error")) {
-      this.setState({open: false});
+      this.setState({open: false, error: null});
     }
   }
 
@@ -277,9 +285,14 @@ class FormComponent extends Component {
   render() {
     const loading = (this.props.status && !this.props.status.status ? (<Spinner className="spinner clearfix" name='circle'/>) : null);
 
-     const error = (this.props.status && this.props.status.status && this.props.status.hasOwnProperty("error") ? (
-         <div className="alert alert-warning" role="alert">{this.props.status.error.message}</div>
-     ) : null);
+    let error = (this.props.status && this.props.status.status && this.props.status.hasOwnProperty("error") ? (
+      <div className="alert alert-warning" role="alert">{this.props.status.error.message}</div>
+    ) : null);
+
+    if (error === null)
+      error = (this.state.error !== null ? (
+        <div className="alert alert-warning" role="alert">{this.state.error}</div>
+      ) : null);
 
     return (
       <div>
