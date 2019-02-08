@@ -62,13 +62,12 @@ class FormComponent extends Component {
     const name = target.name;
     const type = target.type;
     let value = target.value;
-    console.log(value);
     switch (type) {
       case 'checkbox':
         value = target.checked;
         break;
       case 'number':
-        if (isNaN(value))
+        if (value === "")
           value = 0;
         else
           value = parseFloat(value);
