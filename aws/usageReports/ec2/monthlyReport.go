@@ -75,9 +75,10 @@ func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, 
 			Purchasing: "N/A",
 			KeyPair:    "",
 			Type:       "N/A",
+			Platform:   "Linux/UNIX",
 		},
-		Tags:       make([]utils.Tag, 0),
-		Costs:      make(map[string]float64, 0),
+		Tags:  make([]utils.Tag, 0),
+		Costs: make(map[string]float64, 0),
 		Stats: Stats{
 			Cpu: Cpu{
 				Average: -1,
@@ -100,6 +101,7 @@ func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, 
 			inst.Purchasing = docType.Instance.Purchasing
 			inst.KeyPair = docType.Instance.KeyPair
 			inst.Type = docType.Instance.Type
+			inst.Platform = docType.Instance.Platform
 			inst.Tags = docType.Instance.Tags
 		}
 	}
@@ -135,6 +137,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 					Purchasing: getPurchasingOption(instance),
 					KeyPair:    aws.StringValue(instance.KeyName),
 					Type:       aws.StringValue(instance.InstanceType),
+					Platform:   getPlatformName(aws.StringValue(instance.Platform)),
 				},
 				Tags:  getInstanceTag(instance.Tags),
 				Costs: costs,
