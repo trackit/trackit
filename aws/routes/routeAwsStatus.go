@@ -31,7 +31,7 @@ type status struct {
 	Detail string `json:"detail"`
 }
 
-func getStatusMessage(br s3.BillRepositoryWithPending, item *models.AwsAccountStatus) status {
+func getStatusMessage(br s3.BillRepositoryWithPending, item *models.AwsBillUpdateJob) status {
 	if len(br.Error) > 0 {
 		return status{
 			Value:  "error",
@@ -82,35 +82,24 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 			billRepositoriesIds = append(billRepositoriesIds, billRepository.Id)
 		}
 	}
-	jobs, err := models.GetLatestAccountsBillRepositoriesStatus(tx, billRepositoriesIds)
-	if err != nil {
-		l.Error("failed to get AWS accounts' bill repositories import statuses", err.Error())
-		return 500, errors.New("failed to retrieve import statuses")
-	}
-	result := setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories, jobs)
+	result := setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories, tx)
 	return 200, result
 }
 
-func setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, jobs map[int]models.AwsAccountStatus) []awsAccountWithStatus {
+func setStatusForAwsAccountsWithBillRepositories(awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, tx *sql.Tx) []awsAccountWithStatus {
 	result := make([]awsAccountWithStatus, 0)
 	for _, awsAccount := range awsAccountsWithBillRepositories {
 		var billRepositories []billRepositoryWithStatus
 		var subAccounts []awsAccountWithStatus
 		for _, billRepository := range awsAccount.BillRepositories {
-			var status status
-			if value, ok := jobs[billRepository.Id]; ok {
-				status = getStatusMessage(billRepository, &value)
-			} else {
-				status = getStatusMessage(billRepository, nil)
-			}
-			newBillRepo := billRepositoryWithStatus{
+			abuj, _ := models.LastAwsBillUpdateJobsByAwsBillRepositoryID(tx, billRepository.Id)
+			billRepositories = append(billRepositories, billRepositoryWithStatus{
 				billRepository,
-				status,
-			}
-			billRepositories = append(billRepositories, newBillRepo)
+				getStatusMessage(billRepository, abuj),
+			})
 		}
 		if awsAccount.SubAccounts != nil && len(awsAccount.SubAccounts) > 0 {
-			subAccounts = setStatusForAwsAccountsWithBillRepositories(awsAccount.SubAccounts, jobs)
+			subAccounts = setStatusForAwsAccountsWithBillRepositories(awsAccount.SubAccounts, tx)
 		}
 		account := awsAccountWithStatus{
 			awsAccount.AwsAccount,

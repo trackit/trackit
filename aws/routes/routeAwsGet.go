@@ -154,6 +154,53 @@ func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInf
 	return res[:i], nil
 }
 
+func billRepositoryWithPendingFromAwsAccount(db dbAccessor, awsAccountId int) ([]s3.BillRepositoryWithPending, error) {
+	var sqlstr = `
+		SELECT
+		  aws_bill_repository.id                     AS id,
+		  aws_bill_repository.aws_account_id         AS aws_account_id,
+		  aws_bill_repository.bucket                 AS bucket,
+		  aws_bill_repository.prefix                 AS prefix,
+		  aws_bill_repository.error                  AS error,
+		  aws_bill_repository.last_imported_manifest AS last_imported_manifest,
+		  aws_bill_repository.next_update            AS next_update,
+		  (last_pending.id IS NOT NULL)              AS next_pending
+		FROM aws_bill_repository
+		LEFT OUTER JOIN (
+		  SELECT *
+		  FROM aws_bill_update_job
+		  WHERE completed = 0 AND expired >= NOW()
+		  LIMIT 1
+		) AS last_pending ON
+		  aws_bill_repository.id = last_pending.aws_bill_repository_id
+		WHERE aws_bill_repository.aws_account_id = ?
+	`
+	q, err := db.Query(sqlstr, awsAccountId)
+	if err != nil {
+		return nil, err
+	}
+	defer q.Close()
+	var res []s3.BillRepositoryWithPending
+	var i int
+	for i = 0; q.Next(); i++ {
+		res = append(res, s3.BillRepositoryWithPending{})
+		err = q.Scan(
+			&res[i].Id,
+			&res[i].AwsAccountId,
+			&res[i].Bucket,
+			&res[i].Prefix,
+			&res[i].Error,
+			&res[i].LastImportedManifest,
+			&res[i].NextUpdate,
+			&res[i].NextPending,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res[:i], nil
+}
+
 func intArrayToStringArray(integers []int) (strings []string) {
 	strings = make([]string, len(integers))
 	for i := range integers {
@@ -219,10 +266,7 @@ type AwsAccountWithBillRepositories struct {
 // AwsAccounts.
 func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var awsErr error
-	var billErr error
 	var awsAccounts []aws.AwsAccount
-	var awsAccountsWithBillRepositories []AwsAccountWithBillRepositories
-	var detailedRes bool
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
@@ -231,17 +275,8 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	} else {
 		awsAccounts, awsErr = aws.GetAwsAccountsFromUser(u, tx)
 	}
-	if detailed, ok := a[DetailedOptionalQueryArg].(bool); ok && detailed {
-		detailedRes = detailed
-		awsAccountsWithBillRepositories, billErr = buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts, tx)
-	}
-	if detailedRes && awsErr == nil && billErr == nil {
-		return 200, awsAccountsWithBillRepositories
-	} else if awsErr == nil {
+	if awsErr == nil {
 		return 200, awsAccounts
-	} else if billErr != nil {
-		l.Error("failed to get AWS accounts' bill repositories", awsErr.Error())
-		return 500, errors.New("failed to retrieve bill repositories")
 	} else {
 		l.Error("failed to get user's AWS accounts", awsErr.Error())
 		return 500, errors.New("failed to retrieve AWS accounts")
@@ -286,29 +321,13 @@ func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAc
 			[]s3.BillRepositoryWithPending{},
 			nil,
 		}
-		var brs []s3.BillRepository
-		if brs, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
+		if aawbr.BillRepositories, err = billRepositoryWithPendingFromAwsAccount(tx, aa.Id); err != nil {
 			return
 		}
-		var updates []BillRepositoryUpdateInfo
-		if updates, err = BillRepositoryUpdates(tx, aa.UserId); err != nil {
-			return
-		}
-		for _, br := range brs {
-			brwp := s3.BillRepositoryWithPending{br, false}
-			for _, update := range updates {
-				if update.BillRepositoryId == br.Id {
-					brwp.NextPending = *update.NextPending
-				}
+		for id, br := range aawbr.BillRepositories {
+			if br.LastImportedManifest.Before(timeLimit) {
+				aawbr.BillRepositories[id].NextPending = true
 			}
-			dbBillRepository, err := models.AwsBillRepositoryByID(tx, br.Id)
-			if err != nil {
-				return nil, err
-			}
-			if dbBillRepository.LastImportedManifest.Before(timeLimit) {
-				brwp.NextPending = true
-			}
-			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
 		}
 		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
 	}

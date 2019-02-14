@@ -24,18 +24,6 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-// AwsAccountIdsOptionalQueryArg allows to get the AWS Account IDs in the URL
-// Parameters with routes.RequiredQueryArgs. This AWS Account IDs will be a
-// slice of Uint stored in the routes.Arguments map with itself for key.
-// AwsAccountIdsOptionalQueryArg is optional and will not panic if no query
-// argument is found.
-var DetailedOptionalQueryArg = routes.QueryArg{
-	Name:        "detailed",
-	Type:        routes.QueryArgBool{},
-	Description: "Detailed view.",
-	Optional:    true,
-}
-
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getAwsAccount).With(
@@ -46,7 +34,6 @@ func init() {
 			},
 			routes.QueryArgs{
 				routes.AwsAccountIdsOptionalQueryArg,
-				DetailedOptionalQueryArg,
 			},
 		),
 		http.MethodPost: routes.H(postAwsAccount).With(
