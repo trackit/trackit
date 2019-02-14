@@ -26,7 +26,6 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
@@ -154,53 +153,6 @@ func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInf
 	return res[:i], nil
 }
 
-func billRepositoryWithPendingFromAwsAccount(db dbAccessor, awsAccountId int) ([]s3.BillRepositoryWithPending, error) {
-	var sqlstr = `
-		SELECT
-		  aws_bill_repository.id                     AS id,
-		  aws_bill_repository.aws_account_id         AS aws_account_id,
-		  aws_bill_repository.bucket                 AS bucket,
-		  aws_bill_repository.prefix                 AS prefix,
-		  aws_bill_repository.error                  AS error,
-		  aws_bill_repository.last_imported_manifest AS last_imported_manifest,
-		  aws_bill_repository.next_update            AS next_update,
-		  (last_pending.id IS NOT NULL)              AS next_pending
-		FROM aws_bill_repository
-		LEFT OUTER JOIN (
-		  SELECT *
-		  FROM aws_bill_update_job
-		  WHERE completed = 0 AND expired >= NOW()
-		  LIMIT 1
-		) AS last_pending ON
-		  aws_bill_repository.id = last_pending.aws_bill_repository_id
-		WHERE aws_bill_repository.aws_account_id = ?
-	`
-	q, err := db.Query(sqlstr, awsAccountId)
-	if err != nil {
-		return nil, err
-	}
-	defer q.Close()
-	var res []s3.BillRepositoryWithPending
-	var i int
-	for i = 0; q.Next(); i++ {
-		res = append(res, s3.BillRepositoryWithPending{})
-		err = q.Scan(
-			&res[i].Id,
-			&res[i].AwsAccountId,
-			&res[i].Bucket,
-			&res[i].Prefix,
-			&res[i].Error,
-			&res[i].LastImportedManifest,
-			&res[i].NextUpdate,
-			&res[i].NextPending,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res[:i], nil
-}
-
 func intArrayToStringArray(integers []int) (strings []string) {
 	strings = make([]string, len(integers))
 	for i := range integers {
@@ -256,12 +208,6 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 	return res, nil
 }
 
-type AwsAccountWithBillRepositories struct {
-	aws.AwsAccount
-	BillRepositories []s3.BillRepositoryWithPending   `json:"billRepositories"`
-	SubAccounts      []AwsAccountWithBillRepositories `json:"subAccounts,omitempty"`
-}
-
 // getAwsAccount is a route handler which returns the caller's list of
 // AwsAccounts.
 func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
@@ -281,55 +227,4 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 		l.Error("failed to get user's AWS accounts", awsErr.Error())
 		return 500, errors.New("failed to retrieve AWS accounts")
 	}
-}
-
-func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillRepositories) ([]AwsAccountWithBillRepositories, error) {
-	accounts := make([]AwsAccountWithBillRepositories, 0)
-	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
-			accounts = append(accounts, aa)
-		}
-	}
-	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
-			continue
-		}
-		foundMatch := false
-	AccountsLoop:
-		for i, account := range accounts {
-			if aa.ParentId.Int64 == int64(account.Id) {
-				if accounts[i].SubAccounts == nil {
-					accounts[i].SubAccounts = make([]AwsAccountWithBillRepositories, 0)
-				}
-				accounts[i].SubAccounts = append(accounts[i].SubAccounts, aa)
-				foundMatch = true
-				continue AccountsLoop
-			}
-		}
-		if foundMatch == false {
-			accounts = append(accounts, aa)
-		}
-	}
-	return accounts, nil
-}
-
-func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAccount, tx *sql.Tx) (awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, err error) {
-	timeLimit := time.Now().AddDate(0, 0, -7)
-	for _, aa := range awsAccounts {
-		aawbr := AwsAccountWithBillRepositories{
-			aa,
-			[]s3.BillRepositoryWithPending{},
-			nil,
-		}
-		if aawbr.BillRepositories, err = billRepositoryWithPendingFromAwsAccount(tx, aa.Id); err != nil {
-			return
-		}
-		for id, br := range aawbr.BillRepositories {
-			if br.LastImportedManifest.Before(timeLimit) {
-				aawbr.BillRepositories[id].NextPending = true
-			}
-		}
-		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
-	}
-	return sortSubAccounts(awsAccountsWithBillRepositories)
 }
