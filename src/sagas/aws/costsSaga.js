@@ -31,7 +31,7 @@ export function* getCostsSaga({ id, begin, end, filters, chartType }) {
           if (accountsRaw.success && accountsRaw.hasOwnProperty("data")) {
             const accounts = {};
             accountsRaw.data.forEach((item) => {
-              const accountID = getAccountIDFromRole(item.roleArn);
+              const accountID = (item.hasOwnProperty("awsIdentity") ? item.awsIdentity : getAccountIDFromRole(item.roleArn));
               accounts[accountID] = {...item, accountID};
               if (item.subAccounts) {
                 item.subAccounts.forEach((item) => {
