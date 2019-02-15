@@ -8,6 +8,7 @@ import Misc from '../../../misc';
 import PropTypes from 'prop-types';
 import Form from './FormComponent';
 import Actions from "../../../../actions";
+import Status from '../../../../common/awsAccountStatus';
 
 const Dialog = Misc.Dialog;
 const DeleteConfirmation = Misc.DeleteConfirmation;
@@ -31,31 +32,21 @@ export class Item extends Component {
     this.props.deleteBill(this.props.account, this.props.bill.id);
   };
 
-  getBillLocationBadge = () => {
-    if (this.props.bill.error !== "")
-      return (<i className="fa account-badge fa-times-circle"/>);
-    return (<i className="fa account-badge fa-check-circle"/>);
-  };
-
-  getInformationBanner = () => {
-    if (this.props.bill.error)
-      return (<ListItem divider className="bill-alert"><div className="alert alert-danger account-badge-information-banner">{"Oops, we couldn't import data: " + this.props.bill.error}</div></ListItem>);
-    return null;
-  };
-
   render() {
     const prefix = (this.props.bill.prefix.length) ? (
       <span className="badge blue-bg pull-right">Prefix : {this.props.bill.prefix}</span>
     ) : (null);
 
-    const infoBanner = this.getInformationBanner();
+    const badge = Status.getBadge(this.props.bill.status);
+    const info = Status.getInformationBanner(this.props.bill.status);
+    const infoBanner = (info ? (<ListItem divider className="bill-alert">{info}</ListItem>) : null);
 
     return (
       <div>
 
         <ListItem divider={(infoBanner === null)} className="bill-item">
 
-          {this.getBillLocationBadge()}
+          {badge}
           <ListItemText
             disableTypography
             primary={<span>
