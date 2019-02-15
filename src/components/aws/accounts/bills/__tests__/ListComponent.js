@@ -15,13 +15,19 @@ const defaultProps = {
 };
 
 const bill = {
-  error: "",
+  status: {
+    value: "ok",
+    detail: ""
+  },
   bucket: "s3://test.test",
   prefix: "/path/to/bill"
 };
 
 const billWithError = {
-  error: "access denied",
+  status: {
+    value: "error",
+    detail: "access denied"
+  },
   nextPending: true,
   bucket: "another-billing-bucket",
   prefix: "another-prefix"

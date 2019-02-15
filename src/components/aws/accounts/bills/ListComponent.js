@@ -19,8 +19,6 @@ export class Item extends Component {
     super(props);
     this.editBill = this.editBill.bind(this);
     this.deleteBill = this.deleteBill.bind(this);
-    this.getBillLocationBadge = this.getBillLocationBadge.bind(this);
-    this.getInformationBanner = this.getInformationBanner.bind(this);
   }
 
   editBill = (body) => {
@@ -86,7 +84,10 @@ export class Item extends Component {
 Item.propTypes = {
   account: PropTypes.number.isRequired,
   bill: PropTypes.shape({
-    error: PropTypes.string.isRequired,
+    status: PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      detail: PropTypes.string.isRequired,
+    }).isRequired,
     bucket: PropTypes.string.isRequired,
     prefix: PropTypes.string.isRequired
   }),
