@@ -57,6 +57,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 					Purchasing: getPurchasingOption(instance),
 					KeyPair:    aws.StringValue(instance.KeyName),
 					Type:       aws.StringValue(instance.InstanceType),
+					Platform:   getPlatformName(aws.StringValue(instance.Platform)),
 				},
 				Tags:  getInstanceTag(instance.Tags),
 				Costs: costs,
