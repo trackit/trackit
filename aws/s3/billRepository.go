@@ -107,11 +107,6 @@ type BillRepository struct {
 	NextUpdate           time.Time `json:"nextUpdate"`
 }
 
-type BillRepositoryWithPending struct {
-	BillRepository
-	NextPending bool `json:"nextPending"`
-}
-
 // CreateBillRepository creates a BillRepository for an AwsAccount. It does
 // not perform checks on the repository.
 func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (BillRepository, error) {
@@ -352,10 +347,10 @@ func isPrefixValid(p string) error {
 	}
 }
 
-func isBillRepositoryAccessible(ctx context.Context, aa aws.AwsAccount, body postBillRepositoryBody) (error) {
+func isBillRepositoryAccessible(ctx context.Context, aa aws.AwsAccount, body postBillRepositoryBody) error {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	_, _, err := getServiceForRepository(ctx, aa, BillRepository{Bucket: body.Bucket, Prefix: body.Prefix})
-	if (err != nil) {
+	if err != nil {
 		l.Warning("Trying to add a bad bill location.", err.Error())
 		return errors.New("Couldn't access to this bill location.")
 	}
@@ -401,9 +396,7 @@ func deleteBillRepository(r *http.Request, a routes.Arguments) (int, interface{}
 func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	tx := a[db.Transaction].(*sql.Tx)
-	if brs, err := GetBillRepositoriesForAwsAccount(aa, tx); err == nil {
-		return http.StatusOK, brs
-	} else {
+	if brs, err := GetBillRepositoryWithPendingForAwsAccount(tx, aa.Id); err != nil {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		l.Error("Failed to get aws account's bill repositories.", map[string]interface{}{
 			"user":       a[users.AuthenticatedUser].(users.User),
@@ -411,5 +404,12 @@ func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 			"error":      err.Error(),
 		})
 		return http.StatusInternalServerError, errors.New("Failed to retrieve bill repositories.")
+	} else {
+		var brwss []BillRepositoryWithStatus
+		for _, br := range brs {
+			brws, _ := WrapBillRepositoriesWithPendingWithStatus(tx, br)
+			brwss = append(brwss, brws)
+		}
+		return http.StatusOK, brwss
 	}
 }

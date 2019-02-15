@@ -45,14 +45,24 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 		logger.Error("Error when listing domain names", err.Error())
 		return err
 	}
-	domains, err := svc.DescribeElasticsearchDomains(&elasticsearchservice.DescribeElasticsearchDomainsInput{
-		DomainNames: transformDomainsListToString(domainNames.DomainNames),
-	})
-	if err != nil {
-		logger.Error("Error when describing domains", err.Error())
-		return err
+	var domainsStatus []*elasticsearchservice.ElasticsearchDomainStatus
+	for i := range domainNames.DomainNames {
+		if i%5 == 0 {
+			m := i + 5
+			if m >= len(domainNames.DomainNames) {
+				m = len(domainNames.DomainNames)
+			}
+			domains, err := svc.DescribeElasticsearchDomains(&elasticsearchservice.DescribeElasticsearchDomainsInput{
+				DomainNames: transformDomainsListToString(domainNames.DomainNames[i:m]),
+			})
+			if err != nil {
+				logger.Error("Error when describing domains", err.Error())
+				return err
+			}
+			domainsStatus = append(domainsStatus, domains.DomainStatusList...)
+		}
 	}
-	for _, domain := range domains.DomainStatusList {
+	for _, domain := range domainsStatus {
 		if esTags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{ARN: domain.ARN}); err != nil {
 			logger.Error("Error while listing Tags for domain", err.Error())
 			tags = make([]utils.Tag, 0)

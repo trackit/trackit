@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 
 	"github.com/trackit/jsonlog"
 
@@ -38,7 +37,6 @@ func taskFetchPricings(ctx context.Context) (err error) {
 	serializedPricing, err := json.Marshal(res)
 	if err != nil {
 		logger.Error("Failed to serialize ec2 pricings", err.Error())
-		fmt.Println(err)
 		return
 	}
 	var tx *sql.Tx

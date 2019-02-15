@@ -88,6 +88,8 @@ var (
 	AnomalyDetectionDisturbanceCleaningHighestSpendingMinRank int
 	// AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod is the period in day used to calculate the ranks of the highest spending services.
 	AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod int
+	// AnomalyDetectionRecurrenceCleaningThreshold is the percentage in which an expense is considered recurrent with another.
+	AnomalyDetectionRecurrenceCleaningThreshold float64
 	// AnomalyDetectionLevels are the rules to generate the levels. Example: "0,120,150" would say there is three levels (pretty names are set below). An anomaly is classed level one if its cost is between 120 and 150% of the higher anticipated cost.
 	AnomalyDetectionLevels string
 	// AnomalyDetectionPrettyLevels are the pretty names of the levels above. Example: "low,medium,high".
@@ -129,6 +131,7 @@ func init() {
 	flag.Float64Var(&AnomalyDetectionDisturbanceCleaningMinAbsoluteCost, "anomaly-detection-disturbance-cleaning-absolute-cost", 20.0, "Absolute cost an anomaly has to exceed.")
 	flag.IntVar(&AnomalyDetectionDisturbanceCleaningHighestSpendingMinRank, "anomaly-detection-disturbance-cleaning-highest-spending-min-rank", 5, "Minimum rank of the service where the anomaly has been detected.")
 	flag.IntVar(&AnomalyDetectionDisturbanceCleaningHighestSpendingPeriod, "anomaly-detection-disturbance-cleaning-highest-spending-period", 5, "Period to calculate the ranks.")
+	flag.Float64Var(&AnomalyDetectionRecurrenceCleaningThreshold, "anomaly-detection-recurrence-cleaning-threshold", 0.1, "Percentage in which an expense is considered as recurrent with another.")
 	flag.StringVar(&AnomalyDetectionLevels, "anomaly-detection-levels", "0,120,150,200", "Rules to generate the levels.")
 	flag.StringVar(&AnomalyDetectionPrettyLevels, "anomaly-detection-pretty-levels", "low,medium,high,critical", "Pretty names of the levels.")
 	flag.IntVar(&AnomalyEmailingMinLevel, "anomaly-emailing-min-level", 2, "Minimum level for the mail to be sent.")

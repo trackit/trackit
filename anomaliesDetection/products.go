@@ -38,12 +38,16 @@ type (
 
 	// esProductAnomaly is used to ingest in ElasticSearch.
 	esProductAnomaly struct {
-		Account  string               `json:"account"`
-		Date     string               `json:"date"`
-		Product  string               `json:"product"`
-		Abnormal bool                 `json:"abnormal"`
-		Cost     esProductAnomalyCost `json:"cost"`
+		Account   string               `json:"account"`
+		Date      string               `json:"date"`
+		Product   string               `json:"product"`
+		Abnormal  bool                 `json:"abnormal"`
+		Recurrent bool                 `json:"recurrent"`
+		Cost      esProductAnomalyCost `json:"cost"`
 	}
+
+	// esProductAnomalies is used to get anomalies from ElasticSearch.
+	esProductAnomalies []esProductAnomaly
 
 	// esProductDatesBucket is used to store the raw ElasticSearch response.
 	esProductDatesBucket struct {
@@ -84,8 +88,9 @@ func runAnomaliesDetectionForProducts(parsedParams AnomalyEsQueryParams, account
 	var res AnalyzedCosts
 	if res, err = productGetAnomaliesData(ctx, parsedParams); err != nil {
 	} else if err = productSaveAnomaliesData(ctx, res, account); err != nil {
+	} else if err = removeRecurrence(ctx, parsedParams, account); err != nil {
 	}
-	return err
+	return
 }
 
 // productSaveAnomaliesData will save anomalies in ElasticSearch.
@@ -105,10 +110,11 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 	}
 	for _, aCost := range aCosts {
 		doc := esProductAnomaly{
-			Account:  account.AwsIdentity,
-			Date:     aCost.Meta.Date,
-			Product:  aCost.Meta.AdditionalMeta.(AnalyzedCostProductMeta).Product,
-			Abnormal: aCost.Anomaly,
+			Account:   account.AwsIdentity,
+			Date:      aCost.Meta.Date,
+			Product:   aCost.Meta.AdditionalMeta.(AnalyzedCostProductMeta).Product,
+			Abnormal:  aCost.Anomaly,
+			Recurrent: false,
 			Cost: esProductAnomalyCost{
 				Value:       aCost.Cost,
 				MaxExpected: aCost.UpperBand,
