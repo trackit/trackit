@@ -26,7 +26,6 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
@@ -209,20 +208,11 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 	return res, nil
 }
 
-type AwsAccountWithBillRepositories struct {
-	aws.AwsAccount
-	BillRepositories []s3.BillRepositoryWithPending   `json:"billRepositories"`
-	SubAccounts      []AwsAccountWithBillRepositories `json:"subAccounts,omitempty"`
-}
-
 // getAwsAccount is a route handler which returns the caller's list of
 // AwsAccounts.
 func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	var awsErr error
-	var billErr error
 	var awsAccounts []aws.AwsAccount
-	var awsAccountsWithBillRepositories []AwsAccountWithBillRepositories
-	var detailedRes bool
 	u := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
@@ -231,86 +221,10 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	} else {
 		awsAccounts, awsErr = aws.GetAwsAccountsFromUser(u, tx)
 	}
-	if detailed, ok := a[DetailedOptionalQueryArg].(bool); ok && detailed {
-		detailedRes = detailed
-		awsAccountsWithBillRepositories, billErr = buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts, tx)
-	}
-	if detailedRes && awsErr == nil && billErr == nil {
-		return 200, awsAccountsWithBillRepositories
-	} else if awsErr == nil {
+	if awsErr == nil {
 		return 200, awsAccounts
-	} else if billErr != nil {
-		l.Error("failed to get AWS accounts' bill repositories", awsErr.Error())
-		return 500, errors.New("failed to retrieve bill repositories")
 	} else {
 		l.Error("failed to get user's AWS accounts", awsErr.Error())
 		return 500, errors.New("failed to retrieve AWS accounts")
 	}
-}
-
-func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillRepositories) ([]AwsAccountWithBillRepositories, error) {
-	accounts := make([]AwsAccountWithBillRepositories, 0)
-	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
-			accounts = append(accounts, aa)
-		}
-	}
-	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
-			continue
-		}
-		foundMatch := false
-	AccountsLoop:
-		for i, account := range accounts {
-			if aa.ParentId.Int64 == int64(account.Id) {
-				if accounts[i].SubAccounts == nil {
-					accounts[i].SubAccounts = make([]AwsAccountWithBillRepositories, 0)
-				}
-				accounts[i].SubAccounts = append(accounts[i].SubAccounts, aa)
-				foundMatch = true
-				continue AccountsLoop
-			}
-		}
-		if foundMatch == false {
-			accounts = append(accounts, aa)
-		}
-	}
-	return accounts, nil
-}
-
-func buildAwsAccountsWithBillRepositoriesFromAwsAccounts(awsAccounts []aws.AwsAccount, tx *sql.Tx) (awsAccountsWithBillRepositories []AwsAccountWithBillRepositories, err error) {
-	timeLimit := time.Now().AddDate(0, 0, -7)
-	for _, aa := range awsAccounts {
-		aawbr := AwsAccountWithBillRepositories{
-			aa,
-			[]s3.BillRepositoryWithPending{},
-			nil,
-		}
-		var brs []s3.BillRepository
-		if brs, err = s3.GetBillRepositoriesForAwsAccount(aa, tx); err != nil {
-			return
-		}
-		var updates []BillRepositoryUpdateInfo
-		if updates, err = BillRepositoryUpdates(tx, aa.UserId); err != nil {
-			return
-		}
-		for _, br := range brs {
-			brwp := s3.BillRepositoryWithPending{br, false}
-			for _, update := range updates {
-				if update.BillRepositoryId == br.Id {
-					brwp.NextPending = *update.NextPending
-				}
-			}
-			dbBillRepository, err := models.AwsBillRepositoryByID(tx, br.Id)
-			if err != nil {
-				return nil, err
-			}
-			if dbBillRepository.LastImportedManifest.Before(timeLimit) {
-				brwp.NextPending = true
-			}
-			aawbr.BillRepositories = append(aawbr.BillRepositories, brwp)
-		}
-		awsAccountsWithBillRepositories = append(awsAccountsWithBillRepositories, aawbr)
-	}
-	return sortSubAccounts(awsAccountsWithBillRepositories)
 }
