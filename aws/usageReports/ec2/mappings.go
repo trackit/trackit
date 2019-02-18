@@ -42,7 +42,7 @@ func init() {
 const TemplateEc2Report = `
 {
 	"template": "*-ec2-reports",
-	"version": 6,
+	"version": 7,
 	"mappings": {
 		"ec2-report": {
 			"properties": {
@@ -73,6 +73,9 @@ const TemplateEc2Report = `
 							"type": "keyword"
 						},
 						"type": {
+							"type": "keyword"
+						},
+						"platform": {
 							"type": "keyword"
 						},
 						"tags": {

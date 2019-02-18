@@ -46,6 +46,7 @@ type (
 		Purchasing string `json:"purchasing"`
 		KeyPair    string `json:"keyPair"`
 		Type       string `json:"type"`
+		Platform   string `json:"platform"`
 	}
 
 	// Instance contains all the information of an EC2 instance
@@ -158,4 +159,12 @@ func merge(cs ...<-chan Instance) <-chan Instance {
 		close(out)
 	}()
 	return out
+}
+
+// getPlatformName normalizes the platform name
+func getPlatformName(platform string) string {
+	if platform == "" {
+		return "Linux/UNIX"
+	}
+	return platform
 }

@@ -289,6 +289,12 @@
 			"revisionTime": "2018-11-12T23:06:07Z"
 		},
 		{
+			"checksumSHA1": "xKY1N27xgmGIfx4qRKsuPRzhY4Q=",
+			"path": "github.com/aws/aws-sdk-go/service/pricing",
+			"revision": "b7ab18f9e85070264191219a57012236b495283a",
+			"revisionTime": "2019-01-17T23:29:50Z"
+		},
+		{
 			"checksumSHA1": "Kv8hkh6CxOCAG73xohmft8z4I3g=",
 			"path": "github.com/aws/aws-sdk-go/service/rds",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",

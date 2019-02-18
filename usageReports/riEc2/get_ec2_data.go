@@ -69,7 +69,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams ReservedInstance
 }
 
 // GetReservedInstancesDaily does an elastic request and returns an array of daily report reservations based on query params
-func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
+func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQueryParams) (int, []ReservationReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchReservedInstancesDailyParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -91,7 +91,7 @@ func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstance
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, dailyReservations, err := GetReservedInstancesDaily(ctx, parsedParams, user, tx)
+	returnCode, dailyReservations, err := GetReservedInstancesDaily(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
 	}
