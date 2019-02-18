@@ -29,13 +29,15 @@ const accountWithBills = {
   payer: true,
   billRepositories: [
     {
-      error: "",
+      status: {
+        value: "ok",
+        detail: ""
+      },
       nextPending: false,
       bucket: "billing-bucket",
       prefix: "prefix"
     },
     {
-      error: "access denied",
       nextPending: true,
       bucket: "another-billing-bucket",
       prefix: "another-prefix",
@@ -55,7 +57,10 @@ const accountWithRightBills = {
   payer: true,
   billRepositories: [
     {
-      error: "",
+      status: {
+        value: "ok",
+        detail: ""
+      },
       nextPending: false,
       bucket: "billing-bucket",
       prefix: "prefix"

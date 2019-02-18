@@ -7,9 +7,18 @@ import Actions from '../actions';
 import Spinner from "react-spinkit";
 
 const TimerangeSelector = Components.Misc.TimerangeSelector;
+const Filters = Components.Events.Filters.List;
+const Popover = Components.Misc.Popover;
 
 // EventsContainer Component
 class EventsContainer extends Component {
+  constructor() {
+    super();
+    this.state = {
+      showHidden : false,
+    }
+  }
+
   componentDidMount() {
     if (this.props.dates) {
       const dates = this.props.dates;
@@ -18,17 +27,23 @@ class EventsContainer extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts))
+    if (nextProps.dates && (this.props.dates !== nextProps.dates || this.props.accounts !== nextProps.accounts || this.props.filters !== nextProps.filters))
       nextProps.getData(nextProps.dates.startDate, nextProps.dates.endDate);
   }
 
-  formatEvents(events) {
+  toggleHidden() {
+    this.setState({ showHidden : !this.state.showHidden});
+  }
+
+  formatEvents(events, snoozed) {
     const abnormalsList = [];
+    let hiddenEvents = 0;
 
     Object.keys(events).forEach((account) => {
       Object.keys(events[account]).forEach((key) => {
         const event = events[account][key];
-        const abnormals = event.filter((item) => (item.abnormal));
+        const abnormals = event.filter((item) => (snoozed ? item.abnormal : (item.abnormal && !item.snoozed && !item.filtered && !item.recurrent)));
+        hiddenEvents += event.filter((item) => (item.snoozed || item.filtered || item.recurrent)).length;
         abnormals.forEach((element) => {
           abnormalsList.push({element, key, event});
         });
@@ -37,7 +52,7 @@ class EventsContainer extends Component {
 
     abnormalsList.sort((a, b) => ((moment(a.element.date).isBefore(b.element.date)) ? 1 : -1));
 
-    return abnormalsList.map((abnormal) => {
+    const nodes = abnormalsList.map((abnormal) => {
       const element = abnormal.element;
       const key = abnormal.key;
       const dataSet = abnormal.event;
@@ -47,10 +62,14 @@ class EventsContainer extends Component {
             dataSet={dataSet}
             abnormalElement={element}
             service={key}
+            snoozeFunc={this.props.snoozeEvent}
+            unsnoozeFunc={this.props.unsnoozeEvent}
           />
         </div>
       );
     });
+
+    return {nodes, hiddenEvents};
   }
 
   render() {
@@ -69,8 +88,12 @@ class EventsContainer extends Component {
     ) : null);
 
     let events = [];
-    if (this.props.values && this.props.values.status && this.props.values.values)
-      events = this.formatEvents(this.props.values.values);
+    let hiddenEvents = 0;
+    if (this.props.values && this.props.values.status && this.props.values.values) {
+      const data = this.formatEvents(this.props.values.values, this.state.showHidden);
+      events = data.nodes;
+      hiddenEvents = data.hiddenEvents;
+    }
 
     const emptyEvents = (!events.length && !loading && !noEvents ? (
       <div className="alert alert-success" role="alert">No events found for this timerange</div>
@@ -84,17 +107,47 @@ class EventsContainer extends Component {
       </div>
     ) : null);
 
+    const toggleHiddenButton = (hiddenEvents ? (
+      <div className="inline-block">
+        <Popover
+          icon={
+            <button className={"btn btn-default inline-block " + (this.state.showHidden ? "enabled" : "")} onClick={this.toggleHidden.bind(this)}>
+              <i className={"fa fa-eye" + (!this.state.showHidden ? "-slash" : "")}/>
+              &nbsp;
+              {hiddenEvents} hidden events
+            </button>
+          }
+          tooltip={"Click this to " + (this.state.showHidden ? "hide" : "see") + " snoozed / filtered / recurrent events"}
+          placement="top"
+        />
+      </div>
+    ) : (
+      <div className="btn btn-default inline-block disabled">
+        No hidden events
+      </div>
+    ));
+
     return (
       <div>
         <div className="row">
           <div className="col-md-12">
             <div className="white-box">
               <h3 className="white-box-title no-padding inline-block">
-                <i className="fa fa-exclamation-triangle"></i>
+                <i className="fa fa-exclamation-triangle"/>
                 &nbsp;
                 Events
               </h3>
               <div className="inline-block pull-right">
+                {toggleHiddenButton}
+                &nbsp;
+                <div className="inline-block">
+                  <Filters
+                    filters={this.props.filters}
+                    filterEdition={this.props.setFilters}
+                    actions={this.props.filtersActions}
+                  />
+                </div>
+                &nbsp;
                 {timerange}
               </div>
             </div>
@@ -114,6 +167,32 @@ EventsContainer.propTypes = {
   accounts: PropTypes.arrayOf(PropTypes.object),
   getData: PropTypes.func.isRequired,
   setDates: PropTypes.func.isRequired,
+  snoozeEvent: PropTypes.func.isRequired,
+  unsnoozeEvent: PropTypes.func.isRequired,
+  filtersActions: PropTypes.shape({
+    get: PropTypes.func.isRequired,
+    clear: PropTypes.func.isRequired,
+    set: PropTypes.func.isRequired,
+    clearSet: PropTypes.func.isRequired,
+  }).isRequired,
+  filters: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.arrayOf(
+      PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        desc: PropTypes.string.isRequired,
+        rule: PropTypes.string.isRequired,
+        data: PropTypes.isRequired,
+        disabled: PropTypes.bool.isRequired
+      })
+    )
+  }),
+  setFilters: PropTypes.shape({
+    status: PropTypes.bool.isRequired,
+    error: PropTypes.instanceOf(Error),
+    values: PropTypes.array
+  }),
 };
 
 /* istanbul ignore next */
@@ -121,6 +200,8 @@ const mapStateToProps = ({aws, events}) => ({
   dates: events.dates,
   accounts: aws.accounts.selection,
   values: events.values,
+  filters: events.getFilters,
+  setFilters: events.setFilters
 });
 
 /* istanbul ignore next */
@@ -130,6 +211,26 @@ const mapDispatchToProps = (dispatch) => ({
   },
   setDates: (startDate, endDate) => {
     dispatch(Actions.Events.setDates(startDate, endDate));
+  },
+  snoozeEvent: (id) => {
+    dispatch(Actions.Events.snoozeEvent(id));
+  },
+  unsnoozeEvent: (id) => {
+    dispatch(Actions.Events.unsnoozeEvent(id));
+  },
+  filtersActions: {
+    get: () => {
+      dispatch(Actions.Events.getFilters());
+    },
+    clear: () => {
+      dispatch(Actions.Events.clearGetFilters());
+    },
+    set: (filters) => {
+      dispatch(Actions.Events.setFilters(filters));
+    },
+    clearSet: () => {
+      dispatch(Actions.Events.clearSetFilters());
+    },
   }
 });
 

@@ -14,4 +14,12 @@ export default {
 		begin,
 		end
 	}),
+	snoozeEvent: (id) => ({
+		type: Constants.SNOOZE_EVENT,
+		id
+	}),
+	unsnoozeEvent: (id) => ({
+		type: Constants.UNSNOOZE_EVENT,
+		id
+	}),
 };
