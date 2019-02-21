@@ -120,8 +120,8 @@ func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date tim
 	if date.IsZero() {
 		dateBegin, dateEnd = history.GetHistoryDate()
 	} else {
-		dateBegin = date.AddDate(0, 1, 0)
-		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC().AddDate(0, 1, 0)
+		dateBegin = date
+		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
 	}
 
 	data = make([][]cell, 0, len(odToRiEc2InstanceFormat))
