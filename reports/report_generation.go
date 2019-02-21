@@ -70,6 +70,11 @@ var modules = []module{
 		ErrorName: "riRdsReportError",
 	},
 	{
+		Name:      "EC2 On Demand To Reserved Instances Report",
+		Function:  getOdToRiEc2UsageReport,
+		ErrorName: "odToRiEc2ReportError",
+	},
+	{
 		Name:      "Cost Differentiator Report",
 		Function:  getCostDiff,
 		ErrorName: "CostDifferentiatorError",
