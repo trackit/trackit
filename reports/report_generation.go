@@ -70,6 +70,11 @@ var modules = []module{
 		ErrorName: "riRdsReportError",
 	},
 	{
+		Name:      "EC2 On Demand To Reserved Instances Report",
+		Function:  getOdToRiEc2UsageReport,
+		ErrorName: "odToRiEc2ReportError",
+	},
+	{
 		Name:      "Cost Differentiator Report",
 		Function:  getCostDiff,
 		ErrorName: "CostDifferentiatorError",
@@ -81,7 +86,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, date time.Time) (err
 	reportDate := formatDate(date)
 	logger.Info("Generating spreadsheet for account", map[string]interface{}{
 		"account": aa,
-		"date": reportDate,
+		"date":    reportDate,
 	})
 	errs = make(map[string]error)
 
@@ -112,8 +117,8 @@ func GenerateMasterReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsA
 	reportDate := formatDate(date)
 	logger.Info("Generating master spreadsheet for accounts", map[string]interface{}{
 		"masterAccount": aa,
-		"accounts": aas,
-		"date": reportDate,
+		"accounts":      aas,
+		"date":          reportDate,
 	})
 	errs = make(map[string]error)
 
