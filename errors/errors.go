@@ -30,21 +30,15 @@ func GetErrorMessage(ctx context.Context, err error) error {
 	switch err.(type) {
 	case *elastic.Error:
 		formattedErr = getElasticSearchErrorMessage(ctx, err.(*elastic.Error))
-		break
-	case *json.InvalidUnmarshalError:
-	case *json.UnmarshalTypeError:
-	case *json.SyntaxError:
+	case *json.InvalidUnmarshalError, *json.UnmarshalTypeError, *json.SyntaxError:
 		formattedErr = getJsonErrorMessage(ctx, err)
-		break
 	case *DatabaseError:
 		formattedErr = getDatabaseErrorMessage(ctx, err.(*DatabaseError))
-		break
 	case *SharedAccountError:
 		formattedErr = getSharedAccountErrorMessage(ctx, err.(*SharedAccountError))
-		break
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
-			"type": fmt.Sprintf("%T", err),
+			"type":  fmt.Sprintf("%T", err),
 			"error": err,
 		})
 		formattedErr = errors.New("Internal Error")
@@ -56,13 +50,11 @@ func getElasticSearchErrorMessage(ctx context.Context, err *elastic.Error) error
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var formattedErr error
 	switch err.Details.Type {
-	case "search_phase_execution_exception":
-	case "index_not_found_exception":
+	case "search_phase_execution_exception", "index_not_found_exception":
 		formattedErr = errors.New("Data not available yet. Please check again in few hours.")
-		break
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
-			"type": fmt.Sprintf("%T", err),
+			"type":  fmt.Sprintf("%T", err),
 			"error": err,
 		})
 		formattedErr = errors.New("Error while getting data. Please check again in few hours.")
@@ -76,16 +68,13 @@ func getJsonErrorMessage(ctx context.Context, err error) error {
 	switch err.(type) {
 	case *json.InvalidUnmarshalError:
 		formattedErr = errors.New("Error while parsing data")
-		break
 	case *json.UnmarshalTypeError:
 		formattedErr = errors.New("Invalid type provided in data")
-		break
 	case *json.SyntaxError:
 		formattedErr = errors.New("Data format is invalid")
-		break
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
-			"type": fmt.Sprintf("%T", err),
+			"type":  fmt.Sprintf("%T", err),
 			"error": err,
 		})
 		formattedErr = errors.New("Internal Error")
