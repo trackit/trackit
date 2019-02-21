@@ -93,7 +93,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams RiEc2QueryParams
 	return res, http.StatusOK, nil
 }
 
-// createQueryAccountFilterRiEc2 creates and return a new *elastic.TermsQuery on the accountList array
+// createQueryAccountFilterRiEc2 creates and returns a new *elastic.TermsQuery on the accountList array
 func createQueryAccountFilterRiEc2(accountList []string) *elastic.TermsQuery {
 	accountListFormatted := make([]interface{}, len(accountList))
 	for i, v := range accountList {
@@ -102,7 +102,7 @@ func createQueryAccountFilterRiEc2(accountList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("account", accountListFormatted...)
 }
 
-// createQueryTimeRange creates and return a new *elastic.RangeQuery based on the duration
+// createQueryTimeRange creates and returns a new *elastic.RangeQuery based on the duration
 // defined by durationBegin and durationEnd
 func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elastic.RangeQuery {
 	return elastic.NewRangeQuery("reportDate").

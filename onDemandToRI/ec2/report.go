@@ -321,7 +321,6 @@ func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
 	}
 	unreservedIntances := getUnreservedInstances(instancesReport, reservationsReport)
 	report = calculateCosts(ctx, unreservedIntances, ec2Pricings, report)
-	logger.Debug("----> REPORT <-----", report)
 	return IngestOdToRiEc2Result(ctx, aa, report)
 }
 
@@ -333,17 +332,13 @@ func GetRiEc2Report(ctx context.Context, parsedParams RiEc2QueryParams, user use
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-
 	res, returnCode, err := makeElasticSearchRequest(ctx, parsedParams, getElasticSearchRiEc2Params)
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("-----------ERR-------", err)
 	if err != nil {
 		return returnCode, nil, err
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
 	reports, err := prepareResponseRiEc2(ctx, res)
-	logger.Debug("-----------ERR2-------", err)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
