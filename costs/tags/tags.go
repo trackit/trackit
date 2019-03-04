@@ -27,6 +27,70 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
+// tagsValuesQueryParams will store the parsed query params for /tags/values endpoint
+type tagsValuesQueryParams struct {
+	AccountList []string  `json:"awsAccounts"`
+	IndexList   []string  `json:"indexes"`
+	DateBegin   time.Time `json:"begin"`
+	DateEnd     time.Time `json:"end"`
+	TagsKeys    []string  `json:"keys"`
+	By          string    `json:"by"`
+}
+
+// tagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
+type tagsKeysQueryParams struct {
+	AccountList []string  `json:"awsAccounts"`
+	IndexList   []string  `json:"indexes"`
+	DateBegin   time.Time `json:"begin"`
+	DateEnd     time.Time `json:"end"`
+}
+
+type untaggedQueryParams struct {
+	AccountList []string  `json:"awsAccounts"`
+	IndexList   []string  `json:"indexes"`
+	DateBegin   time.Time `json:"begin "`
+	DateEnd     time.Time `json:"end"`
+	TagKey      string    `json:"key"`
+}
+
+// tagsValuesQueryArgs allows to get required queryArgs params for /tags/values endpoint
+var tagsValuesQueryArgs = []routes.QueryArg{
+	routes.AwsAccountsOptionalQueryArg,
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
+	routes.QueryArg{
+		Name:        "keys",
+		Description: "keys of the tags to search",
+		Type:        routes.QueryArgStringSlice{},
+		Optional:    true,
+	},
+	routes.QueryArg{
+		Name:        "by",
+		Description: "Criteria for the ES aggregation: product, availabilityzone, region or account.",
+		Type:        routes.QueryArgString{},
+		Optional:    false,
+	},
+}
+
+// tagsKeysQueryArgs allows to get required queryArgs params for /tags/keys endpoint
+var tagsKeysQueryArgs = []routes.QueryArg{
+	routes.AwsAccountsOptionalQueryArg,
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
+}
+
+var untaggedQueryArgs = []routes.QueryArg{
+	routes.AwsAccountsOptionalQueryArg,
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
+	routes.QueryArg{
+		Name:        "key",
+		Description: "Tag key to check the untagged resources against",
+		Type:        routes.QueryArgString{},
+		Optional:    false,
+	},
+}
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(getTagsValues).With(
@@ -50,35 +114,17 @@ func init() {
 			},
 		),
 	}.H().Register("/costs/tags/keys")
-}
-
-// tagsValuesQueryArgs allows to get required queryArgs params for /tags/values endpoint
-var tagsValuesQueryArgs = []routes.QueryArg{
-	routes.AwsAccountsOptionalQueryArg,
-	routes.DateBeginQueryArg,
-	routes.DateEndQueryArg,
-	routes.QueryArg{
-		Name:        "keys",
-		Description: "keys of the tags to search",
-		Type:        routes.QueryArgStringSlice{},
-		Optional:    true,
-	},
-	routes.QueryArg{
-		Name:        "by",
-		Description: "Criteria for the ES aggregation: product, availabilityzone, region or account.",
-		Type:        routes.QueryArgString{},
-		Optional:    false,
-	},
-}
-
-// tagsValuesQueryParams will store the parsed query params for /tags/values endpoint
-type tagsValuesQueryParams struct {
-	AccountList []string  `json:"awsAccounts"`
-	IndexList   []string  `json:"indexes"`
-	DateBegin   time.Time `json:"begin"`
-	DateEnd     time.Time `json:"end"`
-	TagsKeys    []string  `json:"keys"`
-	By          string    `json:"by"`
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(getUntaggedResources).With(
+			db.RequestTransaction{Db: db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(untaggedQueryArgs),
+			routes.Documentation{
+				Summary:     "get list of untagged resources",
+				Description: "get list of either tagged resources with empty value, or untagged resources, with filter for a specified time range, aws account and key",
+			},
+		),
+	}.H().Register("/costs/tags/untagged")
 }
 
 // getTagsValues returns tags and their values (cost) based on the query params, in JSON format.
@@ -111,21 +157,6 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	return getTagsValuesWithParsedParams(request.Context(), parsedParams)
 }
 
-// tagsKeysQueryArgs allows to get required queryArgs params for /tags/keys endpoint
-var tagsKeysQueryArgs = []routes.QueryArg{
-	routes.AwsAccountsOptionalQueryArg,
-	routes.DateBeginQueryArg,
-	routes.DateEndQueryArg,
-}
-
-// tagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
-type tagsKeysQueryParams struct {
-	AccountList []string  `json:"awsAccounts"`
-	IndexList   []string  `json:"indexes"`
-	DateBegin   time.Time `json:"begin"`
-	DateEnd     time.Time `json:"end"`
-}
-
 // getTagsKeys returns the list of the tag keys based on the query params, in JSON format.
 func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
@@ -146,4 +177,27 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
 	return getTagsKeysWithParsedParams(request.Context(), parsedParams)
+}
+
+// getUntaggedResources will return the list of resources that have an empty tag
+func getUntaggedResources(request *http.Request, a routes.Arguments) (int, interface{}) {
+	user := a[users.AuthenticatedUser].(users.User)
+	parsedParams := untaggedQueryParams{
+		AccountList: []string{},
+		IndexList:   []string{},
+		DateBegin:   a[untaggedQueryArgs[1]].(time.Time),
+		DateEnd:     a[untaggedQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
+		TagKey:      a[untaggedQueryArgs[3]].(string),
+	}
+	if a[untaggedQueryArgs[0]] != nil {
+		parsedParams.AccountList = a[untaggedQueryArgs[0]].([]string)
+	}
+	tx := a[db.Transaction].(*sql.Tx)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	if err != nil {
+		return returnCode, err
+	}
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	return getUntaggedResourcesWithParsedParams(request.Context(), parsedParams)
 }
