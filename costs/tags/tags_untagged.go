@@ -30,30 +30,39 @@ import (
 type (
 	esUntaggedValueResults struct {
 		Buckets []struct {
-			ResourceType string             `json:"key"`
-			ResourceID   esResourceIDResult `json:"resourceId"`
+			AccountID    string `json:"key"`
+			ResourceType struct {
+				Buckets []struct {
+					ResourceType string `json:"key"`
+					ResourceID   struct {
+						Buckets []struct {
+							ResourceID string `json:"key"`
+						} `json:"buckets"`
+					} `json:"resourceId"`
+				} `json:"buckets"`
+			} `json:"resourceType"`
 		} `json:"buckets"`
 	}
 
-	esResourceIDResult struct {
-		Buckets []struct {
-			ResourceID string `json:"key"`
-		} `json:"buckets"`
-	}
-
-	// UntaggedResourceID contains the resourceID of the resource
+	// UntaggedResourceID contains the ResourceID
 	UntaggedResourceID struct {
 		ResourceID string `json:"resource_id"`
 	}
 
-	// UntaggedResourceType contains the resourceType and a list of UntaggedResourceID
+	// UntaggedResourceType contains the ResourceType and a list of UntaggedResourceID
 	UntaggedResourceType struct {
 		ResourceType string               `json:"resource_type"`
 		ResourceID   []UntaggedResourceID `json:"resource_ids"`
 	}
 
+	// UntaggedAccountID contains the AccountID and a list of UntaggedResourceType
+	UntaggedAccountID struct {
+		AccountID    string                 `json:"account_id"`
+		ResourceType []UntaggedResourceType `json:"resource_types"`
+	}
+
 	// UntaggedResourcesResponse is the format for the endpoint response
-	UntaggedResourcesResponse map[string][]UntaggedResourceType
+	UntaggedResourcesResponse map[string][]UntaggedAccountID
 )
 
 // getUntaggedResourcesWithParsedParams will parse the data from teh ElasticSearch and return it
@@ -68,23 +77,32 @@ func getUntaggedResourcesWithParsedParams(ctx context.Context, params untaggedQu
 		}
 		return returnCode, errors.GetErrorMessage(ctx, err)
 	}
-	err = json.Unmarshal(*res.Aggregations["resourceType"], &typedDocument)
+	err = json.Unmarshal(*res.Aggregations["accountId"], &typedDocument)
 	if err != nil {
-		l.Error("Error whil unmarshalling", err)
+		l.Error("Error while unmarshalling", err)
 		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
-	var resourceType []UntaggedResourceType
-	for _, key := range typedDocument.Buckets {
-		var resourceID []UntaggedResourceID
-		for _, value := range key.ResourceID.Buckets {
-			resourceID = append(resourceID, UntaggedResourceID{ResourceID: value.ResourceID})
+	var resultAccountID []UntaggedAccountID
+	for _, accountID := range typedDocument.Buckets {
+		var resultResourceType []UntaggedResourceType
+		for _, resourceType := range accountID.ResourceType.Buckets {
+			var resultResourceID []UntaggedResourceID
+			for _, resourceID := range resourceType.ResourceID.Buckets {
+				resultResourceID = append(resultResourceID, UntaggedResourceID{
+					ResourceID: resourceID.ResourceID,
+				})
+			}
+			resultResourceType = append(resultResourceType, UntaggedResourceType{
+				ResourceType: resourceType.ResourceType,
+				ResourceID:   resultResourceID,
+			})
 		}
-		resourceType = append(resourceType, UntaggedResourceType{
-			ResourceType: key.ResourceType,
-			ResourceID:   resourceID,
+		resultAccountID = append(resultAccountID, UntaggedAccountID{
+			AccountID:    accountID.AccountID,
+			ResourceType: resultResourceType,
 		})
 	}
-	response[params.TagKey] = resourceType
+	response[params.TagKey] = resultAccountID
 	return http.StatusOK, response
 }
 
@@ -100,7 +118,7 @@ func makeElasticSearchRequestForUntaggedResources(ctx context.Context, params un
 	index := strings.Join(params.IndexList, ",")
 	aggregation := getUntaggedAggregation()
 	search := client.Search().Index(index).Size(0).Query(query).Pretty(true)
-	search.Aggregation("resourceType", aggregation)
+	search.Aggregation("accountId", aggregation)
 	res, err := search.Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {
@@ -126,8 +144,9 @@ func makeElasticSearchRequestForUntaggedResources(ctx context.Context, params un
 
 // getUntaggedAggregation will generate the Aggregation for the query
 func getUntaggedAggregation() *elastic.TermsAggregation {
-	aggregation := elastic.NewTermsAggregation().Field("productCode").Size(maxAggregationSize).SubAggregation("resourceId",
-		elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize))
+	aggregation := elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).SubAggregation("resourceType",
+		elastic.NewTermsAggregation().Field("productCode").Size(maxAggregationSize).SubAggregation("resourceId",
+			elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize)))
 	return aggregation
 }
 
