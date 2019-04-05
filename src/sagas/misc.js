@@ -156,10 +156,8 @@ export const initialDashboard = () => {
 
 export const initialTagsCharts = () => {
   const id1 = UUID();
-  const id2 = UUID();
   let charts = {};
   charts[id1] = "";
-  charts[id2] = "";
   let dates = {};
   Object.keys(charts).forEach((id) => {
     dates[id] = {
@@ -169,6 +167,5 @@ export const initialTagsCharts = () => {
   });
   let filters = {};
   filters[id1] = "product";
-  filters[id2] = "region";
   return { charts, dates, filters };
 };
