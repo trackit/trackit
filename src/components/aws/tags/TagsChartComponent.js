@@ -32,7 +32,7 @@ class TagsChartComponent extends Component {
   }
 
   componentWillMount() {
-    const datum = transformItemsPieChart(this.props.values).map((item) => ({...item, key: (item.key === "No tag" ? " No tag" : item.key)}));
+    const datum = transformItemsPieChart(this.props.values);
     const total = '$' + d3.format(',.2f')(getTotalPieChart(datum));
     this.setState({datum, total});
   }

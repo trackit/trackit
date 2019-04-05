@@ -20,7 +20,7 @@ const clearTooltips = () => {
   }
 };
 
-const minimalCount = 1;
+const minimalCount = 2;
 
 export class TagsContainer extends Component {
 
