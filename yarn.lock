@@ -15,15 +15,23 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
+"@babel/runtime@7.0.0-rc.1":
+  version "7.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.0.0-rc.1.tgz#42f36fc5817911c89ea75da2b874054922967616"
+  integrity sha512-Nifv2kwP/nwR39cAOasNxzjYfpeuf/ZbZNtQz5eYxWTC9yHARU9wItFnAwz1GTZ62MU+AtSjzZPMbLK5Q9hmbg==
+  dependencies:
+    regenerator-runtime "^0.12.0"
+
 "@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2":
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.1.2.tgz#81c89935f4647706fc54541145e6b4ecfef4b8e3"
   dependencies:
     regenerator-runtime "^0.12.0"
 
-"@material-ui/core@^1.4.3":
+"@material-ui/core@~1.4.3":
   version "1.4.3"
   resolved "https://registry.yarnpkg.com/@material-ui/core/-/core-1.4.3.tgz#e6bc29b441c07932cc64fffb02670792b119fb8e"
+  integrity sha512-E9HwCIZ8PhxrZ1cRXo929soEkdYSAOiDZYCYksh1YjfIN++Q5l8MTJukDOtgdcYCKzlpjxg9TrgiceL247TRlg==
   dependencies:
     "@babel/runtime" "7.0.0-beta.42"
     "@types/jss" "^9.5.3"
@@ -53,11 +61,12 @@
     recompose "^0.28.0"
     warning "^4.0.1"
 
-"@material-ui/icons@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@material-ui/icons/-/icons-2.0.1.tgz#1151cc66a3d41099de3ddaac33488e399d3425f0"
+"@material-ui/icons@~2.0.1":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@material-ui/icons/-/icons-2.0.3.tgz#d3da9d6e31b1adfbc48efe33c7cb75b32b784096"
+  integrity sha512-wgKUB4vgCzdKseV3MHdsR7lZMyNYKykrghKX4GHuMmlZrrWMh26jO1E6xyjuCpJ/E8DX+m+YGURbBYN9CxZ+rw==
   dependencies:
-    "@babel/runtime" "7.0.0-beta.42"
+    "@babel/runtime" "7.0.0-rc.1"
     recompose "^0.28.0"
 
 "@react-bootstrap/react-popper@1.2.1":
@@ -70,6 +79,58 @@
     prop-types "^15.6.1"
     typed-styles "^0.0.5"
     warning "^3.0.0"
+
+"@sentry/browser@~4.4.1":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@sentry/browser/-/browser-4.4.2.tgz#8d361778962ef8ab1540e4ebbf64d485903abdf1"
+  integrity sha512-km5p3hPz+aoY4UiEvYxAdRJAbIK30urZSuMs/3zAUVe+8Zij0IHjHmdi9JtrMqpn+rAcWCxtRmFSYlkiKjdSUg==
+  dependencies:
+    "@sentry/core" "4.4.2"
+    "@sentry/types" "4.4.2"
+    "@sentry/utils" "4.4.2"
+    tslib "^1.9.3"
+
+"@sentry/core@4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@sentry/core/-/core-4.4.2.tgz#562526bc634c087f04bbca68b09cedc4b41cc64d"
+  integrity sha512-hJyAodTCf4sZfVdf41Rtuzj4EsyzYq5rdMZ+zc2Vinwdf8D0/brHe91fHeO0CKXEb2P0wJsrjwMidG/ccq/M8A==
+  dependencies:
+    "@sentry/hub" "4.4.2"
+    "@sentry/minimal" "4.4.2"
+    "@sentry/types" "4.4.2"
+    "@sentry/utils" "4.4.2"
+    tslib "^1.9.3"
+
+"@sentry/hub@4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@sentry/hub/-/hub-4.4.2.tgz#1399556fda06fb83c4f186c4aa842725f520159c"
+  integrity sha512-oe9ytXkTWyD+QmOpVzHAqTbRV4Hc0ee2Nt6HvrDtRmlXzQxfvTWG2F8KYT6w8kzqg5klnuRpnsmgTTV3KuNBVQ==
+  dependencies:
+    "@sentry/types" "4.4.2"
+    "@sentry/utils" "4.4.2"
+    tslib "^1.9.3"
+
+"@sentry/minimal@4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@sentry/minimal/-/minimal-4.4.2.tgz#13fffc6b17a2401b6a79947838a637626ab80b10"
+  integrity sha512-GEZZiNvVgqFAESZhAe3vjwTInn13lI2bSI3ItQN4RUWKL/W4n/fwVoDJbkb1U8aWxanuMnRDEpKwyQv6zYTZfw==
+  dependencies:
+    "@sentry/hub" "4.4.2"
+    "@sentry/types" "4.4.2"
+    tslib "^1.9.3"
+
+"@sentry/types@4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@sentry/types/-/types-4.4.2.tgz#f38dd3bc671cd2f5983a85553aebeac9c2286b17"
+  integrity sha512-QyQd6PKKIyjJgaq/RQjsxPJEWbXcuiWZ9RvSnhBjS5jj53HEzkM1qkbAFqlYHJ1DTJJ1EuOM4+aTmGzHe93zuA==
+
+"@sentry/utils@4.4.2":
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@sentry/utils/-/utils-4.4.2.tgz#e05a47e135ecef29e63a996f59aee8c8f792c222"
+  integrity sha512-j/Ad8G1abHlJdD2q7aWWbSOSeWB5M5v1R1VKL8YPlwEbSvvmEQWePhBKFI0qlnKd2ObdUQsj86pHEXJRSFNfCw==
+  dependencies:
+    "@sentry/types" "4.4.2"
+    tslib "^1.9.3"
 
 "@types/events@*":
   version "1.1.0"
@@ -1212,9 +1273,10 @@ bootstrap-daterangepicker@^2.1.25:
     jquery ">=1.10"
     moment "^2.9.0"
 
-bootstrap@^4.1.3:
+bootstrap@~4.1.3:
   version "4.1.3"
   resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.1.3.tgz#0eb371af2c8448e8c210411d0cb824a6409a12be"
+  integrity sha512-rDFIzgXcof0jDyjNosjv4Sno77X4KuPeFxG2XZZv1/Kc8DRVGVADdoQyyOVDwPqL36DDmtCQbrpMCqvpPLJQ0w==
 
 boxen@^0.6.0:
   version "0.6.0"
@@ -1522,9 +1584,10 @@ classnames@2.x, classnames@^2.2.3, classnames@^2.2.5:
   version "2.2.5"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.5.tgz#fb3801d453467649ef3603c7d61a02bd129bde6d"
 
-classnames@^2.2.6:
+classnames@^2.2.6, classnames@~2.2.6:
   version "2.2.6"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
+  integrity sha512-JR/iSQOSt+LQIWwrwEzJ9uk0xfN3mTVYMwt1Ir5mUcSN6pU+V4zQFFaJsclJbPuAUQH+yfWef6tm7l1quW3C8Q==
 
 clean-css@4.1.x:
   version "4.1.9"
@@ -2718,9 +2781,10 @@ expand-tilde@^2.0.0, expand-tilde@^2.0.2:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-express-cache-controller@^1.1.0:
+express-cache-controller@~1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/express-cache-controller/-/express-cache-controller-1.1.0.tgz#fa8f02e0ec40374ce552522526b6aab883c76048"
+  integrity sha512-aRGah9AdVUqyChcFjbL03SVW0c6siE871wzMRuXxCONzYiBDmUtGFEnzZP1ABM6nCo3ovnKPntFRFzAxGqmWtw==
   dependencies:
     lodash.isnumber "^3.0.3"
     on-headers "^1.0.1"
@@ -2878,9 +2942,10 @@ file-loader@0.11.2:
   dependencies:
     loader-utils "^1.0.2"
 
-file-saver@^1.3.8:
+file-saver@~1.3.8:
   version "1.3.8"
   resolved "https://registry.yarnpkg.com/file-saver/-/file-saver-1.3.8.tgz#e68a30c7cb044e2fb362b428469feb291c2e09d8"
+  integrity sha512-spKHSBQIxxS81N/O21WmuXA2F6wppUCsutpzenOeZzOCCJ5gEfcbqJP983IrpLXzYmXnMUa6J03SubcNPdKrlg==
 
 filename-regex@^2.0.0:
   version "2.0.1"
@@ -5392,6 +5457,11 @@ popper.js@^1.14.1, popper.js@^1.14.3, popper.js@^1.14.4:
   version "1.14.4"
   resolved "https://registry.yarnpkg.com/popper.js/-/popper.js-1.14.4.tgz#8eec1d8ff02a5a3a152dd43414a15c7b79fd69b6"
 
+popper.js@~1.14.4:
+  version "1.14.7"
+  resolved "https://registry.yarnpkg.com/popper.js/-/popper.js-1.14.7.tgz#e31ec06cfac6a97a53280c3e55e4e0c860e7738e"
+  integrity sha512-4q1hNvoUre/8srWsH7hnoSJ5xVmIL4qgz+s4qf2TnJIMyZFUFMGH+9vE7mXynAlHSZ/NdTmmow86muD0myUkVQ==
+
 portfinder@^1.0.9:
   version "1.0.13"
   resolved "https://registry.yarnpkg.com/portfinder/-/portfinder-1.0.13.tgz#bb32ecd87c27104ae6ee44b5a3ccbf0ebb1aede9"
@@ -5866,6 +5936,11 @@ range-parser@^1.0.3, range-parser@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.0.tgz#f49be6b487894ddc40dcc94a322f611092e00d5e"
 
+raven-js@^3.1.1:
+  version "3.27.0"
+  resolved "https://registry.yarnpkg.com/raven-js/-/raven-js-3.27.0.tgz#9f47c03e17933ce756e189f3669d49c441c1ba6e"
+  integrity sha512-vChdOL+yzecfnGA+B5EhEZkJ3kY3KlMzxEhShKh6Vdtooyl0yZfYNFQfYzgMf2v4pyQa+OTZ5esTxxgOOZDHqw==
+
 raw-body@2.3.2:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/raw-body/-/raw-body-2.3.2.tgz#bcd60c77d3eb93cde0050295c3f379389bc88f89"
@@ -5891,9 +5966,10 @@ react-bootstrap-daterangepicker@~3.4.1:
     bootstrap-daterangepicker "^2.1.25"
     object-assign "^4.1.1"
 
-react-bootstrap@^1.0.0-beta.1:
+react-bootstrap@1.0.0-beta.1:
   version "1.0.0-beta.1"
   resolved "https://registry.yarnpkg.com/react-bootstrap/-/react-bootstrap-1.0.0-beta.1.tgz#976cd1f94d86785f374b00d7674e03ae72d37c0c"
+  integrity sha512-xuImr1uQorUmqCePlQQKzuYATk09q6sSTOSVHtLkUxGDm9A+3mckmZ5+KyWXK3aSM6VQ/0e63g2JPzAyneAnig==
   dependencies:
     "@babel/runtime" "^7.0.0"
     "@react-bootstrap/react-popper" "1.2.1"
@@ -5991,9 +6067,10 @@ react-event-listener@^0.6.2:
     prop-types "^15.6.0"
     warning "^4.0.1"
 
-react-grid-layout@^0.16.4:
-  version "0.16.4"
-  resolved "https://registry.yarnpkg.com/react-grid-layout/-/react-grid-layout-0.16.4.tgz#8305b18930e69af047757f16a6931f6b1deecbe8"
+react-grid-layout@~0.16.4:
+  version "0.16.6"
+  resolved "https://registry.yarnpkg.com/react-grid-layout/-/react-grid-layout-0.16.6.tgz#9b2407a2b946c2260ebaf66f13b556e1da4efeb2"
+  integrity sha512-h2EsYgsqcESLJeevQSJsEKp8hhh+phOlXDJoMhlV2e7T3VWQL+S6iCF3iD/LK19r4oyRyOMDEir0KV+eLXrAyw==
   dependencies:
     classnames "2.x"
     lodash.isequal "^4.0.0"
@@ -6096,9 +6173,10 @@ react-router@^4.2.0:
     prop-types "^15.5.4"
     warning "^3.0.0"
 
-react-spinkit@^3.0.0:
+react-spinkit@~3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/react-spinkit/-/react-spinkit-3.0.0.tgz#31fdaf4e18177766c57d1b1f3330290f8492a85a"
+  integrity sha1-Mf2vThgXd2bFfRsfMzApD4SSqFo=
   dependencies:
     classnames "^2.2.3"
     loaders.css "^0.1.2"
@@ -6289,6 +6367,13 @@ reduce-function-call@^1.0.1:
   resolved "https://registry.yarnpkg.com/reduce-function-call/-/reduce-function-call-1.0.2.tgz#5a200bf92e0e37751752fe45b0ab330fd4b6be99"
   dependencies:
     balanced-match "^0.4.2"
+
+redux-raven-middleware@~1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/redux-raven-middleware/-/redux-raven-middleware-1.2.0.tgz#50d02dd653cf93d2df18c4652149f1009bbbe33d"
+  integrity sha1-UNAt1lPPk9LfGMRlIUnxAJu74z0=
+  dependencies:
+    raven-js "^3.1.1"
 
 redux-saga@~0.15.6:
   version "0.15.6"
@@ -7161,6 +7246,11 @@ tryit@^1.0.1:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/tryit/-/tryit-1.0.3.tgz#393be730a9446fd1ead6da59a014308f36c289cb"
 
+tslib@^1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
+  integrity sha512-4krF8scpejhaOgqzBEcGM7yDIEfi0/8+8zDRZhNZZ2kjmHJ4hv3zCbQWxoJGz1iw5U0Jl0nma13xzHXcncMavQ==
+
 tty-browserify@0.0.0:
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/tty-browserify/-/tty-browserify-0.0.0.tgz#a157ba402da24e9bf957f9aa69d524eed42901a6"
@@ -7357,9 +7447,10 @@ uuid@^3.0.0, uuid@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
 
-uuid@^3.2.1:
+uuid@~3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.2.1.tgz#12c528bb9d58d0b9265d9a2f6f0fe8be17ff1f14"
+  integrity sha512-jZnMwlb9Iku/O3smGWvZhauCf6cvvpKi4BKRiliS3cxnI+Gz9j5MEpTz2UFuXiKPJocb7gnsLHwiS05ige5BEA==
 
 validate-npm-package-license@^3.0.1:
   version "3.0.1"
