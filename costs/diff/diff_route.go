@@ -36,6 +36,11 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
+type DateRange struct {
+	Begin time.Time
+	End   time.Time
+}
+
 type usageType = map[string]interface{}
 
 // validAggregationPeriodMap is a map that defines the aggregation period

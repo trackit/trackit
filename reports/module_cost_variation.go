@@ -62,38 +62,40 @@ var costVariationLast6Months = module{
 }
 
 func costVariationGenerateLastMonth(ctx context.Context, aas []aws.AwsAccount, date time.Time, _ *sql.Tx, file *excelize.File) (err error) {
-	var dateRange = make([]time.Time, 2)
+	var dateRange diff.DateRange
 	if date.IsZero() {
-		dateRange[0], dateRange[1] = history.GetHistoryDate()
+		dateRange.Begin, dateRange.End = history.GetHistoryDate()
 	} else {
-		dateRange[0] = date
-		dateRange[1] = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
+		dateRange = diff.DateRange{
+			Begin: date,
+			End:   time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC(),
+		}
 	}
-	dates := make([]time.Time, dateRange[1].Day())
+	dates := make([]time.Time, dateRange.End.Day())
 	for index := range dates {
-		dates[index] = dateRange[0].AddDate(0, 0, index)
+		dates[index] = dateRange.Begin.AddDate(0, 0, index)
 	}
 	frequency := costVariationFrequency{costVariationLastMonthSheetName, "Daily Cost", "day", "2006-01-02", dates}
 	return costVariationGenerateSheet(ctx, aas, dateRange, frequency, file)
 }
 
 func costVariationGenerateLast6Months(ctx context.Context, aas []aws.AwsAccount, date time.Time, _ *sql.Tx, file *excelize.File) (err error) {
-	var dateRange = make([]time.Time, 2)
+	var dateRange diff.DateRange
 	if date.IsZero() {
-		_, dateRange[1] = history.GetHistoryDate()
+		_, dateRange.End = history.GetHistoryDate()
 	} else {
-		dateRange[1] = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
+		dateRange.End = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
 	}
-	dateRange[0] = time.Date(dateRange[1].Year(), dateRange[1].Month()-5, 1, 0, 0, 0, 0, dateRange[1].Location()).UTC()
+	dateRange.Begin = time.Date(dateRange.End.Year(), dateRange.End.Month()-5, 1, 0, 0, 0, 0, dateRange.End.Location()).UTC()
 	dates := make([]time.Time, 6)
 	for index := range dates {
-		dates[index] = dateRange[0].AddDate(0, index, 0)
+		dates[index] = dateRange.Begin.AddDate(0, index, 0)
 	}
 	frequency := costVariationFrequency{costVariationLast6MonthsSheetName, "Monthly Cost", "month", "2006-01", dates}
 	return costVariationGenerateSheet(ctx, aas, dateRange, frequency, file)
 }
 
-func costVariationGenerateSheet(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency, file *excelize.File) (err error) {
+func costVariationGenerateSheet(ctx context.Context, aas []aws.AwsAccount, dateRange diff.DateRange, frequency costVariationFrequency, file *excelize.File) (err error) {
 	data, err := costVariationGetData(ctx, aas, dateRange, frequency)
 	if err == nil {
 		return costVariationInsertDataInSheet(ctx, aas, dateRange, frequency, file, data)
@@ -102,12 +104,12 @@ func costVariationGenerateSheet(ctx context.Context, aas []aws.AwsAccount, dateR
 	}
 }
 
-func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency) (data map[aws.AwsAccount]costVariationReport, err error) {
+func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange diff.DateRange, frequency costVariationFrequency) (data map[aws.AwsAccount]costVariationReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Getting Cost Variation Report for accounts", map[string]interface{}{
 		"accounts":    aas,
-		"dateStart":   dateRange[0],
-		"dateEnd":     dateRange[1],
+		"dateStart":   dateRange.Begin,
+		"dateEnd":     dateRange.End,
 		"aggregation": frequency.Aggregation,
 	})
 	data = make(map[aws.AwsAccount]costVariationReport, len(aas))
@@ -117,8 +119,8 @@ func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange [
 			logger.Error("An error occurred while generating a Cost Variation Report", map[string]interface{}{
 				"error":     err,
 				"account":   account,
-				"dateStart": dateRange[0],
-				"dateEnd":   dateRange[1],
+				"dateStart": dateRange.Begin,
+				"dateEnd":   dateRange.End,
 			})
 			return data, err
 		}
@@ -130,8 +132,8 @@ func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange [
 					"error":     err,
 					"account":   account,
 					"values":    values,
-					"dateStart": dateRange[0],
-					"dateEnd":   dateRange[1],
+					"dateStart": dateRange.Begin,
+					"dateEnd":   dateRange.End,
 				})
 				return data, err
 			}
@@ -140,7 +142,7 @@ func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange [
 	return
 }
 
-func costVariationInsertDataInSheet(_ context.Context, _ []aws.AwsAccount, _ []time.Time, frequency costVariationFrequency, file *excelize.File, data map[aws.AwsAccount]costVariationReport) (err error) {
+func costVariationInsertDataInSheet(_ context.Context, _ []aws.AwsAccount, _ diff.DateRange, frequency costVariationFrequency, file *excelize.File, data map[aws.AwsAccount]costVariationReport) (err error) {
 	file.NewSheet(frequency.SheetName)
 	costVariationGenerateHeader(file, frequency.SheetName, frequency.Dates, frequency)
 	line := 4
