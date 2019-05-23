@@ -17,16 +17,15 @@ package reports
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/config"
 )
-
-/* TODO: Add png into container or store into S3 bucket */
-const img = "./reports/introduction.png"
 
 const templateSheetName = "Introduction"
 
@@ -40,8 +39,22 @@ var templateModule = module{
 func generateTemplateSheet(ctx context.Context, _ []aws.AwsAccount, _ time.Time, _ *sql.Tx, file *excelize.File) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
+	if len(config.ReportsCover) == 0 {
+		return
+	}
+
+	imageUrlSplit := strings.Split(config.ReportsCover, "/")
+	imageFile := strings.Split(imageUrlSplit[len(imageUrlSplit)-1], ".")
+	image, err := downloadFile(config.ReportsCover)
+	if err != nil {
+		logger.Error("An error occured while downloading cover for report", map[string]interface{}{
+			"error": err,
+			"cover": config.ReportsCover,
+		})
+	}
+
 	file.NewSheet(templateSheetName)
-	err = file.AddPicture(templateSheetName, "A1", img, `{"x_scale": 0.95, "y_scale": 1}`)
+	err = file.AddPictureFromBytes(templateSheetName, "A1", `{"x_scale": 0.95, "y_scale": 1}`, imageFile[0], "."+imageFile[len(imageFile)-1], image)
 
 	if err != nil {
 		logger.Error("An error occured while generating template for report", map[string]interface{}{

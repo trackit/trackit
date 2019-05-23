@@ -1,8 +1,12 @@
 package reports
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 
 	"github.com/trackit/trackit-server/aws"
@@ -74,4 +78,22 @@ func formatTags(tags map[string]string) []string {
 		formattedTags = append(formattedTags, fmt.Sprintf("%s:%s", key, value))
 	}
 	return formattedTags
+}
+
+func downloadFile(url string) (data []byte, err error) {
+	res, err := http.Get(url)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, errors.New(res.Status)
+	}
+	var buffer bytes.Buffer
+	_, err = io.Copy(&buffer, res.Body)
+	if err != nil {
+		return
+	}
+	data = buffer.Bytes()
+	return
 }
