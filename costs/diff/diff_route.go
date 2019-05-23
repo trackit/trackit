@@ -34,6 +34,11 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
+type DateRange struct {
+	Begin time.Time
+	End   time.Time
+}
+
 type usageType = map[string]interface{}
 
 // validAggregationPeriodMap is a map that defines the aggregation period
@@ -144,11 +149,13 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 }
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
-func TaskDiffData(ctx context.Context, aa aws.AwsAccount, dateRange []time.Time, aggregationPeriod string) (data costDiff, err error) {
+// dateRange[0] is the date of the start of the range
+// dateRange[1] is the date of the end of the range
+func TaskDiffData(ctx context.Context, aa aws.AwsAccount, dateRange DateRange, aggregationPeriod string) (data costDiff, err error) {
 	parsedParams := esQueryParams{
 		accountList:       []string{aa.AwsIdentity},
-		dateBegin:         dateRange[0],
-		dateEnd:           dateRange[1],
+		dateBegin:         dateRange.Begin,
+		dateEnd:           dateRange.End,
 		aggregationPeriod: aggregationPeriod,
 	}
 	var tx *sql.Tx
