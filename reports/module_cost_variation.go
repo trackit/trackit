@@ -31,8 +31,8 @@ import (
 )
 
 type (
-	costVariationProduct map[time.Time]diff.PricePoint
-	costVariationReport map[string]costVariationProduct
+	costVariationProduct   map[time.Time]diff.PricePoint
+	costVariationReport    map[string]costVariationProduct
 	costVariationFrequency struct {
 		SheetName   string
 		Title       string
@@ -43,18 +43,18 @@ type (
 )
 
 const (
-	costVariationLastMonthSheetName = "Cost Variations (Last Month)"
+	costVariationLastMonthSheetName   = "Cost Variations (Last Month)"
 	costVariationLast6MonthsSheetName = "Cost Variations (Last 6 Months)"
 )
 
-var costVariationLastMonth = module {
+var costVariationLastMonth = module{
 	Name:          "Cost Variations (Last Month)",
 	SheetName:     costVariationLastMonthSheetName,
 	ErrorName:     "costVariationLastMonthError",
 	GenerateSheet: costVariationGenerateLastMonth,
 }
 
-var costVariationLast6Months = module {
+var costVariationLast6Months = module{
 	Name:          "Cost Variations (Last 6 Months)",
 	SheetName:     costVariationLast6MonthsSheetName,
 	ErrorName:     "costVariationLastSixMonthsError",
@@ -82,9 +82,9 @@ func costVariationGenerateLast6Months(ctx context.Context, aas []aws.AwsAccount,
 	if date.IsZero() {
 		_, dateRange[1] = history.GetHistoryDate()
 	} else {
-		dateRange[1] = time.Date(date.Year(), date.Month() + 1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
+		dateRange[1] = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
 	}
-	dateRange[0] = time.Date(dateRange[1].Year(), dateRange[1].Month() - 5, 1, 0, 0, 0, 0, dateRange[1].Location()).UTC()
+	dateRange[0] = time.Date(dateRange[1].Year(), dateRange[1].Month()-5, 1, 0, 0, 0, 0, dateRange[1].Location()).UTC()
 	dates := make([]time.Time, 6)
 	for index := range dates {
 		dates[index] = dateRange[0].AddDate(0, index, 0)
@@ -98,16 +98,16 @@ func costVariationGenerateSheet(ctx context.Context, aas []aws.AwsAccount, dateR
 	if err == nil {
 		return costVariationInsertDataInSheet(ctx, aas, dateRange, frequency, file, data)
 	} else {
-		return err
+		return
 	}
 }
 
-func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency) (data map[aws.AwsAccount]costVariationReport, err error){
+func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency) (data map[aws.AwsAccount]costVariationReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Getting Cost Variation Report for accounts", map[string]interface{}{
-		"accounts": aas,
-		"dateStart": dateRange[0],
-		"dateEnd": dateRange[1],
+		"accounts":    aas,
+		"dateStart":   dateRange[0],
+		"dateEnd":     dateRange[1],
 		"aggregation": frequency.Aggregation,
 	})
 	data = make(map[aws.AwsAccount]costVariationReport, len(aas))
@@ -140,25 +140,24 @@ func costVariationGetData(ctx context.Context, aas []aws.AwsAccount, dateRange [
 	return
 }
 
-func costVariationInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, dateRange []time.Time, frequency costVariationFrequency, file *excelize.File, data map[aws.AwsAccount]costVariationReport) (err error){
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+func costVariationInsertDataInSheet(_ context.Context, _ []aws.AwsAccount, _ []time.Time, frequency costVariationFrequency, file *excelize.File, data map[aws.AwsAccount]costVariationReport) (err error) {
 	file.NewSheet(frequency.SheetName)
 	costVariationGenerateHeader(file, frequency.SheetName, frequency.Dates, frequency)
 	line := 4
 	for account, report := range data {
 		for product, values := range report {
-			cells := make(cells, 0, len(frequency.Dates) * 2 + 2)
-			cells = append(cells, newCell(formatAwsAccount(account), "A" + strconv.Itoa(line)),
-									newCell(product, "B" + strconv.Itoa(line)))
+			cells := make(cells, 0, len(frequency.Dates)*2+2)
+			cells = append(cells, newCell(formatAwsAccount(account), "A"+strconv.Itoa(line)),
+				newCell(product, "B"+strconv.Itoa(line)))
 			totalNeededCols := make([]string, 0, len(frequency.Dates))
 			for index, date := range frequency.Dates {
 				value := costVariationGetValueForDate(values, date)
 				if index == 0 {
-					cells = append(cells, newCell(value.Cost, "C" + strconv.Itoa(line)).addStyles("price"))
+					cells = append(cells, newCell(value.Cost, "C"+strconv.Itoa(line)).addStyles("price"))
 				} else {
-					costPos := excelize.ToAlphaString(index * 2 + 2) + strconv.Itoa(line)
-					previousCol := excelize.ToAlphaString(index * 2) + strconv.Itoa(line)
-					posVariation := excelize.ToAlphaString(index * 2 + 1) + strconv.Itoa(line)
+					costPos := excelize.ToAlphaString(index*2+2) + strconv.Itoa(line)
+					previousCol := excelize.ToAlphaString(index*2) + strconv.Itoa(line)
+					posVariation := excelize.ToAlphaString(index*2+1) + strconv.Itoa(line)
 					formula := fmt.Sprintf(`IF(%s=0,"",%s/%s-1)`, previousCol, costPos, previousCol)
 					variation := newFormula(formula, posVariation).addStyles("percentage")
 					variation = variation.addConditionalFormat("negative", "green", "borders")
@@ -168,41 +167,33 @@ func costVariationInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, d
 					totalNeededCols = append(totalNeededCols, costPos)
 				}
 			}
-			totalCol := len(frequency.Dates) * 2 + 1
+			totalCol := len(frequency.Dates)*2 + 1
 			formula := fmt.Sprintf("SUM(%s)", strings.Join(totalNeededCols, ","))
-			cells = append(cells, newFormula(formula, excelize.ToAlphaString(totalCol) + strconv.Itoa(line)).addStyles("price"))
+			cells = append(cells, newFormula(formula, excelize.ToAlphaString(totalCol)+strconv.Itoa(line)).addStyles("price"))
 			cells.addStyles("borders", "centerText").setValues(file, frequency.SheetName)
 			line++
 		}
-	}
-	if err != nil {
-		logger.Error("Error while adding Cost Variation data into spreadsheet", map[string]interface{}{
-			"error":     err,
-			"accounts":  aas,
-			"dateStart": dateRange[0],
-			"dateEnd":   dateRange[1],
-		})
 	}
 	return
 }
 
 func costVariationGenerateHeader(file *excelize.File, sheetName string, dates []time.Time, frequency costVariationFrequency) {
-	header := make(cells, 0, len(dates) * 3 + 2)
-	totalCol := excelize.ToAlphaString(len(dates) * 2 + 1)
+	header := make(cells, 0, len(dates)*3+2)
+	totalCol := excelize.ToAlphaString(len(dates)*2 + 1)
 	header = append(header, newCell("Account", "A1").mergeTo("A3"),
-							newCell("Usage type", "B1").mergeTo("B3"),
-							newCell(frequency.Title, "C1").mergeTo(excelize.ToAlphaString(len(dates) * 2) + "1"),
-							newCell("Total", totalCol + "1").mergeTo(totalCol + "3"))
+		newCell("Usage type", "B1").mergeTo("B3"),
+		newCell(frequency.Title, "C1").mergeTo(excelize.ToAlphaString(len(dates)*2)+"1"),
+		newCell("Total", totalCol+"1").mergeTo(totalCol+"3"))
 	for index, date := range dates {
 		if index == 0 {
 			header = append(header, newCell(date.Format(frequency.DateFormat), "C2"),
-									newCell("Cost", "C3"))
+				newCell("Cost", "C3"))
 		} else {
-			col1 := excelize.ToAlphaString(index * 2 + 1)
-			col2 := excelize.ToAlphaString(index * 2 + 2)
-			header = append(header, newCell(date.Format(frequency.DateFormat), col1 + "2").mergeTo(col2 + "2"),
-									newCell("Variation", col1 + "3"),
-									newCell("Cost", col2 + "3"))
+			col1 := excelize.ToAlphaString(index*2 + 1)
+			col2 := excelize.ToAlphaString(index*2 + 2)
+			header = append(header, newCell(date.Format(frequency.DateFormat), col1+"2").mergeTo(col2+"2"),
+				newCell("Variation", col1+"3"),
+				newCell("Cost", col2+"3"))
 		}
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, sheetName)
@@ -229,7 +220,7 @@ func costVariationFormatCostDiff(data []diff.PricePoint) (values costVariationPr
 }
 
 func costVariationGetValueForDate(values costVariationProduct, date time.Time) *diff.PricePoint {
-	if value, ok := values[date] ; ok {
+	if value, ok := values[date]; ok {
 		return &value
 	} else {
 		return nil

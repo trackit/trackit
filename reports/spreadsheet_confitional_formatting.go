@@ -34,13 +34,21 @@ var conditionalStylesList = map[string]int{}
 
 /* TODO: Store into JSON file ? */
 var conditionsRaw = map[string]string{
-	"positive": `{"type": "cell", "criteria": ">", "value": "0"}`,
-	"negative": `{"type": "cell", "criteria": "<", "value": "0"}`,
-	"zero": `{"type": "cell", "criteria": "==", "value": "0"}`,
+	"above90percent":  `{"type": "cell", "criteria": ">", "value": "0.9"}`,
+	"above85percent":  `{"type": "cell", "criteria": ">", "value": "0.85"}`,
+	"above80percent":  `{"type": "cell", "criteria": ">", "value": "0.8"}`,
+	"above75percent":  `{"type": "cell", "criteria": ">", "value": "0.75"}`,
+	"above60percent":  `{"type": "cell", "criteria": ">", "value": "0.6"}`,
+	"above30percent":  `{"type": "cell", "criteria": ">", "value": "0.3"}`,
+	"validPercentage": `{"type": "cell", "criteria": ">", "value": "-1"}`,
+	"positive":        `{"type": "cell", "criteria": ">", "value": "0"}`,
+	"negative":        `{"type": "cell", "criteria": "<", "value": "0"}`,
+	"zero":            `{"type": "cell", "criteria": "=", "value": "0"}`,
+	"empty":           `{"type": "cell", "criteria": "=", "value": ""}`,
 }
 
 /* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
-func (cs conditionalFormats)getConditionalFormatting(file *excelize.File) (string, error) {
+func (cs conditionalFormats) getConditionalFormatting(file *excelize.File) (string, error) {
 	conditions := make([]string, 0)
 	for _, condition := range cs {
 		formattedCondition, err := condition.getConditionalFormatting(file)
@@ -52,9 +60,8 @@ func (cs conditionalFormats)getConditionalFormatting(file *excelize.File) (strin
 	return fmt.Sprintf("[%s]", strings.Join(conditions, ",")), nil
 }
 
-
 /* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
-func (c conditionalFormat)getConditionalFormatting(file *excelize.File) (string, error) {
+func (c conditionalFormat) getConditionalFormatting(file *excelize.File) (string, error) {
 	condition := c.value
 	if !c.custom {
 		value, ok := conditionsRaw[c.value]
@@ -75,7 +82,7 @@ func (c conditionalFormat)getConditionalFormatting(file *excelize.File) (string,
 	return formattedCondition, nil
 }
 
-func getConditionalStyleId(file *excelize.File, styles []string) (int, error){
+func getConditionalStyleId(file *excelize.File, styles []string) (int, error) {
 	name := strings.Join(styles, "")
 	if id, ok := conditionalStylesList[name]; ok {
 		return id, nil
