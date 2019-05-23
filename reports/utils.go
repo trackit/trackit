@@ -25,6 +25,15 @@ func mergeStringJson(style1 string, style2 string) (string, error) {
 	return string(output), nil
 }
 
+func getAwsAccount(account string, aas []aws.AwsAccount) *aws.AwsAccount {
+	for _, aa := range aas {
+		if aa.AwsIdentity == account {
+			return &aa
+		}
+	}
+	return nil
+}
+
 func formatAwsAccount(aa aws.AwsAccount) string {
 	return fmt.Sprintf("%s (%s)", aa.Pretty, aa.AwsIdentity)
 }

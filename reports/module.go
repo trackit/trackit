@@ -21,5 +21,9 @@ var modules = []module{
 	templateModule,
 	costVariationLastMonth,
 	costVariationLast6Months,
-	ec2UsageReportLastMonth,
+	ec2UsageReportModule,
+	rdsUsageReportModule,
+	esUsageReportModule,
+	lambdaUsageReportModule,
+	elastiCacheUsageReportModule,
 }
