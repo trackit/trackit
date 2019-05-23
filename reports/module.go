@@ -18,7 +18,6 @@ type module struct {
 }
 
 var modules = []module{
-	templateModule,
 	costVariationLastMonth,
 	costVariationLast6Months,
 	ec2UsageReportModule,
