@@ -42,7 +42,7 @@ $> docker-compose up -d -f docker/docker-compose.yml
 
 ### Manually
 
-#### 0. Be sure all requirements below are met
+#### 0. Be sure all requirements below are met
 
 - [Docker](https://docs.docker.com/engine/installation/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
@@ -50,7 +50,7 @@ $> docker-compose up -d -f docker/docker-compose.yml
 - [Golang](https://golang.org/doc/install)
 - [Govender](https://github.com/kardianos/govendor)
 
-#### 1. Clone this repository
+#### 1. Clone this repository
 
 ````sh
 $> mkdir -p $HOME/go/src/github.com/trackit
@@ -77,7 +77,7 @@ Note: On most operating systems, you will need to [increase the mmap limit](http
 $> sudo sysctl -w vm.max_map_count=262144
 ````
 
-#### 4. Now you can use TrackIt
+#### 4. Now you can use TrackIt
 
 TrackIt API is now listening on `localhost:8580`
 
