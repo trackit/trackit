@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 package reports
-
+/*
 import (
 	"context"
 	"database/sql"
@@ -126,3 +126,4 @@ func getRiEc2Report(ctx context.Context, aas []aws.AwsAccount, date time.Time, t
 	}
 	return
 }
+*/
