@@ -13,7 +13,7 @@
 //   limitations under the License.
 
 package reports
-
+/*
 import (
 	"context"
 	"database/sql"
@@ -169,3 +169,4 @@ func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date tim
 	}
 	return
 }
+*/
