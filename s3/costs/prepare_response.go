@@ -36,7 +36,7 @@ type S3BucketCost struct {
 	Requests      float64
 }
 
-type bucketsInfo = map[string]*S3BucketCost
+type BucketsInfo = map[string]*S3BucketCost
 type bucket = map[string]interface{}
 
 // bucketCostGetter represents a function used to retrieve infos from a bucket
@@ -57,7 +57,7 @@ func isValidBucket(bucketName string) bool {
 }
 
 // getBucketInfoByName returns the S3BucketCost associated to the bucketName
-func getBucketInfoByName(buckets bucketsInfo, bucketName string) *S3BucketCost {
+func getBucketInfoByName(buckets BucketsInfo, bucketName string) *S3BucketCost {
 	if val, ok := buckets[bucketName]; ok {
 		return val
 	}
@@ -99,7 +99,7 @@ func getBucketBandwidthOut(bucketInfo *S3BucketCost, bucketData bucket) *S3Bucke
 
 // parseBuckets iterates through all the buckets and calls the getter function corresponding
 // to the resultType
-func parseBuckets(buckets bucketsInfo, parsedDocument bucket, resultType string) bucketsInfo {
+func parseBuckets(buckets BucketsInfo, parsedDocument bucket, resultType string) BucketsInfo {
 	bucketsField := parsedDocument["buckets"].([]interface{})
 	for _, bucketData := range bucketsField {
 		bucketData := bucketData.(bucket)
@@ -116,7 +116,7 @@ func parseBuckets(buckets bucketsInfo, parsedDocument bucket, resultType string)
 }
 
 // parseESResult parses an *elastic.SearchResult according to it's resultType
-func parseESResult(ctx context.Context, buckets bucketsInfo, res *elastic.SearchResult, resultType string) (bucketsInfo, error) {
+func parseESResult(ctx context.Context, buckets BucketsInfo, res *elastic.SearchResult, resultType string) (BucketsInfo, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedDocument bucket
 	err := json.Unmarshal(*res.Aggregations["buckets"], &parsedDocument)
@@ -129,8 +129,8 @@ func parseESResult(ctx context.Context, buckets bucketsInfo, res *elastic.Search
 }
 
 // prepareResponse parses the results from elasticsearch and returns a map of buckets with their usage informations
-func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (interface{}, error) {
-	buckets := make(bucketsInfo)
+func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (BucketsInfo, error) {
+	buckets := make(BucketsInfo)
 	var err error
 	var components = [...]struct {
 		k  string

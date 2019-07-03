@@ -65,7 +65,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 		/* Remove the first sheet since it is unused */
 		file.File.DeleteSheet(file.File.GetSheetName(1))
 
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file, masterReport)
+		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, masterReport)
 	} else {
 		errs["speadsheetError"] = err
 	}

@@ -34,10 +34,10 @@ import (
 )
 
 // esQueryParams will store the parsed query params
-type esQueryParams struct {
-	dateBegin   time.Time
-	dateEnd     time.Time
-	accountList []string
+type S3QueryParams struct {
+	DateBegin   time.Time
+	DateEnd     time.Time
+	AccountList []string
 	indexList   []string
 }
 
@@ -70,7 +70,7 @@ var queryDataTypeToEsFilters = map[string]esFilters{
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(getS3CostData).With(
+		http.MethodGet: routes.H(getS3CostDataHandler).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
@@ -91,7 +91,7 @@ func init() {
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empy data
-func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
+func makeElasticSearchRequest(ctx context.Context, parsedParams S3QueryParams,
 	queryDataType string) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.indexList, ",")
@@ -104,9 +104,9 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 	}
 
 	searchService := GetS3UsageAndCostElasticSearchParams(
-		parsedParams.accountList,
-		parsedParams.dateBegin,
-		parsedParams.dateEnd,
+		parsedParams.AccountList,
+		parsedParams.DateBegin,
+		parsedParams.DateEnd,
 		esFilters,
 		es.Client,
 		index,
@@ -132,26 +132,37 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
 	return res, http.StatusOK, nil
 }
 
-// getS3CostData returns the s3 cost data based on the query params, in JSON format.
-func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{}) {
+// getS3CostDataHandler returns the s3 cost data based on the query params, in JSON format.
+func getS3CostDataHandler(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := esQueryParams{
-		dateBegin:   a[routes.DateBeginQueryArg].(time.Time),
-		dateEnd:     a[routes.DateEndQueryArg].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
-		accountList: []string{},
+	parsedParams := S3QueryParams{
+		DateBegin:   a[routes.DateBeginQueryArg].(time.Time),
+		DateEnd:     a[routes.DateEndQueryArg].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
+		AccountList: []string{},
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
-		parsedParams.accountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
+		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	var err error
 	var returnCode int
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
 	if err != nil {
 		return returnCode, err
 	}
-	parsedParams.accountList = accountsAndIndexes.Accounts
+	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.indexList = accountsAndIndexes.Indexes
+	returnCode, res, err := GetS3CostData(request.Context(), parsedParams)
+	if err != nil {
+		return returnCode, err
+	}
+	return returnCode, res
+}
+
+// GetS3CostData returns the s3 cost data based on the query params.
+func GetS3CostData(ctx context.Context, parsedParams S3QueryParams) (int, BucketsInfo, error) {
+	var returnCode int
+	var err error
 	var components = [...]struct {
 		k  string
 		sr *elastic.SearchResult
@@ -162,21 +173,21 @@ func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{})
 		{"bandwidthOut", nil},
 	}
 	for idx, cpn := range components {
-		cpn.sr, returnCode, err = makeElasticSearchRequest(request.Context(), parsedParams, cpn.k)
+		cpn.sr, returnCode, err = makeElasticSearchRequest(ctx, parsedParams, cpn.k)
 		if err != nil {
-			return returnCode, err
+			return returnCode, nil, err
 		}
 		components[idx] = cpn
 	}
 	res, err := prepareResponse(
-		request.Context(),
+		ctx,
 		components[0].sr,
 		components[1].sr,
 		components[2].sr,
 		components[3].sr,
 	)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, res
+	return http.StatusOK, res, nil
 }

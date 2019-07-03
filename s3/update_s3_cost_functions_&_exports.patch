@@ -1,0 +1,149 @@
+Index: s3/costs/s3_costs_route.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- s3/costs/s3_costs_route.go	(revision 67f89e5b8e2b39dcc84500824f977d9051d889ae)
++++ s3/costs/s3_costs_route.go	(date 1562079736000)
+@@ -34,7 +34,7 @@
+ )
+ 
+ // esQueryParams will store the parsed query params
+-type esQueryParams struct {
++type S3QueryParams struct {
+ 	dateBegin   time.Time
+ 	dateEnd     time.Time
+ 	accountList []string
+@@ -70,7 +70,7 @@
+ 
+ func init() {
+ 	routes.MethodMuxer{
+-		http.MethodGet: routes.H(getS3CostData).With(
++		http.MethodGet: routes.H(getS3CostDataHandler).With(
+ 			db.RequestTransaction{Db: db.Db},
+ 			users.RequireAuthenticatedUser{users.ViewerAsParent},
+ 			routes.Documentation{
+@@ -91,7 +91,7 @@
+ // the user (e.g if the index does not exists because it was not yet indexed ) the error will
+ // be returned, but instead of having a 500 status code, it will return the provided status code
+ // with empy data
+-func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams,
++func makeElasticSearchRequest(ctx context.Context, parsedParams S3QueryParams,
+ 	queryDataType string) (*elastic.SearchResult, int, error) {
+ 	l := jsonlog.LoggerFromContextOrDefault(ctx)
+ 	index := strings.Join(parsedParams.indexList, ",")
+@@ -132,10 +132,10 @@
+ 	return res, http.StatusOK, nil
+ }
+ 
+-// getS3CostData returns the s3 cost data based on the query params, in JSON format.
+-func getS3CostData(request *http.Request, a routes.Arguments) (int, interface{}) {
++// getS3CostDataHandler returns the s3 cost data based on the query params, in JSON format.
++func getS3CostDataHandler(request *http.Request, a routes.Arguments) (int, interface{}) {
+ 	user := a[users.AuthenticatedUser].(users.User)
+-	parsedParams := esQueryParams{
++	parsedParams := S3QueryParams{
+ 		dateBegin:   a[routes.DateBeginQueryArg].(time.Time),
+ 		dateEnd:     a[routes.DateEndQueryArg].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
+ 		accountList: []string{},
+@@ -152,6 +152,17 @@
+ 	}
+ 	parsedParams.accountList = accountsAndIndexes.Accounts
+ 	parsedParams.indexList = accountsAndIndexes.Indexes
++	returnCode, res, err := GetS3CostData(request.Context(), parsedParams)
++	if err != nil {
++		return returnCode, err
++	}
++	return returnCode, res
++}
++
++// GetS3CostData returns the s3 cost data based on the query params.
++func GetS3CostData(ctx context.Context, parsedParams S3QueryParams) (int, BucketsInfo, error) {
++	var returnCode int
++	var err error
+ 	var components = [...]struct {
+ 		k  string
+ 		sr *elastic.SearchResult
+@@ -162,21 +173,21 @@
+ 		{"bandwidthOut", nil},
+ 	}
+ 	for idx, cpn := range components {
+-		cpn.sr, returnCode, err = makeElasticSearchRequest(request.Context(), parsedParams, cpn.k)
++		cpn.sr, returnCode, err = makeElasticSearchRequest(ctx, parsedParams, cpn.k)
+ 		if err != nil {
+-			return returnCode, err
++			return returnCode, nil, err
+ 		}
+ 		components[idx] = cpn
+ 	}
+ 	res, err := prepareResponse(
+-		request.Context(),
++		ctx,
+ 		components[0].sr,
+ 		components[1].sr,
+ 		components[2].sr,
+ 		components[3].sr,
+ 	)
+ 	if err != nil {
+-		return http.StatusInternalServerError, err
++		return http.StatusInternalServerError, nil, err
+ 	}
+-	return http.StatusOK, res
+-}
++	return http.StatusOK, res, nil
++}
+\ No newline at end of file
+Index: s3/costs/prepare_response.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+--- s3/costs/prepare_response.go	(revision 67f89e5b8e2b39dcc84500824f977d9051d889ae)
++++ s3/costs/prepare_response.go	(date 1562079378000)
+@@ -36,7 +36,7 @@
+ 	Requests      float64
+ }
+ 
+-type bucketsInfo = map[string]*S3BucketCost
++type BucketsInfo = map[string]*S3BucketCost
+ type bucket = map[string]interface{}
+ 
+ // bucketCostGetter represents a function used to retrieve infos from a bucket
+@@ -57,7 +57,7 @@
+ }
+ 
+ // getBucketInfoByName returns the S3BucketCost associated to the bucketName
+-func getBucketInfoByName(buckets bucketsInfo, bucketName string) *S3BucketCost {
++func getBucketInfoByName(buckets BucketsInfo, bucketName string) *S3BucketCost {
+ 	if val, ok := buckets[bucketName]; ok {
+ 		return val
+ 	}
+@@ -99,7 +99,7 @@
+ 
+ // parseBuckets iterates through all the buckets and calls the getter function corresponding
+ // to the resultType
+-func parseBuckets(buckets bucketsInfo, parsedDocument bucket, resultType string) bucketsInfo {
++func parseBuckets(buckets BucketsInfo, parsedDocument bucket, resultType string) BucketsInfo {
+ 	bucketsField := parsedDocument["buckets"].([]interface{})
+ 	for _, bucketData := range bucketsField {
+ 		bucketData := bucketData.(bucket)
+@@ -116,7 +116,7 @@
+ }
+ 
+ // parseESResult parses an *elastic.SearchResult according to it's resultType
+-func parseESResult(ctx context.Context, buckets bucketsInfo, res *elastic.SearchResult, resultType string) (bucketsInfo, error) {
++func parseESResult(ctx context.Context, buckets BucketsInfo, res *elastic.SearchResult, resultType string) (BucketsInfo, error) {
+ 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
+ 	var parsedDocument bucket
+ 	err := json.Unmarshal(*res.Aggregations["buckets"], &parsedDocument)
+@@ -129,8 +129,8 @@
+ }
+ 
+ // prepareResponse parses the results from elasticsearch and returns a map of buckets with their usage informations
+-func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (interface{}, error) {
+-	buckets := make(bucketsInfo)
++func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (BucketsInfo, error) {
++	buckets := make(BucketsInfo)
+ 	var err error
+ 	var components = [...]struct {
+ 		k  string
