@@ -55,7 +55,6 @@ func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date t
 
 func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports map[aws.AwsAccount]costs.BucketsInfo, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	reports = make(map[aws.AwsAccount]costs.BucketsInfo, len(aas))
 	for _, v := range aas {
 		parameters := costs.S3QueryParams{
@@ -64,17 +63,17 @@ func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Ti
 			DateEnd:     time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC(),
 		}
 		logger.Debug("Getting S3 Cost Report for accounts", map[string]interface{}{
-			"accounts": aas,
+			"accounts": parameters.AccountList,
 			"date":     date,
 		})
 		_, reports[v], err = costs.GetS3CostData(ctx, parameters)
-	}
-	if err != nil {
-		logger.Error("An error occurred while generating an S3 Cost Report", map[string]interface{}{
-			"error":    err,
-			"accounts": aas,
-			"date":     date,
-		})
+		if err != nil {
+			logger.Error("An error occurred while generating an S3 Cost Report", map[string]interface{}{
+				"error":    err,
+				"accounts": aas,
+				"date":     date,
+			})
+		}
 	}
 	return
 }
@@ -88,18 +87,19 @@ func s3CostReportInsertDataInSheet(_ context.Context, file *excelize.File, data 
 			cells := cells{
 				newCell(formatAwsAccount(acc), "A"+strconv.Itoa(line)),
 				newCell(name, "B"+strconv.Itoa(line)),
-				newCell(values.GbMonth, "C"+strconv.Itoa(line)).addStyles("Gb"),
+				newCell(values.GbMonth, "C"+strconv.Itoa(line)),
 				newCell(values.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.RequestsCost, "F"+strconv.Itoa(line)).addStyles("price"),
-				newCell(getTotal(map[string]float64{
+				newCell(/*getTotal(map[string]float64{
 					"Storage":       values.StorageCost,
 					"BandwidthCost": values.BandwidthCost,
 					"RequestCost":   values.RequestsCost,
-				}), "G"+strconv.Itoa(line)).addStyles("price"),
+				})*/"", "G"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.DataIn, "H"+strconv.Itoa(line)),
 				newCell(values.DataOut, "I"+strconv.Itoa(line)),
 			}
+			cells[6].formula = "=D"+strconv.Itoa(line)+"+E"+strconv.Itoa(line)+"+F"+strconv.Itoa(line)
 			cells.addStyles("borders", "centerText").setValues(file, s3CostReportSheetName)
 			line++
 		}
@@ -111,21 +111,24 @@ func s3CostReportGenerateHeader(file *excelize.File) {
 	header := cells{
 		newCell("Account", "A1").mergeTo("A2"),
 		newCell("Name", "B1").mergeTo("B2"),
-		newCell("Billable Size (GB)", "C1").mergeTo("C2"),
+		newCell("Billable Size (GigaBytes)", "C1").mergeTo("C2"),
 		newCell("Cost", "D1").mergeTo("G1"),
 		newCell("Storage", "D2"),
 		newCell("Bandwidth", "E2"),
 		newCell("Requests", "F2"),
 		newCell("Total", "G2"),
-		newCell("Data transfers", "H1").mergeTo("I1"),
-		newCell("In (GB)", "H2"),
-		newCell("Out (GB)", "I2"),
+		newCell("Data Transfers", "H1").mergeTo("I1"),
+		newCell("In (GigaBytes)", "H2"),
+		newCell("Out (GigaBytes)", "I2"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, s3CostReportSheetName)
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
 		newColumnWidth("B", 50),
-		newColumnWidth("C", 20).toColumn("I"),
+		newColumnWidth("C", 20),
+		newColumnWidth("D", 12.5).toColumn("G"),
+		newColumnWidth("H", 20).toColumn("I"),
+
 	}
 	columns.setValues(file, s3CostReportSheetName)
 	return
