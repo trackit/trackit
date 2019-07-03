@@ -39,4 +39,5 @@ var modules = []module{
 	esUsageReportModule,
 	lambdaUsageReportModule,
 	elastiCacheUsageReportModule,
+	s3CostReportModule,
 }
