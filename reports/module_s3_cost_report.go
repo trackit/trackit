@@ -47,7 +47,7 @@ func generateS3CostReportSheet(ctx context.Context, aas []aws.AwsAccount, date t
 func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := s3CostReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return s3CostReportInsertDataInSheet(ctx, aas, file, data)
+		return s3CostReportInsertDataInSheet(ctx, file, data)
 	} else {
 		return
 	}
@@ -56,25 +56,17 @@ func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date t
 func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports map[aws.AwsAccount]costs.BucketsInfo, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	identities := getAwsIdentities(aas)
-
-	/*user, err := users.GetUserWithId(tx, aas[0].UserId)
-	if err != nil {												//user isn't use right now
-		return
-	}*/
-
-	parameters := costs.S3QueryParams{
-		AccountList: identities,
-		DateBegin:        date,
-		DateEnd:          time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC(),
-	}
-
-	logger.Debug("Getting S3 Cost Report for accounts", map[string]interface{}{
-		"accounts": aas,
-		"date":     date,
-	})
 	reports = make(map[aws.AwsAccount]costs.BucketsInfo, len(aas))
 	for _, v := range aas {
+		parameters := costs.S3QueryParams{
+			AccountList: []string{v.AwsIdentity},
+			DateBegin:   date,
+			DateEnd:     time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC(),
+		}
+		logger.Debug("Getting S3 Cost Report for accounts", map[string]interface{}{
+			"accounts": aas,
+			"date":     date,
+		})
 		_, reports[v], err = costs.GetS3CostData(ctx, parameters)
 	}
 	if err != nil {
@@ -87,26 +79,15 @@ func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Ti
 	return
 }
 
-func s3CostReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data map[aws.AwsAccount]costs.BucketsInfo) (err error) {
+func s3CostReportInsertDataInSheet(_ context.Context, file *excelize.File, data map[aws.AwsAccount]costs.BucketsInfo) (err error) {
 	file.NewSheet(s3CostReportSheetName)
 	s3CostReportGenerateHeader(file)
 	line := 3
 	for acc, report := range data {
-		for idx, values := range report {
-			account := getAwsAccount(idx, aas)
-			formattedAccount := idx
-			if account != nil {
-				formattedAccount = formatAwsAccount(*account)
-			}
-			//instance := report.Instance
-			/*name := ""
-			if value, ok := instance.Tags["Name"]; ok {
-				name = value
-			}*/
-			//tags := formatTags(instance.Tags)
+		for name, values := range report {
 			cells := cells{
-				newCell(formatAwsAccount(acc), "A"+strconv.Itoa(line)), // ACCOUNT
-				newCell(formattedAccount, "B"+strconv.Itoa(line)),
+				newCell(formatAwsAccount(acc), "A"+strconv.Itoa(line)),
+				newCell(name, "B"+strconv.Itoa(line)),
 				newCell(values.GbMonth, "C"+strconv.Itoa(line)).addStyles("Gb"),
 				newCell(values.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
@@ -132,7 +113,7 @@ func s3CostReportGenerateHeader(file *excelize.File) {
 		newCell("Name", "B1").mergeTo("B2"),
 		newCell("Billable Size (GB)", "C1").mergeTo("C2"),
 		newCell("Cost", "D1").mergeTo("G1"),
-		newCell("Storage", "D2") ,
+		newCell("Storage", "D2"),
 		newCell("Bandwidth", "E2"),
 		newCell("Requests", "F2"),
 		newCell("Total", "G2"),

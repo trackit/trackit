@@ -11,14 +11,6 @@ services:
       - app
     ports:
       - '127.0.0.1:3306:3306'
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
-    environment:
-      - ES_JAVA_OPTS "-Xms1g -Xmx1g"
-    networks:
-      - app
-    ports:
-      - '127.0.0.1:9200:9200'
   api:
     build: server/
     links:
