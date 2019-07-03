@@ -53,7 +53,7 @@ func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date t
 	}
 }
 
-func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports costs.BucketsInfo, err error) {
+func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports map[aws.AwsAccount]costs.BucketsInfo, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	identities := getAwsIdentities(aas)
@@ -73,7 +73,10 @@ func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Ti
 		"accounts": aas,
 		"date":     date,
 	})
-	_, reports, err = costs.GetS3CostData(ctx, parameters)
+	reports = make(map[aws.AwsAccount]costs.BucketsInfo, len(aas))
+	for _, v := range aas {
+		_, reports[v], err = costs.GetS3CostData(ctx, parameters)
+	}
 	if err != nil {
 		logger.Error("An error occurred while generating an S3 Cost Report", map[string]interface{}{
 			"error":    err,
@@ -84,39 +87,41 @@ func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Ti
 	return
 }
 
-func s3CostReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data costs.BucketsInfo) (err error) {
+func s3CostReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data map[aws.AwsAccount]costs.BucketsInfo) (err error) {
 	file.NewSheet(s3CostReportSheetName)
 	s3CostReportGenerateHeader(file)
 	line := 3
-	for idx, report := range data {
-		account := getAwsAccount(idx, aas)
-		formattedAccount := idx
-		if account != nil {
-			formattedAccount = formatAwsAccount(*account)
+	for acc, report := range data {
+		for idx, values := range report {
+			account := getAwsAccount(idx, aas)
+			formattedAccount := idx
+			if account != nil {
+				formattedAccount = formatAwsAccount(*account)
+			}
+			//instance := report.Instance
+			/*name := ""
+			if value, ok := instance.Tags["Name"]; ok {
+				name = value
+			}*/
+			//tags := formatTags(instance.Tags)
+			cells := cells{
+				newCell(formatAwsAccount(acc), "A"+strconv.Itoa(line)), // ACCOUNT
+				newCell(formattedAccount, "B"+strconv.Itoa(line)),
+				newCell(values.GbMonth, "C"+strconv.Itoa(line)).addStyles("Gb"),
+				newCell(values.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
+				newCell(values.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
+				newCell(values.RequestsCost, "F"+strconv.Itoa(line)).addStyles("price"),
+				newCell(getTotal(map[string]float64{
+					"Storage":       values.StorageCost,
+					"BandwidthCost": values.BandwidthCost,
+					"RequestCost":   values.RequestsCost,
+				}), "G"+strconv.Itoa(line)).addStyles("price"),
+				newCell(values.DataIn, "H"+strconv.Itoa(line)),
+				newCell(values.DataOut, "I"+strconv.Itoa(line)),
+			}
+			cells.addStyles("borders", "centerText").setValues(file, s3CostReportSheetName)
+			line++
 		}
-		//instance := report.Instance
-		/*name := ""
-		if value, ok := instance.Tags["Name"]; ok {
-			name = value
-		}*/
-		//tags := formatTags(instance.Tags)
-		total := make(map[string]float64)
-		total["Storage"] = report.StorageCost
-		total["BandwidthCost"] = report.BandwidthCost
-		total["RequestCost"] = report.RequestsCost
-		cells := cells{
-			//newCell(instance.Id, "B"+strconv.Itoa(line)), // ACCOUNT
-			newCell(formattedAccount, "B"+strconv.Itoa(line)),
-			newCell(report.GbMonth, "C"+strconv.Itoa(line)).addStyles("Gb"),
-			newCell(report.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
-			newCell(report.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
-			newCell(report.RequestsCost, "F"+strconv.Itoa(line)).addStyles("price"),
-			newCell(getTotal(total), "G"+strconv.Itoa(line)).addStyles("price"),
-			newCell(report.DataIn, "H"+strconv.Itoa(line)),
-			newCell(report.DataOut, "I"+strconv.Itoa(line)),
-		}
-		cells.addStyles("borders", "centerText").setValues(file, s3CostReportSheetName)
-		line++
 	}
 	return
 }
