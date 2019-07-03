@@ -89,8 +89,8 @@ func s3CostReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file
 	s3CostReportGenerateHeader(file)
 	line := 3
 	for idx, report := range data {
-		account := getAwsAccount(idx/*report.Account*/, aas)
-		formattedAccount := idx//report.Account
+		account := getAwsAccount(idx, aas)
+		formattedAccount := idx
 		if account != nil {
 			formattedAccount = formatAwsAccount(*account)
 		}
@@ -100,20 +100,20 @@ func s3CostReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file
 			name = value
 		}*/
 		//tags := formatTags(instance.Tags)
+		total := make(map[string]float64)
+		total["Storage"] = report.StorageCost
+		total["BandwidthCost"] = report.BandwidthCost
+		total["RequestCost"] = report.RequestsCost
 		cells := cells{
+			//newCell(instance.Id, "B"+strconv.Itoa(line)), // ACCOUNT
 			newCell(formattedAccount, "B"+strconv.Itoa(line)),
-			//newCell(instance.Id, "B"+strconv.Itoa(line)),
-			newCell(report.GbMonth/*name*/, "C"+strconv.Itoa(line)).addStyles("Gb"),
-			newCell(report.StorageCost/*instance.Type*/, "D"+strconv.Itoa(line)).addStyles("price"),
-			newCell(report.BandwidthCost/*instance.Region*/, "E"+strconv.Itoa(line)).addStyles("price"),
-			newCell(report.RequestsCost/*instance.Purchasing*/, "F"+strconv.Itoa(line)).addStyles("price"),
-			//newCell(getTotal(instance.Costs), "G"+strconv.Itoa(line)).addStyles("price"), // TOTAL
-			newCell(report.DataIn/*formatMetric(instance.Stats.Network.In)*/, "H"+strconv.Itoa(line)),
-			newCell(report.DataOut/*formatMetric(instance.Stats.Network.Out)*/, "I"+strconv.Itoa(line)),
-			//newCell(getTotal(instance.Stats.Volumes.Read), "L"+strconv.Itoa(line)),
-			//newCell(getTotal(instance.Stats.Volumes.Write), "M"+strconv.Itoa(line)),
-			//newCell(instance.KeyPair, "N"+strconv.Itoa(line)),
-			//newCell(strings.Join(tags, ";"), "O"+strconv.Itoa(line)),
+			newCell(report.GbMonth, "C"+strconv.Itoa(line)).addStyles("Gb"),
+			newCell(report.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
+			newCell(report.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
+			newCell(report.RequestsCost, "F"+strconv.Itoa(line)).addStyles("price"),
+			newCell(getTotal(total), "G"+strconv.Itoa(line)).addStyles("price"),
+			newCell(report.DataIn, "H"+strconv.Itoa(line)),
+			newCell(report.DataOut, "I"+strconv.Itoa(line)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, s3CostReportSheetName)
 		line++
@@ -125,7 +125,7 @@ func s3CostReportGenerateHeader(file *excelize.File) {
 	header := cells{
 		newCell("Account", "A1").mergeTo("A2"),
 		newCell("Name", "B1").mergeTo("B2"),
-		newCell("Billable Size", "C1").mergeTo("C2"),
+		newCell("Billable Size (GB)", "C1").mergeTo("C2"),
 		newCell("Cost", "D1").mergeTo("G1"),
 		newCell("Storage", "D2") ,
 		newCell("Bandwidth", "E2"),
