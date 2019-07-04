@@ -70,9 +70,10 @@ func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Ti
 		if err != nil {
 			logger.Error("An error occurred while generating an S3 Cost Report", map[string]interface{}{
 				"error":    err,
-				"accounts": aas,
+				"accounts": parameters.AccountList,
 				"date":     date,
 			})
+			return reports, err
 		}
 	}
 	return
