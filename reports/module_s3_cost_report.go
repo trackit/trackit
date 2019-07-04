@@ -92,11 +92,7 @@ func s3CostReportInsertDataInSheet(_ context.Context, file *excelize.File, data 
 				newCell(values.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.RequestsCost, "F"+strconv.Itoa(line)).addStyles("price"),
-				newCell(/*getTotal(map[string]float64{
-					"Storage":       values.StorageCost,
-					"BandwidthCost": values.BandwidthCost,
-					"RequestCost":   values.RequestsCost,
-				})*/"", "G"+strconv.Itoa(line)).addStyles("price"),
+				newCell("", "G"+strconv.Itoa(line)).addStyles("price"),
 				newCell(values.DataIn, "H"+strconv.Itoa(line)),
 				newCell(values.DataOut, "I"+strconv.Itoa(line)),
 			}
