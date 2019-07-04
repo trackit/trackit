@@ -19,6 +19,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -38,14 +39,14 @@ var s3CostReportModule = module{
 	GenerateSheet: generateS3CostReportSheet,
 }
 
-func generateS3CostReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
+func generateS3CostReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, _ *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
 	}
-	return s3CostReportGenerateSheet(ctx, aas, date, tx, file)
+	return s3CostReportGenerateSheet(ctx, aas, date, file)
 }
 
-func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, _ *sql.Tx, file *excelize.File) (err error) {
+func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, file *excelize.File) (err error) {
 	data, err := s3CostReportGetData(ctx, aas, date)
 	if err == nil {
 		return s3CostReportInsertDataInSheet(ctx, file, data)
@@ -54,26 +55,26 @@ func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date t
 	}
 }
 
-func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time) (reports map[aws.AwsAccount]costs.BucketsInfo, err error) {
+func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, dateBegin time.Time) (reports map[aws.AwsAccount]costs.BucketsInfo, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	reports = make(map[aws.AwsAccount]costs.BucketsInfo, len(aas))
-	dateEnd := time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location()).UTC()
-	for _, v := range aas {
+	dateEnd := time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
+	for _, aa := range aas {
 		parameters := costs.S3QueryParams{
-			AccountList: []string{v.AwsIdentity},
-			DateBegin:   date,
+			AccountList: []string{aa.AwsIdentity},
+			DateBegin:   dateBegin,
 			DateEnd:     dateEnd,
 		}
 		logger.Debug("Getting S3 Cost Report for accounts", map[string]interface{}{
-			"accounts": v,
-			"date":     date,
+			"accounts": aa,
+			"date":     dateBegin,
 		})
-		_, reports[v], err = costs.GetS3CostData(ctx, parameters)
+		_, reports[aa], err = costs.GetS3CostData(ctx, parameters)
 		if err != nil {
 			logger.Error("An error occurred while generating an S3 Cost Report", map[string]interface{}{
 				"error":    err,
-				"accounts": v,
-				"date":     date,
+				"accounts": aa,
+				"date":     dateBegin,
 			})
 			return reports, err
 		}
@@ -85,9 +86,14 @@ func s3CostReportInsertDataInSheet(_ context.Context, file *excelize.File, data 
 	file.NewSheet(s3CostReportSheetName)
 	s3CostReportGenerateHeader(file)
 	line := 3
-	totalCost := formatTotalS3Cost(line)
 	for acc, report := range data {
 		for name, values := range report {
+			costCols := []string{
+				"D" + strconv.Itoa(line),
+				"E" + strconv.Itoa(line),
+				"F" + strconv.Itoa(line),
+			}
+			totalCostFormula := fmt.Sprintf("SUM(%s)", strings.Join(costCols, ","))
 			cells := cells{
 				newCell(formatAwsAccount(acc), "A" + strconv.Itoa(line)),
 				newCell(name, "B" + strconv.Itoa(line)),
@@ -95,20 +101,15 @@ func s3CostReportInsertDataInSheet(_ context.Context, file *excelize.File, data 
 				newCell(values.StorageCost, "D" + strconv.Itoa(line)).addStyles("price"),
 				newCell(values.BandwidthCost, "E" + strconv.Itoa(line)).addStyles("price"),
 				newCell(values.RequestsCost, "F" + strconv.Itoa(line)).addStyles("price"),
-				newFormula(totalCost, "G" + strconv.Itoa(line)).addStyles("price"),
+				newFormula(totalCostFormula, "G" + strconv.Itoa(line)).addStyles("price"),
 				newCell(values.DataIn, "H" + strconv.Itoa(line)),
 				newCell(values.DataOut, "I" + strconv.Itoa(line)),
 			}
-			cells[6].formula = "=D"+strconv.Itoa(line)+"+E"+strconv.Itoa(line)+"+F"+strconv.Itoa(line)
 			cells.addStyles("borders", "centerText").setValues(file, s3CostReportSheetName)
 			line++
 		}
 	}
 	return
-}
-
-func formatTotalS3Cost(line int) string {
-	return fmt.Sprintf("=D" + strconv.Itoa(line) + "+E" + strconv.Itoa(line) + "+F" + strconv.Itoa(line))
 }
 
 func s3CostReportGenerateHeader(file *excelize.File) {
@@ -121,9 +122,9 @@ func s3CostReportGenerateHeader(file *excelize.File) {
 		newCell("Bandwidth", "E2"),
 		newCell("Requests", "F2"),
 		newCell("Total", "G2"),
-		newCell("Data Transfers", "H1").mergeTo("I1"),
-		newCell("In (GigaBytes)", "H2"),
-		newCell("Out (GigaBytes)", "I2"),
+		newCell("Data Transfers (GigaBytes)", "H1").mergeTo("I1"),
+		newCell("In", "H2"),
+		newCell("Out", "I2"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, s3CostReportSheetName)
 	columns := columnsWidth{
