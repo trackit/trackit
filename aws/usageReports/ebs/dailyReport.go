@@ -33,7 +33,6 @@ import (
 // and filled by DescribeSnapshots and getSnapshotStats.
 func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, region string, snapshotChan chan Snapshot) error {
 	defer close(snapshotChan)
-	//start, end := utils.GetCurrentCheckedDay() // dont use start and end for now
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -49,7 +48,7 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 		costs := make(map[string]float64, 0)
 		snapshotChan <- Snapshot{
 			SnapshotBase: SnapshotBase{
-				Id:         aws.StringValue(snapshot.SnapshotId),
+				Id:          aws.StringValue(snapshot.SnapshotId),
 				Description: aws.StringValue(snapshot.Description),
 				State:       aws.StringValue(snapshot.State),
 				Encrypted:   aws.BoolValue(snapshot.Encrypted),

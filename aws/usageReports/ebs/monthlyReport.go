@@ -69,20 +69,19 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, 
 	var docType SnapshotReport
 	var snap = Snapshot{
 		SnapshotBase: SnapshotBase{
-			Id:         snapshot.Resource,
+			Id:          snapshot.Resource,
 			Description: "N/A",
-			State:      "N/A",
-			Encrypted: false,
-			StartTime: nil,
+			State:       "N/A",
+			Encrypted:   false,
+			StartTime:   time.Time{},
 		},
 		Tags:  make([]utils.Tag, 0),
 		Costs: make(map[string]float64, 0),
 		Volume: Volume{
 			Id:    "N/A",
-			Size: -1,
+			Size:  -1,
 		},
 	}
-	snap.Costs["snapshot"] = snapshot.Cost
 	res, err := getElasticSearchEbsSnapshot(ctx, account, snapshot.Resource,
 		es.Client, es.IndexNameForUserId(userId, IndexPrefixEBSReport))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
@@ -102,7 +101,7 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, 
 // fetchMonthlySnapshotsList sends in snapshotInfoChan the snapshots fetched from DescribeSnapshots
 // and filled by DescribeSnapshots and getSnapshotStats.
 func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentials, snap utils.CostPerResource,
-	account, region string, snapshotChan chan Snapshot, startDate, endDate time.Time, userId int) error {
+	account, region string, snapshotChan chan Snapshot, userId int) error {
 	defer close(snapshotChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -123,13 +122,13 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 				Id:          aws.StringValue(snapshot.SnapshotId),
 				Description: aws.StringValue(snapshot.Description),
 				State:       aws.StringValue(snapshot.State),
-				//Encrypted:   aws.StringValue(snapshot.Encrypted), // ???
-				StartTime:   startDate,
+				Encrypted:   aws.BoolValue(snapshot.Encrypted),
+				StartTime:   aws.TimeValue(snapshot.StartTime),
 			},
 			Tags:  getSnapshotTag(snapshot.Tags),
 			Costs: costs,
 			Volume: Volume{
-				Id: aws.StringValue(snapshot.VolumeId),
+				Id:   aws.StringValue(snapshot.VolumeId),
 				Size: aws.Int64Value(snapshot.VolumeSize),
 			},
 		}
@@ -138,7 +137,7 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 }
 
 // getEbsMetrics gets credentials, accounts and region to fetch EBS snapshots stats
-func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]SnapshotReport, error) {
+func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerResource, aa taws.AwsAccount, startDate time.Time) ([]SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorSnapshotStsSessionName)
 	if err != nil {
@@ -164,7 +163,7 @@ func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerRe
 		for _, region := range regions {
 			if strings.Contains(snapshot.Region, region) {
 				snapshotChan := make(chan Snapshot)
-				go fetchMonthlySnapshotsList(ctx, creds, snapshot, account, region, snapshotChan, startDate, endDate, aa.UserId)
+				go fetchMonthlySnapshotsList(ctx, creds, snapshot, account, region, snapshotChan, aa.UserId)
 				snapshotChans = append(snapshotChans, snapshotChan)
 			}
 		}
@@ -232,7 +231,8 @@ func PutEbsMonthlyReport(ctx context.Context, ebsCost, cloudWatchCost []utils.Co
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	costSnapshot, costVolume, costCloudWatch := filterSnapshotsCosts(ebsCost, cloudWatchCost)
+	costSnapshot, _, _ := filterSnapshotsCosts(ebsCost, cloudWatchCost)
+	//costSnapshot, costVolume, costCloudWatch := filterSnapshotsCosts(ebsCost, cloudWatchCost)
 	if len(costSnapshot) == 0 {
 		logger.Info("No EBS snapshots found in billing data.", nil)
 		return false, nil
@@ -244,11 +244,11 @@ func PutEbsMonthlyReport(ctx context.Context, ebsCost, cloudWatchCost []utils.Co
 		logger.Info("There is already an EBS monthly report", nil)
 		return false, nil
 	}
-	snapshots, err := fetchMonthlySnapshotsStats(ctx, costSnapshot, aa, startDate, endDate)
+	snapshots, err := fetchMonthlySnapshotsStats(ctx, costSnapshot, aa, startDate)
 	if err != nil {
 		return false, err
 	}
-	snapshots = addCostToSnapshots(snapshots, costVolume, costCloudWatch)
+	//snapshots = addCostToSnapshots(snapshots, costVolume, costCloudWatch)
 	err = importSnapshotsToEs(ctx, aa, snapshots)
 	if err != nil {
 		return false, err

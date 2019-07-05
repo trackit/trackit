@@ -40,12 +40,11 @@ type (
 
 	// SnapshotBase contains basics information of an EBS snapshot
 	SnapshotBase struct {
-		Id string `json:"id"`
-		Description string `json:"description"`
-		State string `json:"state"`
-		Encrypted bool `json:"encrypted"`
-		StartTime time.Time `json:"startTime"`
-		//StartTime *time.Time `json:"startTime"` >>> no * because impossible to use TimeValue with type *time.Time but ok with type time.Time
+		Id          string    `json:"id"`
+		Description string    `json:"description"`
+		State       string    `json:"state"`
+		Encrypted   bool      `json:"encrypted"`
+		StartTime   time.Time `json:"startTime"`
 	}
 
 	// Snapshot contains all the information of an EBS snapshot
@@ -138,12 +137,4 @@ func merge(cs ...<-chan Snapshot) <-chan Snapshot {
 		close(out)
 	}()
 	return out
-}
-
-// getPlatformName normalizes the platform name
-func getPlatformName(platform string) string {
-	if platform == "" {
-		return "Linux/UNIX"
-	}
-	return platform
 }

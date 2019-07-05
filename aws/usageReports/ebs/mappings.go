@@ -70,7 +70,7 @@ const TemplateEbsReport = `
 							"type": "bool"
 						},
 						"startTime": {
-							"type": "time.Time"
+							"type": "date"
 						},
 						"tags": {
 							"type": "nested",
@@ -90,7 +90,7 @@ const TemplateEbsReport = `
 									"type": "keyword"
 								},
 								"size": {
-									"type": "int64"
+									"type": "integer"
 								}
 							}
 						},
