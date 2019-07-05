@@ -19,6 +19,13 @@ services:
       - app
     ports:
       - '127.0.0.1:9200:9200'
+  cache:
+    image: redis:latest
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - app
+    ports:
+      - '127.0.0.1:6379:6379'
   api:
     build: server/
     links:
