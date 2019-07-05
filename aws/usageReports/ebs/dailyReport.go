@@ -29,10 +29,10 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-// fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
-// and filled by DescribeInstances and getInstanceStats.
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
-	defer close(instanceChan)
+// fetchDailySnapshotsList sends in instanceInfoChan the instances fetched from DescribeSnapshots
+// and filled by DescribeSnapshots and getSnapshotStats.
+func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, region string, snapshotChan chan Snapshot) error {
+	defer close(snapshotChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -40,26 +40,26 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		Region:      aws.String(region),
 	}))
 	svc := ec2.New(sess)
-	instances, err := svc.DescribeInstances(nil)
+	snapshots, err := svc.DescribeSnapshots(nil)
 	if err != nil {
-		logger.Error("Error when describing instances", err.Error())
+		logger.Error("Error when describing snapshots", err.Error())
 		return err
 	}
-	for _, reservation := range instances.Reservations {
-		for _, instance := range reservation.Instances {
-			stats := getInstanceStats(ctx, instance, sess, start, end)
+	for _, reservation := range snapshots.Reservations {
+		for _, snapshot := range reservation.Snapshots {
+			stats := getSnapshotStats(ctx, snapshot, sess, start, end)
 			costs := make(map[string]float64, 0)
-			instanceChan <- Instance{
-				InstanceBase: InstanceBase{
-					Id:         aws.StringValue(instance.InstanceId),
-					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
-					State:      aws.StringValue(instance.State.Name),
-					Purchasing: getPurchasingOption(instance),
-					KeyPair:    aws.StringValue(instance.KeyName),
-					Type:       aws.StringValue(instance.InstanceType),
-					Platform:   getPlatformName(aws.StringValue(instance.Platform)),
+			snapshotChan <- Snapshot{
+				SnapshotBase: SnapshotBase{
+					Id:         aws.StringValue(snapshot.SnapshotId),
+					Region:     aws.StringValue(snapshot.Placement.AvailabilityZone),
+					State:      aws.StringValue(snapshot.State.Name),
+					Purchasing: getPurchasingOption(snapshot),
+					KeyPair:    aws.StringValue(snapshot.KeyName),
+					Type:       aws.StringValue(snapshot.SnapshotType),
+					Platform:   getPlatformName(aws.StringValue(snapshot.Platform)),
 				},
-				Tags:  getInstanceTag(instance.Tags),
+				Tags:  getSnapshotTag(snapshot.Tags),
 				Costs: costs,
 				Stats: stats,
 			}
@@ -68,13 +68,13 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	return nil
 }
 
-// FetchDailyInstancesStats fetches the stats of the EC2 instances of an AwsAccount
+// FetchDailySnapshotsStats fetches the stats of the EC2 snapshots of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
-// In this way, FetchInstancesStats should be called every hour.
-func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+// In this way, FetchSnapshotsStats should be called every hour.
+func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
-	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorInstanceStsSessionName)
+	logger.Info("Fetching EC2 snapshot stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorSnapshotStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
 		return err
@@ -94,22 +94,22 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	snapshotChans := make([]<-chan Snapshot, 0, len(regions))
 	for _, region := range regions {
-		instanceChan := make(chan Instance)
-		go fetchDailyInstancesList(ctx, creds, region, instanceChan)
-		instanceChans = append(instanceChans, instanceChan)
+		snapshotChan := make(chan Snapshot)
+		go fetchDailySnapshotsList(ctx, creds, region, snapshotChan)
+		snapshotChans = append(snapshotChans, snapshotChan)
 	}
-	instances := make([]InstanceReport, 0)
-	for instance := range merge(instanceChans...) {
-		instances = append(instances, InstanceReport{
+	snapshots := make([]SnapshotReport, 0)
+	for snapshot := range merge(snapshotChans...) {
+		snapshots = append(snapshots, SnapshotReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",
 			},
-			Instance: instance,
+			Snapshot: snapshot,
 		})
 	}
-	return importInstancesToEs(ctx, awsAccount, instances)
+	return importSnapshotsToEs(ctx, awsAccount, snapshots)
 }

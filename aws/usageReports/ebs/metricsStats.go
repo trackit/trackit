@@ -27,11 +27,11 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports"
 )
 
-// getPurchasingOption returns a string that describes how the instance given as parameter have been purchased
-func getPurchasingOption(instance *ec2.Instance) string {
+// getPurchasingOption returns a string that describes how the snapshot given as parameter have been purchased
+func getPurchasingOption(snapshot *ec2.Snapshot) string {
 	var purchasing string
-	lifeCycle := aws.StringValue(instance.InstanceLifecycle)
-	tenancy := aws.StringValue(instance.Placement.Tenancy)
+	lifeCycle := aws.StringValue(snapshot.SnapshotLifecycle)
+	tenancy := aws.StringValue(snapshot.Placement.Tenancy)
 	if tenancy == "" || tenancy == "default" {
 		if lifeCycle == "" {
 			purchasing = "on demand"
@@ -44,8 +44,8 @@ func getPurchasingOption(instance *ec2.Instance) string {
 	return purchasing
 }
 
-// getInstanceTag formats []*ec2.Tag to map[string]string
-func getInstanceTag(tags []*ec2.Tag) []utils.Tag {
+// getSnapshotTag formats []*ec2.Tag to map[string]string
+func getSnapshotTag(tags []*ec2.Tag) []utils.Tag {
 	res := make([]utils.Tag, 0)
 	for _, tag := range tags {
 		res = append(res, utils.Tag{
@@ -56,8 +56,8 @@ func getInstanceTag(tags []*ec2.Tag) []utils.Tag {
 	return res
 }
 
-// getInstanceCPUStats gets the CPU average and the CPU peak of an EC2 instance from CloudWatch
-func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
+// getSnapshotCPUStats gets the CPU average and the CPU peak of an EC2 snapshot from CloudWatch
+func getSnapshotCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
 	stats, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String("CPUUtilization"),
@@ -76,8 +76,8 @@ func getInstanceCPUStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Di
 	}
 }
 
-// getInstanceNetworkStats gets the network in and out stats of an EC2 instance from CloudWatch
-func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
+// getSnapshotNetworkStats gets the network in and out stats of an EC2 snapshot from CloudWatch
+func getSnapshotNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
 	statsIn, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String("NetworkIn"),
@@ -108,8 +108,8 @@ func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatc
 	}
 }
 
-// getInstanceInternalIOStats gets the IO read and write stats of an EC2 instance from CloudWatch
-func getInstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
+// getSnapshotInternalIOStats gets the IO read and write stats of an EC2 snapshot from CloudWatch
+func getSnapshotInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
 	statsRead, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EC2"),
 		MetricName: aws.String("DiskReadBytes"),
@@ -140,8 +140,8 @@ func getInstanceInternalIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudw
 	}
 }
 
-// getInstanceELBIOStats gets the IO read and write stats of a volume from CloudWatch
-func getInstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
+// getSnapshotELBIOStats gets the IO read and write stats of a volume from CloudWatch
+func getSnapshotELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (float64, float64, error) {
 	statsRead, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/EBS"),
 		MetricName: aws.String("VolumeReadBytes"),
@@ -172,11 +172,11 @@ func getInstanceELBIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.
 	}
 }
 
-// getInstanceIOStats gets the IO read and write stats from CloudWatch
-func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension,
+// getSnapshotIOStats gets the IO read and write stats from CloudWatch
+func getSnapshotIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension,
 	volumes []string, start, end time.Time) ([]Volume, error) {
 	volumesStats := make([]Volume, 0)
-	internalRead, internalWrite, err := getInstanceInternalIOStats(svc, dimensions, start, end)
+	internalRead, internalWrite, err := getSnapshotInternalIOStats(svc, dimensions, start, end)
 	if err != nil {
 		return volumesStats, err
 	}
@@ -187,7 +187,7 @@ func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dim
 			Value: aws.String(volume),
 		},
 		}
-		read, write, err := getInstanceELBIOStats(svc, dimensionsEBS, start, end)
+		read, write, err := getSnapshotELBIOStats(svc, dimensionsEBS, start, end)
 		if err != nil {
 			return volumesStats, err
 		}
@@ -196,29 +196,29 @@ func getInstanceIOStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dim
 	return volumesStats, nil
 }
 
-// getInstanceStats gets the instance stats from CloudWatch
-func getInstanceStats(ctx context.Context, instance *ec2.Instance, sess *session.Session, start, end time.Time) Stats {
+// getSnapshotStats gets the snapshot stats from CloudWatch
+func getSnapshotStats(ctx context.Context, snapshot *ec2.Snapshot, sess *session.Session, start, end time.Time) Stats {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
 	dimensions := []*cloudwatch.Dimension{{
-		Name:  aws.String("InstanceId"),
-		Value: aws.String(aws.StringValue(instance.InstanceId)),
+		Name:  aws.String("SnapshotId"),
+		Value: aws.String(aws.StringValue(snapshot.SnapshotId)),
 	}}
 	var stats Stats
 	var err error = nil
-	stats.Cpu.Average, stats.Cpu.Peak, err = getInstanceCPUStats(svc, dimensions, start, end)
+	stats.Cpu.Average, stats.Cpu.Peak, err = getSnapshotCPUStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())
 	}
-	stats.Network.In, stats.Network.Out, err = getInstanceNetworkStats(svc, dimensions, start, end)
+	stats.Network.In, stats.Network.Out, err = getSnapshotNetworkStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching Network stats from CloudWatch", err.Error())
 	}
 	volumes := make([]string, 0)
-	for _, volume := range instance.BlockDeviceMappings {
+	for _, volume := range snapshot.BlockDeviceMappings {
 		volumes = append(volumes, aws.StringValue(volume.Ebs.VolumeId))
 	}
-	stats.Volumes, err = getInstanceIOStats(svc, dimensions, volumes, start, end)
+	stats.Volumes, err = getSnapshotIOStats(svc, dimensions, volumes, start, end)
 	if err != nil {
 		logger.Error("Error when fetching IO stats from CloudWatch", err.Error())
 	}

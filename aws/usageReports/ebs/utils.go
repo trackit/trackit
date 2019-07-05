@@ -29,48 +29,63 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-const MonitorInstanceStsSessionName = "monitor-instance"
+const MonitorSnapshotStsSessionName = "monitor-snapshot"
 
 type (
-	// InstanceReport is saved in ES to have all the information of an EC2 instance
-	InstanceReport struct {
+	// SnapshotReport is saved in ES to have all the information of an EBS snapshot
+	SnapshotReport struct {
 		utils.ReportBase
-		Instance Instance `json:"instance"`
+		Snapshot Snapshot `json:"snapshot"`
 	}
 
-	// InstanceBase contains basics information of an EC2 instance
-	InstanceBase struct {
-		Id         string `json:"id"`
-		Region     string `json:"region"`
-		State      string `json:"state"`
-		Purchasing string `json:"purchasing"`
-		KeyPair    string `json:"keyPair"`
-		Type       string `json:"type"`
-		Platform   string `json:"platform"`
+	// SnapshotBase contains basics information of an EBS snapshot
+	SnapshotBase struct {
+		//Id         string `json:"id"`
+		//Region     string `json:"region"`
+		//State      string `json:"state"`
+		//Purchasing string `json:"purchasing"`
+		//KeyPair    string `json:"keyPair"`
+		//Type       string `json:"type"`
+		//Platform   string `json:"platform"`
 	}
 
-	// Instance contains all the information of an EC2 instance
-	Instance struct {
-		InstanceBase
-		Tags  []utils.Tag        `json:"tags"`
+	// Snapshot contains all the information of an EBS snapshot
+	Snapshot struct {
+		SnapshotBase
+		//Tags  []utils.Tag        `json:"tags"`
 		Costs map[string]float64 `json:"costs"`
 		Stats Stats              `json:"stats"`
+
+		State *string `locationName:"status" type:"string" enum:"SnapshotState"`
+		DataEncryptionKeyId *string `locationName:"dataEncryptionKeyId" type:"string"`
+		Description *string `locationName:"description" type:"string"`
+		Encrypted *bool `locationName:"encrypted" type:"boolean"`
+		KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
+		OwnerAlias *string `locationName:"ownerAlias" type:"string"`
+		OwnerId *string `locationName:"ownerId" type:"string"`
+		Progress *string `locationName:"progress" type:"string"`
+		SnapshotId *string `locationName:"snapshotId" type:"string"`
+		StartTime *time.Time `locationName:"startTime" type:"timestamp"`
+		StateMessage *string `locationName:"statusMessage" type:"string"`
+		Tags []*utils.Tag `locationName:"tagSet" locationNameList:"item" type:"list"` // utils.tag à changer ?
+		VolumeId *string `locationName:"volumeId" type:"string"`
+		VolumeSize *int64 `locationName:"volumeSize" type:"integer"`
 	}
 
-	// Stats contains statistics of an instance get on CloudWatch
+	// Stats contains statistics of a snapshot get on CloudWatch
 	Stats struct {
 		Cpu     Cpu      `json:"cpu"`
 		Network Network  `json:"network"`
 		Volumes []Volume `json:"volumes"`
 	}
 
-	// Cpu contains cpu statistics of an instance
+	// Cpu contains cpu statistics of an snapshot
 	Cpu struct {
 		Average float64 `json:"average"`
 		Peak    float64 `json:"peak"`
 	}
 
-	// Network contains network statistics of an instance
+	// Network contains network statistics of an snapshot
 	Network struct {
 		In  float64 `json:"in"`
 		Out float64 `json:"out"`
@@ -84,46 +99,46 @@ type (
 	}
 )
 
-// importInstancesToEs imports EC2 instances in ElasticSearch.
+// importSnapshotsToEs imports EBS snapshots in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
+func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []SnapshotReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating EC2 instances for AWS account.", map[string]interface{}{
+	logger.Info("Updating EBS snapshots for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2Report)
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEBSReport)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return err
 	}
-	for _, instance := range instances {
-		id, err := generateId(instance)
+	for _, snapshot := range snapshots {
+		id, err := generateId(snapshot)
 		if err != nil {
-			logger.Error("Error when marshaling instance var", err.Error())
+			logger.Error("Error when marshaling snapshot var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeEC2Report, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, snapshot, TypeEBSReport, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put EC2 instances in ES", err.Error())
+		logger.Error("Fail to put EBS snapshots in ES", err.Error())
 		return err
 	}
-	logger.Info("EC2 instances put in ES", nil)
+	logger.Info("EBS snapshots put in ES", nil)
 	return nil
 }
 
-func generateId(instance InstanceReport) (string, error) {
+func generateId(snapshot SnapshotReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
 	}{
-		instance.Account,
-		instance.ReportDate,
-		instance.Instance.Id,
+		snapshot.Account,
+		snapshot.ReportDate,
+		snapshot.Snapshot.Id,
 	})
 	if err != nil {
 		return "", err
@@ -135,13 +150,13 @@ func generateId(instance InstanceReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Instance) <-chan Instance {
+func merge(cs ...<-chan Snapshot) <-chan Snapshot {
 	var wg sync.WaitGroup
-	out := make(chan Instance)
+	out := make(chan Snapshot)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Instance) {
+	output := func(c <-chan Snapshot) {
 		for n := range c {
 			out <- n
 		}
