@@ -29,11 +29,11 @@ import (
 	"github.com/trackit/trackit-server/config"
 )
 
-// fetchDailySnapshotsList sends in instanceInfoChan the instances fetched from DescribeSnapshots
+// fetchDailySnapshotsList sends in snapshotInfoChan the snapshots fetched from DescribeSnapshots
 // and filled by DescribeSnapshots and getSnapshotStats.
 func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, region string, snapshotChan chan Snapshot) error {
 	defer close(snapshotChan)
-	start, end := utils.GetCurrentCheckedDay()
+	//start, end := utils.GetCurrentCheckedDay() // dont use start and end for now
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -45,24 +45,23 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 		logger.Error("Error when describing snapshots", err.Error())
 		return err
 	}
-	for _, reservation := range snapshots.Reservations {
-		for _, snapshot := range reservation.Snapshots {
-			stats := getSnapshotStats(ctx, snapshot, sess, start, end)
-			costs := make(map[string]float64, 0)
-			snapshotChan <- Snapshot{
-				SnapshotBase: SnapshotBase{
-					Id:         aws.StringValue(snapshot.SnapshotId),
-					Region:     aws.StringValue(snapshot.Placement.AvailabilityZone),
-					State:      aws.StringValue(snapshot.State.Name),
-					Purchasing: getPurchasingOption(snapshot),
-					KeyPair:    aws.StringValue(snapshot.KeyName),
-					Type:       aws.StringValue(snapshot.SnapshotType),
-					Platform:   getPlatformName(aws.StringValue(snapshot.Platform)),
-				},
-				Tags:  getSnapshotTag(snapshot.Tags),
-				Costs: costs,
-				Stats: stats,
-			}
+	for _, snapshot := range snapshots.Snapshots {
+		costs := make(map[string]float64, 0)
+		snapshotChan <- Snapshot{
+			SnapshotBase: SnapshotBase{
+				Id:         aws.StringValue(snapshot.SnapshotId),
+				Description: aws.StringValue(snapshot.Description),
+				State:       aws.StringValue(snapshot.State),
+				Encrypted:   aws.BoolValue(snapshot.Encrypted),
+				StartTime:   aws.TimeValue(snapshot.StartTime),
+
+			},
+			Tags:  getSnapshotTag(snapshot.Tags),
+			Volume: Volume{
+				Id:    aws.StringValue(snapshot.VolumeId),
+				Size:  aws.Int64Value(snapshot.VolumeSize),
+			},
+			Costs: costs,
 		}
 	}
 	return nil

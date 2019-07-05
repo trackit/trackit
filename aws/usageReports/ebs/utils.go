@@ -40,62 +40,26 @@ type (
 
 	// SnapshotBase contains basics information of an EBS snapshot
 	SnapshotBase struct {
-		//Id         string `json:"id"`
-		//Region     string `json:"region"`
-		//State      string `json:"state"`
-		//Purchasing string `json:"purchasing"`
-		//KeyPair    string `json:"keyPair"`
-		//Type       string `json:"type"`
-		//Platform   string `json:"platform"`
+		Id string `json:"id"`
+		Description string `json:"description"`
+		State string `json:"state"`
+		Encrypted bool `json:"encrypted"`
+		StartTime time.Time `json:"startTime"`
+		//StartTime *time.Time `json:"startTime"` >>> no * because impossible to use TimeValue with type *time.Time but ok with type time.Time
 	}
 
 	// Snapshot contains all the information of an EBS snapshot
 	Snapshot struct {
 		SnapshotBase
-		//Tags  []utils.Tag        `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
+		Volume Volume `json:"volume"`
 		Costs map[string]float64 `json:"costs"`
-		Stats Stats              `json:"stats"`
-
-		State *string `locationName:"status" type:"string" enum:"SnapshotState"`
-		DataEncryptionKeyId *string `locationName:"dataEncryptionKeyId" type:"string"`
-		Description *string `locationName:"description" type:"string"`
-		Encrypted *bool `locationName:"encrypted" type:"boolean"`
-		KmsKeyId *string `locationName:"kmsKeyId" type:"string"`
-		OwnerAlias *string `locationName:"ownerAlias" type:"string"`
-		OwnerId *string `locationName:"ownerId" type:"string"`
-		Progress *string `locationName:"progress" type:"string"`
-		SnapshotId *string `locationName:"snapshotId" type:"string"`
-		StartTime *time.Time `locationName:"startTime" type:"timestamp"`
-		StateMessage *string `locationName:"statusMessage" type:"string"`
-		Tags []*utils.Tag `locationName:"tagSet" locationNameList:"item" type:"list"` // utils.tag à changer ?
-		VolumeId *string `locationName:"volumeId" type:"string"`
-		VolumeSize *int64 `locationName:"volumeSize" type:"integer"`
-	}
-
-	// Stats contains statistics of a snapshot get on CloudWatch
-	Stats struct {
-		Cpu     Cpu      `json:"cpu"`
-		Network Network  `json:"network"`
-		Volumes []Volume `json:"volumes"`
-	}
-
-	// Cpu contains cpu statistics of an snapshot
-	Cpu struct {
-		Average float64 `json:"average"`
-		Peak    float64 `json:"peak"`
-	}
-
-	// Network contains network statistics of an snapshot
-	Network struct {
-		In  float64 `json:"in"`
-		Out float64 `json:"out"`
 	}
 
 	// Volume contains information about an EBS volume
 	Volume struct {
 		Id    string  `json:"id"`
-		Read  float64 `json:"read"`
-		Write float64 `json:"write"`
+		Size int64 `json:"size"`
 	}
 )
 

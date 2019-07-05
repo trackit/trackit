@@ -60,23 +60,17 @@ const TemplateEbsReport = `
 						"id": {
 							"type": "keyword"
 						},
-						"region": {
+						"description": {
 							"type": "keyword"
 						},
 						"state": {
 							"type": "keyword"
 						},
-						"purchasing": {
-							"type": "keyword"
+						"encrypted": {
+							"type": "bool"
 						},
-						"keyPair": {
-							"type": "keyword"
-						},
-						"type": {
-							"type": "keyword"
-						},
-						"platform": {
-							"type": "keyword"
+						"startTime": {
+							"type": "time.Time"
 						},
 						"tags": {
 							"type": "nested",
@@ -89,49 +83,19 @@ const TemplateEbsReport = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
+						"volume": {
 							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
+							"properties"; {
+								"id": {
+									"type": "keyword"
 								},
-								"network": {
-									"type": "object",
-									"properties": {
-											"in": {
-												"type": "double"
-											},
-											"out": {
-												"type": "double"
-											}
-									}
-								},
-								"volumes": {
-									"type": "nested",
-									"properties": {
-										"id": {
-											"type": "keyword"
-										},
-										"read": {
-											"type": "double"
-										},
-										"write": {
-											"type": "double"
-										}
-									}
+								"size": {
+									"type": "int64"
 								}
 							}
+						},
+						"costs": {
+							"type": "object"
 						}
 					}
 				}

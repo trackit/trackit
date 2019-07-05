@@ -35,13 +35,13 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-// getElasticSearchEc2Instance prepares and run the request to retrieve the a report of an instance
+// getElasticSearchEbsSnapshot prepares and run the request to retrieve the a report of an snapshot
 // It will return the data and an error.
-func getElasticSearchEc2Instance(ctx context.Context, account, instance string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
+func getElasticSearchEbsSnapshot(ctx context.Context, account, snapshot string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("account", account))
-	query = query.Filter(elastic.NewTermQuery("instance.id", instance))
+	query = query.Filter(elastic.NewTermQuery("snapshot.id", snapshot))
 	search := client.Search().Index(index).Size(1).Query(query)
 	res, err := search.Do(ctx)
 	if err != nil {
@@ -64,94 +64,83 @@ func getElasticSearchEc2Instance(ctx context.Context, account, instance string, 
 	return res, nil
 }
 
-// getInstanceInfoFromEs gets information about an instance from previous report to put it in the new report
-func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, account string, userId int) Instance {
-	var docType InstanceReport
-	var inst = Instance{
-		InstanceBase: InstanceBase{
-			Id:         instance.Resource,
-			Region:     "N/A",
+// getSnapshotInfoFromEs gets information about an snapshot from previous report to put it in the new report
+func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, account string, userId int) Snapshot {
+	var docType SnapshotReport
+	var snap = Snapshot{
+		SnapshotBase: SnapshotBase{
+			Id:         snapshot.Resource,
+			Description: "N/A",
 			State:      "N/A",
-			Purchasing: "N/A",
-			KeyPair:    "",
-			Type:       "N/A",
-			Platform:   "Linux/UNIX",
+			Encrypted: false,
+			StartTime: nil,
 		},
 		Tags:  make([]utils.Tag, 0),
 		Costs: make(map[string]float64, 0),
-		Stats: Stats{
-			Cpu: Cpu{
-				Average: -1,
-				Peak:    -1,
-			},
-			Network: Network{
-				In:  -1,
-				Out: -1,
-			},
-			Volumes: make([]Volume, 0),
+		Volume: Volume{
+			Id:    "N/A",
+			Size: -1,
 		},
 	}
-	inst.Costs["instance"] = instance.Cost
-	res, err := getElasticSearchEc2Instance(ctx, account, instance.Resource,
-		es.Client, es.IndexNameForUserId(userId, IndexPrefixEC2Report))
+	snap.Costs["snapshot"] = snapshot.Cost
+	res, err := getElasticSearchEbsSnapshot(ctx, account, snapshot.Resource,
+		es.Client, es.IndexNameForUserId(userId, IndexPrefixEBSReport))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
-			inst.Region = docType.Instance.Region
-			inst.Purchasing = docType.Instance.Purchasing
-			inst.KeyPair = docType.Instance.KeyPair
-			inst.Type = docType.Instance.Type
-			inst.Platform = docType.Instance.Platform
-			inst.Tags = docType.Instance.Tags
+			snap.Id = docType.Snapshot.Id
+			snap.Description = docType.Snapshot.Description
+			snap.State = docType.Snapshot.State
+			snap.Encrypted = docType.Snapshot.Encrypted
+			snap.StartTime = docType.Snapshot.StartTime
+			snap.Tags = docType.Snapshot.Tags
 		}
 	}
-	return inst
+	return snap
 }
 
-// fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
-// and filled by DescribeInstances and getInstanceStats.
-func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst utils.CostPerResource,
-	account, region string, instanceChan chan Instance, startDate, endDate time.Time, userId int) error {
-	defer close(instanceChan)
+// fetchMonthlySnapshotsList sends in snapshotInfoChan the snapshots fetched from DescribeSnapshots
+// and filled by DescribeSnapshots and getSnapshotStats.
+func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentials, snap utils.CostPerResource,
+	account, region string, snapshotChan chan Snapshot, startDate, endDate time.Time, userId int) error {
+	defer close(snapshotChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
 	svc := ec2.New(sess)
-	desc := ec2.DescribeInstancesInput{InstanceIds: aws.StringSlice([]string{inst.Resource})}
-	instances, err := svc.DescribeInstances(&desc)
+	desc := ec2.DescribeSnapshotsInput{SnapshotIds: aws.StringSlice([]string{snap.Resource})}
+	snapshots, err := svc.DescribeSnapshots(&desc)
 	if err != nil {
-		instanceChan <- getInstanceInfoFromES(ctx, inst, account, userId)
+		snapshotChan <- getSnapshotInfoFromES(ctx, snap, account, userId)
 		return err
 	}
-	for _, reservation := range instances.Reservations {
-		for _, instance := range reservation.Instances {
-			stats := getInstanceStats(ctx, instance, sess, startDate, endDate)
-			costs := make(map[string]float64, 0)
-			costs["instance"] = inst.Cost
-			instanceChan <- Instance{
-				InstanceBase: InstanceBase{
-					Id:         aws.StringValue(instance.InstanceId),
-					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
-					State:      aws.StringValue(instance.State.Name),
-					Purchasing: getPurchasingOption(instance),
-					KeyPair:    aws.StringValue(instance.KeyName),
-					Type:       aws.StringValue(instance.InstanceType),
-					Platform:   getPlatformName(aws.StringValue(instance.Platform)),
-				},
-				Tags:  getInstanceTag(instance.Tags),
-				Costs: costs,
-				Stats: stats,
-			}
+	for _, snapshot := range snapshots.Snapshots {
+		costs := make(map[string]float64, 0)
+		costs["snapshot"] = snap.Cost
+		snapshotChan <- Snapshot{
+			SnapshotBase: SnapshotBase{
+				Id:          aws.StringValue(snapshot.SnapshotId),
+				Description: aws.StringValue(snapshot.Description),
+				State:       aws.StringValue(snapshot.State),
+				//Encrypted:   aws.StringValue(snapshot.Encrypted), // ???
+				StartTime:   startDate,
+			},
+			Tags:  getSnapshotTag(snapshot.Tags),
+			Costs: costs,
+			Volume: Volume{
+				Id: aws.StringValue(snapshot.VolumeId),
+				Size: aws.Int64Value(snapshot.VolumeSize),
+			},
 		}
 	}
 	return nil
 }
 
-// getEc2Metrics gets credentials, accounts and region to fetch EC2 instances stats
-func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]InstanceReport, error) {
+// getEbsMetrics gets credentials, accounts and region to fetch EBS snapshots stats
+func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	creds, err := taws.GetTemporaryCredentials(aa, MonitorInstanceStsSessionName)
+	creds, err := taws.GetTemporaryCredentials(aa, MonitorSnapshotStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
 		return nil, err
@@ -170,97 +159,97 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
-	for _, instance := range instances {
+	snapshotChans := make([]<-chan Snapshot, 0, len(regions))
+	for _, snapshot := range snapshots {
 		for _, region := range regions {
-			if strings.Contains(instance.Region, region) {
-				instanceChan := make(chan Instance)
-				go fetchMonthlyInstancesList(ctx, creds, instance, account, region, instanceChan, startDate, endDate, aa.UserId)
-				instanceChans = append(instanceChans, instanceChan)
+			if strings.Contains(snapshot.Region, region) {
+				snapshotChan := make(chan Snapshot)
+				go fetchMonthlySnapshotsList(ctx, creds, snapshot, account, region, snapshotChan, startDate, endDate, aa.UserId)
+				snapshotChans = append(snapshotChans, snapshotChan)
 			}
 		}
 	}
-	instancesList := make([]InstanceReport, 0)
-	for instance := range merge(instanceChans...) {
-		instancesList = append(instancesList, InstanceReport{
+	snapshotsList := make([]SnapshotReport, 0)
+	for snapshot := range merge(snapshotChans...) {
+		snapshotsList = append(snapshotsList, SnapshotReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
 			},
-			Instance: instance,
+			Snapshot: snapshot,
 		})
 	}
-	return instancesList, nil
+	return snapshotsList, nil
 }
 
-// filterInstancesCosts filters instances, cloudwatch and volumes of EC2 instances costs
-func filterInstancesCosts(ebsCost, cloudwatchCost []utils.CostPerResource) ([]utils.CostPerResource, []utils.CostPerResource, []utils.CostPerResource) {
-	newInstance := make([]utils.CostPerResource, 0)
+// filterSnapshotsCosts filters snapshots, cloudwatch and volumes of EBS snapshots costs
+func filterSnapshotsCosts(ebsCost, cloudwatchCost []utils.CostPerResource) ([]utils.CostPerResource, []utils.CostPerResource, []utils.CostPerResource) {
+	newSnapshot := make([]utils.CostPerResource, 0)
 	newVolume := make([]utils.CostPerResource, 0)
 	newCloudWatch := make([]utils.CostPerResource, 0)
-	for _, instance := range ebsCost {
-		if len(instance.Resource) == 19 && strings.HasPrefix(instance.Resource, "i-") {
-			newInstance = append(newInstance, instance)
+	for _, snapshot := range ebsCost {
+		if len(snapshot.Resource) == 19 && strings.HasPrefix(snapshot.Resource, "i-") {
+			newSnapshot = append(newSnapshot, snapshot)
 		}
-		if len(instance.Resource) == 21 && strings.HasPrefix(instance.Resource, "vol-") {
-			newVolume = append(newVolume, instance)
+		if len(snapshot.Resource) == 21 && strings.HasPrefix(snapshot.Resource, "vol-") {
+			newVolume = append(newVolume, snapshot)
 		}
 	}
-	for _, instance := range cloudwatchCost {
-		for _, cost := range newInstance {
-			if strings.Contains(instance.Resource, cost.Resource) {
-				newCloudWatch = append(newCloudWatch, instance)
+	for _, snapshot := range cloudwatchCost {
+		for _, cost := range newSnapshot {
+			if strings.Contains(snapshot.Resource, cost.Resource) {
+				newCloudWatch = append(newCloudWatch, snapshot)
 			}
 		}
 	}
-	return newInstance, newVolume, newCloudWatch
+	return newSnapshot, newVolume, newCloudWatch
 }
 
-func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch []utils.CostPerResource) []InstanceReport {
-	for i, instance := range instances {
-		for _, volume := range instance.Instance.Stats.Volumes {
+func addCostToSnapshots(snapshots []SnapshotReport, costVolume, costCloudWatch []utils.CostPerResource) []SnapshotReport {
+	for i, snapshot := range snapshots {
+		for _, volume := range snapshot.Snapshot.Stats.Volumes {
 			for _, costPerVolume := range costVolume {
 				if volume.Id == costPerVolume.Resource {
-					instances[i].Instance.Costs[volume.Id] += costPerVolume.Cost
+					snapshots[i].Snapshot.Costs[volume.Id] += costPerVolume.Cost
 				}
 			}
 		}
 		for _, cloudWatch := range costCloudWatch {
-			if strings.Contains(cloudWatch.Resource, instance.Instance.Id) {
-				instances[i].Instance.Costs["cloudwatch"] += cloudWatch.Cost
+			if strings.Contains(cloudWatch.Resource, snapshot.Snapshot.Id) {
+				snapshots[i].Snapshot.Costs["cloudwatch"] += cloudWatch.Cost
 			}
 		}
 	}
-	return instances
+	return snapshots
 }
 
-// PutEc2MonthlyReport puts a monthly report of EBS instance in ES
-func PutEc2MonthlyReport(ctx context.Context, ebsCost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+// PutEbsMonthlyReport puts a monthly report of EBS snapshot in ES
+func PutEbsMonthlyReport(ctx context.Context, ebsCost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting EC2 monthly report", map[string]interface{}{
+	logger.Info("Starting EBS monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	costInstance, costVolume, costCloudWatch := filterInstancesCosts(ebsCost, cloudWatchCost)
-	if len(costInstance) == 0 {
-		logger.Info("No EC2 instances found in billing data.", nil)
+	costSnapshot, costVolume, costCloudWatch := filterSnapshotsCosts(ebsCost, cloudWatchCost)
+	if len(costSnapshot) == 0 {
+		logger.Info("No EBS snapshots found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEC2Report)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEBSReport)
 	if err != nil {
 		return false, err
 	} else if already {
-		logger.Info("There is already an EC2 monthly report", nil)
+		logger.Info("There is already an EBS monthly report", nil)
 		return false, nil
 	}
-	instances, err := fetchMonthlyInstancesStats(ctx, costInstance, aa, startDate, endDate)
+	snapshots, err := fetchMonthlySnapshotsStats(ctx, costSnapshot, aa, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
-	instances = addCostToInstances(instances, costVolume, costCloudWatch)
-	err = importInstancesToEs(ctx, aa, instances)
+	snapshots = addCostToSnapshots(snapshots, costVolume, costCloudWatch)
+	err = importSnapshotsToEs(ctx, aa, snapshots)
 	if err != nil {
 		return false, err
 	}
