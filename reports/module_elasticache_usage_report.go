@@ -39,6 +39,8 @@ var elastiCacheUsageReportModule = module{
 	GenerateSheet: generateElastiCacheUsageReportSheet,
 }
 
+// generateElastiCacheUsageReportSheet will generate a sheet with ElastiCache usage report
+// It will get data for given AWS account and for a given date
 func generateElastiCacheUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
@@ -49,27 +51,22 @@ func generateElastiCacheUsageReportSheet(ctx context.Context, aas []aws.AwsAccou
 func elastiCacheUsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := elastiCacheUsageReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return elastiCacheUsageReportInsertDataInSheet(ctx, aas, file, data)
-	} else {
-		return
+		return elastiCacheUsageReportInsertDataInSheet(aas, file, data)
 	}
+	return
 }
 
 func elastiCacheUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []elasticache.InstanceReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	identities := getAwsIdentities(aas)
-
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-
 	parameters := elasticache.ElastiCacheQueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-
 	logger.Debug("Getting ElastiCache Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
@@ -85,7 +82,7 @@ func elastiCacheUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, da
 	return
 }
 
-func elastiCacheUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []elasticache.InstanceReport) (err error) {
+func elastiCacheUsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []elasticache.InstanceReport) (err error) {
 	file.NewSheet(elastiCacheUsageReportSheetName)
 	elastiCacheUsageReportGenerateHeader(file)
 	line := 3

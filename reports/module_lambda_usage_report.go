@@ -40,6 +40,8 @@ var lambdaUsageReportModule = module{
 	GenerateSheet: generateLambdaUsageReportSheet,
 }
 
+// generateLambdaUsageReportSheet will generate a sheet with Lambda usage report
+// It will get data for given AWS account and for a given date
 func generateLambdaUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
@@ -50,27 +52,22 @@ func generateLambdaUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, d
 func lambdaUsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := lambdaUsageReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return lambdaUsageReportInsertDataInSheet(ctx, aas, file, data)
-	} else {
-		return
+		return lambdaUsageReportInsertDataInSheet(aas, file, data)
 	}
+	return
 }
 
 func lambdaUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []lambda.FunctionReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	identities := getAwsIdentities(aas)
-
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-
 	parameters := lambda.LambdaQueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-
 	logger.Debug("Getting Lambda Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
@@ -86,7 +83,7 @@ func lambdaUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date ti
 	return
 }
 
-func lambdaUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []lambda.FunctionReport) (err error) {
+func lambdaUsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []lambda.FunctionReport) (err error) {
 	file.NewSheet(lambdaUsageReportSheetName)
 	lambdaUsageReportGenerateHeader(file)
 	line := 3

@@ -38,6 +38,8 @@ var rdsUsageReportModule = module{
 	GenerateSheet: generateRdsUsageReportSheet,
 }
 
+// generateRdsUsageReportSheet will generate a sheet with RDS usage report
+// It will get data for given AWS account and for a given date
 func generateRdsUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
@@ -48,27 +50,22 @@ func generateRdsUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date
 func rdsUsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := rdsUsageReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return rdsUsageReportInsertDataInSheet(ctx, aas, file, data)
-	} else {
-		return
+		return rdsUsageReportInsertDataInSheet(aas, file, data)
 	}
+	return
 }
 
 func rdsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []rds.InstanceReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	identities := getAwsIdentities(aas)
-
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-
 	parameters := rds.RdsQueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-
 	logger.Debug("Getting RDS Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
@@ -84,7 +81,7 @@ func rdsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.
 	return
 }
 
-func rdsUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []rds.InstanceReport) (err error) {
+func rdsUsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []rds.InstanceReport) (err error) {
 	file.NewSheet(rdsUsageReportSheetName)
 	rdsUsageReportGenerateHeader(file)
 	line := 4

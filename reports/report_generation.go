@@ -26,6 +26,11 @@ import (
 	"github.com/trackit/trackit/db"
 )
 
+// GenerateReport will generate a spreadsheet report for a given AWS account and for a given month
+// It will iterate over available modules and generate a sheet for each module.
+// Note: First sheet is removed since it is unused (Created by excelize)
+// Report is then uploaded to an S3 bucket
+// Note: File can be saved locally by using `saveSpreadsheetLocally` instead of `saveSpreadsheet`
 func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount, date time.Time) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	now := time.Now()
@@ -53,7 +58,6 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 	}
 	errs = make(map[string]error)
 	file := createSpreadsheet(aa, reportDate)
-
 	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
 		for _, module := range modules {
 			err := module.GenerateSheet(ctx, aas, date, tx, file.File)
@@ -61,10 +65,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 				errs[module.ErrorName] = err
 			}
 		}
-
-		/* Remove the first sheet since it is unused */
 		file.File.DeleteSheet(file.File.GetSheetName(1))
-
 		errs["speadsheetError"] = saveSpreadsheet(ctx, file, masterReport)
 	} else {
 		errs["speadsheetError"] = err

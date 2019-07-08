@@ -39,6 +39,8 @@ var ec2UsageReportModule = module{
 	GenerateSheet: generateEc2UsageReportSheet,
 }
 
+// generateEc2UsageReportSheet will generate a sheet with EC2 usage report
+// It will get data for given AWS account and for a given date
 func generateEc2UsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
@@ -49,27 +51,22 @@ func generateEc2UsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date
 func ec2UsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := ec2UsageReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return ec2UsageReportInsertDataInSheet(ctx, aas, file, data)
-	} else {
-		return
+		return ec2UsageReportInsertDataInSheet(aas, file, data)
 	}
+	return
 }
 
 func ec2UsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []ec2.InstanceReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	identities := getAwsIdentities(aas)
-
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-
 	parameters := ec2.Ec2QueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-
 	logger.Debug("Getting EC2 Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
@@ -85,7 +82,7 @@ func ec2UsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.
 	return
 }
 
-func ec2UsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []ec2.InstanceReport) (err error) {
+func ec2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []ec2.InstanceReport) (err error) {
 	file.NewSheet(ec2UsageReportSheetName)
 	ec2UsageReportGenerateHeader(file)
 	line := 3

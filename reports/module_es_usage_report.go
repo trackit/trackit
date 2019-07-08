@@ -39,6 +39,8 @@ var esUsageReportModule = module{
 	GenerateSheet: generateEsUsageReportSheet,
 }
 
+// generateEsUsageReportSheet will generate a sheet with ES usage report
+// It will get data for given AWS account and for a given date
 func generateEsUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
@@ -49,27 +51,22 @@ func generateEsUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date 
 func esUsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := esUsageReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return esUsageReportInsertDataInSheet(ctx, aas, file, data)
-	} else {
-		return
+		return esUsageReportInsertDataInSheet(aas, file, data)
 	}
+	return
 }
 
 func esUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []es.DomainReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	identities := getAwsIdentities(aas)
-
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-
 	parameters := es.EsQueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-
 	logger.Debug("Getting ES Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
@@ -85,7 +82,7 @@ func esUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.T
 	return
 }
 
-func esUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []es.DomainReport) (err error) {
+func esUsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []es.DomainReport) (err error) {
 	file.NewSheet(esUsageReportSheetName)
 	esUsageReportGenerateHeader(file)
 	line := 3

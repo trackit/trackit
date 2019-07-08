@@ -38,11 +38,9 @@ var templateModule = module{
 
 func generateTemplateSheet(ctx context.Context, _ []aws.AwsAccount, _ time.Time, _ *sql.Tx, file *excelize.File) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	if len(config.ReportsCover) == 0 {
 		return
 	}
-
 	imageUrlSplit := strings.Split(config.ReportsCover, "/")
 	imageFile := strings.Split(imageUrlSplit[len(imageUrlSplit)-1], ".")
 	image, err := downloadFile(config.ReportsCover)
@@ -52,15 +50,12 @@ func generateTemplateSheet(ctx context.Context, _ []aws.AwsAccount, _ time.Time,
 			"cover": config.ReportsCover,
 		})
 	}
-
 	file.NewSheet(templateSheetName)
 	err = file.AddPictureFromBytes(templateSheetName, "A1", `{"x_scale": 0.95, "y_scale": 1}`, imageFile[0], "."+imageFile[len(imageFile)-1], image)
-
 	if err != nil {
 		logger.Error("An error occured while generating template for report", map[string]interface{}{
 			"error": err,
 		})
 	}
-
 	return
 }
