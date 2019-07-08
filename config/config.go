@@ -56,6 +56,10 @@ var (
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
 	EsAddress stringArray
+	// RedisAddress is the address where the Redis database resides.
+	RedisAddress stringArray
+	// RedisPassword is the password used to connect to the Redis database.
+	RedisPassword string
 	// SmtpAddress is the SMTP address where to send mails.
 	SmtpAddress string
 	// SmtpPort is the SMTP port where to send mails.
@@ -114,6 +118,8 @@ func init() {
 	flag.StringVar(&DefaultRoleBucketPrefix, "default-role-bucket-prefix", "", "The billing prefix for the default role.")
 	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
 	flag.Var(&EsAddress, "es-address", "The address of the ElasticSearch database.")
+	flag.Var(&RedisAddress, "redis-address", "The address of the Redis database.")
+	flag.StringVar(&RedisPassword, "redis-password", "changeme", "The password to use to connect to the Redis database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.StringVar(&UrlEc2Pricing, "url-ec2-pricing", "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json", "The URL used to download the EC2 pricing.")
 	flag.StringVar(&SmtpAddress, "smtp-address", "", "The address of the SMTP server.")

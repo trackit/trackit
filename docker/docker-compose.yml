@@ -19,7 +19,7 @@ services:
       - app
     ports:
       - '127.0.0.1:9200:9200'
-  cache:
+  redis:
     image: redis:latest
     command: ["redis-server", "--appendonly", "yes"]
     networks:
@@ -30,9 +30,11 @@ services:
     build: server/
     links:
       - sql
+      - redis
     command:
       - -sql-address=${TRACKIT_SQL_USER:-trackit}:${TRACKIT_SQL_PASSWORD:-trackitpassword}@tcp(sql:3306)/${TRACKIT_SQL_DATABASE:-trackit}?parseTime=true
       - -es-address=${TRACKIT_ES_ADDRESS:-http://es:9200}
+      - -redis-address=${TRACKIT_REDIS_ADDRESS:-http://redis:6379}
       - -http-address=[::]:80
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
