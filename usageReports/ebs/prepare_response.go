@@ -17,8 +17,6 @@ package ebs
 import (
 	"context"
 	"encoding/json"
-	"strings"
-
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
@@ -122,32 +120,6 @@ func getEbsSnapshotReportResponse(oldSnapshot ebs.SnapshotReport) SnapshotReport
 	return newSnapshot
 }
 
-// addCostToSnapshot adds a cost for an snapshot based on billing data
-func addCostToSnapshot(snapshot ebs.SnapshotReport, costs ResponseCost) ebs.SnapshotReport {
-	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != snapshot.Account {
-			continue
-		}
-		for _, snapshotCost := range accounts.Snapshots.Buckets {
-			if strings.Contains(snapshotCost.Key, snapshot.Snapshot.Id) {
-				if len(snapshotCost.Key) == 19 && strings.HasPrefix(snapshotCost.Key, "i-") {
-					//snapshot.Snapshot.Costs["snapshot"] += snapshotCost.Cost.Value
-				} else {
-					//snapshot.Snapshot.Costs["cloudwatch"] += snapshotCost.Cost.Value
-				}
-			}
-			// cant range or snapshot volume
-			/*for _, volume := range snapshot.Snapshot.Volume {
-				if volume.Id == snapshotCost.Key {
-					snapshot.Snapshot.Costs[volume.Id] += snapshotCost.Cost.Value
-				}
-			}*/
-		}
-		return snapshot
-	}
-	return snapshot
-}
-
 // prepareResponseEbsDaily parses the results from elasticsearch and returns an array of EBS daily snapshots report
 func prepareResponseEbsDaily(ctx context.Context, resEbs *elastic.SearchResult, resCost *elastic.SearchResult) ([]SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -175,7 +147,6 @@ func prepareResponseEbsDaily(ctx context.Context, resEbs *elastic.SearchResult, 
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
 				for _, snapshot := range date.Snapshots.Hits.Hits {
-					//snapshot.Snapshot = addCostToSnapshot(snapshot.Snapshot, parsedCost)
 					snapshots = append(snapshots, getEbsSnapshotReportResponse(snapshot.Snapshot))
 				}
 			}

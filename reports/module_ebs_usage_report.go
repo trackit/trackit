@@ -85,16 +85,11 @@ func ebsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.
 	return
 }
 
-func ebsUsageReportInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, file *excelize.File, data []ebs.SnapshotReport) (err error) {
+func ebsUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []ebs.SnapshotReport) (err error) {
 	file.NewSheet(ebsUsageReportSheetName)
 	ebsUsageReportGenerateHeader(file)
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	line := 3
-	logger.Debug("Getting informations from EBS, TRYING TO GET SOME INFORMATIONS", map[string]interface{}{
-		"data": data,
-	})
 	for _, report := range data {
-		logger.Debug("Getting informations from EBS, TRYING TO LOOP ON DATA", "")
 		account := getAwsAccount(report.Account, aas)
 		formattedAccount := report.Account
 		if account != nil {
@@ -108,11 +103,10 @@ func ebsUsageReportInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, 
 			newCell(snapshot.Id, "B"+strconv.Itoa(line)),
 			newCell(date, "C"+strconv.Itoa(line)),
 			newCell(snapshot.Region, "D"+strconv.Itoa(line)),
-			newCell(snapshot.Cost, "E"+strconv.Itoa(line)),
-			newCell(snapshot.State, "F"+strconv.Itoa(line)),
-			newCell(snapshot.Volume.Id, "G"+strconv.Itoa(line)),
-			newCell(snapshot.Volume.Size, "H"+strconv.Itoa(line)),
-			newCell(strings.Join(tags, ";"), "I"+strconv.Itoa(line)),
+			newCell(snapshot.Cost, "E"+strconv.Itoa(line)).addStyles("price"),
+			newCell(snapshot.Volume.Id, "F"+strconv.Itoa(line)),
+			newCell(snapshot.Volume.Size, "G"+strconv.Itoa(line)),
+			newCell(strings.Join(tags, ";"), "H"+strconv.Itoa(line)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, ebsUsageReportSheetName)
 		line++
@@ -127,20 +121,19 @@ func ebsUsageReportGenerateHeader(file *excelize.File) {
 		newCell("Date", "C1").mergeTo("C2"),
 		newCell("Region", "D1").mergeTo("D2"),
 		newCell("Cost", "E1").mergeTo("E2"),
-		newCell("State", "F1").mergeTo("F2"),
-		newCell("Volume", "G1").mergeTo("H1"),
-		newCell("ID", "G2"),
-		newCell("Size (GigaBytes)", "H2"),
-		newCell("Tags", "I1").mergeTo("I2"),
+		newCell("Volume", "F1").mergeTo("G1"),
+		newCell("ID", "F2"),
+		newCell("Size (GigaBytes)", "G2"),
+		newCell("Tags", "H1").mergeTo("H2"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, ebsUsageReportSheetName)
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
-		newColumnWidth("B", 40),
-		newColumnWidth("C", 20).toColumn("F"),
-		newColumnWidth("G", 30),
-		newColumnWidth("H", 20),
-		newColumnWidth("I", 30),
+		newColumnWidth("B", 35),
+		newColumnWidth("C", 20).toColumn("E"),
+		newColumnWidth("F", 30),
+		newColumnWidth("G", 20),
+		newColumnWidth("H", 30),
 	}
 	columns.setValues(file, ebsUsageReportSheetName)
 	return

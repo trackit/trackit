@@ -104,18 +104,24 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, 
 func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentials, snap utils.CostPerResource,
 	account, region string, snapshotChan chan Snapshot, userId int) error {
 	defer close(snapshotChan)
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
 	svc := ec2.New(sess)
-	desc := ec2.DescribeSnapshotsInput{SnapshotIds: aws.StringSlice([]string{snap.Resource})}
+	desc := ec2.DescribeSnapshotsInput{SnapshotIds: []*string{aws.String(getResourceId(snap))}}
 	snapshots, err := svc.DescribeSnapshots(&desc)
 	if err != nil {
 		snapshotChan <- getSnapshotInfoFromES(ctx, snap, account, userId)
 		return err
 	}
 	for _, snapshot := range snapshots.Snapshots {
+		logger.Debug("DATA SNAPSHOT =======", map[string]interface{}{
+			"region": region,
+			"snap": snap,
+			"data": snapshot,
+		})
 		snapshotChan <- Snapshot{
 			SnapshotBase: SnapshotBase{
 				Id:          aws.StringValue(snapshot.SnapshotId),
@@ -123,6 +129,7 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 				State:       aws.StringValue(snapshot.State),
 				Encrypted:   aws.BoolValue(snapshot.Encrypted),
 				StartTime:   aws.TimeValue(snapshot.StartTime),
+				Region:      region,
 			},
 			Tags:  getSnapshotTag(snapshot.Tags),
 			Cost: snap.Cost,
@@ -215,7 +222,7 @@ func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, a
 	ebsCost := make([]utils.CostPerResource, 0)
 	for _, cost := range ec2Cost {
 		if strings.Contains(cost.Resource,":snapshot/") {
-			cost.Region = getCostRegion(cost)
+			cost.Region = getResourceRegion(cost)
 			ebsCost = append(ebsCost, cost)
 		}
 	}
@@ -237,8 +244,18 @@ func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, a
 	return true, nil
 }
 
-func getCostRegion(cost utils.CostPerResource) string {
+//get the region of the ressource for ebs snapshot
+func getResourceRegion(cost utils.CostPerResource) string {
 	reg, err := regexp.Compile("^arn:aws:ec2:([\\w\\d\\-]+):\\d+:snapshot")
+	if err != nil {
+		return ""
+	}
+	return reg.FindStringSubmatch(cost.Resource)[1]
+}
+
+//get the id of the ressource for ebs snapshot
+func getResourceId(cost utils.CostPerResource) string {
+	reg, err := regexp.Compile("^arn:aws:ec2:[\\w\\d\\-]+:\\d+:snapshot/([\\w\\d\\-]+)")
 	if err != nil {
 		return ""
 	}
