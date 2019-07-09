@@ -31,7 +31,7 @@ import (
 
 // fetchDailySnapshotsList sends in snapshotInfoChan the snapshots fetched from DescribeSnapshots
 // and filled by DescribeSnapshots and getSnapshotStats.
-func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, region string, snapshotChan chan Snapshot) error {
+func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, awsAccount taws.AwsAccount, region string, snapshotChan chan Snapshot) error {
 	defer close(snapshotChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -39,13 +39,16 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 		Region:      aws.String(region),
 	}))
 	svc := ec2.New(sess)
-	snapshots, err := svc.DescribeSnapshots(nil)
+	snapshots, err := svc.DescribeSnapshots(&ec2.DescribeSnapshotsInput{
+		OwnerIds: []*string{
+			aws.String(awsAccount.AwsIdentity),
+		},
+	})
 	if err != nil {
 		logger.Error("Error when describing snapshots", err.Error())
 		return err
 	}
 	for _, snapshot := range snapshots.Snapshots {
-		costs := make(map[string]float64, 0)
 		snapshotChan <- Snapshot{
 			SnapshotBase: SnapshotBase{
 				Id:          aws.StringValue(snapshot.SnapshotId),
@@ -53,25 +56,25 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 				State:       aws.StringValue(snapshot.State),
 				Encrypted:   aws.BoolValue(snapshot.Encrypted),
 				StartTime:   aws.TimeValue(snapshot.StartTime),
-
+				Region:      region,
 			},
 			Tags:  getSnapshotTag(snapshot.Tags),
 			Volume: Volume{
 				Id:    aws.StringValue(snapshot.VolumeId),
 				Size:  aws.Int64Value(snapshot.VolumeSize),
 			},
-			Costs: costs,
+			Cost: 0,
 		}
 	}
 	return nil
 }
 
-// FetchDailySnapshotsStats fetches the stats of the EC2 snapshots of an AwsAccount
+// FetchDailySnapshotsStats fetches the stats of the EBS snapshots of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchSnapshotsStats should be called every hour.
 func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Fetching EC2 snapshot stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	logger.Info("Fetching EBS snapshot stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorSnapshotStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
@@ -95,7 +98,7 @@ func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount) e
 	snapshotChans := make([]<-chan Snapshot, 0, len(regions))
 	for _, region := range regions {
 		snapshotChan := make(chan Snapshot)
-		go fetchDailySnapshotsList(ctx, creds, region, snapshotChan)
+		go fetchDailySnapshotsList(ctx, creds, awsAccount, region, snapshotChan)
 		snapshotChans = append(snapshotChans, snapshotChan)
 	}
 	snapshots := make([]SnapshotReport, 0)

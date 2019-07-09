@@ -42,7 +42,7 @@ func init() {
 const TemplateEbsReport = `
 {
 	"template": "*-ebs-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"ebs-report": {
 			"properties": {
@@ -67,10 +67,13 @@ const TemplateEbsReport = `
 							"type": "keyword"
 						},
 						"encrypted": {
-							"type": "bool"
+							"type": "boolean"
 						},
 						"startTime": {
 							"type": "date"
+						},
+						"region": {
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",
@@ -85,7 +88,7 @@ const TemplateEbsReport = `
 						},
 						"volume": {
 							"type": "object",
-							"properties"; {
+							"properties": {
 								"id": {
 									"type": "keyword"
 								},
@@ -94,8 +97,8 @@ const TemplateEbsReport = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
+						"cost": {
+							"type": "double"
 						}
 					}
 				}

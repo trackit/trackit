@@ -68,23 +68,23 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams EbsQueryParams,
 	return res, http.StatusOK, nil
 }
 
-// GetEbsMonthlyInstances does an elastic request and returns an array of instances monthly report based on query params
-func GetEbsMonthlyInstances(ctx context.Context, params EbsQueryParams) (int, []InstanceReport, error) {
+// GetEbsMonthlySnapshots does an elastic request and returns an array of snapshots monthly report based on query params
+func GetEbsMonthlySnapshots(ctx context.Context, params EbsQueryParams) (int, []SnapshotReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEbsMonthlyParams)
 	if err != nil {
 		return returnCode, nil, err
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	instances, err := prepareResponseEbsMonthly(ctx, res)
+	snapshots, err := prepareResponseEbsMonthly(ctx, res)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, snapshots, nil
 }
 
-// GetEbsDailyInstances does an elastic request and returns an array of instances daily report based on query params
-func GetEbsDailyInstances(ctx context.Context, params EbsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+// GetEbsDailySnapshots does an elastic request and returns an array of snapshots daily report based on query params
+func GetEbsDailySnapshots(ctx context.Context, params EbsQueryParams, user users.User, tx *sql.Tx) (int, []SnapshotReport, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchEbsDailyParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -98,39 +98,30 @@ func GetEbsDailyInstances(ctx context.Context, params EbsQueryParams, user users
 	params.AccountList = accountsAndIndexes.Accounts
 	params.IndexList = accountsAndIndexes.Indexes
 	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
-	instances, err := prepareResponseEbsDaily(ctx, res, costRes)
+	snapshots, err := prepareResponseEbsDaily(ctx, res, costRes)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, instances, nil
+	return http.StatusOK, snapshots, nil
 }
 
 // GetEbsData gets EBS monthly reports based on query params, if there isn't a monthly report, it gets daily reports
-func GetEbsData(ctx context.Context, parsedParams EbsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
+func GetEbsData(ctx context.Context, parsedParams EbsQueryParams, user users.User, tx *sql.Tx) (int, []SnapshotReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ebs.IndexPrefixEBSReport)
 	if err != nil {
 		return returnCode, nil, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, monthlyInstances, err := GetEbsMonthlyInstances(ctx, parsedParams)
+	returnCode, monthlySnapshots, err := GetEbsMonthlySnapshots(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
-		return returnCode, monthlyInstances, nil
+	} else if monthlySnapshots != nil && len(monthlySnapshots) > 0 {
+		return returnCode, monthlySnapshots, nil
 	}
-	returnCode, dailyInstances, err := GetEbsDailyInstances(ctx, parsedParams, user, tx)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	return returnCode, dailyInstances, nil
-}
-
-// GetEbsUnusedData gets EBS reports and parse them based on query params to have an array of unused instances
-func GetEbsUnusedData(ctx context.Context, params EbsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	returnCode, instances, err := GetEbsData(ctx, EbsQueryParams{params.AccountList, nil, params.Date}, user, tx)
+	returnCode, dailySnapshots, err := GetEbsDailySnapshots(ctx, parsedParams, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}
-	return prepareResponseEbsUnused(params, instances)
+	return returnCode, dailySnapshots, nil
 }

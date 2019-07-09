@@ -17,8 +17,6 @@ package ebs
 import (
 	"context"
 	"encoding/json"
-	"net/http"
-	"sort"
 	"strings"
 
 	"github.com/trackit/jsonlog"
@@ -36,145 +34,126 @@ type (
 		Accounts struct {
 			Buckets []struct {
 				Key       string `json:"key"`
-				Instances struct {
+				Snapshots struct {
 					Buckets []struct {
 						Key  string `json:"key"`
 						Cost struct {
 							Value float64 `json:"value"`
 						} `json:"cost"`
 					} `json:"buckets"`
-				} `json:"instances"`
+				} `json:"snapshots"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EBS Monthly instances
+	// Structure that allow to parse ES response for EBS Monthly snapshots
 	ResponseEbsMonthly struct {
 		Accounts struct {
 			Buckets []struct {
-				Instances struct {
+				Snapshots struct {
 					Hits struct {
 						Hits []struct {
-							Instance ebs.InstanceReport `json:"_source"`
+							Snapshot ebs.SnapshotReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"instances"`
+				} `json:"snapshots"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EBS Daily instances
+	// Structure that allow to parse ES response for EBS Daily snapshots
 	ResponseEbsDaily struct {
 		Accounts struct {
 			Buckets []struct {
 				Dates struct {
 					Buckets []struct {
 						Time      string `json:"key_as_string"`
-						Instances struct {
+						Snapshots struct {
 							Hits struct {
 								Hits []struct {
-									Instance ebs.InstanceReport `json:"_source"`
+									Snapshot ebs.SnapshotReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
-						} `json:"instances"`
+						} `json:"snapshots"`
 					} `json:"buckets"`
 				} `json:"dates"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
 
-	// InstanceReport has all the information of an EBS instance report
-	InstanceReport struct {
+	// SnapshotReport has all the information of an EBS snapshot report
+	SnapshotReport struct {
 		utils.ReportBase
-		Instance Instance `json:"instance"`
+		Snapshot Snapshot `json:"snapshot"`
 	}
 
-	// Instance contains the information of an EBS instance
-	Instance struct {
-		ebs.InstanceBase
-		Tags  map[string]string  `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
-		Stats Stats              `json:"stats"`
-	}
-
-	// Stats contains statistics of an instance get on CloudWatch
-	Stats struct {
-		Cpu     ebs.Cpu     `json:"cpu"`
-		Network ebs.Network `json:"network"`
-		Volumes Volumes     `json:"volumes"`
+	// Snapshot contains the information of an EBS snapshot
+	Snapshot struct {
+		ebs.SnapshotBase
+		Tags   map[string]string  `json:"tags"`
+		Volume Volume             `json:"volume"`
+		Cost  float64             `json:"cost"`
 	}
 
 	// Volume contains information about EBS volumes
-	Volumes struct {
-		Read  map[string]float64 `json:"read"`
-		Write map[string]float64 `json:"write"`
+	Volume struct {
+		Id    string  `json:"id"`
+		Size  int64   `json:"size"`
 	}
 )
 
-func getEbsInstanceReportResponse(oldInstance ebs.InstanceReport) InstanceReport {
+func getEbsSnapshotReportResponse(oldSnapshot ebs.SnapshotReport) SnapshotReport {
 	tags := make(map[string]string, 0)
-	for _, tag := range oldInstance.Instance.Tags {
+	for _, tag := range oldSnapshot.Snapshot.Tags {
 		tags[tag.Key] = tag.Value
 	}
-	read := make(map[string]float64, 0)
-	write := make(map[string]float64, 0)
-	for _, volume := range oldInstance.Instance.Stats.Volumes {
-		read[volume.Id] = volume.Read
-		write[volume.Id] = volume.Write
-	}
-	newInstance := InstanceReport{
-		ReportBase: oldInstance.ReportBase,
-		Instance: Instance{
-			InstanceBase: oldInstance.Instance.InstanceBase,
+	newSnapshot := SnapshotReport{
+		ReportBase: oldSnapshot.ReportBase,
+		Snapshot: Snapshot{
+			SnapshotBase: oldSnapshot.Snapshot.SnapshotBase,
 			Tags:         tags,
-			Costs:        oldInstance.Instance.Costs,
-			Stats: Stats{
-				Cpu:     oldInstance.Instance.Stats.Cpu,
-				Network: oldInstance.Instance.Stats.Network,
-				Volumes: Volumes{
-					Read:  read,
-					Write: write,
-				},
+			Cost:        oldSnapshot.Snapshot.Cost,
+			Volume: Volume{
+				Id:   oldSnapshot.Snapshot.Volume.Id,
+				Size: oldSnapshot.Snapshot.Volume.Size,
 			},
 		},
 	}
-	return newInstance
+	return newSnapshot
 }
 
-// addCostToInstance adds a cost for an instance based on billing data
-func addCostToInstance(instance ebs.InstanceReport, costs ResponseCost) ebs.InstanceReport {
-	if instance.Instance.Costs == nil {
-		instance.Instance.Costs = make(map[string]float64, 0)
-	}
+// addCostToSnapshot adds a cost for an snapshot based on billing data
+func addCostToSnapshot(snapshot ebs.SnapshotReport, costs ResponseCost) ebs.SnapshotReport {
 	for _, accounts := range costs.Accounts.Buckets {
-		if accounts.Key != instance.Account {
+		if accounts.Key != snapshot.Account {
 			continue
 		}
-		for _, instanceCost := range accounts.Instances.Buckets {
-			if strings.Contains(instanceCost.Key, instance.Instance.Id) {
-				if len(instanceCost.Key) == 19 && strings.HasPrefix(instanceCost.Key, "i-") {
-					instance.Instance.Costs["instance"] += instanceCost.Cost.Value
+		for _, snapshotCost := range accounts.Snapshots.Buckets {
+			if strings.Contains(snapshotCost.Key, snapshot.Snapshot.Id) {
+				if len(snapshotCost.Key) == 19 && strings.HasPrefix(snapshotCost.Key, "i-") {
+					//snapshot.Snapshot.Costs["snapshot"] += snapshotCost.Cost.Value
 				} else {
-					instance.Instance.Costs["cloudwatch"] += instanceCost.Cost.Value
+					//snapshot.Snapshot.Costs["cloudwatch"] += snapshotCost.Cost.Value
 				}
 			}
-			for _, volume := range instance.Instance.Stats.Volumes {
-				if volume.Id == instanceCost.Key {
-					instance.Instance.Costs[volume.Id] += instanceCost.Cost.Value
+			// cant range or snapshot volume
+			/*for _, volume := range snapshot.Snapshot.Volume {
+				if volume.Id == snapshotCost.Key {
+					snapshot.Snapshot.Costs[volume.Id] += snapshotCost.Cost.Value
 				}
-			}
+			}*/
 		}
-		return instance
+		return snapshot
 	}
-	return instance
+	return snapshot
 }
 
-// prepareResponseEbsDaily parses the results from elasticsearch and returns an array of EBS daily instances report
-func prepareResponseEbsDaily(ctx context.Context, resEbs *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceReport, error) {
+// prepareResponseEbsDaily parses the results from elasticsearch and returns an array of EBS daily snapshots report
+func prepareResponseEbsDaily(ctx context.Context, resEbs *elastic.SearchResult, resCost *elastic.SearchResult) ([]SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedEbs ResponseEbsDaily
 	var parsedCost ResponseCost
-	instances := make([]InstanceReport, 0)
+	snapshots := make([]SnapshotReport, 0)
 	err := json.Unmarshal(*resEbs.Aggregations["accounts"], &parsedEbs.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EBS response", err)
@@ -195,67 +174,30 @@ func prepareResponseEbsDaily(ctx context.Context, resEbs *elastic.SearchResult, 
 		}
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
-				for _, instance := range date.Instances.Hits.Hits {
-					instance.Instance = addCostToInstance(instance.Instance, parsedCost)
-					instances = append(instances, getEbsInstanceReportResponse(instance.Instance))
+				for _, snapshot := range date.Snapshots.Hits.Hits {
+					//snapshot.Snapshot = addCostToSnapshot(snapshot.Snapshot, parsedCost)
+					snapshots = append(snapshots, getEbsSnapshotReportResponse(snapshot.Snapshot))
 				}
 			}
 		}
 	}
-	return instances, nil
+	return snapshots, nil
 }
 
-// prepareResponseEbsMonthly parses the results from elasticsearch and returns an array of EBS monthly instances report
-func prepareResponseEbsMonthly(ctx context.Context, resEbs *elastic.SearchResult) ([]InstanceReport, error) {
+// prepareResponseEbsMonthly parses the results from elasticsearch and returns an array of EBS monthly snapshots report
+func prepareResponseEbsMonthly(ctx context.Context, resEbs *elastic.SearchResult) ([]SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseEbsMonthly
-	instances := make([]InstanceReport, 0)
+	snapshots := make([]SnapshotReport, 0)
 	err := json.Unmarshal(*resEbs.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EBS response", err)
 		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	for _, account := range response.Accounts.Buckets {
-		for _, instance := range account.Instances.Hits.Hits {
-			instances = append(instances, getEbsInstanceReportResponse(instance.Instance))
+		for _, snapshot := range account.Snapshots.Hits.Hits {
+			snapshots = append(snapshots, getEbsSnapshotReportResponse(snapshot.Snapshot))
 		}
 	}
-	return instances, nil
-}
-
-func isInstanceUnused(instance Instance) bool {
-	average := instance.Stats.Cpu.Average
-	peak := instance.Stats.Cpu.Peak
-	if average == -1 || peak == -1 {
-		return false
-	} else if peak >= 60.0 {
-		return false
-	} else if average >= 10.0 {
-		return false
-	}
-	return true
-}
-
-// prepareResponseEbsUnused filter reports to get the unused instances sorted by cost
-func prepareResponseEbsUnused(params EbsUnusedQueryParams, instances []InstanceReport) (int, []InstanceReport, error) {
-	unusedInstances := make([]InstanceReport, 0)
-	for _, instance := range instances {
-		if isInstanceUnused(instance.Instance) {
-			unusedInstances = append(unusedInstances, instance)
-		}
-	}
-	sort.SliceStable(unusedInstances, func(i, j int) bool {
-		var cost1, cost2 float64
-		for _, cost := range unusedInstances[i].Instance.Costs {
-			cost1 += cost
-		}
-		for _, cost := range unusedInstances[j].Instance.Costs {
-			cost2 += cost
-		}
-		return cost1 > cost2
-	})
-	if params.Count >= 0 && params.Count <= len(unusedInstances) {
-		return http.StatusOK, unusedInstances[0:params.Count], nil
-	}
-	return http.StatusOK, unusedInstances, nil
+	return snapshots, nil
 }

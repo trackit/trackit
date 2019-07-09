@@ -50,7 +50,7 @@ func createQueryAccountFilterEbs(accountList []string) *elastic.TermsQuery {
 // getElasticSearchEbsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
 // 	- params EbsQueryParams : contains the list of accounts and the date
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	- client *elastic.Client : an snapshot of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "ebs-reports"
@@ -70,14 +70,14 @@ func getElasticSearchEbsDailyParams(params EbsQueryParams, client *elastic.Clien
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
-			SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
+			SubAggregation("snapshots", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
 	return search
 }
 
 // getElasticSearchEbsMonthlyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
 // 	- params EbsQueryParams : contains the list of accounts and the date
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	- client *elastic.Client : an snapshot of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "ebs-reports"
@@ -94,7 +94,7 @@ func getElasticSearchEbsMonthlyParams(params EbsQueryParams, client *elastic.Cli
 	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
+		SubAggregation("snapshots", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
 	return search
 }
 
@@ -110,7 +110,7 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 // getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
 // 	- params EbsQueryParams : contains the list of accounts and the date
-//	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
+//	- client *elastic.Client : an snapshot of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
@@ -128,7 +128,7 @@ func getElasticSearchCostParams(params EbsQueryParams, client *elastic.Client, i
 		From(dateStart).To(dateEnd))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).
-		SubAggregation("instances", elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize).
+		SubAggregation("snapshots", elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize).
 			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
 	return search
 }

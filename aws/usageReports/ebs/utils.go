@@ -45,6 +45,7 @@ type (
 		State       string    `json:"state"`
 		Encrypted   bool      `json:"encrypted"`
 		StartTime   time.Time `json:"startTime"`
+		Region      string    `json:"region"`
 	}
 
 	// Snapshot contains all the information of an EBS snapshot
@@ -52,7 +53,7 @@ type (
 		SnapshotBase
 		Tags   []utils.Tag        `json:"tags"`
 		Volume Volume             `json:"volume"`
-		Costs  map[string]float64 `json:"costs"`
+		Cost  float64            `json:"cost"`
 	}
 
 	// Volume contains information about an EBS volume
