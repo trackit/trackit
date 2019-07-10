@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/trackit/trackit-server/aws/usageReports/ebs"
+	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"net/http"
 	"time"
 

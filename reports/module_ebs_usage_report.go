@@ -57,19 +57,15 @@ func ebsUsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date
 
 func ebsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []ebs.SnapshotReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	identities := getAwsIdentities(aas)
-
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-
 	parameters := ebs.EbsQueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-
 	logger.Debug("Getting EBS Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
