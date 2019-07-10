@@ -19,7 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit-server/aws/usageReports/ebs"
+	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"strconv"
 	"time"
 

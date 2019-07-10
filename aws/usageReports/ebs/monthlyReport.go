@@ -76,11 +76,11 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, 
 			Encrypted:   false,
 			StartTime:   time.Time{},
 		},
-		Tags:  make([]utils.Tag, 0),
+		Tags: make([]utils.Tag, 0),
 		Cost: 0,
 		Volume: Volume{
-			Id:    "N/A",
-			Size:  -1,
+			Id:   "N/A",
+			Size: -1,
 		},
 	}
 	res, err := getElasticSearchEbsSnapshot(ctx, account, snapshot.Resource,
@@ -117,11 +117,6 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 		return err
 	}
 	for _, snapshot := range snapshots.Snapshots {
-		logger.Debug("DATA SNAPSHOT =======", map[string]interface{}{
-			"region": region,
-			"snap": snap,
-			"data": snapshot,
-		})
 		snapshotChan <- Snapshot{
 			SnapshotBase: SnapshotBase{
 				Id:          aws.StringValue(snapshot.SnapshotId),
@@ -131,7 +126,7 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 				StartTime:   aws.TimeValue(snapshot.StartTime),
 				Region:      region,
 			},
-			Tags:  getSnapshotTag(snapshot.Tags),
+			Tags: getSnapshotTag(snapshot.Tags),
 			Cost: snap.Cost,
 			Volume: Volume{
 				Id:   aws.StringValue(snapshot.VolumeId),
@@ -188,29 +183,6 @@ func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerRe
 	return snapshotsList, nil
 }
 
-// filterSnapshotsCosts filters snapshots, cloudwatch and volumes of EBS snapshots costs
-func filterSnapshotsCosts(ebsCost, cloudwatchCost []utils.CostPerResource) ([]utils.CostPerResource, []utils.CostPerResource, []utils.CostPerResource) {
-	newSnapshot := make([]utils.CostPerResource, 0)
-	newVolume := make([]utils.CostPerResource, 0)
-	newCloudWatch := make([]utils.CostPerResource, 0)
-	for _, snapshot := range ebsCost {
-		if len(snapshot.Resource) == 19 && strings.HasPrefix(snapshot.Resource, "i-") {
-			newSnapshot = append(newSnapshot, snapshot)
-		}
-		if len(snapshot.Resource) == 21 && strings.HasPrefix(snapshot.Resource, "vol-") {
-			newVolume = append(newVolume, snapshot)
-		}
-	}
-	for _, snapshot := range cloudwatchCost {
-		for _, cost := range newSnapshot {
-			if strings.Contains(snapshot.Resource, cost.Resource) {
-				newCloudWatch = append(newCloudWatch, snapshot)
-			}
-		}
-	}
-	return newSnapshot, newVolume, newCloudWatch
-}
-
 // PutEbsMonthlyReport puts a monthly report of EBS snapshot in ES
 func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -221,7 +193,7 @@ func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, a
 	})
 	ebsCost := make([]utils.CostPerResource, 0)
 	for _, cost := range ec2Cost {
-		if strings.Contains(cost.Resource,":snapshot/") {
+		if strings.Contains(cost.Resource, ":snapshot/") {
 			cost.Region = getResourceRegion(cost)
 			ebsCost = append(ebsCost, cost)
 		}

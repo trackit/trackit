@@ -58,10 +58,10 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 				StartTime:   aws.TimeValue(snapshot.StartTime),
 				Region:      region,
 			},
-			Tags:  getSnapshotTag(snapshot.Tags),
+			Tags: getSnapshotTag(snapshot.Tags),
 			Volume: Volume{
-				Id:    aws.StringValue(snapshot.VolumeId),
-				Size:  aws.Int64Value(snapshot.VolumeSize),
+				Id:   aws.StringValue(snapshot.VolumeId),
+				Size: aws.Int64Value(snapshot.VolumeSize),
 			},
 			Cost: 0,
 		}

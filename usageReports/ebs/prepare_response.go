@@ -88,15 +88,15 @@ type (
 	// Snapshot contains the information of an EBS snapshot
 	Snapshot struct {
 		ebs.SnapshotBase
-		Tags   map[string]string  `json:"tags"`
-		Volume Volume             `json:"volume"`
-		Cost  float64             `json:"cost"`
+		Tags   map[string]string `json:"tags"`
+		Volume Volume            `json:"volume"`
+		Cost   float64           `json:"cost"`
 	}
 
 	// Volume contains information about EBS volumes
 	Volume struct {
-		Id    string  `json:"id"`
-		Size  int64   `json:"size"`
+		Id   string `json:"id"`
+		Size int64  `json:"size"`
 	}
 )
 
@@ -110,7 +110,7 @@ func getEbsSnapshotReportResponse(oldSnapshot ebs.SnapshotReport) SnapshotReport
 		Snapshot: Snapshot{
 			SnapshotBase: oldSnapshot.Snapshot.SnapshotBase,
 			Tags:         tags,
-			Cost:        oldSnapshot.Snapshot.Cost,
+			Cost:         oldSnapshot.Snapshot.Cost,
 			Volume: Volume{
 				Id:   oldSnapshot.Snapshot.Volume.Id,
 				Size: oldSnapshot.Snapshot.Volume.Size,

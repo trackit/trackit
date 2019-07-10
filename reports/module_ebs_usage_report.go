@@ -96,7 +96,7 @@ func ebsUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, fi
 			formattedAccount = formatAwsAccount(*account)
 		}
 		snapshot := report.Snapshot
-		date := snapshot.StartTime.Format("2006-01-02 15:04:05")
+		date := snapshot.StartTime.Format("22006-01-02T15:04:05Z")
 		tags := formatTags(snapshot.Tags)
 		cells := cells{
 			newCell(formattedAccount, "A"+strconv.Itoa(line)),
