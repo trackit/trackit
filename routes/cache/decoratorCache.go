@@ -15,35 +15,32 @@
 package cache
 
 import (
-	"errors"
+	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-redis/redis"
-	_ "github.com/trackit/jsonlog"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 )
 
-const cacheExpireTime = 2 * time.Second
+const cacheExpireTime = 24 * time.Hour
 
-type clientCache struct {
-	service map[string] interface{}
-}
+// UsersCache is a struct to format a decorator that retrieve data from
+// different route and cache it with redis which is an-memory data structure
+// store, used as a database. Cache expire automatically after 24 hours.
+type UsersCache struct {}
 
-type UsersCache struct {
-	ServiceName string
-}
-
-var (
-	mainClient *redis.Client
-	usersCache map[string] clientCache
-	errNonexistentCache = errors.New("trying to retrieve a nonexistent user cache")
-	errNonexistentService = errors.New("trying to retrieve a nonexistent service")
-)
+var mainClient *redis.Client
 
 func init() {
 	mainClient = redis.NewClient(&redis.Options{
@@ -56,60 +53,97 @@ func init() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Printf("Client ('%v') has been successfully connected: %+v\n", config.RedisAddress, mainClient)
+	log.Printf("Successfully connected to client redis at adress '%v'.\n", config.RedisAddress)
 }
 
-func (uc UsersCache) Decorate(handler Handler) Handler {
-	handler.Func = uc.getFunc(handler.Func)
-	return handler
+// userKey is unique depending on user's e-mail address and route's URL
+func getUserKey(identity, service string) string {
+	return base64.RawURLEncoding.EncodeToString([]byte(identity + service))
 }
 
-func getUserCache(identity, service string) interface{} {
-	if _, userExist := usersCache[identity]; userExist {
-		if _, serviceExist := usersCache[identity].service[service]; serviceExist {
-			return usersCache[identity].service[service]
+func userHasCacheForService(identity, service string) bool {
+	rtn, err := mainClient.Exists(getUserKey(identity, service)).Result()
+	return rtn > 0 && err == nil
+}
+
+func getAwsAccIdFromRaw(args routes.Arguments) string {
+	userId := args[users.AuthenticatedUser].(users.User)
+	context := args[db.Transaction].(*sql.Tx)
+	awsAcc, err := models.AwsAccountByID(context, userId.Id)
+	if err != nil {
+		return "unknown"
+	} else {
+		return awsAcc.AwsIdentity
+	}
+}
+
+func getUserCache(identity, service string, logger jsonlog.Logger) interface{} {
+	var cacheData interface{} = nil
+	rtn, err := mainClient.Get(getUserKey(identity, service)).Bytes()
+	if err != nil {
+		_ = logger.Error(fmt.Sprintf("No cache found on Redis for the '%v' despite it has marked as valid\n", identity), err)
+		return nil
+	} else {
+		err := json.Unmarshal(rtn, &cacheData)
+		if err != nil {
+			_ = logger.Error(fmt.Sprintf("Unable to unmarshal cache data for the key '%v'\n", identity), err)
+			return nil
 		}
-		return errNonexistentService
-	}
-	return errNonexistentCache
-}
-
-func (_ UsersCache) getFunc(hf HandlerFunc) HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
-		if service := r.URL.String(); UserHasCacheForService(a[users.AuthenticatedUser].(string), service) {
-			return http.StatusOK, getUserCache(a[users.AuthenticatedUser].(string), service)
-		}
-		return hf(w, r, a)
+		return cacheData
 	}
 }
 
-func UserHasCacheForService(identity, service string) bool {
-	_, userExist := usersCache[identity]
-	if userExist {
-		_, serviceExist := usersCache[identity].service[service]
-		return serviceExist
-	}
-	return userExist
-}
-
-// awsAcc *models.AwsAccount
-func CreateUserCache(identity, service string, data interface{}) error {
-	if UserHasCacheForService(identity, service) {
-		fmt.Printf("User %v has already a cache attributed for service '%v'", identity, service)
+func createUserCache(identity, service string, data interface{}, logger jsonlog.Logger) error {
+	if userHasCacheForService(identity, service) {
+		_ = logger.Warning(fmt.Sprintf("User %v has already a cache attributed for service '%v'", identity, service), nil)
 		return nil
 	}
-	mainClient.Append("key", "VAL")
-	mainClient.Expire("key", cacheExpireTime)
-	if rtn := mainClient.Exists("key"); rtn.Val() > 0 {
-		fmt.Printf("Key exists\n")
+	content, newErr := json.Marshal(data)
+	if newErr != nil {
+		_ = logger.Error("Unable to marshal API content to create cache.", nil)
+		return newErr
 	}
-	defer func() {
-		fmt.Printf("In defered funct\n")
-		if mainClient.Exists("key").Val() > 0 {
-			fmt.Printf("Key exists\n")
-		} else {
-			fmt.Print("Key doesn't exist anymore\n")
+	userKey := getUserKey(identity, service)
+	err := mainClient.Append(userKey, string(content))
+	mainClient.Expire(userKey, cacheExpireTime)
+	return err.Err()
+}
+
+func deleteUserCache(identity, service string) {
+	mainClient.Del(getUserKey(identity, service))
+}
+
+// getFunc allows us to intercept the current data flow from the route and
+// manipulate it to retrieve data or directly return data from the cache if
+// there is one.
+func (_ UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request, args routes.Arguments) (int, interface{}) {
+		logger := jsonlog.LoggerFromContextOrDefault(request.Context())
+		_, userDataPresent := args[users.AuthenticatedUser]
+		_, dbAvailable := args[db.Transaction]
+		if !userDataPresent || !dbAvailable {
+			_ = logger.Error("Unable to retrieve user's or database's information while trying to get cache.", nil)
+			return hf(writer, request, args)
 		}
-	}()
-	time.Sleep(4)
+		service := request.URL.String()
+		if identity := getAwsAccIdFromRaw(args); userHasCacheForService(identity, service) {
+			retrieveCache := getUserCache(identity, service, jsonlog.LoggerFromContextOrDefault(request.Context()))
+			if retrieveCache == nil {
+				_ = logger.Warning(fmt.Sprintf("Unable to retrieve cache for key %v, skipping it to avoid panic or error. The cache has been, also, deleted.\n", getUserKey(identity, service)), nil)
+				deleteUserCache(identity, service)
+			} else {
+				return http.StatusOK, retrieveCache
+			}
+		}
+		status, routeData := hf(writer, request, args)
+		if status == http.StatusOK {
+			_ = createUserCache(getAwsAccIdFromRaw(args), service, routeData, jsonlog.LoggerFromContextOrDefault(request.Context()))
+		}
+		return status, routeData
+	}
+}
+
+func (uc UsersCache) Decorate(handler routes.Handler) routes.Handler {
+	handler.Func = uc.getFunc(handler.Func)
+	return handler
 }
