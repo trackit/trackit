@@ -16,6 +16,7 @@ package ec2
 
 import (
 	"database/sql"
+	"github.com/trackit/trackit-server/routes/cache"
 	"net/http"
 	"time"
 
@@ -67,6 +68,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(ec2QueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the list of EC2 instances",
 				Description: "Responds with the list of EC2 instances based on the queryparams passed to it",
@@ -78,6 +80,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(ec2UnusedQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the list of the most unused EC2 instances of a month",
 				Description: "Responds with the list of the most unused EC2 instances of a month based on the queryparams passed to it",
