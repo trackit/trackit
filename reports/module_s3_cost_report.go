@@ -49,10 +49,9 @@ func generateS3CostReportSheet(ctx context.Context, aas []aws.AwsAccount, date t
 func s3CostReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, file *excelize.File) (err error) {
 	data, err := s3CostReportGetData(ctx, aas, date)
 	if err == nil {
-		return s3CostReportInsertDataInSheet(ctx, file, data)
-	} else {
-		return
+		return s3CostReportInsertDataInSheet(file, data)
 	}
+	return
 }
 
 func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, dateBegin time.Time) (reports map[aws.AwsAccount]costs.BucketsInfo, err error) {
@@ -82,7 +81,7 @@ func s3CostReportGetData(ctx context.Context, aas []aws.AwsAccount, dateBegin ti
 	return
 }
 
-func s3CostReportInsertDataInSheet(_ context.Context, file *excelize.File, data map[aws.AwsAccount]costs.BucketsInfo) (err error) {
+func s3CostReportInsertDataInSheet(file *excelize.File, data map[aws.AwsAccount]costs.BucketsInfo) (err error) {
 	file.NewSheet(s3CostReportSheetName)
 	s3CostReportGenerateHeader(file)
 	line := 3
