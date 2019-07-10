@@ -51,15 +51,15 @@ type (
 	// Snapshot contains all the information of an EBS snapshot
 	Snapshot struct {
 		SnapshotBase
-		Tags   []utils.Tag        `json:"tags"`
-		Volume Volume             `json:"volume"`
-		Cost  float64            `json:"cost"`
+		Tags   []utils.Tag `json:"tags"`
+		Volume Volume      `json:"volume"`
+		Cost   float64     `json:"cost"`
 	}
 
 	// Volume contains information about an EBS volume
 	Volume struct {
-		Id    string  `json:"id"`
-		Size  int64   `json:"size"`
+		Id   string `json:"id"`
+		Size int64  `json:"size"`
 	}
 )
 
