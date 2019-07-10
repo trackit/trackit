@@ -51,7 +51,7 @@ func init() {
 	})
 	_, err := mainClient.Ping().Result()
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatalf("Cannot connect to redis. Got error: '%v'", err.Error())
 	}
 	log.Printf("Successfully connected to client redis at adress '%v'.\n", config.RedisAddress)
 }

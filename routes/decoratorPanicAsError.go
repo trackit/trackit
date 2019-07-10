@@ -47,6 +47,6 @@ const panicResponse = constError("There was an internal server error.")
 
 func handlePanic(ctx context.Context, r interface{}) (int, interface{}) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	l.Error("Route hander panicked.", fmt.Sprintf("%v", r))
+	l.Error("Route handler panicked.", fmt.Sprintf("%v", r))
 	return http.StatusInternalServerError, panicResponse
 }

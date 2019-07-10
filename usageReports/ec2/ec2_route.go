@@ -16,7 +16,7 @@ package ec2
 
 import (
 	"database/sql"
-	"github.com/trackit/trackit-server/routes/cache"
+	"github.com/trackit/trackit-server/cache"
 	"net/http"
 	"time"
 

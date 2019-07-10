@@ -44,7 +44,7 @@ func init() {
 	for r := retryCount; r > 0; r-- {
 		Client, err = elastic.NewClient(options...)
 		if err != nil {
-			logger.Warning(fmt.Sprintf("Failed to connect to ElasticSearch database. Retrying in %s seconds.", retrySeconds), err.Error())
+			logger.Warning(fmt.Sprintf("Failed to connect to ElasticSearch database. Retrying in %v seconds.", retrySeconds), err.Error())
 			time.Sleep(retrySeconds * time.Second)
 		} else {
 			logger.Info("Successfully connected to ElasticSearch database.", nil)

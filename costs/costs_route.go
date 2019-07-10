@@ -106,7 +106,7 @@ func validateCriteriaParam(parsedParams EsQueryParams) error {
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
+// with empty data
 func MakeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams EsQueryParams) (es.SimplifiedCostsDocument, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.IndexList, ",")
