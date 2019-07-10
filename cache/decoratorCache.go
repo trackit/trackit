@@ -61,19 +61,23 @@ func getUserKey(identity, service string) string {
 	return base64.RawURLEncoding.EncodeToString([]byte(identity + service))
 }
 
-func userHasCacheForService(identity, service string) bool {
-	rtn, err := mainClient.Exists(getUserKey(identity, service)).Result()
-	return rtn > 0 && err == nil
+func userHasCacheForService(identity, service string, logger jsonlog.Logger) bool {
+	userKey := getUserKey(identity, service)
+	rtn, err := mainClient.Exists(userKey).Result()
+	if err != nil {
+		_ = logger.Error(fmt.Sprintf("Unable to check the key '%v' already exists in redis.", userKey), nil)
+	}
+	return err == nil && rtn > 0
 }
 
-func getAwsAccIdFromRaw(args routes.Arguments) string {
+func getAwsAccIdFromRaw(args routes.Arguments) (string, error) {
 	userId := args[users.AuthenticatedUser].(users.User)
 	context := args[db.Transaction].(*sql.Tx)
 	awsAcc, err := models.AwsAccountByID(context, userId.Id)
 	if err != nil {
-		return "unknown"
+		return "", err
 	} else {
-		return awsAcc.AwsIdentity
+		return awsAcc.AwsIdentity, nil
 	}
 }
 
@@ -94,7 +98,7 @@ func getUserCache(identity, service string, logger jsonlog.Logger) interface{} {
 }
 
 func createUserCache(identity, service string, data interface{}, logger jsonlog.Logger) error {
-	if userHasCacheForService(identity, service) {
+	if userHasCacheForService(identity, service, logger) {
 		_ = logger.Warning(fmt.Sprintf("User %v has already a cache attributed for service '%v'", identity, service), nil)
 		return nil
 	}
@@ -105,7 +109,11 @@ func createUserCache(identity, service string, data interface{}, logger jsonlog.
 	}
 	userKey := getUserKey(identity, service)
 	err := mainClient.Append(userKey, string(content))
-	mainClient.Expire(userKey, cacheExpireTime)
+	if err.Err() == nil {
+		mainClient.Expire(userKey, cacheExpireTime)
+	} else {
+		_ = logger.Error(fmt.Sprintf("Unable to append content for the key '%v'.", userKey), err.Err())
+	}
 	return err.Err()
 }
 
@@ -126,8 +134,13 @@ func (_ UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			return hf(writer, request, args)
 		}
 		service := request.URL.String()
-		if identity := getAwsAccIdFromRaw(args); userHasCacheForService(identity, service) {
-			retrieveCache := getUserCache(identity, service, jsonlog.LoggerFromContextOrDefault(request.Context()))
+		identity, identityErr := getAwsAccIdFromRaw(args)
+		if identityErr != nil {
+			_ = logger.Error("Unable to retrieve user's AWS account id", identityErr.Error())
+			return hf(writer, request, args)
+		}
+		if userHasCacheForService(identity, service, logger) {
+			retrieveCache := getUserCache(identity, service, logger)
 			if retrieveCache == nil {
 				_ = logger.Warning(fmt.Sprintf("Unable to retrieve cache for key %v, skipping it to avoid panic or error. The cache has been, also, deleted.\n", getUserKey(identity, service)), nil)
 				deleteUserCache(identity, service)
@@ -137,7 +150,7 @@ func (_ UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 		}
 		status, routeData := hf(writer, request, args)
 		if status == http.StatusOK {
-			_ = createUserCache(getAwsAccIdFromRaw(args), service, routeData, jsonlog.LoggerFromContextOrDefault(request.Context()))
+			_ = createUserCache(identity, service, routeData, jsonlog.LoggerFromContextOrDefault(request.Context()))
 		}
 		return status, routeData
 	}
