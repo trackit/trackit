@@ -48,11 +48,12 @@ type (
 					Buckets []struct {
 						Key  string `json:"key"`
 						Date struct {
-							Key string `json:"key"`
 							Buckets []struct {
 								Key    string `json:"key"`
 								Amount struct {
-									IntanceCount InstanceCountReport `json:"intanceCount"`
+									Buckets []struct {
+										Key string `json:"key"`
+									} `json:"buckets"`
 								} `json:"amount"`
 							} `json:"buckets"`
 						} `json:"date"`
@@ -157,9 +158,10 @@ func FormatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, p
 	for _, region := range response.Region.Buckets {
 		for _, usageType := range region.Type.Buckets {
 			for _, date := range usageType.Date.Buckets {
+				//for _, amount := range date.Amount.Buckets {
 				logger.Debug("REGION AND USAGE TYPE ======", map[string]interface{}{
-					"REGION": region,
-					"TYPE":   usageType,
+					"REGION": region.Key,
+					"TYPE":   usageType.Key,
 					"DATE": date,
 				})
 			}

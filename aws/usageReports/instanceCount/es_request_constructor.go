@@ -282,8 +282,8 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	query = query.Filter(createQueryWildcard("usageType", "*BoxUsage*"))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("region", elastic.NewTermsAggregation().Field("region").Size(aggregationMaxSize).
-		SubAggregation("type", elastic.NewTermsAggregation().Field("usageType")).
-		SubAggregation("date", elastic.NewTermsAggregation().Field("usageStartDate")).
-		SubAggregation("amount", elastic.NewTermsAggregation().Field("usageAmount")))
+		SubAggregation("type", elastic.NewTermsAggregation().Field("usageType").
+		SubAggregation("date", elastic.NewTermsAggregation().Field("usageStartDate").
+		SubAggregation("amount", elastic.NewTermsAggregation().Field("usageAmount")))))
 	return search
 }
