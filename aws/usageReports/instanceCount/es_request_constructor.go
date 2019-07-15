@@ -283,7 +283,7 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("region", elastic.NewTermsAggregation().Field("region").Size(aggregationMaxSize).
 		SubAggregation("type", elastic.NewTermsAggregation().Field("usageType").Size(aggregationMaxSize).
-			SubAggregation("date", elastic.NewTermsAggregation().Field("usageStartDate").Size(aggregationMaxSize).
-				SubAggregation("amount", elastic.NewTermsAggregation().Field("usageAmount")))))
+			SubAggregation("date", elastic.NewDateHistogramAggregation().Field("usageStartDate").MinDocCount(0).Interval("hour").
+				SubAggregation("amount", elastic.NewTermsAggregation().Field("usageAmount").Size(aggregationMaxSize)))))
 	return search
 }

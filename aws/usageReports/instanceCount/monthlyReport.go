@@ -51,7 +51,9 @@ type (
 							Buckets []struct {
 								Key    string `json:"key_as_string"`
 								Amount struct {
-									InstanceCount InstanceCountReport `json:"instanceCount"`
+									Buckets []struct {
+										Key string `json:"key_as_string"`
+									} `json:"buckets"`
 								} `json:"amount"`
 							} `json:"buckets"`
 						} `json:"date"`
