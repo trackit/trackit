@@ -46,17 +46,19 @@ func (c Cors) Decorate(h Handler) Handler {
 }
 
 // getFunc builds a handler function for Cors.Decorate.
-func (_ Cors) getFunc(hf HandlerFunc, hd HandlerDocumentation, headersValues ...[]string) HandlerFunc {
+func (_ Cors) getFunc(
+	hf HandlerFunc,
+	hd HandlerDocumentation,
+	acaMethods []string,
+	acaOrigin []string,
+	acaHeaders []string,
+	acaCredentials []string,
+) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (int, interface{}) {
-		headerKeys := []string {
-			"Access-Control-Allow-Methods",
-			"Access-Control-Allow-Origin",
-			"Access-Control-Allow-Headers",
-			"Access-Control-Allow-Credentials",
-		}
-		for i, key := range headerKeys {
-			w.Header()[key] = headersValues[i]
-		}
+		w.Header()["Access-Control-Allow-Methods"] = acaMethods
+		w.Header()["Access-Control-Allow-Origin"] = acaOrigin
+		w.Header()["Access-Control-Allow-Headers"] = acaHeaders
+		w.Header()["Access-Control-Allow-Credentials"] = acaCredentials
 		if r.Method == http.MethodOptions {
 			return http.StatusOK, hd
 		} else {

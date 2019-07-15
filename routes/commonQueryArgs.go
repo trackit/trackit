@@ -124,19 +124,4 @@ var (
 		Type:        QueryArgInt{},
 		Description: "The DB ID of the sharing",
 	}
-
-	// Pagination
-	AskedPage = QueryArg{
-		Name: 		 "page",
-		Type:		 QueryArgInt{},
-		Description: "The asked page for the pagination.",
-		Optional: 	 true,
-	}
-
-	ResultPerPage = QueryArg{
-		Name:		 "result",
-		Type:		 QueryArgInt{},
-		Description: "The number of result per page",
-		Optional: 	 true,
-	}
 )
