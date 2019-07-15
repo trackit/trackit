@@ -11,17 +11,9 @@ services:
       - app
     ports:
       - '127.0.0.1:3306:3306'
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
-    environment:
-      - ES_JAVA_OPTS "-Xms1g -Xmx1g"
-    networks:
-      - app
-    ports:
-      - '127.0.0.1:9200:9200'
   redis:
     image: redis:latest
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--requirepass changeme"]
     networks:
       - app
     ports:
@@ -33,9 +25,10 @@ services:
       - redis
     command:
       - -sql-address=${TRACKIT_SQL_USER:-trackit}:${TRACKIT_SQL_PASSWORD:-trackitpassword}@tcp(sql:3306)/${TRACKIT_SQL_DATABASE:-trackit}?parseTime=true
-      - -es-address=${TRACKIT_ES_ADDRESS:-http://es:9200}
-      - -redis-address=${TRACKIT_REDIS_ADDRESS:-http://redis:6379}
+      - -es-address=http://10.20.0.10:9200/
+      - -redis-address=${TRACKIT_REDIS_ADDRESS:-redis:6379}
       - -http-address=[::]:80
+      - -periodics=false
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}

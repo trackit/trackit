@@ -48,11 +48,11 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(ec2CoverageQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the list of EC2 Coverage reports",
 				Description: "Responds with the list of EC2 Coverage reports based on the queryparams passed to it",
 			},
-			cache.UsersCache{},
 		),
 	}.H().Register("/ec2/coverage")
 }
