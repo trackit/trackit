@@ -39,6 +39,7 @@ type redisCache struct {
 	route        string
 	args         string
 	awsAccount   []string
+	key          string
 	cacheContent []byte
 }
 
@@ -90,8 +91,8 @@ func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			retrieveCache := getUserCache(rdCache, logger)
 			if retrieveCache == nil {
 				logger.Warning("Unable to retrieve cache, skipping it to avoid panic or error. The cache has been, also, deleted.", map[string] interface{} {
-					"userKey": getUserKey(rdCache),
-					"route": rdCache.route,
+					"userKey": rdCache.key,
+					"route":   rdCache.route,
 				})
 				deleteUserCache(rdCache, logger)
 			} else {

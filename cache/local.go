@@ -15,7 +15,9 @@
 package cache
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -26,6 +28,15 @@ import (
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
 )
+
+// formatKey is unique depending on user's AWS' identities (personal + shared accounts)
+// or identities passed in arguments and route's URL
+func formatKey(rdCache *redisCache) {
+	rdCache.key = fmt.Sprintf("%x-%x:", md5.Sum([]byte(rdCache.route)), md5.Sum([]byte(rdCache.args)))
+	for _, val := range rdCache.awsAccount {
+		rdCache.key = fmt.Sprintf("%v%v:", rdCache.key, val)
+	}
+}
 
 func parseRouteFromUrl(url string, rc *redisCache) {
 	idx := strings.IndexByte(url, '?')
@@ -95,5 +106,6 @@ func retrieveRouteInfos(url string, args routes.Arguments, logger jsonlog.Logger
 		rtn.awsAccount = append(rtn.awsAccount, val)
 	}
 	sort.Strings(rtn.awsAccount)
+	formatKey(&rtn)
 	return
 }

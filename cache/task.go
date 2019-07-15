@@ -43,7 +43,7 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 	var totalKeys int64
 	totalKeys, err = getTotalRedisKeys()
 	if err != nil {
-		logger.Error("Unable to get the total redis keys.", map[string] interface{} {
+		logger.Error("Unable to get the total redis keys.", map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
@@ -57,7 +57,7 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 		for _, awsAcc := range awsAccounts {
 			obsoleteKeys := mainClient.Scan(0, fmt.Sprintf(matchPattern, routeKey, awsAcc), totalKeys)
 			if obsoleteKeys.Err() != nil {
-				logger.Warning("Unable to scan redis DB to retrieve matching keys.", map[string] interface{} {
+				logger.Warning("Unable to scan redis DB to retrieve matching keys.", map[string]interface{} {
 					"awsIdentity": awsAcc,
 					"route":       route,
 					"research":    fmt.Sprintf(matchPattern, routeKey, awsAcc),
@@ -69,10 +69,10 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 			for _, keyValue := range cacheKeys {
 				rtn := mainClient.Del(keyValue)
 				if rtn.Err() != nil {
-					logger.Warning("Unable to delete cache for a specific key from a route.", map[string] interface{} {
-						"route":     route,
-						"key":       keyValue,
-						"error":     rtn.Err().Error(),
+					logger.Warning("Unable to delete cache for a specific key from a route.", map[string]interface{} {
+						"route": route,
+						"key":   keyValue,
+						"error": rtn.Err().Error(),
 					})
 				}
 			}
