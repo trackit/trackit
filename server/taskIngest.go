@@ -23,12 +23,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 )
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.
@@ -89,6 +90,14 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	}
 	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	updateSubAccounts(ctx, aa)
+	var affectedRoutes = []string {
+		"/costs",
+		"/costs/diff",
+		"/costs/tags/keys",
+		"/costs/tags/values",
+		"/s3/costs",
+	}
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
 	return
 }
 
