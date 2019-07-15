@@ -36,8 +36,9 @@ import (
 	"github.com/trackit/trackit-server/es"
 )
 
-// getElasticSearchEbsSnapshot prepares and run the request to retrieve the a report of an snapshot
+// getElasticSearchEbsSnapshot prepares and run the request to retrieve the report of a snapshot
 // It will return the data and an error.
+// Index is the index of the name for the user ID
 func getElasticSearchEbsSnapshot(ctx context.Context, account, snapshot string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
@@ -104,7 +105,6 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, 
 func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentials, snap utils.CostPerResource,
 	account, region string, snapshotChan chan Snapshot, userId int) error {
 	defer close(snapshotChan)
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
@@ -137,7 +137,7 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 	return nil
 }
 
-// getEbsMetrics gets credentials, accounts and region to fetch EBS snapshots stats
+// fetchMonthlySnapshotsStats fetch EBS snapshots stats
 func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerResource, aa taws.AwsAccount, startDate time.Time) ([]SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorSnapshotStsSessionName)
