@@ -22,12 +22,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/aws/usageReports/history"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
@@ -72,6 +73,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(diffQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the cost diff",
 				Description: "Responds with the cost diff based on the query args passed to it",

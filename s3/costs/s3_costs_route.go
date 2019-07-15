@@ -22,10 +22,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
@@ -73,13 +74,14 @@ func init() {
 		http.MethodGet: routes.H(getS3CostData).With(
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs{routes.AwsAccountsOptionalQueryArg},
+			routes.QueryArgs{routes.DateBeginQueryArg},
+			routes.QueryArgs{routes.DateEndQueryArg},
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the s3 costs data",
 				Description: "Responds with cost data based on the queryparams passed to it",
 			},
-			routes.QueryArgs{routes.AwsAccountsOptionalQueryArg},
-			routes.QueryArgs{routes.DateBeginQueryArg},
-			routes.QueryArgs{routes.DateEndQueryArg},
 		),
 	}.H().Register("/s3/costs")
 }

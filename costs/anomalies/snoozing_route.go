@@ -18,6 +18,7 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/models"
 	"github.com/trackit/trackit-server/routes"
@@ -35,6 +36,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestBody{snoozingBody{[]string{"anomaly1", "anomaly2"}}},
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "snooze the anomalies",
 				Description: "Snoozes one or many anomalies with their id passed in query args",
@@ -46,6 +48,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestBody{snoozingBody{[]string{"anomaly1", "anomaly2"}}},
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "unsnooze the anomalies",
 				Description: "Unsnoozes one or many anomalies with their id passed in query args",

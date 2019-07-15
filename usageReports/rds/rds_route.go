@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
@@ -67,6 +68,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(rdsQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get a RDS report of a month",
 				Description: "Responds with the a RDS report for the account and date specified in the request",
@@ -78,6 +80,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(rdsUnusedQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the list of the most unused RDS instances of a month",
 				Description: "Responds with the list of the most unused RDS instances of a month based on the queryparams passed to it",

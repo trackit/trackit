@@ -28,6 +28,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/anomaliesDetection"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/config"
 	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
 	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
@@ -68,6 +69,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(anomalyQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the cost anomalies",
 				Description: "Responds with the cost anomalies based on the query args passed to it",

@@ -22,10 +22,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
@@ -75,6 +76,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(costsQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the costs data",
 				Description: "Responds with cost data based on the query args passed to it",

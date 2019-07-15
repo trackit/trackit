@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
@@ -51,6 +52,7 @@ func init() {
 				Summary:     "get the list of EC2 Coverage reports",
 				Description: "Responds with the list of EC2 Coverage reports based on the queryparams passed to it",
 			},
+			cache.UsersCache{},
 		),
 	}.H().Register("/ec2/coverage")
 }

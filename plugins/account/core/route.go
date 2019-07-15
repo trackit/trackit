@@ -24,6 +24,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
@@ -47,6 +48,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(pluginsQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the latests plugins results",
 				Description: "Responds with the latests plugins results for the account(s) specified in the request",
