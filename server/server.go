@@ -126,7 +126,7 @@ func initializeHandlers() {
 		//routes.PanicAsError{},
 		routes.Cors{
 			AllowCredentials: true,
-			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization"},
+			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization", "Cache-Status", "Cache-Error"},
 			AllowOrigin:      []string{"*"},
 		},
 	}

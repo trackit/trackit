@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/routes"
 	"github.com/trackit/trackit-server/users"
@@ -47,6 +48,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(lambdaQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the list of Lambda functions",
 				Description: "Responds with the list of Lambda functions based on the queryparams passed to it",
