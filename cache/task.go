@@ -37,11 +37,13 @@ func getTotalRedisKeys() (totalKeys int64, err error) {
 	return strconv.ParseInt(keySpace.Val()[idx + subStrLen:idx + subStrLen + comma], 10, 64)
 }
 
+// We remove all cache related to the format ROUTE-...:KEY:
+// It's important to note that AWS identities and routes validity isn't checked.
 func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.Logger) (err error) {
 	var totalKeys int64
 	totalKeys, err = getTotalRedisKeys()
 	if err != nil {
-		logger.Error("Unable to get total redis keys.", map[string] interface{} {
+		logger.Error("Unable to get the total redis keys.", map[string] interface{} {
 			"error": err.Error(),
 		})
 		return
@@ -69,7 +71,7 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 				if rtn.Err() != nil {
 					logger.Warning("Unable to delete cache for a specific key from a route.", map[string] interface{} {
 						"route":     route,
-						"userKey":   keyValue,
+						"key":       keyValue,
 						"error":     rtn.Err().Error(),
 					})
 				}
