@@ -19,9 +19,6 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
-	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
-	onDemandToRiEc2 "github.com/trackit/trackit-server/onDemandToRI/ec2"
 	"strconv"
 	"time"
 
@@ -34,8 +31,11 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/history"
 	"github.com/trackit/trackit-server/aws/usageReports/lambda"
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
+	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
+	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
 	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
+	onDemandToRiEc2 "github.com/trackit/trackit-server/onDemandToRI/ec2"
 )
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
