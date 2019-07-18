@@ -19,6 +19,7 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/trackit/trackit-server/es"
 	"sync"
 	"time"
 
@@ -40,12 +41,13 @@ type (
 	// InstanceCount contains all the information of an InstanceCount
 	InstanceCount struct {
 		Type   string              `json:"instanceType"`
+		Region string              `json:"region"`
 		Hours []InstanceCountHours `json:"hours"`
 	}
 
 	InstanceCountHours struct {
 		Hour  time.Time `json:"hour"`
-		Count int       `json:"count"`
+		Count float64   `json:"count"`
 	}
 )
 
@@ -56,19 +58,24 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 	logger.Info("Updating InstanceCount for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	//index := es.IndexNameForUserId(aa.UserId, IndexPrefixInstanceCountReport)
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixInstanceCountReport)
+	logger.Debug("INDEX IS =====", map[string]interface{}{
+		"index": index,
+		"size": len(reports),
+	})
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return err
 	}
-	/*for _, report := range reports {
+	for _, report := range reports {
+		id, err := generateId(report)
 		if err != nil {
 			logger.Error("Error when marshaling instanceCount var", err.Error())
 			return err
 		}
-		//bp = utils.AddDocToBulkProcessor(bp, report, TypeInstanceCountReport, index, id)
-	}*/
+		bp = utils.AddDocToBulkProcessor(bp, report, TypeInstanceCountReport, index, id)
+	}
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
@@ -79,15 +86,17 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 	return nil
 }
 
-func generateId(report InstanceCount) (string, error) {
+func generateId(report InstanceCountReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
-		Id         string    `json:"id"`
+		Type       string    `json:"type"`
+		Region     string    `json:"region"`
 	}{
-		/*report.Account,
+		report.Account,
 		report.ReportDate,
-		report.InstanceCount.Id,*/
+		report.InstanceCount.Type,
+		report.InstanceCount.Region,
 	})
 	if err != nil {
 		return "", err

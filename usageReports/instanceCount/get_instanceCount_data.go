@@ -116,12 +116,7 @@ func GetInstanceCountData(ctx context.Context, parsedParams InstanceCountQueryPa
 	returnCode, monthlyReports, err := GetInstanceCountMonthly(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyReports != nil && len(monthlyReports) > 0 {
+	} else {
 		return returnCode, monthlyReports, nil
 	}
-	returnCode, dailyReports, err := GetInstanceCountDaily(ctx, parsedParams, user, tx)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	return returnCode, dailyReports, nil
 }

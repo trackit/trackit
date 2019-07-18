@@ -55,7 +55,7 @@ type (
 							InstanceCount instanceCount.InstanceCountReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
-				} `json:"instanceCount"`
+				} `json:"reports"`
 			} `json:"buckets"`
 		} `json:"accounts"`
 	}
@@ -89,50 +89,44 @@ type (
 	// InstanceCount contains all the information of an InstanceCount
 	InstanceCount struct {
 		Type   string              `json:"instanceType"`
+		Region string              `json:"region"`
 		Hours []InstanceCountHours `json:"hours"`
 	}
 
 	InstanceCountHours struct {
 		Hour  time.Time `json:"hour"`
-		Count int       `json:"count"`
+		Count float64   `json:"count"`
 	}
 )
 
-func getInstanceCountSnapshotReportResponse(oldSnapshot instanceCount.InstanceCountReport) InstanceCountReport {
-	tags := make(map[string]string, 0)
-	for _, tag := range oldSnapshot.InstanceCount.Tags {
-		tags[tag.Key] = tag.Value
+func getInstanceCountSnapshotReportResponse(oldInstanceCount instanceCount.InstanceCountReport) InstanceCountReport {
+	hours := make([]InstanceCountHours, 0)
+	for _, value := range oldInstanceCount.InstanceCount.Hours {
+		hours = append(hours, InstanceCountHours{
+			Hour: value.Hour,
+			Count: value.Count,
+		})
 	}
-	newSnapshot := InstanceCountReport{
-		ReportBase: oldSnapshot.ReportBase,
+	newInstance := InstanceCountReport{
+		ReportBase: oldInstanceCount.ReportBase,
 		InstanceCount: InstanceCount{
-			Tags:         tags,
-			Cost:         oldSnapshot.Snapshot.Cost,
-			Volume: Volume{
-				Id:   oldSnapshot.Snapshot.Volume.Id,
-				Size: oldSnapshot.Snapshot.Volume.Size,
-			},
+			Type:         oldInstanceCount.InstanceCount.Type,
+			Region:       oldInstanceCount.InstanceCount.Region,
+			Hours:        hours,
 		},
 	}
-	return newSnapshot
+	return newInstance
 }
 
 // prepareResponseInstanceCountDaily parses the results from elasticsearch and returns an array of InstanceCount daily instanceCount report
 func prepareResponseInstanceCountDaily(ctx context.Context, resInstanceCount *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceCountReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedInstanceCount ResponseInstanceCountDaily
-	var parsedCost ResponseCost
 	reports := make([]InstanceCountReport, 0)
-	err := json.Unmarshal(*resInstanceCount.Aggregations["accounts"], &parsedInstanceCount.Accounts)
+	err := json.Unmarshal(*resInstanceCount.Aggregations["accounts"], &parsedInstanceCount)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES InstanceCount response", err)
 		return nil, err
-	}
-	if resCost != nil {
-		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
-		if err != nil {
-			logger.Error("Error while unmarshaling ES cost response", err)
-		}
 	}
 	for _, account := range parsedInstanceCount.Accounts.Buckets {
 		var lastDate = ""
@@ -143,8 +137,8 @@ func prepareResponseInstanceCountDaily(ctx context.Context, resInstanceCount *el
 		}
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
-				for _, report := range date.Snapshots.Hits.Hits {
-					reports = append(reports, getInstanceCountSnapshotReportResponse(report))
+				for _, report := range date.In.Hits.Hits { // wrong, to see later
+					reports = append(reports, getInstanceCountSnapshotReportResponse(report.InstanceCount))
 				}
 			}
 		}
@@ -163,8 +157,8 @@ func prepareResponseInstanceCountMonthly(ctx context.Context, resInstanceCount *
 		return nil, errors.GetErrorMessage(ctx, err)
 	}
 	for _, account := range response.Accounts.Buckets {
-		for _, report := range account.Snapshots.Hits.Hits {
-			reports = append(reports, getInstanceCountSnapshotReportResponse(report))
+		for _, report := range account.InstanceCount.Hits.Hits {
+			reports = append(reports, getInstanceCountSnapshotReportResponse(report.InstanceCount))
 		}
 	}
 	return reports, nil

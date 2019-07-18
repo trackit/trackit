@@ -49,10 +49,10 @@ type (
 						Key  string `json:"key"`
 						Date struct {
 							Buckets []struct {
-								Key    string `json:"key_as_string"`
+								Key string `json:"key_as_string"`
 								Amount struct {
 									Buckets []struct {
-										Key string `json:"key_as_string"`
+										Key float64 `json:"key"`
 									} `json:"buckets"`
 								} `json:"amount"`
 							} `json:"buckets"`
@@ -141,32 +141,57 @@ func fetchMonthlyInstanceCountList(ctx context.Context, creds *credentials.Crede
 }
 */
 
-func FormatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, parsedParams EsQueryParams) []InstanceCountReport {
+func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly, idxRegion, idxType int) []InstanceCountHours {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("AGGREGATIONS ======", map[string]interface{}{
-		"INDEX": "region",
-		"DATE": res.Aggregations["region"],
-	})
+	hours := make([]InstanceCountHours, 0)
+	for _, date := range res.Region.Buckets[idxRegion].Type.Buckets[idxType].Date.Buckets {
+		hour, err := time.Parse("2006-01-02T15:04:05.000Z", date.Key)
+		if err != nil {
+			logger.Error("Failed to Parse date", err.Error())
+		}
+		totalAmount := 0.0
+		for _, amount := range date.Amount.Buckets {
+			totalAmount += amount.Key
+		}
+		hours = append(hours, InstanceCountHours{
+			Hour:  hour,
+			Count: totalAmount,
+		})
+	}
+	return hours
+}
+
+func FormatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, aa taws.AwsAccount, startDate time.Time) []InstanceCountReport {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseInstanceCountMonthly
 	err := json.Unmarshal(*res.Aggregations["region"], &response.Region)
 	if err != nil {
 		logger.Error("Failed to parse JSON Instance Count document.", err.Error())
 	}
-	logger.Debug("VALUE =======", map[string]interface{}{
-		"DATA": response.Region,
-	})
-	/*for _, region := range response.Region.Buckets {
-		for _, usageType := range region.Type.Buckets {
-			for _, date := range usageType.Date.Buckets {
-				logger.Debug("REGION AND USAGE TYPE ======", map[string]interface{}{
-					"REGION": region.Key,
-					"TYPE":   usageType.Key,
-					"DATE":   date.Key,
-				})
-			}
+	reports := make([]InstanceCountReport, 0)
+	for regionIdx, region := range response.Region.Buckets {
+		for typeIdx, usageType := range region.Type.Buckets {
+			hours := getInstanceCountHours(ctx, response, regionIdx, typeIdx)
+			reports = append(reports, InstanceCountReport{
+				ReportBase: utils.ReportBase{
+					Account: aa.AwsIdentity,
+					ReportDate: startDate,
+					ReportType: "monthly",
+				},
+				InstanceCount: InstanceCount{
+					Type:   usageType.Key,
+					Region: region.Key,
+					Hours:  hours,
+				},
+			})
 		}
-	}*/
-	return []InstanceCountReport{}
+	}
+	for _, v := range reports {
+		logger.Debug("DATATTATATAA =====", map[string]interface{}{
+			"DATA": v,
+		})
+	}
+	return reports
 }
 
 // getInstanceCountMetrics gets credentials, accounts and region to fetch InstanceCount report stats
@@ -179,21 +204,12 @@ func fetchMonthlyInstanceCountReports(ctx context.Context, aa taws.AwsAccount, s
 		DateBegin:   startDate,
 		DateEnd:     endDate,
 	}
-
-	// Préparer la requête pour l'ES avec les queryParams nécessaires
 	search := GetElasticSearchParams(parsedParams.AccountList, startDate, endDate, es.Client, index)
 	res, err := search.Do(ctx)
 	if err != nil {
 		logger.Error("Error when doing the search", err)
 	}
-	logger.Debug("HERE IT IS RESULT FROM SEARCH ON ES", map[string]interface{}{
-		"account": parsedParams.AccountList,
-		"res": res,
-	})
-	reports := FormatResultInstanceCount(ctx, res, parsedParams)
-	// Trier les données et les formater correctement
-	// Générer les InstanceCountReport avec les données formatées dedans
-
+	reports := FormatResultInstanceCount(ctx, res, aa, startDate)
 	return reports, nil
 }
 

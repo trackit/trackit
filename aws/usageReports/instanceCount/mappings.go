@@ -42,7 +42,7 @@ func init() {
 const TemplateInstanceCountReport = `
 {
 	"template": "*-instancecount-reports",
-	"version": 2,
+	"version": 1,
 	"mappings": {
 		"instancecount-report": {
 			"properties": {
