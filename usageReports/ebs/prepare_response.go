@@ -17,6 +17,7 @@ package ebs
 import (
 	"context"
 	"encoding/json"
+	
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 

@@ -92,7 +92,7 @@ func ebsUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, fi
 			formattedAccount = formatAwsAccount(*account)
 		}
 		snapshot := report.Snapshot
-		date := snapshot.StartTime.Format("22006-01-02T15:04:05Z")
+		date := snapshot.StartTime.Format("2006-01-02T15:04:05Z")
 		tags := formatTags(snapshot.Tags)
 		cells := cells{
 			newCell(formattedAccount, "A"+strconv.Itoa(line)),
@@ -126,7 +126,8 @@ func ebsUsageReportGenerateHeader(file *excelize.File) {
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
 		newColumnWidth("B", 35),
-		newColumnWidth("C", 20).toColumn("E"),
+		newColumnWidth("C", 30),
+		newColumnWidth("D", 20).toColumn("E"),
 		newColumnWidth("F", 30),
 		newColumnWidth("G", 20),
 		newColumnWidth("H", 30),
