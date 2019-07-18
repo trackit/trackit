@@ -17,13 +17,13 @@ package ebs
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"errors"
 
-	"gopkg.in/olivere/elastic.v5"
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit-server/aws/usageReports/ebs"
 	terrors "github.com/trackit/trackit-server/errors"
