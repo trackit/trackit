@@ -208,41 +208,6 @@ func createCostSumAggregation(_ []string) []paramAggrAndName {
 	}
 }
 
-// reverseAggregationArray : reverse the paramAggrAndName slice that is passed to it
-func reverseAggregationArray(aggregationArray []paramAggrAndName) []paramAggrAndName {
-	for i := len(aggregationArray)/2 - 1; i >= 0; i-- {
-		opp := len(aggregationArray) - 1 - i
-		aggregationArray[i], aggregationArray[opp] = aggregationArray[opp], aggregationArray[i]
-	}
-	return aggregationArray
-}
-
-// nestAggregation takes a slice of paramAggrAndName type, and will nest the different aggregations.
-// Aggregations are nested by creating a chain of SubAggregation
-// A type switch is required to simulate downcasting from the interface elastic.Aggregation.
-// Current types on the type switch are TermsAggregation, FilterAggregation, SumAggregation and
-// DateHistogramAggregation.
-// If a new function creating a type that is not listed here is added to the paramNameToFuncPtr map
-// it should be added to the type switch, or the function will create bugged SubAggregations
-func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
-	allAggrSlice = reverseAggregationArray(allAggrSlice)
-	aggrToNest := allAggrSlice[0]
-	for _, baseAggr := range allAggrSlice[1:] {
-		switch assertedBaseAggr := baseAggr.aggr.(type) {
-		case *elastic.TermsAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
-			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
-		case *elastic.FilterAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
-			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
-		case *elastic.DateHistogramAggregation:
-			aggrBuff := assertedBaseAggr.SubAggregation(aggrToNest.name, aggrToNest.aggr)
-			aggrToNest = paramAggrAndName{name: baseAggr.name, aggr: aggrBuff}
-		}
-	}
-	return aggrToNest.aggr
-}
-
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as paramters :
 // 	- accountList []string : A slice of strings representing aws account number, in the format of the field

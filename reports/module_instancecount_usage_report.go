@@ -33,7 +33,6 @@ import (
 )
 
 const instanceCountReportDetailledSheetName = "Instance Count Report (Detailled)"
-const instanceCountReportSheetName = "Instance Count Report"
 
 var instanceCountUsageReportModule = module{
 	Name:          "Instance Count Report",
@@ -91,6 +90,7 @@ func instanceCountUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, 
 	return
 }
 
+// getAllDateInstanceCount get all the hours and the column position for a DateRange and put it in a map[time.Time]int
 func getAllDateInstanceCount(date diff.DateRange) map[time.Time]int {
 	hour := date.Begin
 	dates := make(map[time.Time]int)
@@ -105,15 +105,12 @@ func getAllDateInstanceCount(date diff.DateRange) map[time.Time]int {
 	return dates
 }
 
-func instanceCountUsageReportInsertDataInSheet(ctx context.Context, aas []aws.AwsAccount, file *excelize.File, data []instanceCount.InstanceCountReport, dates map[time.Time]int) (err error) {
+func instanceCountUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsAccount, file *excelize.File, data []instanceCount.InstanceCountReport, dates map[time.Time]int) (err error) {
 	file.NewSheet(instanceCountReportDetailledSheetName)
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	mapping := make([]string, 0)
 	lastColumn := instanceCountUsageReportGenerateHeader(file, dates)
 	line := 4
 	reportsCells := make(cells, 0)
 	for _, report := range data {
-		mapping = append(mapping, fmt.Sprintf(`{"name":"=%s!%s","categories":"=%s","values":"=%s"}`, instanceCountReportDetailledSheetName, "$C" + "$" + strconv.Itoa(line), instanceCountReportDetailledSheetName + "!$D$" + strconv.Itoa(line) + ":$E$" + strconv.Itoa(line), instanceCountReportDetailledSheetName + "!$F$" + strconv.Itoa(line) + ":$G$" + strconv.Itoa(line)))
 		reportCells := make(cells, 0, 3)
 		account := getAwsAccount(report.Account, aas)
 		formattedAccount := report.Account
@@ -129,13 +126,11 @@ func instanceCountUsageReportInsertDataInSheet(ctx context.Context, aas []aws.Aw
 		reportsCells = append(reportsCells, reportCells...)
 		line++
 	}
-	logger.Debug("MAPPING =====", map[string]interface{}{
-		"map": strings.Join(mapping, ","),
-	})
 	reportsCells.addStyles("borders", "centerText").setValues(file, instanceCountReportDetailledSheetName)
 	return
 }
 
+//instanceCountReportDatesAmountInSheet put the Amount in terms of dates in the sheet
 func instanceCountReportDatesAmountInSheet(dates map[time.Time]int, report instanceCount.InstanceCountReport,
 lastColumn int, line int, reportCells cells) cells {
 	totalColumnPosition := make([]string, 0)
@@ -182,6 +177,7 @@ func instanceCountUsageReportGenerateHeader(file *excelize.File, dates map[time.
 	return lastColumn
 }
 
+//instanceCountDatesHeader generate header for all the dates and total
 func instanceCountDatesHeader(file *excelize.File, dates map[time.Time]int) (int, columnsWidth){
 	widthColumn := 0
 	lastColumn := 3

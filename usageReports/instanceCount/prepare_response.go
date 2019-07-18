@@ -137,7 +137,7 @@ func prepareResponseInstanceCountDaily(ctx context.Context, resInstanceCount *el
 		}
 		for _, date := range account.Dates.Buckets {
 			if date.Time == lastDate {
-				for _, report := range date.In.Hits.Hits { // wrong, to see later
+				for _, report := range date.In.Hits.Hits {
 					reports = append(reports, getInstanceCountSnapshotReportResponse(report.InstanceCount))
 				}
 			}

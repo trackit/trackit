@@ -83,28 +83,6 @@ func GetInstanceCountMonthly(ctx context.Context, params InstanceCountQueryParam
 	return http.StatusOK, reports, nil
 }
 
-// GetInstanceCountDaily does an elastic request and returns an array of instance count daily report based on query params
-func GetInstanceCountDaily(ctx context.Context, params InstanceCountQueryParams, user users.User, tx *sql.Tx) (int, []InstanceCountReport, error) {
-	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchInstanceCountDailyParams)
-	if err != nil {
-		return returnCode, nil, err
-	} else if res == nil {
-		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
-	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	params.AccountList = accountsAndIndexes.Accounts
-	params.IndexList = accountsAndIndexes.Indexes
-	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
-	reports, err := prepareResponseInstanceCountDaily(ctx, res, costRes)
-	if err != nil {
-		return http.StatusInternalServerError, nil, err
-	}
-	return http.StatusOK, reports, nil
-}
-
 // GetInstanceCountData gets InstanceCount monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetInstanceCountData(ctx context.Context, parsedParams InstanceCountQueryParams, user users.User, tx *sql.Tx) (int, []InstanceCountReport, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, instanceCount.IndexPrefixInstanceCountReport)

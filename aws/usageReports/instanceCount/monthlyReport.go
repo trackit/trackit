@@ -17,7 +17,6 @@ package instanceCount
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -26,7 +25,6 @@ import (
 	taws "github.com/trackit/trackit-server/aws"
 	"github.com/trackit/trackit-server/aws/s3"
 	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/errors"
 	"github.com/trackit/trackit-server/es"
 )
 
@@ -63,83 +61,6 @@ type (
 		} `json:"region"`
 	}
 )
-
-// getElasticSearchInstanceCount prepares and run the request to retrieve the a report of an instance count
-// It will return the data and an error.
-func getElasticSearchInstanceCount(ctx context.Context, account, report string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	query := elastic.NewBoolQuery()
-	query = query.Filter(elastic.NewTermQuery("account", account))
-	query = query.Filter(elastic.NewTermQuery("report.id", report))
-	search := client.Search().Index(index).Size(1).Query(query)
-	res, err := search.Do(ctx)
-	if err != nil {
-		if elastic.IsNotFound(err) {
-			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
-				"index": index,
-				"error": err.Error(),
-			})
-			return nil, errors.GetErrorMessage(ctx, err)
-		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
-			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type":  fmt.Sprintf("%T", err),
-				"error": err,
-			})
-		} else {
-			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
-		}
-		return nil, errors.GetErrorMessage(ctx, err)
-	}
-	return res, nil
-}
-
-// getInstanceCountInfoFromEs gets information about an instance count from previous report to put it in the new report
-func getInstanceCountInfoFromES(ctx context.Context, report utils.CostPerResource, account string, userId int) InstanceCount {
-	var docType InstanceCountReport
-	var inst = InstanceCount{
-		// dont let it empty
-		Type: "",
-		Hours: []InstanceCountHours{},
-	}
-	res, err := getElasticSearchInstanceCount(ctx, account, report.Resource,
-		es.Client, es.IndexNameForUserId(userId, IndexPrefixInstanceCountReport))
-	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
-		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
-		if err == nil {
-			inst.Type = docType.InstanceCount.Type
-			inst.Hours = docType.InstanceCount.Hours
-		}
-	}
-	return inst
-}
-/*
-// fetchMonthlyInstanceCountList sends in reportInfoChan the instance count fetched from ES
-func fetchMonthlyInstanceCountList(ctx context.Context, creds *credentials.Credentials, inst utils.CostPerResource,
-	account, region string, reportChan chan InstanceCount, userId int) error {
-	defer close(reportChan)
-	sess := session.Must(session.NewSession(&aws.Config{
-		Credentials: creds,
-		Region:      aws.String(region),
-	}))
-	svc := ec2.New(sess)
-	reports, err := svc.DescribeSnapshots(&desc)
-	if err != nil {
-		reportChan <- getInstanceCountInfoFromES(ctx, inst, account, userId)
-		return err
-	}
-	for _, report := range reports.Snapshots {
-		reportChan <- InstanceCount{
-			Tags: getSnapshotTag(report.Tags),
-			Cost: snap.Cost,
-			Volume: Volume{
-				Id:   aws.StringValue(report.VolumeId),
-				Size: aws.Int64Value(report.VolumeSize),
-			},
-		}
-	}
-	return nil
-}
-*/
 
 func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly, idxRegion, idxType int) []InstanceCountHours {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -186,11 +107,6 @@ func FormatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, a
 			})
 		}
 	}
-	for _, v := range reports {
-		logger.Debug("DATATTATATAA =====", map[string]interface{}{
-			"DATA": v,
-		})
-	}
 	return reports
 }
 
@@ -225,7 +141,7 @@ func PutInstanceCountMonthlyReport(ctx context.Context, aa taws.AwsAccount, star
 	if err != nil {
 		return false, err
 	} else if already {
-		logger.Info("There is already an InstanceCount monthly report", nil)
+		logger.Info("There is already an Instance Count monthly report", nil)
 		return false, nil
 	}
 	reports, err := fetchMonthlyInstanceCountReports(ctx, aa, startDate, endDate)
