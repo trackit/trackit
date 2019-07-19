@@ -122,7 +122,7 @@ func instanceCountUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsA
 			newCell(report.InstanceCount.Region, "B"+strconv.Itoa(line)),
 			newCell(report.InstanceCount.Type, "C"+strconv.Itoa(line)),
 		}...)
-		reportCells = instanceCountReportDatesAmountInSheet(dates, report, lastColumn, line, reportCells)
+		reportCells = instanceCountReportDatesAmountInSheet(file, dates, report, lastColumn, line, reportCells)
 		reportsCells = append(reportsCells, reportCells...)
 		line++
 	}
@@ -131,7 +131,7 @@ func instanceCountUsageReportInsertDataInSheet(_ context.Context, aas []aws.AwsA
 }
 
 //instanceCountReportDatesAmountInSheet put the Amount in terms of dates in the sheet
-func instanceCountReportDatesAmountInSheet(dates map[time.Time]int, report instanceCount.InstanceCountReport,
+func instanceCountReportDatesAmountInSheet(file *excelize.File, dates map[time.Time]int, report instanceCount.InstanceCountReport,
 lastColumn int, line int, reportCells cells) cells {
 	totalColumnPosition := make([]string, 0)
 	for date, column := range dates {
@@ -146,8 +146,9 @@ lastColumn int, line int, reportCells cells) cells {
 	for _, instanceDate := range report.InstanceCount.Hours {
 		column, ok := dates[instanceDate.Hour]
 		if ok {
-			reportCells = append(reportCells, newCell(instanceDate.Count, excelize.ToAlphaString(column) + strconv.Itoa(line)))
+			reportCells = append(reportCells, newCell(int(instanceDate.Count), excelize.ToAlphaString(column) + strconv.Itoa(line)))
 		}
+		file.SetColVisible(instanceCountReportDetailledSheetName, excelize.ToAlphaString(column), false)
 	}
 	formula := fmt.Sprintf("SUM(%s)", strings.Join(totalColumnPosition, ","))
 	formulaLocation := excelize.ToAlphaString(lastColumn + 1) + strconv.Itoa(line)
@@ -167,7 +168,7 @@ func instanceCountUsageReportGenerateHeader(file *excelize.File, dates map[time.
 	header.addStyles("borders", "bold", "centerText").setValues(file, instanceCountReportDetailledSheetName)
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
-		newColumnWidth("B", 35),
+		newColumnWidth("B", 20),
 		newColumnWidth("C", 30),
 		newColumnWidth("D", 6).toColumn(excelize.ToAlphaString(lastColumn)),
 		newColumnWidth(excelize.ToAlphaString(lastColumn + 1), 20),
@@ -196,7 +197,7 @@ func instanceCountDatesHeader(file *excelize.File, dates map[time.Time]int) (int
 				newCell(date.Format("2006-01-02"), excelize.ToAlphaString(column) + "2").mergeTo(excelize.ToAlphaString(column + 24) + "2"),
 				newCell("Total", excelize.ToAlphaString(column + 24) + "3"),
 			}
-			totalColumnsWidth = append(totalColumnsWidth, newColumnWidth(excelize.ToAlphaString(column + 24), 8))
+			totalColumnsWidth = append(totalColumnsWidth, newColumnWidth(excelize.ToAlphaString(column + 24), 10))
 			cellDay.addStyles("borders", "bold", "centerText").setValues(file, instanceCountReportDetailledSheetName)
 		}
 	}
