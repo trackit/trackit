@@ -18,7 +18,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 
-	"github.com/trackit/trackit-server/awsSession"
+	"github.com/trackit/trackit/awsSession"
 )
 
 // GetTemporaryCredentials gets temporary credentials in a client's AWS account

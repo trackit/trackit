@@ -19,7 +19,7 @@ import (
 
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/config"
 )
 
 const (

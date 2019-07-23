@@ -25,10 +25,10 @@ import (
 	"github.com/satori/go.uuid"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/mail"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/mail"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/routes"
 )
 
 var (

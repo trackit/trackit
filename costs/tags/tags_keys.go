@@ -24,8 +24,8 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
 )
 
 type (

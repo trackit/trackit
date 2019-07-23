@@ -19,7 +19,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/config"
 )
 
 // min returns the minimum between a and b.

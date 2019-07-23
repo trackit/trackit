@@ -24,11 +24,11 @@ import (
 	"database/sql"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/reports"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/reports"
 )
 
 // taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.

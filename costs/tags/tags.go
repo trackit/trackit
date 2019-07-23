@@ -20,12 +20,12 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 func init() {

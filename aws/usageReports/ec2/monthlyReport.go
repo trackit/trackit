@@ -28,11 +28,11 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
 )
 
 // getElasticSearchEc2Instance prepares and run the request to retrieve the a report of an instance

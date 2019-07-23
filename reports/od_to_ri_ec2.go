@@ -22,10 +22,10 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	ec2 "github.com/trackit/trackit-server/onDemandToRI/ec2"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	ec2 "github.com/trackit/trackit/onDemandToRI/ec2"
+	"github.com/trackit/trackit/users"
 )
 
 var odToRiEc2InstanceFormat = [][]cell{{

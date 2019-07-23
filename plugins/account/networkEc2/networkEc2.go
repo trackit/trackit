@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/trackit/trackit-server/db"
-	core "github.com/trackit/trackit-server/plugins/account/core"
-	utils "github.com/trackit/trackit-server/plugins/utils"
-	"github.com/trackit/trackit-server/usageReports/ec2"
+	"github.com/trackit/trackit/db"
+	core "github.com/trackit/trackit/plugins/account/core"
+	utils "github.com/trackit/trackit/plugins/utils"
+	"github.com/trackit/trackit/usageReports/ec2"
 )
 
 const (

@@ -21,7 +21,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/config"
 	"golang.org/x/crypto/bcrypt"
 )
 

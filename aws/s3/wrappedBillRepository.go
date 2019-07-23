@@ -18,8 +18,8 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/models"
 )
 
 // BillRepositoryWithPending is a BillRepository

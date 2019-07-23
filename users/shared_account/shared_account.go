@@ -18,10 +18,10 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // inviteUser handles users invite for team sharing.

@@ -25,9 +25,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticsearchservice"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/config"
 )
 
 func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials, dom utils.CostPerResource,

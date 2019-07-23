@@ -18,11 +18,11 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // snoozingBody is the expected body for the snoozing route handler.

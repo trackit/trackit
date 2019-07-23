@@ -24,18 +24,18 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/ec2"
-	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
-	"github.com/trackit/trackit-server/aws/usageReports/es"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/aws/usageReports/lambda"
-	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
-	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/db"
-	onDemandToRiEc2 "github.com/trackit/trackit-server/onDemandToRI/ec2"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/ec2"
+	"github.com/trackit/trackit/aws/usageReports/elasticache"
+	"github.com/trackit/trackit/aws/usageReports/es"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/aws/usageReports/lambda"
+	"github.com/trackit/trackit/aws/usageReports/rds"
+	"github.com/trackit/trackit/aws/usageReports/riEc2"
+	"github.com/trackit/trackit/aws/usageReports/riRdS"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 )
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.

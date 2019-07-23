@@ -20,7 +20,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/es"
 )
 
 const TypeEC2CoverageReport = "ec2-coverage-report"

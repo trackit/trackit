@@ -20,8 +20,8 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/routes"
 )
 
 // loginRequestBody is the expected request body for the LogIn route handler.

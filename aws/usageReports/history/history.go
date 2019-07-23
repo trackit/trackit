@@ -25,14 +25,14 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/aws/usageReports/ec2"
-	"github.com/trackit/trackit-server/aws/usageReports/ec2Coverage"
-	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
-	tes "github.com/trackit/trackit-server/aws/usageReports/es"
-	"github.com/trackit/trackit-server/aws/usageReports/rds"
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports/ec2"
+	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
+	"github.com/trackit/trackit/aws/usageReports/elasticache"
+	tes "github.com/trackit/trackit/aws/usageReports/es"
+	"github.com/trackit/trackit/aws/usageReports/rds"
+	"github.com/trackit/trackit/es"
 )
 
 const numPartition = 5

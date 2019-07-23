@@ -24,10 +24,10 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/usageReports/ec2"
-	"github.com/trackit/trackit-server/usageReports/riEc2"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/usageReports/ec2"
+	"github.com/trackit/trackit/usageReports/riEc2"
 )
 
 var (

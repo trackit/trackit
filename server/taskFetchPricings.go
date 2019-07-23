@@ -21,9 +21,9 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws/pricings"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit/aws/pricings"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 // taskFetchPricings fetches the EC2 pricings and saves them in the database
