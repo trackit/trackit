@@ -25,13 +25,13 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // simpleCriterionMap will map simple criterion to the boolean true.

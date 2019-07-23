@@ -26,10 +26,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
 )
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.

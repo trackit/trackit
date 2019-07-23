@@ -28,11 +28,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 
 	"github.com/trackit/jsonlog"
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/costs"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/costs"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
 )
 
 // taskCheckCost is the entry point for account cost verification

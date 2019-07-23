@@ -23,8 +23,8 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/db"
 )
 
 type module struct {

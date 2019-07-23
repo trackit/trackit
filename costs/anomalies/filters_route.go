@@ -8,13 +8,13 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/costs/anomalies/anomalyFilters"
-	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/costs/anomalies/anomalyFilters"
+	"github.com/trackit/trackit/costs/anomalies/anomalyType"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type (

@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports"
 )
 
 // getPurchasingOption returns a string that describes how the instance given as parameter have been purchased

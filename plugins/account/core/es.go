@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/es"
 )
 
 // IngestPluginResult saves a PluginResultES into elasticsearch

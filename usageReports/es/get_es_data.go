@@ -25,10 +25,10 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	tes "github.com/trackit/trackit-server/aws/usageReports/es"
-	terrors "github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/users"
+	tes "github.com/trackit/trackit/aws/usageReports/es"
+	terrors "github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/users"
 )
 
 // makeElasticSearchRequest prepares and run an ES request

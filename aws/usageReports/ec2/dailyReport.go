@@ -24,9 +24,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/config"
 )
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances

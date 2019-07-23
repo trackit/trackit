@@ -23,7 +23,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/config"
 )
 
 const (

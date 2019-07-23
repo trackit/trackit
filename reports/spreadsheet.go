@@ -27,9 +27,9 @@ import (
 	"github.com/tealeg/xlsx"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/awsSession"
-	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/awsSession"
+	"github.com/trackit/trackit/config"
 )
 
 type spreadsheet struct {

@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports"
 )
 
 // getInstanceTags returns an array of tags associated to the RDS instance given as parameter

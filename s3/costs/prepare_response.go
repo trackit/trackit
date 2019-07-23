@@ -22,7 +22,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit/errors"
 )
 
 // S3BucketCost represents the detail of the costs for a given bucket

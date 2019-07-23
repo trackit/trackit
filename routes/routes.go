@@ -21,7 +21,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/config"
 )
 
 // RegisteredHandlers is the list of all route handlers that were registered.

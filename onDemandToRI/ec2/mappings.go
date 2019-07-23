@@ -20,7 +20,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/es"
 )
 
 const TypeOdToRiEC2Report = "od-to-ri-ec2-report"

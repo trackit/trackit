@@ -15,8 +15,8 @@
 package plugins
 
 import (
-	_ "github.com/trackit/trackit-server/plugins/account/s3Traffic"
-	_ "github.com/trackit/trackit-server/plugins/account/unattachedEIP"
-	_ "github.com/trackit/trackit-server/plugins/account/unusedEBS"
-	_ "github.com/trackit/trackit-server/plugins/account/networkEc2"
+	_ "github.com/trackit/trackit/plugins/account/s3Traffic"
+	_ "github.com/trackit/trackit/plugins/account/unattachedEIP"
+	_ "github.com/trackit/trackit/plugins/account/unusedEBS"
+	_ "github.com/trackit/trackit/plugins/account/networkEc2"
 )

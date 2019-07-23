@@ -24,16 +24,16 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/pricings"
-	awsEc2 "github.com/trackit/trackit-server/aws/usageReports/ec2"
-	awsriEc2 "github.com/trackit/trackit-server/aws/usageReports/riEc2"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/usageReports/ec2"
-	"github.com/trackit/trackit-server/usageReports/riEc2"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/pricings"
+	awsEc2 "github.com/trackit/trackit/aws/usageReports/ec2"
+	awsriEc2 "github.com/trackit/trackit/aws/usageReports/riEc2"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/usageReports/ec2"
+	"github.com/trackit/trackit/usageReports/riEc2"
+	"github.com/trackit/trackit/users"
 )
 
 type (

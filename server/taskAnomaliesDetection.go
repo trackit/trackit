@@ -25,11 +25,11 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/anomaliesDetection"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/cache"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit/anomaliesDetection"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 // taskAnomaliesDetection processes an AwsAccount to email

@@ -19,9 +19,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/users"
 )
 
 // AccountsAndIndexes stores the accounts and indexes

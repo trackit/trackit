@@ -17,7 +17,7 @@ package es
 import (
 	"fmt"
 
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/users"
 )
 
 const (

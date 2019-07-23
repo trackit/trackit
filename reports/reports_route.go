@@ -26,12 +26,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
-	"github.com/trackit/trackit-server/awsSession"
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/awsSession"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 func init() {

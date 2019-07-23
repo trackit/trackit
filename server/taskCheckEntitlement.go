@@ -27,10 +27,10 @@ import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/awsSession"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/awsSession"
 )
 
 // taskCheckEntitlement checks the user Entitlement for AWS Marketplace users

@@ -23,10 +23,10 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // UsersCache is a struct to format a decorator that retrieve data from

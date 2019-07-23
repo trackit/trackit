@@ -20,9 +20,9 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/routes"
 )
 
 func patchUser(request *http.Request, a routes.Arguments) (int, interface{}) {

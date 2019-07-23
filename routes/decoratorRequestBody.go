@@ -24,7 +24,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/util/req"
+	"github.com/trackit/trackit/util/req"
 )
 
 type RequestBody struct {

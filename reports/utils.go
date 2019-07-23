@@ -3,7 +3,7 @@ package reports
 import (
 	"fmt"
 
-	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit/aws"
 )
 
 func formatMetric(value float64) interface{} {

@@ -20,7 +20,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
+	taws "github.com/trackit/trackit/aws"
 )
 
 func init() {

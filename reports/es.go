@@ -23,10 +23,10 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/usageReports/es"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/usageReports/es"
+	"github.com/trackit/trackit/users"
 )
 
 var esDomainFormat = [][]cell{{

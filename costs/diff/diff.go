@@ -24,7 +24,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit/errors"
 )
 
 // PricePoint struct stores elements for cost differentiator

@@ -20,7 +20,7 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	core "github.com/trackit/trackit-server/plugins/account/core"
+	core "github.com/trackit/trackit/plugins/account/core"
 )
 
 type bucketsInfos = map[string]float64

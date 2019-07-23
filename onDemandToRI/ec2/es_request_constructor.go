@@ -25,8 +25,8 @@ import (
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
 
-	terrors "github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
+	terrors "github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
 )
 
 const maxAggregationSize = 0x7FFFFFFF

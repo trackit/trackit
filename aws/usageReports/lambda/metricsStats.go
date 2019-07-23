@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports"
 )
 
 // getFunctionTag formats []*lambda.Tag to map[string]string

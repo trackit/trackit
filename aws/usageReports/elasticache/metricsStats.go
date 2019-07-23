@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports"
 )
 
 func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc *elasticache.ElastiCache, account, region string) []utils.Tag {
