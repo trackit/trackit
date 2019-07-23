@@ -38,18 +38,18 @@ func formatKey(rdCache *redisCache) {
 	}
 }
 
-func parseRouteFromUrl(url string, rc redisCache) redisCache {
+func parseRouteFromUrl(url string, rc *redisCache) {
 	// The string passed as parameter as the URL is formatted like this: /route?params=value&params2=value2
 	idx := strings.IndexByte(url, '?')
-	if idx == -1 { // There is no argument
+	if idx == -1 {
 		rc.route = url
 	} else {
+		// The main purpose is to sort arguments by alphabetical order.
 		rc.route = url[:idx] // Cut the first part from the URL which is the route
-		sortedArgs := strings.Split(url[idx + 1:], "&") // Extract, as a strings array, every arguments with their respective value separate by a '&'
+		sortedArgs := strings.Split(url[idx + 1:], "&") // Extract, as a strings array, every arguments with their respective values separate by a '&'
 		sort.Strings(sortedArgs) // Sort the strings by alphabetical order, it's important for the key
 		rc.args = strings.Join(sortedArgs, "&") // Convert from the an array of strings to a single strings and join every part by a '&' like initially
 	}
-	return rc
 }
 
 // getAwsIdentityFromSharedAcc retrieves all shared accounts based on the user's ID.
@@ -83,7 +83,7 @@ func getAwsIdentityFromSharedAcc(user users.User, identities *[]string, context 
 // depending of the previous information.
 func initialiseCacheInfos(url string, args routes.Arguments, logger jsonlog.Logger) (rtn redisCache, err error) {
 	var allAcc []string
-	rtn = parseRouteFromUrl(url, rtn)
+	parseRouteFromUrl(url, &rtn)
 	if args[routes.AwsAccountsOptionalQueryArg] != nil {
 		allAcc = args[routes.AwsAccountsOptionalQueryArg].([]string)
 	} else {

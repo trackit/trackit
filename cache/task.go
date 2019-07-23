@@ -29,7 +29,7 @@ func getTotalRedisKeys() (totalKeys int64, err error) {
 	// "dbW:keys=X,expires=Y,avg_ttl=Z"
 	// We want retrieve te total of keys, which is X in the format.
 	keySpace := mainClient.Info("keyspace")
-	idx := strings.Index(keySpace.Val(), "keys=") // Idx is equal to the index of k from "keys="
+	idx := strings.Index(keySpace.Val(), "keys=") // Idx is equal to the index of letter 'k' from "keys="
 	if idx == -1 {
 		return
 	}
@@ -58,7 +58,7 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 	if totalKeys == 0 {
 		return nil
 	}
-	const matchPattern = "%x-*:%v:*"
+	const matchPattern = "%x-*-%v-*"
 	for _, route := range routes {
 		routeKey := md5.Sum([]byte(route))
 		for _, awsAcc := range awsAccounts {
