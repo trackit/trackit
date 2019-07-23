@@ -32,26 +32,27 @@ import (
 // formatKey is unique depending on user's AWS' identities (personal + shared accounts)
 // or identities passed in arguments and route's URL
 func formatKey(rdCache *redisCache) {
-	rdCache.key = fmt.Sprintf("%x-%x:", md5.Sum([]byte(rdCache.route)), md5.Sum([]byte(rdCache.args)))
+	rdCache.key = fmt.Sprintf("%x-%x-", md5.Sum([]byte(rdCache.route)), md5.Sum([]byte(rdCache.args)))
 	for _, val := range rdCache.awsAccount {
-		rdCache.key = fmt.Sprintf("%v%v:", rdCache.key, val)
+		rdCache.key = fmt.Sprintf("%v%v-", rdCache.key, val)
 	}
 }
 
-func parseRouteFromUrl(url string, rc *redisCache) {
+func parseRouteFromUrl(url string, rc redisCache) redisCache {
+	// The string passed as parameter as the URL is formatted like this: /route?params=value&params2=value2
 	idx := strings.IndexByte(url, '?')
-	if idx == -1 {
+	if idx == -1 { // There is no argument
 		rc.route = url
 	} else {
-		rc.route = url[:idx]
-		rc.args = url[idx + 1:]
-		sortedArgs := strings.Split(rc.args, "&")
-		sort.Strings(sortedArgs)
-		rc.args = strings.Join(sortedArgs, "&")
+		rc.route = url[:idx] // Cut the first part from the URL which is the route
+		sortedArgs := strings.Split(url[idx + 1:], "&") // Extract, as a strings array, every arguments with their respective value separate by a '&'
+		sort.Strings(sortedArgs) // Sort the strings by alphabetical order, it's important for the key
+		rc.args = strings.Join(sortedArgs, "&") // Convert from the an array of strings to a single strings and join every part by a '&' like initially
 	}
+	return rc
 }
 
-// Retrieving all shared accounts based on the user's ID.
+// getAwsIdentityFromSharedAcc retrieves all shared accounts based on the user's ID.
 // Then the AWS identity, from each respective account, is added to the list of
 // AWS identities concerned by the cache.
 func getAwsIdentityFromSharedAcc(user users.User, identities *[]string, context *sql.Tx, logger jsonlog.Logger) error {
@@ -77,11 +78,12 @@ func getAwsIdentityFromSharedAcc(user users.User, identities *[]string, context 
 	return nil
 }
 
-// Listing of all AWS identities concerned by the cache depending
-// if an (or multiple) AWS identity are passed in arguments or not.
-func retrieveRouteInfos(url string, args routes.Arguments, logger jsonlog.Logger) (rtn redisCache, err error) {
+// Initialize cache information by getting a list of all AWS identities and
+// retrieving different information from the URL. The user's key is also formatted
+// depending of the previous information.
+func initialiseCacheInfos(url string, args routes.Arguments, logger jsonlog.Logger) (rtn redisCache, err error) {
 	var allAcc []string
-	parseRouteFromUrl(url, &rtn)
+	rtn = parseRouteFromUrl(url, rtn)
 	if args[routes.AwsAccountsOptionalQueryArg] != nil {
 		allAcc = args[routes.AwsAccountsOptionalQueryArg].([]string)
 	} else {
@@ -93,7 +95,8 @@ func retrieveRouteInfos(url string, args routes.Arguments, logger jsonlog.Logger
 				"error":  awsAccsErr.Error(),
 				"userId": user.Id,
 			})
-			return rtn, awsAccsErr
+			err = awsAccsErr
+			return
 		}
 		for _, userAccContent := range awsAccs {
 			allAcc = append(allAcc, userAccContent.AwsIdentity)

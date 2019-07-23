@@ -35,8 +35,9 @@ func getUserCache(rdCache redisCache, logger jsonlog.Logger) interface{} {
 	var cacheData interface{} = nil
 	val, err := mainClient.Get(rdCache.key).Result()
 	if len(val) == 0 {
-		logger.Error("No cache found on Redis for the despite it has been marked as valid", map[string]interface{}{
-			"error": err})
+		logger.Error("No cache found on Redis for the key despite having it marked as valid", map[string]interface{}{
+			"error": err,
+		})
 		return nil
 	}
 	err = json.Unmarshal([]byte(val), &cacheData)
@@ -62,7 +63,10 @@ func createUserCache(rdCache redisCache, data interface{}, logger jsonlog.Logger
 	var err error
 	rdCache.cacheContent, err = json.Marshal(data)
 	if err != nil {
-		logger.Error("Unable to marshal API content to create cache.", nil)
+		logger.Error("Unable to marshal API content to create cache.", map[string] interface{} {
+			"error":   err.Error(),
+			"userKey": rdCache.key,
+		})
 		return
 	}
 	cmdStat := mainClient.Append(rdCache.key, string(rdCache.cacheContent))
@@ -70,8 +74,8 @@ func createUserCache(rdCache redisCache, data interface{}, logger jsonlog.Logger
 		mainClient.Expire(rdCache.key, cacheExpireTime)
 	} else {
 		logger.Error("Unable to append content.", map[string] interface{} {
-			"userKey": rdCache.key,
 			"error":   cmdStat.Err().Error(),
+			"userKey": rdCache.key,
 		})
 	}
 }
@@ -80,8 +84,8 @@ func deleteUserCache(rdCache redisCache, logger jsonlog.Logger) {
 	rtn := mainClient.Del(rdCache.key)
 	if rtn.Err() != nil {
 		logger.Error("Unable to delete user's cache.", map[string] interface{} {
-			"userKey": rdCache.key,
 			"error":   rtn.Err().Error(),
+			"userKey": rdCache.key,
 		})
 	}
 }

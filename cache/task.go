@@ -25,25 +25,32 @@ import (
 
 func getTotalRedisKeys() (totalKeys int64, err error) {
 	const subStrLen = len("keys=")
+	// The format of retrieving info of the space "keyspace" is has the format below:
+	// "dbW:keys=X,expires=Y,avg_ttl=Z"
+	// We want retrieve te total of keys, which is X in the format.
 	keySpace := mainClient.Info("keyspace")
-	idx := strings.Index(keySpace.Val(), "keys=")
+	idx := strings.Index(keySpace.Val(), "keys=") // Idx is equal to the index of k from "keys="
 	if idx == -1 {
 		return
 	}
+	// In "keys=X,expires=Y,avg_ttl=Z", we look for the index of the first comma
+	// We have to subtract the length of "keys=" (which is subStrLen) to know the number length.
 	comma := strings.IndexByte(keySpace.Val()[idx:], ',') - subStrLen
 	if comma == -1 {
 		return
 	}
+	// Start at idx + subStrLen means the first number character and
+	// the previous number + comma correspond to the last number character
 	return strconv.ParseInt(keySpace.Val()[idx + subStrLen:idx + subStrLen + comma], 10, 64)
 }
 
-// We remove all cache related to the format ROUTE-...:KEY:
+// RemoveMatchingCache removes all cache related to the format ROUTE-...-KEY-
 // It's important to note that AWS identities and routes validity isn't checked.
 func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.Logger) (err error) {
 	var totalKeys int64
 	totalKeys, err = getTotalRedisKeys()
 	if err != nil {
-		logger.Error("Unable to get the total redis keys.", map[string]interface{}{
+		logger.Error("Unable to get the total redis keys.", map[string] interface{} {
 			"error": err.Error(),
 		})
 		return
@@ -57,11 +64,11 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 		for _, awsAcc := range awsAccounts {
 			obsoleteKeys := mainClient.Scan(0, fmt.Sprintf(matchPattern, routeKey, awsAcc), totalKeys)
 			if obsoleteKeys.Err() != nil {
-				logger.Warning("Unable to scan redis DB to retrieve matching keys.", map[string]interface{} {
+				logger.Error("Unable to scan redis DB to retrieve matching keys.", map[string] interface{} {
+					"error":       obsoleteKeys.Err().Error(),
 					"awsIdentity": awsAcc,
 					"route":       route,
-					"research":    fmt.Sprintf(matchPattern, routeKey, awsAcc),
-					"error":       obsoleteKeys.Err().Error(),
+					"keyFormat":    fmt.Sprintf(matchPattern, routeKey, awsAcc),
 				})
 				continue
 			}
@@ -69,10 +76,10 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 			for _, keyValue := range cacheKeys {
 				rtn := mainClient.Del(keyValue)
 				if rtn.Err() != nil {
-					logger.Warning("Unable to delete cache for a specific key from a route.", map[string]interface{} {
+					logger.Warning("Unable to delete cache for a specific key from a route.", map[string] interface{} {
+						"error": rtn.Err().Error(),
 						"route": route,
 						"key":   keyValue,
-						"error": rtn.Err().Error(),
 					})
 				}
 			}

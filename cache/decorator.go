@@ -16,8 +16,8 @@ package cache
 
 import (
 	"database/sql"
-	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -30,8 +30,8 @@ import (
 )
 
 // UsersCache is a struct to format a decorator that retrieve data from
-// different route and cache it with redis which is an-memory data structure
-// store, used as a database. Cache expire automatically after 24 hours.
+// different route and cache it with redis. Cache expire automatically
+// after 24 hours.
 type UsersCache struct {
 }
 
@@ -52,14 +52,14 @@ func init() {
 		Addr:         config.RedisAddress,
 		Password:     config.RedisPassword,
 		DB:           1,
-		IdleTimeout: -1 ,
+		IdleTimeout: -1,
 	})
 	_, err := mainClient.Ping().Result()
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Unable to establish the connection to redis server", map[string] interface{} {
 			"error": err.Error(),
 		})
-		log.Fatal("The API cannot connect to redis. Exiting...")
+		os.Exit(1)
 	}
 	jsonlog.DefaultLogger.Info("Successfully connected to redis client", map[string] interface{} {
 		"address": config.RedisAddress,
@@ -72,25 +72,28 @@ func init() {
 func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request, args routes.Arguments) (int, interface{}) {
 		logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-		_, userDataPresent := args[users.AuthenticatedUser].(users.User)
-		_, dbAvailable := args[db.Transaction].(*sql.Tx)
-		if !userDataPresent || !dbAvailable {
-			logger.Error("Unable to retrieve user's or database's information while trying to get cache.", nil)
-			writeHeaderCacheStatus(writer, cacheStatusError, "UNABLE-GET-BASICS-INFOS")
+		if _, userDataPresent := args[users.AuthenticatedUser].(users.User); !userDataPresent {
+			logger.Error("Unable to retrieve user's information while trying to get cache.", nil)
+			writeHeaderCacheStatus(writer, cacheStatusError, "UNABLE-GET-BASICS-INFOS-USER")
+			return hf(writer, request, args)
+		} else if _, dbAvailable := args[db.Transaction].(*sql.Tx); !dbAvailable {
+			logger.Error("Unable to retrieve database's information while trying to get cache.", nil)
+			writeHeaderCacheStatus(writer, cacheStatusError, "UNABLE-GET-BASICS-INFOS-DB")
 			return hf(writer, request, args)
 		}
-		rdCache, err := retrieveRouteInfos(request.URL.String(), args, logger)
+		rdCache, err := initialiseCacheInfos(request.URL.String(), args, logger)
 		if err != nil {
 			logger.Error("Error during cache initialization", map[string] interface{} {
 				"error": err.Error(),
 			})
+			writeHeaderCacheStatus(writer, cacheStatusError, "ERROR-INITIALIZATION")
 			return hf(writer, request, args)
 		}
 		updateCacheByHeaderStatus(request, rdCache)
 		if userHasCacheForService(rdCache, logger) {
 			retrieveCache := getUserCache(rdCache, logger)
 			if retrieveCache == nil {
-				logger.Warning("Unable to retrieve cache, skipping it to avoid panic or error. The cache has been, also, deleted.", map[string] interface{} {
+				logger.Warning("Unable to retrieve cache, skipping it to avoid panic or error. The cache has been deleted.", map[string] interface{} {
 					"userKey": rdCache.key,
 					"route":   rdCache.route,
 				})

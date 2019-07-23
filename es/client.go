@@ -17,7 +17,6 @@ package es
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -53,7 +52,7 @@ func init() {
 		}
 	}
 	logger.Error("Failed to connect to ElasticSearch database. Not retrying.", nil)
-	log.Fatal("Exiting due to connection fail.")
+	os.Exit(1)
 }
 
 // getElasticSearchConfig retrieves the elastic.ClientOptionFunc required to
