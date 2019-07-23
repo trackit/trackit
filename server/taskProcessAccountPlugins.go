@@ -25,7 +25,9 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit-server/aws"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/es"
 	core "github.com/trackit/trackit-server/plugins/account/core"
@@ -80,6 +82,10 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 			"error":        err.Error(),
 		})
 	}
+	var affectedRoutes = []string {
+		"/plugins/results",
+	}
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
 	return
 }
 

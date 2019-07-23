@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/trackit/trackit-server/aws/s3"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
 	"github.com/trackit/trackit-server/es"
 	"github.com/trackit/trackit-server/routes"
@@ -33,6 +34,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(tagsValuesQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the tag values and their cost with a filter",
 				Description: "get the tag values and their cost with filter for a specified time range, aws accounts and keys",
@@ -44,6 +46,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(tagsKeysQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get every tag keys",
 				Description: "get every tag keys for a specified time range and aws accounts",

@@ -33,8 +33,9 @@ import (
 	"github.com/trackit/trackit-server/aws/usageReports/rds"
 	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
 	"github.com/trackit/trackit-server/aws/usageReports/riRdS"
+	"github.com/trackit/trackit-server/cache"
 	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/onDemandToRI/ec2"
+	onDemandToRiEc2 "github.com/trackit/trackit-server/onDemandToRI/ec2"
 )
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
@@ -90,6 +91,21 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 			"error":        err.Error(),
 		})
 	}
+	var affectedRoutes = []string {
+		"/ec2",
+		"/ec2/coverage",
+		"/ec2/unused",
+		"/elasticache",
+		"/elasticache/unused",
+		"/es",
+		"/es/unused",
+		"/lambda",
+		"/rds",
+		"/rds/unused",
+		"/ri/ec2",
+		"/ri/rds",
+	}
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
 	return
 }
 
