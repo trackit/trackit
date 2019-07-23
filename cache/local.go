@@ -30,7 +30,7 @@ import (
 )
 
 // formatKey is unique depending on user's AWS' identities (personal + shared accounts)
-// or identities passed in arguments and route's URL
+// or identities passed in arguments and route's data (route's name and arguments)
 func formatKey(rdCache *redisCache) {
 	rdCache.key = fmt.Sprintf("%x-%x-", md5.Sum([]byte(rdCache.route)), md5.Sum([]byte(rdCache.args)))
 	for _, val := range rdCache.awsAccount {
@@ -38,6 +38,8 @@ func formatKey(rdCache *redisCache) {
 	}
 }
 
+// parseRouteFromUrl store the route name (with the format: "/route") and,
+// if there is any, argument in the structure redisCache.
 func parseRouteFromUrl(url string, rc *redisCache) {
 	// The string passed as parameter as the URL is formatted like this: /route?params=value&params2=value2
 	idx := strings.IndexByte(url, '?')
