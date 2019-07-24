@@ -21,9 +21,9 @@ import (
 )
 
 type InstanceSize struct {
-	factor     float64
-	size       string
-	types      []string
+	factor float64
+	size   string
+	types  []string
 }
 
 var (
@@ -49,7 +49,7 @@ var (
 	rgx = regexp.MustCompile(`([a-zA-Z]+)([0-9]+)([a-zA-Z]+)`)
 )
 
-func getEC2RecommendationTypeReason(instance Instance) Recommendation  {
+func getEC2RecommendationTypeReason(instance Instance) Recommendation {
 	size, family := getInstanceSizeFamily(instance.Type)
 	cpuDelta := instance.Stats.Cpu.Average / 0.80
 	targetNormFactor := cpuDelta * getNormFactorFromSize(size)

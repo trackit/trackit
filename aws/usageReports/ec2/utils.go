@@ -52,16 +52,16 @@ type (
 	// Instance contains all the information of an EC2 instance
 	Instance struct {
 		InstanceBase
-		Tags  []utils.Tag             `json:"tags"`
-		Costs map[string]float64      `json:"costs"`
-		Stats Stats                   `json:"stats"`
-		Recommendation Recommendation `json:"recommendation"`
+		Tags           []utils.Tag        `json:"tags"`
+		Costs          map[string]float64 `json:"costs"`
+		Stats          Stats              `json:"stats"`
+		Recommendation Recommendation     `json:"recommendation"`
 	}
 
 	// Recommendation contains all recommendation of an EC2 instance
 	Recommendation struct {
-		InstanceType string `json:"instancetype"`
-		Reason       string `json:"reason"`
+		InstanceType  string `json:"instancetype"`
+		Reason        string `json:"reason"`
 		NewGeneration string `json:"newgeneration"`
 	}
 
