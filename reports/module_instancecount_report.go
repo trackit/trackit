@@ -32,7 +32,7 @@ import (
 	"github.com/trackit/trackit-server/users"
 )
 
-const instanceCountReportDetailledSheetName = "Instance Count Report (Detailled)"
+const instanceCountReportDetailledSheetName = "Instance Count Report (Detailed)"
 
 var instanceCountUsageReportModule = module{
 	Name:          "Instance Count Report",
