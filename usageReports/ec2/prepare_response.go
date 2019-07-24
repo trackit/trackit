@@ -92,10 +92,10 @@ type (
 	// Instance contains the information of an EC2 instance
 	Instance struct {
 		ec2.InstanceBase
-		Tags  map[string]string  `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
-		Stats Stats              `json:"stats"`
-		Recommendation Recommendation `json:"recommendation"`
+		Tags           map[string]string  `json:"tags"`
+		Costs          map[string]float64 `json:"costs"`
+		Stats          Stats              `json:"stats"`
+		Recommendation Recommendation     `json:"recommendation"`
 	}
 
 	// Recommendation contains all recommendation of an EC2 instance

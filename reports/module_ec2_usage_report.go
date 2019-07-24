@@ -167,7 +167,7 @@ func ec2UsageReportGenerateHeader(file *excelize.File) {
 	return
 }
 
-func ec2SizingRecommendationInsertData(file *excelize.File, instance ec2.Instance, name, formattedAccount string, line int)  {
+func ec2SizingRecommendationInsertData(file *excelize.File, instance ec2.Instance, name, formattedAccount string, line int) {
 	cellsRecommendation := cells{
 		newCell(formattedAccount, "A"+strconv.Itoa(line)),
 		newCell(instance.Id, "B"+strconv.Itoa(line)),
