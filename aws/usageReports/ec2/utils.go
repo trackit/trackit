@@ -60,8 +60,9 @@ type (
 
 	// Recommendation contains all recommendation of an EC2 instance
 	Recommendation struct {
-		InstanceType   string `json:"instancetype"`
-		Reason string `json:"reason"`
+		InstanceType string `json:"instancetype"`
+		Reason       string `json:"reason"`
+		NewGeneration string `json:"newgeneration"`
 	}
 
 	// Stats contains statistics of an instance get on CloudWatch
