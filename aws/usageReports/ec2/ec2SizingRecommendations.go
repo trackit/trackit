@@ -46,7 +46,7 @@ var (
 		{1024, "32xlarge", []string{"x1", "x1e"}},
 	}
 
-	rgx = regexp.MustCompile(`([a-zA-Z]+)([0-9]+)([a-zA-Z]+)`)
+	rgx = regexp.MustCompile(`([a-zA-Z]+)([\\d])+`)
 )
 
 func getEC2RecommendationTypeReason(instance Instance) Recommendation {
@@ -158,7 +158,7 @@ func checkNewGenerationAvailable(size, family string, instanceSize InstanceSize)
 	for _, instanceType := range instanceSize.types {
 		newGenType := rgx.FindStringSubmatch(instanceType)
 		newGen, _ := strconv.Atoi(newGenType[2])
-		if len(newGenType) >= 3 && newGenType[1] == actualType[1] && actualGen < newGen {
+		if len(newGenType) >= 3 && newGenType[1] == actualType[1] && actualGen <= newGen && actualType[0] != newGenType[0] {
 			recommendedType = append(recommendedType, instanceType+"."+size)
 			available = true
 		}

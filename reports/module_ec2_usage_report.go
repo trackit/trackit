@@ -199,7 +199,8 @@ func ec2SizingRecommendationsHeader(file *excelize.File) {
 		newColumnWidth("A", 30),
 		newColumnWidth("B", 35).toColumn("C"),
 		newColumnWidth("D", 15).toColumn("E"),
-		newColumnWidth("F", 20).toColumn("H"),
+		newColumnWidth("F", 20).toColumn("G"),
+		newColumnWidth("H", 35),
 	}
 	columns.setValues(file, ec2SizingRecommendationsSheetName)
 	return
