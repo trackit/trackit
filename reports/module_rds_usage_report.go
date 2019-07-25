@@ -23,10 +23,10 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/usageReports/rds"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/usageReports/rds"
+	"github.com/trackit/trackit/users"
 )
 
 const rdsUsageReportSheetName = "RDS Usage Report"

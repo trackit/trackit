@@ -23,8 +23,8 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/config"
 )
 
 const templateSheetName = "Introduction"
