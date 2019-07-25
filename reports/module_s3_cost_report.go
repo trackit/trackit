@@ -15,9 +15,9 @@
 package reports
 
 import (
-	"fmt"
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -25,9 +25,9 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/s3/costs"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/s3/costs"
 )
 
 const s3CostReportSheetName = "S3 Cost Report"
