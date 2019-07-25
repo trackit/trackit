@@ -21,9 +21,9 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 	"time"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/aws/usageReports/instanceCount"
-	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports/instanceCount"
+	"github.com/trackit/trackit/errors"
 )
 
 type (

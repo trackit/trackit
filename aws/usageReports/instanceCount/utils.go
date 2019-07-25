@@ -19,13 +19,13 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/trackit/trackit-server/es"
 	"time"
 
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es"
 )
 
 const MonitorInstanceCountStsSessionName = "monitor-instanceCount"

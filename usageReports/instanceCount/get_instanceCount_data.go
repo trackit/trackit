@@ -17,18 +17,18 @@ package instanceCount
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"errors"
 
-	"gopkg.in/olivere/elastic.v5"
 	"github.com/trackit/jsonlog"
+	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws/usageReports/instanceCount"
-	terrors "github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws/usageReports/instanceCount"
+	terrors "github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/users"
 )
 
 // makeElasticSearchRequest prepares and run an ES request
