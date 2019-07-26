@@ -42,4 +42,5 @@ var modules = []module{
 	s3CostReportModule,
 	ebsUsageReportModule,
 	instanceCountUsageReportModule,
+	riEc2ReportModule,
 }
