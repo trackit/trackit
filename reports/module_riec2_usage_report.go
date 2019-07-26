@@ -17,7 +17,6 @@ package reports
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -102,8 +101,9 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 			newCell(instance.OfferingClass, "F"+strconv.Itoa(line)),
 			newCell(instance.OfferingType, "G"+strconv.Itoa(line)),
 			newCell(instance.InstanceCount, "H"+strconv.Itoa(line)),
-			newCell(instance.Start.Format("2006-01-02T15:04:05"), "I"+strconv.Itoa(line)),
-			newCell(instance.End.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)),
+			newCell(instance.UsagePrice, "I"+strconv.Itoa(line)),
+			newCell(instance.Start.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)),
+			newCell(instance.End.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, riEc2ReportSheetName)
 		line++
@@ -114,7 +114,7 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 func riec2ReportGenerateHeader(file *excelize.File) {
 	header := cells{
 		newCell("Account", "A1").mergeTo("A3"),
-		newCell("Reservation", "B1").mergeTo("L1"),
+		newCell("Reservation", "B1").mergeTo("M1"),
 		newCell("ID", "B2").mergeTo("B3"),
 		newCell("Type", "C2").mergeTo("C3"),
 		newCell("Region", "D2").mergeTo("D3"),
@@ -122,12 +122,13 @@ func riec2ReportGenerateHeader(file *excelize.File) {
 		newCell("Offering Class", "F2").mergeTo("F3"),
 		newCell("Offering Type", "G2").mergeTo("G3"),
 		newCell("Amount", "H2").mergeTo("H3"),
-		newCell("Date Reservations", "I2").mergeTo("J2"),
-		newCell("Start", "I3"),
-		newCell("End", "J3"),
-		newCell("Recurring Charges", "K2").mergeTo("L2"),
-		newCell("Amount", "K3"),
-		newCell("Frequency", "L3"),
+		newCell("Price", "I2").mergeTo("I3"),
+		newCell("Date Reservations", "J2").mergeTo("K2"),
+		newCell("Start", "J3"),
+		newCell("End", "K3"),
+		newCell("Recurring Charges", "L2").mergeTo("M2"),
+		newCell("Amount", "L3"),
+		newCell("Frequency", "M3"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, riEc2ReportSheetName)
 	columns := columnsWidth{
@@ -136,7 +137,8 @@ func riec2ReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("C", 15).toColumn("D"),
 		newColumnWidth("E", 12.5).toColumn("G"),
 		newColumnWidth("H", 7),
-		newColumnWidth("I", 25).toColumn("J"),
+		newColumnWidth("I", 10),
+		newColumnWidth("J", 25).toColumn("K"),
 	}
 	columns.setValues(file, riEc2ReportSheetName)
 	return
