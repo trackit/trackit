@@ -15,8 +15,9 @@
 package reports
 
 import (
-	"fmt"
 	"strings"
+
+	"github.com/trackit/jsonlog"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
@@ -97,7 +98,6 @@ func (cs cells) setValues(file *excelize.File, sheet string) {
 	}
 }
 
-/* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
 func (c cell) setValue(file *excelize.File, sheet string) {
 	if len(c.formula) > 0 {
 		file.SetCellFormula(sheet, c.location, c.formula)
@@ -114,7 +114,10 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 		if err == nil {
 			file.SetCellStyle(sheet, c.location, endCellLocation, styleId)
 		} else {
-			fmt.Println(err, c.styles)
+			jsonlog.DefaultLogger.Warning("Error while applying style to a cell", map[string]interface{}{
+				"error": err,
+				"cell": c,
+			})
 		}
 	}
 	if len(c.conditionalFormats) > 0 {
@@ -122,10 +125,16 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 		if err == nil {
 			err = file.SetConditionalFormat(sheet, strings.Join([]string{c.location, endCellLocation}, ":"), formattedConditions)
 			if err != nil {
-				fmt.Println(err, formattedConditions)
+				jsonlog.DefaultLogger.Warning("Error while applying conditional formatting to a cell", map[string]interface{}{
+					"error": err,
+					"cell": c,
+				})
 			}
 		} else {
-			fmt.Println(err, c.conditionalFormats)
+			jsonlog.DefaultLogger.Warning("Error while getting conditional formatting", map[string]interface{}{
+				"error": err,
+				"cell": c,
+			})
 		}
 	}
 }

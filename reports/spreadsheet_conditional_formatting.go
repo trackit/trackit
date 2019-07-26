@@ -32,7 +32,6 @@ type conditionalFormats []conditionalFormat
 
 var conditionalStylesList = map[string]int{}
 
-/* TODO: Store into JSON file ? */
 var conditionsRaw = map[string]string{
 	"above90percent":  `{"type": "cell", "criteria": ">", "value": "0.9"}`,
 	"above85percent":  `{"type": "cell", "criteria": ">", "value": "0.85"}`,
@@ -47,7 +46,6 @@ var conditionsRaw = map[string]string{
 	"empty":           `{"type": "cell", "criteria": "=", "value": ""}`,
 }
 
-/* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
 func (cs conditionalFormats) getConditionalFormatting(file *excelize.File) (string, error) {
 	conditions := make([]string, 0)
 	for _, condition := range cs {
@@ -60,7 +58,6 @@ func (cs conditionalFormats) getConditionalFormatting(file *excelize.File) (stri
 	return fmt.Sprintf("[%s]", strings.Join(conditions, ",")), nil
 }
 
-/* TODO: Update error handing (Errors should not interrupt spreadsheet generation since it is only styling issue) */
 func (c conditionalFormat) getConditionalFormatting(file *excelize.File) (string, error) {
 	condition := c.value
 	if !c.custom {
