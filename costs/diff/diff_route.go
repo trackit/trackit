@@ -152,19 +152,12 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 }
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
-func TaskDiffData(ctx context.Context, aa aws.AwsAccount, date time.Time) (data costDiff, err error) {
-	var dateBegin, dateEnd time.Time
-	if date.IsZero() {
-		dateBegin, dateEnd = history.GetHistoryDate()
-	} else {
-		dateBegin = date
-		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
-	}
+func TaskDiffData(ctx context.Context, aa aws.AwsAccount, dateRange DateRange, aggregationPeriod string) (data costDiff, err error) {
 	parsedParams := esQueryParams{
 		accountList:       []string{aa.AwsIdentity},
-		dateBegin:         dateBegin,
-		dateEnd:           dateEnd,
-		aggregationPeriod: "day",
+		dateBegin:         dateRange.Begin,
+		dateEnd:           dateRange.End,
+		aggregationPeriod: aggregationPeriod,
 	}
 	var tx *sql.Tx
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
