@@ -52,6 +52,7 @@ type (
 		End                time.Time          `json:"end"`
 		InstanceCount      int64              `json:"instanceCount"`
 		Tenancy            string             `json:"tenancy"`
+		UsagePrice         float64            `json:"usagePrice"`
 		RecurringCharges   []RecurringCharges `json:"recurringCharges"`
 	}
 

@@ -17,6 +17,7 @@ package reports
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"strconv"
 	"time"
 
