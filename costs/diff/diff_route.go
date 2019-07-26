@@ -27,7 +27,6 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/s3"
-	"github.com/trackit/trackit/aws/usageReports/history"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/errors"
