@@ -85,6 +85,7 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 	file.NewSheet(riEc2ReportSheetName)
 	riec2ReportGenerateHeader(file)
 	line := 4
+	currentLine := 0
 	for _, report := range data {
 		account := getAwsAccount(report.Account, aas)
 		formattedAccount := report.Account
@@ -92,21 +93,29 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 			formattedAccount = formatAwsAccount(*account)
 		}
 		instance := report.Reservation
+		for currentLine, recurringCharge := range instance.RecurringCharges {
+			recurringCells := cells{
+				newCell(recurringCharge.Amount, "L"+strconv.Itoa(currentLine + line)).addStyles("price"),
+				newCell(recurringCharge.Frequency, "M"+strconv.Itoa(currentLine + line)),
+			}
+			recurringCells.addStyles("borders", "centerText").setValues(file, riEc2ReportSheetName)
+		}
 		cells := cells{
-			newCell(formattedAccount, "A"+strconv.Itoa(line)),
-			newCell(instance.Id, "B"+strconv.Itoa(line)),
-			newCell(instance.Type, "C"+strconv.Itoa(line)),
-			newCell(instance.Region, "D"+strconv.Itoa(line)),
-			newCell(instance.State, "E"+strconv.Itoa(line)),
-			newCell(instance.OfferingClass, "F"+strconv.Itoa(line)),
-			newCell(instance.OfferingType, "G"+strconv.Itoa(line)),
-			newCell(instance.InstanceCount, "H"+strconv.Itoa(line)),
-			newCell(instance.UsagePrice, "I"+strconv.Itoa(line)),
-			newCell(instance.Start.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)),
-			newCell(instance.End.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)),
+			newCell(formattedAccount, "A"+strconv.Itoa(line)).mergeTo("A"+strconv.Itoa(currentLine + line)),
+			newCell(instance.Id, "B"+strconv.Itoa(line)).mergeTo("B"+strconv.Itoa(currentLine + line)),
+			newCell(instance.Type, "C"+strconv.Itoa(line)).mergeTo("C"+strconv.Itoa(currentLine + line)),
+			newCell(instance.Region, "D"+strconv.Itoa(line)).mergeTo("D"+strconv.Itoa(currentLine + line)),
+			newCell(instance.State, "E"+strconv.Itoa(line)).mergeTo("E"+strconv.Itoa(currentLine + line)),
+			newCell(instance.OfferingClass, "F"+strconv.Itoa(line)).mergeTo("F"+strconv.Itoa(currentLine + line)),
+			newCell(instance.OfferingType, "G"+strconv.Itoa(line)).mergeTo("G"+strconv.Itoa(currentLine + line)),
+			newCell(instance.InstanceCount, "H"+strconv.Itoa(line)).mergeTo("H"+strconv.Itoa(currentLine + line)),
+			newCell(instance.UsagePrice, "I"+strconv.Itoa(line)).mergeTo("I"+strconv.Itoa(currentLine + line)).addStyles("price"),
+			newCell(instance.Start.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)).mergeTo("J"+strconv.Itoa(currentLine + line)),
+			newCell(instance.End.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(currentLine + line)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, riEc2ReportSheetName)
-		line++
+		line += currentLine + 1
+		currentLine = 0
 	}
 	return
 }
@@ -139,6 +148,7 @@ func riec2ReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("H", 7),
 		newColumnWidth("I", 10),
 		newColumnWidth("J", 25).toColumn("K"),
+		newColumnWidth("L", 15).toColumn("M"),
 	}
 	columns.setValues(file, riEc2ReportSheetName)
 	return
