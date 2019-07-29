@@ -34,11 +34,11 @@ const riEc2ReportSheetName = "Reserved Instance Report"
 var riEc2ReportModule = module{
 	Name:          "EC2  Report",
 	SheetName:     riEc2ReportSheetName,
-	ErrorName:     "riec2ReportError",
+	ErrorName:     "riEc2ReportError",
 	GenerateSheet: generateRiEc2ReportSheet,
 }
 
-// generateEc2ReportSheet will generate a sheet with EC2 usage report
+// generateEc2ReportSheet will generate a sheet with RiEC2 usage report
 // It will get data for given AWS account and for a given date
 func generateRiEc2ReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
@@ -85,7 +85,7 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 	file.NewSheet(riEc2ReportSheetName)
 	riec2ReportGenerateHeader(file)
 	line := 4
-	currentLine := 0
+	toLine := 0
 	for _, report := range data {
 		account := getAwsAccount(report.Account, aas)
 		formattedAccount := report.Account
@@ -99,23 +99,23 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 				newCell(recurringCharge.Frequency, "M"+strconv.Itoa(currentLine + line)),
 			}
 			recurringCells.addStyles("borders", "centerText").setValues(file, riEc2ReportSheetName)
+			toLine = currentLine + line
 		}
 		cells := cells{
-			newCell(formattedAccount, "A"+strconv.Itoa(line)).mergeTo("A"+strconv.Itoa(currentLine + line)),
-			newCell(instance.Id, "B"+strconv.Itoa(line)).mergeTo("B"+strconv.Itoa(currentLine + line)),
-			newCell(instance.Type, "C"+strconv.Itoa(line)).mergeTo("C"+strconv.Itoa(currentLine + line)),
-			newCell(instance.Region, "D"+strconv.Itoa(line)).mergeTo("D"+strconv.Itoa(currentLine + line)),
-			newCell(instance.State, "E"+strconv.Itoa(line)).mergeTo("E"+strconv.Itoa(currentLine + line)),
-			newCell(instance.OfferingClass, "F"+strconv.Itoa(line)).mergeTo("F"+strconv.Itoa(currentLine + line)),
-			newCell(instance.OfferingType, "G"+strconv.Itoa(line)).mergeTo("G"+strconv.Itoa(currentLine + line)),
-			newCell(instance.InstanceCount, "H"+strconv.Itoa(line)).mergeTo("H"+strconv.Itoa(currentLine + line)),
-			newCell(instance.UsagePrice, "I"+strconv.Itoa(line)).mergeTo("I"+strconv.Itoa(currentLine + line)).addStyles("price"),
-			newCell(instance.Start.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)).mergeTo("J"+strconv.Itoa(currentLine + line)),
-			newCell(instance.End.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(currentLine + line)),
+			newCell(formattedAccount, "A"+strconv.Itoa(line)).mergeTo("A"+strconv.Itoa(toLine)),
+			newCell(instance.Id, "B"+strconv.Itoa(line)).mergeTo("B"+strconv.Itoa(toLine)),
+			newCell(instance.Type, "C"+strconv.Itoa(line)).mergeTo("C"+strconv.Itoa(toLine)),
+			newCell(instance.Region, "D"+strconv.Itoa(line)).mergeTo("D"+strconv.Itoa(toLine)),
+			newCell(instance.State, "E"+strconv.Itoa(line)).mergeTo("E"+strconv.Itoa(toLine)),
+			newCell(instance.OfferingClass, "F"+strconv.Itoa(line)).mergeTo("F"+strconv.Itoa(toLine)),
+			newCell(instance.OfferingType, "G"+strconv.Itoa(line)).mergeTo("G"+strconv.Itoa(toLine)),
+			newCell(instance.InstanceCount, "H"+strconv.Itoa(line)).mergeTo("H"+strconv.Itoa(toLine)),
+			newCell(instance.UsagePrice, "I"+strconv.Itoa(line)).mergeTo("I"+strconv.Itoa(toLine)).addStyles("price"),
+			newCell(instance.Start.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)).mergeTo("J"+strconv.Itoa(toLine)),
+			newCell(instance.End.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(toLine)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, riEc2ReportSheetName)
-		line += currentLine + 1
-		currentLine = 0
+		line = toLine + 1
 	}
 	return
 }
