@@ -29,7 +29,7 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-const riEc2ReportSheetName = "Reserved Instance Report"
+const riEc2ReportSheetName = "Reserved Instance EC2 Report"
 
 var riEc2ReportModule = module{
 	Name:          "EC2  Report",
@@ -44,18 +44,18 @@ func generateRiEc2ReportSheet(ctx context.Context, aas []aws.AwsAccount, date ti
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
 	}
-	return riec2ReportGenerateSheet(ctx, aas, date, tx, file)
+	return riEc2ReportGenerateSheet(ctx, aas, date, tx, file)
 }
 
-func riec2ReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
-	data, err := riec2ReportGetData(ctx, aas, date, tx)
+func riEc2ReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
+	data, err := riEc2ReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return riec2ReportInsertDataInSheet(aas, file, data)
+		return riEc2ReportInsertDataInSheet(aas, file, data)
 	}
 	return
 }
 
-func riec2ReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []riEc2.ReservationReport, err error) {
+func riEc2ReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []riEc2.ReservationReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	identities := getAwsIdentities(aas)
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
@@ -81,9 +81,9 @@ func riec2ReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Tim
 	return
 }
 
-func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []riEc2.ReservationReport) (err error) {
+func riEc2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []riEc2.ReservationReport) (err error) {
 	file.NewSheet(riEc2ReportSheetName)
-	riec2ReportGenerateHeader(file)
+	riEc2ReportGenerateHeader(file)
 	line := 4
 	toLine := 0
 	for _, report := range data {
@@ -120,7 +120,7 @@ func riec2ReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 	return
 }
 
-func riec2ReportGenerateHeader(file *excelize.File) {
+func riEc2ReportGenerateHeader(file *excelize.File) {
 	header := cells{
 		newCell("Account", "A1").mergeTo("A3"),
 		newCell("Reservation", "B1").mergeTo("M1"),
@@ -145,7 +145,7 @@ func riec2ReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("B", 37),
 		newColumnWidth("C", 15).toColumn("D"),
 		newColumnWidth("E", 12.5).toColumn("G"),
-		newColumnWidth("H", 7),
+		newColumnWidth("H", 7.5),
 		newColumnWidth("I", 10),
 		newColumnWidth("J", 25).toColumn("K"),
 		newColumnWidth("L", 15).toColumn("M"),

@@ -20,7 +20,7 @@ import (
 	"gopkg.in/olivere/elastic.v5"
 )
 
-const maxAggregationSize = 100
+const maxAggregationSize = 0x7FFFFFFF
 
 // getDateForDailyReport returns the end and the begin of the date of the report based on a date
 // if the date given as parameter is in the actual month, it returns the the the begin of the month et now at midnight
