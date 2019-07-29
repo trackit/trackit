@@ -22,8 +22,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit/anomaliesDetection"
 	"github.com/trackit/trackit/aws"
@@ -76,13 +76,13 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 			"error":        err.Error(),
 		})
 	}
-	var affectedRoutes = []string {
+	var affectedRoutes = []string{
 		"/costs/anomalies",
 		"/costs/anomalies/filters",
 		"/costs/anomalies/snooze",
 		"/costs/anomalies/unsnooze",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

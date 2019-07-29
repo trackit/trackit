@@ -82,10 +82,10 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 			"error":        err.Error(),
 		})
 	}
-	var affectedRoutes = []string {
+	var affectedRoutes = []string{
 		"/plugins/results",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

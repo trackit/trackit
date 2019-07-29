@@ -17,7 +17,7 @@ package lambda
 import (
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 )
 
 const maxAggregationSize = 0x7FFFFFFF

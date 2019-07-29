@@ -25,7 +25,6 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
-
 func taskUpdateAwsIdentity(ctx context.Context) error {
 	var tx *sql.Tx
 	var err error

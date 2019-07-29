@@ -17,7 +17,7 @@ package plugins_account_s3_traffic
 import (
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 )
 
 // aggregationMaxSize is the maximum size of an Elastic Search Aggregation

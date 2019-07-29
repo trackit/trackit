@@ -90,14 +90,14 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	}
 	updateCompletion(ctx, aaId, brId, db.Db, updateId, err)
 	updateSubAccounts(ctx, aa)
-	var affectedRoutes = []string {
+	var affectedRoutes = []string{
 		"/costs",
 		"/costs/diff",
 		"/costs/tags/keys",
 		"/costs/tags/values",
 		"/s3/costs",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

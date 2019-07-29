@@ -21,9 +21,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/es"

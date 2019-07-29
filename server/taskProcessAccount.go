@@ -91,7 +91,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 			"error":        err.Error(),
 		})
 	}
-	var affectedRoutes = []string {
+	var affectedRoutes = []string{
 		"/ec2",
 		"/ec2/coverage",
 		"/ec2/unused",
@@ -105,7 +105,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		"/ri/ec2",
 		"/ri/rds",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string {aa.AwsIdentity}, logger)
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

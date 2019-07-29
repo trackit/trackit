@@ -31,7 +31,7 @@ const (
 	cacheStatusError
 	cacheStatusInvalid
 
-	cacheHeaderAbsent  // Internal utilisation only
+	cacheHeaderAbsent // Internal utilisation only
 
 	cacheStatusKey    = "Cache-Status"
 	cacheStatusErrKey = "Cache-Error"
@@ -39,7 +39,7 @@ const (
 
 // Keywords corresponding to each cache status.
 // The front-end can only request the cache to be deleted with the keyword "DELETE".
-var cacheHeaderStatus = map[int] string {
+var cacheHeaderStatus = map[int]string{
 	cacheStatusCreated: "CREATED",
 	cacheStatusUsed:    "USED",
 	cacheStatusDelete:  "DELETE",

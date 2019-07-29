@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/trackit/jsonlog"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/db"

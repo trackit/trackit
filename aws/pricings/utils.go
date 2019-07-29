@@ -24,7 +24,7 @@ import (
 func getPricingClient() *pricing.Pricing {
 	mySession := session.Must(session.NewSession(&aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
-		Region: aws.String(PricingApiEndpointRegion),
+		Region:                        aws.String(PricingApiEndpointRegion),
 	}))
 	return pricing.New(mySession)
 }

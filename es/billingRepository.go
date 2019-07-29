@@ -17,7 +17,8 @@ package es
 import (
 	"context"
 
-	"gopkg.in/olivere/elastic.v5"
+	//"github.com/olivere/elastic"
+	"github.com/olivere/elastic"
 )
 
 // CleanBillByBillRepositoryId removes every bills information of a specific bill repository

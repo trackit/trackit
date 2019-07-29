@@ -19,9 +19,9 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/olivere/elastic"
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/users"
-	"gopkg.in/olivere/elastic.v5"
 )
 
 // AccountPlugin is the struct that defines the variables and functions a plugin
