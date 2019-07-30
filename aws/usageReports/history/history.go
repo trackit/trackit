@@ -27,6 +27,7 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
@@ -161,11 +162,13 @@ func concatErrors(tabError []error) error {
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var ec2Created, rdsCreated, esCreated, elastiCacheCreated bool
+	var ebsCreated, ec2Created, rdsCreated, esCreated, elastiCacheCreated bool
+	var ebsErr error
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
 		ec2Created, ec2Err = ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+		ebsCreated, ebsErr = ebs.PutEbsMonthlyReport(ctx, ec2Cost, aa, startDate, endDate)
 	}
 	rdsCost, rdsErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonRDS")
 	if rdsErr == nil {
@@ -180,8 +183,8 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 		elastiCacheCreated, elastiCacheErr = elasticache.PutElastiCacheMonthlyReport(ctx, elastiCacheCost, aa, startDate, endDate)
 	}
 	ec2CoverageCreated, ec2CoverageErr := ec2Coverage.PutEc2MonthlyCoverageReport(ctx, aa, startDate, endDate)
-	reportsCreated := (ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated)
-	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr})
+	reportsCreated := ebsCreated || ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated
+	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.
