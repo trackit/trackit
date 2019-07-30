@@ -33,7 +33,7 @@ type (
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
-				Key       string `json:"key"`
+				Key           string `json:"key"`
 				InstanceCount struct {
 					Buckets []struct {
 						Key  string `json:"key"`

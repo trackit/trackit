@@ -75,7 +75,6 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
 		ec2Err := processAccountEC2(ctx, aa)
-		ebsErr := processAccountEbsSnapshot(ctx, aa)
 		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa)
 		elastiCacheErr := processAccountElastiCache(ctx, aa)
@@ -83,6 +82,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		riEc2Err := riEc2.FetchDailyReservationsStats(ctx, aa)
 		riRdsErr := riRdS.FetchDailyInstancesStats(ctx, aa)
 		odToRiEc2Err := onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
+		ebsErr := processAccountEbsSnapshot(ctx, aa)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
 	}
@@ -167,7 +167,7 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 		historyError=?,
 		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(elastiCacheErr), errToStr(lambdaErr), errToStr(lambdaErr), errToStr(riEc2Err), errToStr(riRdsErr), errToStr(odToRiEc2Err), errToStr(historyErr), historyCreated, updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(elastiCacheErr), errToStr(lambdaErr), errToStr(ebsErr), errToStr(riEc2Err), errToStr(riRdsErr), errToStr(odToRiEc2Err), errToStr(historyErr), historyCreated, updateId)
 	return err
 }
 
