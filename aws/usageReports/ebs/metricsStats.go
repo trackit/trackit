@@ -12,33 +12,23 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package reports
+package ebs
 
 import (
-	"context"
-	"database/sql"
-	"time"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/360EntSecGroup-Skylar/excelize"
-
-	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
 )
 
-type module struct {
-	Name          string
-	SheetName     string
-	ErrorName     string
-	GenerateSheet func(context.Context, []aws.AwsAccount, time.Time, *sql.Tx, *excelize.File) error
-}
-
-var modules = []module{
-	costVariationLastMonth,
-	costVariationLast6Months,
-	ec2UsageReportModule,
-	rdsUsageReportModule,
-	esUsageReportModule,
-	lambdaUsageReportModule,
-	elastiCacheUsageReportModule,
-	s3CostReportModule,
-	ebsUsageReportModule,
+// getSnapshotTag formats []*ec2.Tag to map[string]string
+func getSnapshotTag(tags []*ec2.Tag) []utils.Tag {
+	res := make([]utils.Tag, 0)
+	for _, tag := range tags {
+		res = append(res, utils.Tag{
+			Key:   aws.StringValue(tag.Key),
+			Value: aws.StringValue(tag.Value),
+		})
+	}
+	return res
 }
