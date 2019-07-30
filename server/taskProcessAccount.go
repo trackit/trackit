@@ -87,7 +87,7 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
 	}
 	if err != nil {
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil,false)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false)
 		logger.Error("Failed to process account data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),

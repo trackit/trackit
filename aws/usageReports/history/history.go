@@ -32,6 +32,7 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	tes "github.com/trackit/trackit/aws/usageReports/es"
+	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/es"
 )
@@ -183,8 +184,9 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 		elastiCacheCreated, elastiCacheErr = elasticache.PutElastiCacheMonthlyReport(ctx, elastiCacheCost, aa, startDate, endDate)
 	}
 	ec2CoverageCreated, ec2CoverageErr := ec2Coverage.PutEc2MonthlyCoverageReport(ctx, aa, startDate, endDate)
-	reportsCreated := ebsCreated || ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated
-	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr})
+	instanceCountCreated, instanceCountErr := instanceCount.PutInstanceCountMonthlyReport(ctx, aa, startDate, endDate)
+	reportsCreated := ebsCreated || ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated || instanceCountCreated
+	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr, instanceCountErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.
