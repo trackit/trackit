@@ -34,7 +34,7 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-// esQueryParams will store the parsed query params
+// S3QueryParams will store the parsed query params
 type S3QueryParams struct {
 	DateBegin   time.Time
 	DateEnd     time.Time
