@@ -19,13 +19,13 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"strconv"
 	"time"
 
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	"github.com/trackit/trackit/aws/usageReports/es"

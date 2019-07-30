@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"net/http"
 	"time"
 
@@ -28,6 +27,7 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
