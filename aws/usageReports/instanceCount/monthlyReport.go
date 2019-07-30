@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -82,7 +82,7 @@ func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly
 	return hours
 }
 
-func FormatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, aa taws.AwsAccount, startDate time.Time) []InstanceCountReport {
+func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, aa taws.AwsAccount, startDate time.Time) []InstanceCountReport {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseInstanceCountMonthly
 	err := json.Unmarshal(*res.Aggregations["region"], &response.Region)
@@ -120,12 +120,12 @@ func fetchMonthlyInstanceCountReports(ctx context.Context, aa taws.AwsAccount, s
 		DateBegin:   startDate,
 		DateEnd:     endDate,
 	}
-	search := GetElasticSearchParams(parsedParams.AccountList, startDate, endDate, es.Client, index)
+	search := getElasticSearchParams(parsedParams.AccountList, startDate, endDate, es.Client, index)
 	res, err := search.Do(ctx)
 	if err != nil {
 		logger.Error("Error when doing the search", err)
 	}
-	reports := FormatResultInstanceCount(ctx, res, aa, startDate)
+	reports := formatResultInstanceCount(ctx, res, aa, startDate)
 	return reports, nil
 }
 

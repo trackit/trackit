@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/trackit/trackit/costs/diff"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +27,7 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/costs/diff"
 	"github.com/trackit/trackit/usageReports/instanceCount"
 	"github.com/trackit/trackit/users"
 )

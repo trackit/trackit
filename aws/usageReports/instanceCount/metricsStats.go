@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package instanceCount
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
+
 	"github.com/trackit/trackit/aws/usageReports"
 )
 

@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@ package instanceCount
 import (
 	"context"
 	"encoding/json"
+	"time"
+
 	"github.com/trackit/jsonlog"
 	"gopkg.in/olivere/elastic.v5"
-	"time"
 
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
@@ -66,8 +67,8 @@ type (
 			Buckets []struct {
 				Dates struct {
 					Buckets []struct {
-						Time      string `json:"key_as_string"`
-						In struct {
+						Time string `json:"key_as_string"`
+						In   struct {
 							Hits struct {
 								Hits []struct {
 									InstanceCount instanceCount.InstanceCountReport `json:"_source"`
@@ -110,9 +111,9 @@ func getInstanceCountSnapshotReportResponse(oldInstanceCount instanceCount.Insta
 	newInstance := InstanceCountReport{
 		ReportBase: oldInstanceCount.ReportBase,
 		InstanceCount: InstanceCount{
-			Type:         oldInstanceCount.InstanceCount.Type,
-			Region:       oldInstanceCount.InstanceCount.Region,
-			Hours:        hours,
+			Type:   oldInstanceCount.InstanceCount.Type,
+			Region: oldInstanceCount.InstanceCount.Region,
+			Hours:  hours,
 		},
 	}
 	return newInstance

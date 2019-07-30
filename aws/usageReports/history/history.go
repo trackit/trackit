@@ -19,7 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/trackit/trackit/aws/usageReports/instanceCount"
+	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"net/http"
 	"time"
 
@@ -28,11 +28,11 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	tes "github.com/trackit/trackit/aws/usageReports/es"
+	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/es"
 )
@@ -163,11 +163,13 @@ func concatErrors(tabError []error) error {
 
 // getInstanceInfo sort products and call history reports
 func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var ec2Created, rdsCreated, esCreated, elastiCacheCreated bool
+	var ebsCreated, ec2Created, rdsCreated, esCreated, elastiCacheCreated bool
+	var ebsErr error
 	ec2Cost, ec2Err := getCostPerResource(ctx, aa, startDate, endDate, "AmazonEC2")
 	cloudWatchCost, cloudWatchErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonCloudWatch")
 	if ec2Err == nil && cloudWatchErr == nil {
 		ec2Created, ec2Err = ec2.PutEc2MonthlyReport(ctx, ec2Cost, cloudWatchCost, aa, startDate, endDate)
+		ebsCreated, ebsErr = ebs.PutEbsMonthlyReport(ctx, ec2Cost, aa, startDate, endDate)
 	}
 	rdsCost, rdsErr := getCostPerResource(ctx, aa, startDate, endDate, "AmazonRDS")
 	if rdsErr == nil {
@@ -183,8 +185,8 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	}
 	ec2CoverageCreated, ec2CoverageErr := ec2Coverage.PutEc2MonthlyCoverageReport(ctx, aa, startDate, endDate)
 	instanceCountCreated, instanceCountErr := instanceCount.PutInstanceCountMonthlyReport(ctx, aa, startDate, endDate)
-	reportsCreated :=  ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated || instanceCountCreated
-	return reportsCreated, concatErrors([]error{ec2Err, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr, instanceCountErr})
+	reportsCreated :=  ebsCreated || ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated || instanceCountCreated
+	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr, instanceCountErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.

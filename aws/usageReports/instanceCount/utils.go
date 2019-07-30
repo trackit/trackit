@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -28,8 +28,6 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const MonitorInstanceCountStsSessionName = "monitor-instanceCount"
-
 type (
 	// InstanceCount is saved in ES to have all the information of an InstanceCount
 	InstanceCountReport struct {
@@ -58,10 +56,6 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 		"awsAccount": aa,
 	})
 	index := es.IndexNameForUserId(aa.UserId, IndexPrefixInstanceCountReport)
-	logger.Debug("INDEX IS =====", map[string]interface{}{
-		"index": index,
-		"size": len(reports),
-	})
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
