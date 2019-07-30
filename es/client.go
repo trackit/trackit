@@ -24,7 +24,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
 	"github.com/trackit/jsonlog"
-	//"github.com/olivere/elastic"
 	"github.com/olivere/elastic"
 
 	"github.com/trackit/trackit/awsSession"

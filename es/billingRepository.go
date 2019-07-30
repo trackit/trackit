@@ -17,7 +17,6 @@ package es
 import (
 	"context"
 
-	//"github.com/olivere/elastic"
 	"github.com/olivere/elastic"
 )
 
