@@ -42,7 +42,7 @@ func init() {
 const TemplateReservedRdsReport = `
 {
 	"template": "*-rds-ri-reports",
-	"version": 2,
+	"version": 3,
 	"mappings": {
 		"rds-ri-report": {
 			"properties": {
@@ -101,7 +101,10 @@ const TemplateReservedRdsReport = `
 									"type": "keyword"
 								}
 							}
-						}
+						},
+						"endDate": {
+							"type": "date"
+						}	
 					}
 				}
 			},

@@ -59,6 +59,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				OfferingType:         aws.StringValue(DBInstance.OfferingType),
 				State:                aws.StringValue(DBInstance.State),
 				StartTime:            aws.TimeValue(DBInstance.StartTime),
+				EndDate:              aws.TimeValue(DBInstance.StartTime).Add(time.Duration(aws.Int64Value(DBInstance.Duration))),
 				RecurringCharges:     charges,
 			},
 			Tags: tags,

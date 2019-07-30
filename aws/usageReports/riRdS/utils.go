@@ -52,6 +52,7 @@ type (
 		State                string             `json:"state"`
 		StartTime            time.Time          `json:"startTime"`
 		RecurringCharges     []RecurringCharges `json:"recurringCharges"`
+		EndDate              time.Time          `json:"endDate"`
 	}
 
 	// Instance contains the information of an RDS reserved instance

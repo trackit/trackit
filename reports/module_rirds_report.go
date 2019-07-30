@@ -29,16 +29,16 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-const riRdsReportSheetName = "EC2 Usage Report"
+const riRdsReportSheetName = "Reserved Instances Rds Report"
 
 var riRdsReportModule = module{
-	Name:          "EC2 Usage Report",
+	Name:          "Reserved Instances Rds Report",
 	SheetName:     riRdsReportSheetName,
 	ErrorName:     "riRdsReportError",
 	GenerateSheet: generateRiRdsReportSheet,
 }
 
-// generateRiRdsReportSheet will generate a sheet with EC2 usage report
+// generateRiRdsReportSheet will generate a sheet with Ri Rds usage report
 // It will get data for given AWS account and for a given date
 func generateRiRdsReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
@@ -66,13 +66,13 @@ func riRdsReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Tim
 		AccountList: identities,
 		Date:        date,
 	}
-	logger.Debug("Getting EC2 Usage Report for accounts", map[string]interface{}{
+	logger.Debug("Getting Ri Rds Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
 	})
 	_, reports, err = riRds.GetReservedInstancesData(ctx, parameters, user, tx)
 	if err != nil {
-		logger.Error("An error occurred while generating an EC2 Usage Report", map[string]interface{}{
+		logger.Error("An error occurred while generating an Ri Rds Usage Report", map[string]interface{}{
 			"error":    err,
 			"accounts": aas,
 			"date":     date,
@@ -84,7 +84,8 @@ func riRdsReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Tim
 func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []riRds.ReservationReport) (err error) {
 	file.NewSheet(riRdsReportSheetName)
 	riRdsReportGenerateHeader(file)
-	line := 3
+	line := 4
+	toLine := 0
 	for _, report := range data {
 		account := getAwsAccount(report.Account, aas)
 		formattedAccount := report.Account
@@ -92,12 +93,26 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 			formattedAccount = formatAwsAccount(*account)
 		}
 		instance := report.Reservation
+		for currentLine, recurringCharge := range instance.RecurringCharges {
+			recurringCells := cells{
+				newCell(recurringCharge.Amount, "L"+strconv.Itoa(currentLine + line)).addStyles("price"),
+				newCell(recurringCharge.Frequency, "M"+strconv.Itoa(currentLine + line)),
+			}
+			recurringCells.addStyles("borders", "centerText").setValues(file, riRdsReportSheetName)
+			toLine = currentLine + line
+		}
 		cells := cells{
-			newCell(formattedAccount, "A"+strconv.Itoa(line)),
-			newCell(instance.DBInstanceIdentifier, "B"+strconv.Itoa(line)),
-			newCell(instance.DBInstanceClass, "C"+strconv.Itoa(line)),
-			newCell(instance.AvailabilityZone, "D"+strconv.Itoa(line)),
-			newCell(instance.MultiAZ, "E"+strconv.Itoa(line)),
+			newCell(formattedAccount, "A"+strconv.Itoa(line)).mergeTo("A"+strconv.Itoa(toLine)),
+			newCell(instance.DBInstanceIdentifier, "B"+strconv.Itoa(line)).mergeTo("B"+strconv.Itoa(toLine)),
+			newCell(instance.DBInstanceOfferingId, "C"+strconv.Itoa(line)).mergeTo("C"+strconv.Itoa(toLine)),
+			newCell(instance.AvailabilityZone, "D"+strconv.Itoa(line)).mergeTo("D"+strconv.Itoa(toLine)),
+			newCell(instance.DBInstanceClass, "E"+strconv.Itoa(line)).mergeTo("E"+strconv.Itoa(toLine)),
+			newCell(instance.OfferingType, "F"+strconv.Itoa(line)).mergeTo("F"+strconv.Itoa(toLine)),
+			newCell(instance.DBInstanceCount, "G"+strconv.Itoa(line)).mergeTo("G"+strconv.Itoa(toLine)),
+			newCell(instance.MultiAZ, "H"+strconv.Itoa(line)).mergeTo("H"+strconv.Itoa(toLine)),
+			newCell(instance.State, "I"+strconv.Itoa(line)).mergeTo("I"+strconv.Itoa(toLine)),
+			newCell(instance.StartTime.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)).mergeTo("J"+strconv.Itoa(toLine)),
+			newCell(instance.EndDate.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(toLine)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, riRdsReportSheetName)
 		line++
@@ -107,17 +122,32 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 
 func riRdsReportGenerateHeader(file *excelize.File) {
 	header := cells{
-		newCell("Account", "A1").mergeTo("A2"),
-		newCell("ID", "B1").mergeTo("B2"),
-		newCell("Type", "C1").mergeTo("C2"),
-		newCell("Region", "D1").mergeTo("D2"),
-		newCell("MultiAZ", "E1").mergeTo("E2"),
+		newCell("Account", "A1").mergeTo("A3"),
+		newCell("Reservation", "B1").mergeTo("M1"),
+		newCell("ID", "B2").mergeTo("B3"),
+		newCell("Offering ID", "C2").mergeTo("C3"),
+		newCell("Region", "D2").mergeTo("D3"),
+		newCell("Class", "E2").mergeTo("E3"),
+		newCell("Type", "F2").mergeTo("F3"),
+		newCell("Count", "G2").mergeTo("G3"),
+		newCell("MultiAZ", "H2").mergeTo("H3"),
+		newCell("State", "I2").mergeTo("I3"),
+		newCell("Start Date", "J2").mergeTo("J3"),
+		newCell("End Date", "K2").mergeTo("K3"),
+		newCell("Recurring Charges", "L2").mergeTo("M2"),
+		newCell("Amount", "L3"),
+		newCell("Frequency", "M3"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, riRdsReportSheetName)
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
-		newColumnWidth("B", 35).toColumn("C"),
+		newColumnWidth("B", 30),
+		newColumnWidth("C", 35),
 		newColumnWidth("D", 15).toColumn("E"),
+		newColumnWidth("F", 20),
+		newColumnWidth("H", 10),
+		newColumnWidth("K", 25),
+		newColumnWidth("J", 25),
 	}
 	columns.setValues(file, riRdsReportSheetName)
 	return
