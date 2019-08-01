@@ -46,12 +46,12 @@ var (
 		{1024, "32xlarge", []string{"x1", "x1e"}},
 	}
 
-	rgx = regexp.MustCompile(`([a-zA-Z]+)([\\d])+`)
+	rgx = regexp.MustCompile(`([a-zA-Z]+)([0-9])+`)
 )
 
 func getEC2RecommendationTypeReason(instance Instance) Recommendation {
 	size, family := getInstanceSizeFamily(instance.Type)
-	cpuDelta := instance.Stats.Cpu.Average / 0.80
+	cpuDelta := instance.Stats.Cpu.Average / 100 / 0.80
 	targetNormFactor := cpuDelta * getNormFactorFromSize(size)
 	if instance.Stats.Cpu.Average <= 0 || targetNormFactor == 0 {
 		return Recommendation{"", "", getNewGeneration(size, family)}
