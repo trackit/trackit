@@ -95,8 +95,8 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 		instance := report.Reservation
 		for currentLine, recurringCharge := range instance.RecurringCharges {
 			recurringCells := cells{
-				newCell(recurringCharge.Amount, "L"+strconv.Itoa(currentLine + line)).addStyles("price"),
-				newCell(recurringCharge.Frequency, "M"+strconv.Itoa(currentLine + line)),
+				newCell(recurringCharge.Amount, "M"+strconv.Itoa(currentLine + line)).addStyles("price"),
+				newCell(recurringCharge.Frequency, "N"+strconv.Itoa(currentLine + line)),
 			}
 			recurringCells.addStyles("borders", "centerText").setValues(file, riRdsReportSheetName)
 			toLine = currentLine + line
@@ -111,8 +111,9 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 			newCell(instance.DBInstanceCount, "G"+strconv.Itoa(line)).mergeTo("G"+strconv.Itoa(toLine)),
 			newCell(instance.MultiAZ, "H"+strconv.Itoa(line)).mergeTo("H"+strconv.Itoa(toLine)),
 			newCell(instance.State, "I"+strconv.Itoa(line)).mergeTo("I"+strconv.Itoa(toLine)),
-			newCell(instance.StartTime.Format("2006-01-02T15:04:05"), "J"+strconv.Itoa(line)).mergeTo("J"+strconv.Itoa(toLine)),
-			newCell(instance.EndDate.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(toLine)),
+			newCell(instance.Duration / 60 / 60 / 24 / 365, "J"+strconv.Itoa(line)).mergeTo("J"+strconv.Itoa(toLine)),
+			newCell(instance.StartTime.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(toLine)),
+			newCell(instance.EndTime.Format("2006-01-02T15:04:05"), "L"+strconv.Itoa(line)).mergeTo("L"+strconv.Itoa(toLine)),
 		}
 		cells.addStyles("borders", "centerText").setValues(file, riRdsReportSheetName)
 		line++
@@ -123,7 +124,7 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 func riRdsReportGenerateHeader(file *excelize.File) {
 	header := cells{
 		newCell("Account", "A1").mergeTo("A3"),
-		newCell("Reservation", "B1").mergeTo("M1"),
+		newCell("Reservation", "B1").mergeTo("N1"),
 		newCell("ID", "B2").mergeTo("B3"),
 		newCell("Offering ID", "C2").mergeTo("C3"),
 		newCell("Region", "D2").mergeTo("D3"),
@@ -132,22 +133,26 @@ func riRdsReportGenerateHeader(file *excelize.File) {
 		newCell("Count", "G2").mergeTo("G3"),
 		newCell("MultiAZ", "H2").mergeTo("H3"),
 		newCell("State", "I2").mergeTo("I3"),
-		newCell("Start Date", "J2").mergeTo("J3"),
-		newCell("End Date", "K2").mergeTo("K3"),
-		newCell("Recurring Charges", "L2").mergeTo("M2"),
-		newCell("Amount", "L3"),
-		newCell("Frequency", "M3"),
+		newCell("Duration ( Year )", "J2").mergeTo("J3"),
+		newCell("Start Date", "K2").mergeTo("K3"),
+		newCell("End Date", "L2").mergeTo("L3"),
+		newCell("Recurring Charges", "M2").mergeTo("N2"),
+		newCell("Amount", "M3"),
+		newCell("Frequency", "N3"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, riRdsReportSheetName)
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
 		newColumnWidth("B", 30),
-		newColumnWidth("C", 35),
+		newColumnWidth("C", 40),
 		newColumnWidth("D", 15).toColumn("E"),
 		newColumnWidth("F", 20),
 		newColumnWidth("H", 10),
+		newColumnWidth("J", 16),
 		newColumnWidth("K", 25),
-		newColumnWidth("J", 25),
+		newColumnWidth("L", 25),
+		newColumnWidth("M", 10),
+		newColumnWidth("N", 13),
 	}
 	columns.setValues(file, riRdsReportSheetName)
 	return

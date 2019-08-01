@@ -51,8 +51,8 @@ type (
 		OfferingType         string             `json:"offeringType"`
 		State                string             `json:"state"`
 		StartTime            time.Time          `json:"startTime"`
+		EndTime              time.Time          `json:"endTime"`
 		RecurringCharges     []RecurringCharges `json:"recurringCharges"`
-		EndDate              time.Time          `json:"endDate"`
 	}
 
 	// Instance contains the information of an RDS reserved instance

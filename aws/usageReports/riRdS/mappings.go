@@ -42,7 +42,7 @@ func init() {
 const TemplateReservedRdsReport = `
 {
 	"template": "*-rds-ri-reports",
-	"version": 3,
+	"version": 9,
 	"mappings": {
 		"rds-ri-report": {
 			"properties": {
@@ -91,6 +91,9 @@ const TemplateReservedRdsReport = `
 						"startTime": {
 							"type": "date"
 						},
+						"endTime": {
+							"type": "date"
+						},
 						"recurringCharges": {
 							"type": "nested",
 							"properties": {
@@ -101,10 +104,7 @@ const TemplateReservedRdsReport = `
 									"type": "keyword"
 								}
 							}
-						},
-						"endDate": {
-							"type": "date"
-						}	
+						}
 					}
 				}
 			},
@@ -112,7 +112,7 @@ const TemplateReservedRdsReport = `
 				"enabled": false
 			},
 			"numeric_detection": false,
-			"date_detection": false
+			"date_detection": true
 		}
 	}
 }
