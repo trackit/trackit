@@ -19,6 +19,9 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"github.com/trackit/trackit/aws/usageReports/riEc2"
+	"github.com/trackit/trackit/aws/usageReports/riRdS"
+	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 	"strconv"
 	"time"
 
@@ -32,11 +35,8 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/history"
 	"github.com/trackit/trackit/aws/usageReports/lambda"
 	"github.com/trackit/trackit/aws/usageReports/rds"
-	"github.com/trackit/trackit/aws/usageReports/riEc2"
-	"github.com/trackit/trackit/aws/usageReports/riRdS"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
-	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 )
 
 const invalidAccId = -1
