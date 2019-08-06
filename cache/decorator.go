@@ -16,8 +16,10 @@ package cache
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -49,19 +51,19 @@ var mainClient *redis.Client
 
 func init() {
 	mainClient = redis.NewClient(&redis.Options{
-		Addr:         config.RedisAddress,
-		Password:     config.RedisPassword,
-		DB:           1,
+		Addr:        config.RedisAddress,
+		Password:    config.RedisPassword,
+		DB:          1,
 		IdleTimeout: -1,
 	})
 	_, err := mainClient.Ping().Result()
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Unable to establish the connection to redis server", map[string] interface{} {
+		jsonlog.Error("Unable to establish the connection to redis server", map[string]interface{}{
 			"error": err.Error(),
 		})
 		os.Exit(1)
 	}
-	jsonlog.DefaultLogger.Info("Successfully connected to redis client", map[string] interface{} {
+	jsonlog.Info("Successfully connected to redis client", map[string]interface{}{
 		"address": config.RedisAddress,
 	})
 }
@@ -83,7 +85,7 @@ func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 		}
 		rdCache, err := initialiseCacheInfos(request.URL.String(), args, logger)
 		if err != nil {
-			logger.Error("Error during cache initialization", map[string] interface{} {
+			logger.Error("Error during cache initialization", map[string]interface{}{
 				"error": err.Error(),
 			})
 			writeHeaderCacheStatus(writer, cacheStatusError, "ERROR-INITIALIZATION")
@@ -93,7 +95,7 @@ func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 		if userHasCacheForService(rdCache, logger) {
 			retrieveCache := getUserCache(rdCache, logger)
 			if retrieveCache == nil {
-				logger.Warning("Unable to retrieve cache, skipping it to avoid panic or error. The cache has been deleted.", map[string] interface{} {
+				logger.Warning("Unable to retrieve cache, skipping it to avoid panic or error. The cache has been deleted.", map[string]interface{}{
 					"userKey": rdCache.key,
 					"route":   rdCache.route,
 				})
@@ -104,12 +106,20 @@ func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			}
 		}
 		status, routeData := hf(writer, request, args)
-		if status == http.StatusOK {
+		if status == http.StatusOK && isValidResponse(routeData) {
 			createUserCache(rdCache, routeData, logger)
 			writeHeaderCacheStatus(writer, cacheStatusCreated)
 		}
 		return status, routeData
 	}
+}
+
+func isValidResponse(data interface{}) bool {
+	exp, err := regexp.Compile(`{.*}|\[.*\]`)
+	if err != nil {
+		return false
+	}
+	return exp.MatchString(fmt.Sprintf("%v", data))
 }
 
 func (uc UsersCache) Decorate(handler routes.Handler) routes.Handler {
