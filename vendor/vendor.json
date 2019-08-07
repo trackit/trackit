@@ -503,8 +503,8 @@
 			"path": "github.com/mohae/deepcopy",
 			"revision": "c48cc78d482608239f6c4c92a4abd87eb8761c90",
 			"revisionTime": "2017-09-29T03:49:55Z"
-        },
-        {
+		},
+		{
 			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
 			"path": "github.com/olivere/elastic",
 			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
@@ -513,29 +513,10 @@
 			"versionExact": "v6.2.21"
 		},
 		{
-			"checksumSHA1": "GIqQ5CxFwtMrfG3yMVwUYRtKRLM=",
+			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
 			"path": "github.com/olivere/elastic",
 			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
 			"revisionTime": "2018-09-20T17:30:04Z"
-		},
-		{
-			"path": "github.com/olivere/elastic.v6",
-			"revision": ""
-		},
-		{
-			"checksumSHA1": "v/phfIsGFjsgpJqe4BEKbGmMYAY=",
-			"path": "github.com/olivere/elastic/config",
-			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
-			"revisionTime": "2019-06-30T15:32:01Z",
-			"version": "v6",
-			"versionExact": "v6.2.21"
-		},
-		{
-			"checksumSHA1": "AmcqvKDAUGvVsrf8NDCQ/B8cMj4=",
-			"path": "github.com/olivere/elastic/uritemplates",
-			"revision": "89a71b89268052a9ba7a8bd9012fa87bf086c1fd",
-			"revisionTime": "2019-06-30T11:54:38Z"
->>>>>>> cfa4129... ES API Library upgrade to 6.2.21 along with the ES 6.* upgrade + Removed obsolete ES API library + Usage of go fmt almost every folder due to huge amount of files edited.
 		},
 		{
 			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
@@ -554,6 +535,24 @@
 		{
 			"path": "github.com/olivere/elastic.v6",
 			"revision": ""
+		},
+		{
+			"path": "github.com/olivere/elastic.v6",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "v/phfIsGFjsgpJqe4BEKbGmMYAY=",
+			"path": "github.com/olivere/elastic/config",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6",
+			"versionExact": "v6.2.21"
+		},
+		{
+			"checksumSHA1": "AmcqvKDAUGvVsrf8NDCQ/B8cMj4=",
+			"path": "github.com/olivere/elastic/uritemplates",
+			"revision": "89a71b89268052a9ba7a8bd9012fa87bf086c1fd",
+			"revisionTime": "2019-06-30T11:54:38Z"
 		},
 		{
 			"checksumSHA1": "rJab1YdNhQooDiBWNnt7TLWPyBU=",
