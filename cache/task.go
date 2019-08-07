@@ -41,7 +41,9 @@ func getTotalRedisKeys() (totalKeys int64, err error) {
 	}
 	// Start at idx + subStrLen means the first number character and
 	// the previous number + comma correspond to the last number character
-	return strconv.ParseInt(keySpace.Val()[idx + subStrLen:idx + subStrLen + comma], 10, 64)
+	starterIdx := idx + subStrLen
+	endIdx := starterIdx + comma
+	return strconv.ParseInt(keySpace.Val()[starterIdx:endIdx], 10, 64)
 }
 
 // RemoveMatchingCache removes all cache related to the format ROUTE-...-KEY-
@@ -50,7 +52,7 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 	var totalKeys int64
 	totalKeys, err = getTotalRedisKeys()
 	if err != nil {
-		logger.Error("Unable to get the total redis keys.", map[string] interface{} {
+		logger.Error("Unable to get the total redis keys.", map[string]interface{}{
 			"error": err.Error(),
 		})
 		return
@@ -64,11 +66,11 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 		for _, awsAcc := range awsAccounts {
 			obsoleteKeys := mainClient.Scan(0, fmt.Sprintf(matchPattern, routeKey, awsAcc), totalKeys)
 			if obsoleteKeys.Err() != nil {
-				logger.Error("Unable to scan redis DB to retrieve matching keys.", map[string] interface{} {
+				logger.Error("Unable to scan redis DB to retrieve matching keys.", map[string]interface{}{
 					"error":       obsoleteKeys.Err().Error(),
 					"awsIdentity": awsAcc,
 					"route":       route,
-					"keyFormat":    fmt.Sprintf(matchPattern, routeKey, awsAcc),
+					"keyFormat":   fmt.Sprintf(matchPattern, routeKey, awsAcc),
 				})
 				continue
 			}
@@ -76,7 +78,7 @@ func RemoveMatchingCache(routes []string, awsAccounts []string, logger jsonlog.L
 			for _, keyValue := range cacheKeys {
 				rtn := mainClient.Del(keyValue)
 				if rtn.Err() != nil {
-					logger.Warning("Unable to delete cache for a specific key from a route.", map[string] interface{} {
+					logger.Warning("Unable to delete cache for a specific key from a route.", map[string]interface{}{
 						"error": rtn.Err().Error(),
 						"route": route,
 						"key":   keyValue,

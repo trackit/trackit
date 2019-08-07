@@ -37,9 +37,9 @@ type (
 
 	// InstanceCount contains all the information of an InstanceCount
 	InstanceCount struct {
-		Type   string              `json:"instanceType"`
-		Region string              `json:"region"`
-		Hours []InstanceCountHours `json:"hours"`
+		Type   string               `json:"instanceType"`
+		Region string               `json:"region"`
+		Hours  []InstanceCountHours `json:"hours"`
 	}
 
 	InstanceCountHours struct {

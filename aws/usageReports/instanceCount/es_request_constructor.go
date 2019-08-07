@@ -18,7 +18,7 @@ package instanceCount
 import (
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 )
 
 // paramAggrAndName is a structure containing the name of the parameter and
@@ -58,7 +58,7 @@ func createQueryWildcard(field, pattern string) *elastic.WildcardQuery {
 // getElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 func getElasticSearchParams(accountList []string, durationBegin time.Time,
 	durationEnd time.Time, client *elastic.Client, index string) *elastic.SearchService {
- 	query := elastic.NewBoolQuery()
+	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}

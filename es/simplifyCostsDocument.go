@@ -21,9 +21,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-
-	"gopkg.in/olivere/elastic.v5"
 )
 
 // SimplifiedCostsDocument contains the data necessary to show a clean version

@@ -505,6 +505,56 @@
 			"revisionTime": "2017-09-29T03:49:55Z"
 		},
 		{
+			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
+			"path": "github.com/olivere/elastic",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6.2.21",
+			"versionExact": "v6.2.21"
+		},
+		{
+			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
+			"path": "github.com/olivere/elastic",
+			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
+			"revisionTime": "2018-09-20T17:30:04Z"
+		},
+		{
+			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
+			"path": "github.com/olivere/elastic",
+			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
+			"revisionTime": "2018-09-20T17:30:04Z"
+		},
+		{
+			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
+			"path": "github.com/olivere/elastic",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6.2.21",
+			"versionExact": "v6.2.21"
+		},
+		{
+			"path": "github.com/olivere/elastic.v6",
+			"revision": ""
+		},
+		{
+			"path": "github.com/olivere/elastic.v6",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "v/phfIsGFjsgpJqe4BEKbGmMYAY=",
+			"path": "github.com/olivere/elastic/config",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6",
+			"versionExact": "v6.2.21"
+		},
+		{
+			"checksumSHA1": "AmcqvKDAUGvVsrf8NDCQ/B8cMj4=",
+			"path": "github.com/olivere/elastic/uritemplates",
+			"revision": "89a71b89268052a9ba7a8bd9012fa87bf086c1fd",
+			"revisionTime": "2019-06-30T11:54:38Z"
+		},
+		{
 			"checksumSHA1": "rJab1YdNhQooDiBWNnt7TLWPyBU=",
 			"path": "github.com/pkg/errors",
 			"revision": "2b3a18b5f0fb6b4f9190549597d3f962c02bc5eb",
@@ -521,12 +571,6 @@
 			"path": "github.com/sha1sum/aws_signing_client",
 			"revision": "9088e4c7b34b3174ae879fc975deb18ac62ac8d3",
 			"revisionTime": "2017-05-14T20:27:02Z"
-		},
-		{
-			"checksumSHA1": "UpwKp6oFSNQbJTwaN3oRD/amXLI=",
-			"path": "github.com/tealeg/xlsx",
-			"revision": "f1917addaa283ecd881e40b48173544d4145ea67",
-			"revisionTime": "2018-09-19T08:39:35Z"
 		},
 		{
 			"checksumSHA1": "fXENG3ndXoSruFRlAH+HnfAiN3g=",
@@ -583,22 +627,22 @@
 			"revisionTime": "2017-10-07T15:42:58Z"
 		},
 		{
-			"checksumSHA1": "GIqQ5CxFwtMrfG3yMVwUYRtKRLM=",
+			"checksumSHA1": "QRvG79qYeX6G95yNS8PmCCXfLz4=",
 			"path": "gopkg.in/olivere/elastic.v5",
-			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
-			"revisionTime": "2018-09-20T17:30:04Z"
+			"revision": "1b8e36857caf4b1e6113699ffb38d0981fc7bdae",
+			"revisionTime": "2019-05-24T12:11:36Z"
 		},
 		{
-			"checksumSHA1": "Z/5tTcmNfSOHMkcLDkxN93PQ410=",
+			"checksumSHA1": "ISyQoHL+dOpt8zqq0s7DpQ8M8uI=",
 			"path": "gopkg.in/olivere/elastic.v5/config",
-			"revision": "79ff368708b3a2a9da641dc831d95fd0782bf4ef",
-			"revisionTime": "2017-11-24T22:04:31Z"
+			"revision": "1b8e36857caf4b1e6113699ffb38d0981fc7bdae",
+			"revisionTime": "2019-05-24T12:11:36Z"
 		},
 		{
 			"checksumSHA1": "pCApZfp2CeDnWbNVsyzNO62ZUXA=",
 			"path": "gopkg.in/olivere/elastic.v5/uritemplates",
-			"revision": "79ff368708b3a2a9da641dc831d95fd0782bf4ef",
-			"revisionTime": "2017-11-24T22:04:31Z"
+			"revision": "1b8e36857caf4b1e6113699ffb38d0981fc7bdae",
+			"revisionTime": "2019-05-24T12:11:36Z"
 		},
 		{
 			"checksumSHA1": "IrHyX6UdBMWh2ZYHPuJZRGyITX8=",

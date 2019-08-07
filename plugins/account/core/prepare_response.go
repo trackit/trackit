@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 
 	"github.com/trackit/jsonlog"
 )

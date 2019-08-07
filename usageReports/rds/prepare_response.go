@@ -21,12 +21,12 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
+	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/errors"
-	"github.com/trackit/trackit/aws/usageReports"
 )
 
 type (

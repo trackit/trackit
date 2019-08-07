@@ -17,12 +17,12 @@ package ec2
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"errors"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws/usageReports/ec2"
