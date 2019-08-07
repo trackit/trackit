@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/s3"
@@ -29,7 +29,6 @@ import (
 )
 
 type (
-
 	EsQueryParams struct {
 		DateBegin         time.Time
 		DateEnd           time.Time
@@ -47,7 +46,7 @@ type (
 						Key  string `json:"key"`
 						Date struct {
 							Buckets []struct {
-								Key string `json:"key_as_string"`
+								Key    string `json:"key_as_string"`
 								Amount struct {
 									Buckets []struct {
 										Key float64 `json:"key"`
@@ -95,7 +94,7 @@ func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, a
 			hours := getInstanceCountHours(ctx, response, regionIdx, typeIdx)
 			reports = append(reports, InstanceCountReport{
 				ReportBase: utils.ReportBase{
-					Account: aa.AwsIdentity,
+					Account:    aa.AwsIdentity,
 					ReportDate: startDate,
 					ReportType: "monthly",
 				},
