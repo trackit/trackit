@@ -4,10 +4,6 @@ jobs:
     working_directory: /go/src/github.com/trackit/trackit
     docker:
       - image: msolution/trackit2-circleci
-    branches:
-      ignore:
-        - stg
-        - master
     steps:
       - checkout
       - run:
@@ -25,10 +21,6 @@ jobs:
     working_directory: /go/src/github.com/trackit/trackit
     docker:
       - image: msolution/trackit2-circleci
-    branches:
-      only:
-        - stg
-        - master
     steps:
       - checkout
       - run:
@@ -100,4 +92,20 @@ jobs:
             docker push $CONTAINER_NAME
             docker push $CONTAINER_NAME:${CIRCLE_SHA1}
 
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+        filters:
+          branches:
+            ignore:
+              - master
+              - stg
+      - build-and-push:
+          filters:
+            branches:
+              only:
+                - master
+                - stg
 # vim: set ts=2 sts=2 et:
