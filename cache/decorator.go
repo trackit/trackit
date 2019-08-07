@@ -16,8 +16,10 @@ package cache
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -104,12 +106,20 @@ func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			}
 		}
 		status, routeData := hf(writer, request, args)
-		if status == http.StatusOK {
+		if status == http.StatusOK && isValidResponse(routeData) {
 			createUserCache(rdCache, routeData, logger)
 			writeHeaderCacheStatus(writer, cacheStatusCreated)
 		}
 		return status, routeData
 	}
+}
+
+func isValidResponse(data interface{}) bool {
+	exp, err := regexp.Compile(`{.*}|\[.*\]`)
+	if err != nil {
+		return false
+	}
+	return exp.MatchString(fmt.Sprintf("%v", data))
 }
 
 func (uc UsersCache) Decorate(handler routes.Handler) routes.Handler {

@@ -31,13 +31,14 @@ const (
 )
 
 func TestGetUserKey(test *testing.T) {
-	result := getUserKey(redisCache{
+	var result = redisCache{
 		route:      testRoute,
 		args:       testArgs,
 		awsAccount: []string{testAwsAcc},
-	})
-	excepted := fmt.Sprintf("%x-%x:%v:", md5.Sum([]byte(testRoute)), md5.Sum([]byte(testArgs)), testAwsAcc)
-	if result != excepted {
+	}
+	formatKey(&result)
+	excepted := fmt.Sprintf("%x-%x-%v-", md5.Sum([]byte(testRoute)), md5.Sum([]byte(testArgs)), testAwsAcc)
+	if result.key != excepted {
 		test.Errorf("Execepted '%v' but got '%v'", excepted, result)
 	}
 }
