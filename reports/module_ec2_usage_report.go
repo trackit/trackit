@@ -31,6 +31,7 @@ import (
 )
 
 const ec2UsageReportSheetName = "EC2 Usage Report"
+const ec2SizingRecommendationsSheetName = "EC2 Sizing Recommendations"
 
 var ec2UsageReportModule = module{
 	Name:          "EC2 Usage Report",
@@ -84,6 +85,7 @@ func ec2UsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.
 
 func ec2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []ec2.InstanceReport) (err error) {
 	file.NewSheet(ec2UsageReportSheetName)
+	ec2SizingRecommendationsHeader(file)
 	ec2UsageReportGenerateHeader(file)
 	line := 3
 	for _, report := range data {
@@ -106,7 +108,7 @@ func ec2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, 
 		cpuPeak = cpuPeak.addConditionalFormat("validPercentage", "green", "borders")
 		cpuPeak = cpuPeak.addConditionalFormat("above80percent", "red", "borders")
 		cpuPeak = cpuPeak.addConditionalFormat("above60percent", "orange", "borders")
-		cells := cells{
+		cellsReport := cells{
 			newCell(formattedAccount, "A"+strconv.Itoa(line)),
 			newCell(instance.Id, "B"+strconv.Itoa(line)),
 			newCell(name, "C"+strconv.Itoa(line)),
@@ -123,7 +125,8 @@ func ec2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, 
 			newCell(instance.KeyPair, "N"+strconv.Itoa(line)),
 			newCell(strings.Join(tags, ";"), "O"+strconv.Itoa(line)),
 		}
-		cells.addStyles("borders", "centerText").setValues(file, ec2UsageReportSheetName)
+		cellsReport.addStyles("borders", "centerText").setValues(file, ec2UsageReportSheetName)
+		ec2SizingRecommendationInsertData(file, instance, name, formattedAccount, line)
 		line++
 	}
 	return
@@ -161,5 +164,44 @@ func ec2UsageReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("O", 30),
 	}
 	columns.setValues(file, ec2UsageReportSheetName)
+	return
+}
+
+func ec2SizingRecommendationInsertData(file *excelize.File, instance ec2.Instance, name, formattedAccount string, line int) {
+	cellsRecommendation := cells{
+		newCell(formattedAccount, "A"+strconv.Itoa(line)),
+		newCell(instance.Id, "B"+strconv.Itoa(line)),
+		newCell(name, "C"+strconv.Itoa(line)),
+		newCell(instance.Region, "D"+strconv.Itoa(line)),
+		newCell(instance.Type, "E"+strconv.Itoa(line)),
+		newCell(instance.Recommendation.InstanceType, "F"+strconv.Itoa(line)),
+		newCell(instance.Recommendation.Reason, "G"+strconv.Itoa(line)),
+		newCell(instance.Recommendation.NewGeneration, "H"+strconv.Itoa(line)),
+	}
+	cellsRecommendation.addStyles("borders", "centerText").setValues(file, ec2SizingRecommendationsSheetName)
+}
+
+func ec2SizingRecommendationsHeader(file *excelize.File) {
+	file.NewSheet(ec2SizingRecommendationsSheetName)
+	header := cells{
+		newCell("Account", "A1").mergeTo("A2"),
+		newCell("ID", "B1").mergeTo("B2"),
+		newCell("Name", "C1").mergeTo("C2"),
+		newCell("Region", "D1").mergeTo("D2"),
+		newCell("Type", "E1").mergeTo("E2"),
+		newCell("Recommendation", "F1").mergeTo("H1"),
+		newCell("Type", "F2"),
+		newCell("Reason", "G2"),
+		newCell("New Generations", "H2"),
+	}
+	header.addStyles("borders", "bold", "centerText").setValues(file, ec2SizingRecommendationsSheetName)
+	columns := columnsWidth{
+		newColumnWidth("A", 30),
+		newColumnWidth("B", 35).toColumn("C"),
+		newColumnWidth("D", 15).toColumn("E"),
+		newColumnWidth("F", 20).toColumn("G"),
+		newColumnWidth("H", 35),
+	}
+	columns.setValues(file, ec2SizingRecommendationsSheetName)
 	return
 }

@@ -235,6 +235,13 @@ func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch [
 	return instances
 }
 
+func getEc2Recommendations(instances []InstanceReport) []InstanceReport {
+	for idx, report := range instances {
+		instances[idx].Instance.Recommendation = getEC2RecommendationTypeReason(report.Instance)
+	}
+	return instances
+}
+
 // PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
 func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -260,6 +267,7 @@ func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.Co
 		return false, err
 	}
 	instances = addCostToInstances(instances, costVolume, costCloudWatch)
+	instances = getEc2Recommendations(instances)
 	err = importInstancesToEs(ctx, aa, instances)
 	if err != nil {
 		return false, err

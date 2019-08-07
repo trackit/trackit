@@ -92,9 +92,17 @@ type (
 	// Instance contains the information of an EC2 instance
 	Instance struct {
 		ec2.InstanceBase
-		Tags  map[string]string  `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
-		Stats Stats              `json:"stats"`
+		Tags           map[string]string  `json:"tags"`
+		Costs          map[string]float64 `json:"costs"`
+		Stats          Stats              `json:"stats"`
+		Recommendation Recommendation     `json:"recommendation"`
+	}
+
+	// Recommendation contains all recommendation of an EC2 instance
+	Recommendation struct {
+		InstanceType  string `json:"instancetype"`
+		Reason        string `json:"reason"`
+		NewGeneration string `json:"newgeneration"`
 	}
 
 	// Stats contains statistics of an instance get on CloudWatch
@@ -135,6 +143,11 @@ func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport
 					Read:  read,
 					Write: write,
 				},
+			},
+			Recommendation: Recommendation{
+				InstanceType:  oldInstance.Instance.Recommendation.InstanceType,
+				Reason:        oldInstance.Instance.Recommendation.Reason,
+				NewGeneration: oldInstance.Instance.Recommendation.NewGeneration,
 			},
 		},
 	}
