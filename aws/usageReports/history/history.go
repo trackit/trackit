@@ -22,8 +22,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/olivere/elastic"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"

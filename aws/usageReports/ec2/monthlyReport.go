@@ -25,8 +25,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
-	"github.com/trackit/jsonlog"
 	"github.com/olivere/elastic"
+	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"

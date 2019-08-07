@@ -21,9 +21,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/trackit/jsonlog"
-
 	"github.com/olivere/elastic"
+	"github.com/trackit/jsonlog"
 )
 
 // SimplifiedCostsDocument contains the data necessary to show a clean version
