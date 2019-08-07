@@ -5,6 +5,27 @@ jobs:
     docker:
       - image: msolution/trackit2-circleci
     branches:
+      ignore:
+        - stg
+        - master
+    steps:
+      - checkout
+      - run:
+          name: Get dependencies with govendor
+          command: |
+            set -xe
+            govendor sync -v
+      - run:
+          name: Build portable binary
+          command: |
+            set -xe
+            cd server/
+            ./buildstatic.sh
+  build-and-push:
+    working_directory: /go/src/github.com/trackit/trackit
+    docker:
+      - image: msolution/trackit2-circleci
+    branches:
       only:
         - stg
         - master
