@@ -62,7 +62,7 @@ func getSharedAccountErrorMessage(ctx context.Context, err *SharedAccountError) 
 		}
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
-			"type": fmt.Sprintf("%T", err),
+			"type":  fmt.Sprintf("%T", err),
 			"error": err,
 		})
 		formattedErr = errors.New("Internal Error")

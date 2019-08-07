@@ -17,13 +17,13 @@ package es
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"errors"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	tes "github.com/trackit/trackit/aws/usageReports/es"
 	terrors "github.com/trackit/trackit/errors"

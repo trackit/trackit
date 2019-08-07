@@ -1,15 +1,15 @@
 package aws
 
 import (
-	"net/http"
 	"database/sql"
 	"errors"
+	"net/http"
 
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
-	"github.com/trackit/trackit/db"
 )
 
 // RequireAwsAccount decorates handler to require that an AwsAccount be

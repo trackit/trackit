@@ -20,8 +20,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 )
 
 func GetErrorMessage(ctx context.Context, err error) error {

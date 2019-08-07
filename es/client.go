@@ -23,8 +23,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit/awsSession"
 	"github.com/trackit/trackit/config"

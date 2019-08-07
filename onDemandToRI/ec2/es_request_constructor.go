@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"

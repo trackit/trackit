@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
@@ -57,7 +57,7 @@ type (
 		Buckets []struct {
 			Time string      `json:"key_as_string"`
 			Item interface{} `json:"key"`
-			Cost    struct {
+			Cost struct {
 				Value float64 `json:"value"`
 			} `json:"cost"`
 		} `json:"buckets"`
@@ -134,7 +134,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 		aggregation = elastic.NewReverseNestedAggregation().
 			SubAggregation("filter", elastic.NewDateHistogramAggregation().
 				Field("usageStartDate").MinDocCount(0).Interval(filter.Filter).
-					SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
+				SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
 	}
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
@@ -151,7 +151,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 			return nil, http.StatusOK, err
 		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {
@@ -185,14 +185,14 @@ func createQueryAccountFilter(accountList []string) *elastic.TermsQuery {
 // getTagsValuesFilter returns a string of the field to filter
 func getTagsValuesFilter(filter string) FilterType {
 	var filters = map[string]FilterType{
-		"product":          {"productCode",     "term"},
-		"region":           {"region",          "term"},
-		"account":          {"usageAccountId",  "term"},
-		"availabilityzone": {"availabilityZone","term"},
-		"day":              {"day",             "time"},
-		"week":             {"week",            "time"},
-		"month":            {"month",           "time"},
-		"year":             {"year",            "time"},
+		"product":          {"productCode", "term"},
+		"region":           {"region", "term"},
+		"account":          {"usageAccountId", "term"},
+		"availabilityzone": {"availabilityZone", "term"},
+		"day":              {"day", "time"},
+		"week":             {"week", "time"},
+		"month":            {"month", "time"},
+		"year":             {"year", "time"},
 	}
 	for i := range filters {
 		if i == filter {

@@ -17,8 +17,8 @@ package plugins_account_s3_traffic
 import (
 	"encoding/json"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	core "github.com/trackit/trackit/plugins/account/core"
 )

@@ -47,10 +47,10 @@ func parseRouteFromUrl(url string, rc *redisCache) {
 		rc.route = url
 	} else {
 		// The main purpose is to sort arguments by alphabetical order.
-		rc.route = url[:idx] // Cut the first part from the URL which is the route
-		sortedArgs := strings.Split(url[idx + 1:], "&") // Extract, as a strings array, every arguments with their respective values separate by a '&'
-		sort.Strings(sortedArgs) // Sort the strings by alphabetical order, it's important for the key
-		rc.args = strings.Join(sortedArgs, "&") // Convert from the an array of strings to a single strings and join every part by a '&' like initially
+		rc.route = url[:idx]                          // Cut the first part from the URL which is the route
+		sortedArgs := strings.Split(url[idx+1:], "&") // Extract, as a strings array, every arguments with their respective values separate by a '&'
+		sort.Strings(sortedArgs)                      // Sort the strings by alphabetical order, it's important for the key
+		rc.args = strings.Join(sortedArgs, "&")       // Convert from the an array of strings to a single strings and join every part by a '&' like initially
 	}
 }
 
@@ -60,7 +60,7 @@ func parseRouteFromUrl(url string, rc *redisCache) {
 func getAwsIdentityFromSharedAcc(user users.User, identities *[]string, context *sql.Tx, logger jsonlog.Logger) error {
 	sharedAcc, err := models.SharedAccountsByUserID(db.Db, user.Id)
 	if err != nil {
-		logger.Error("Unable to retrieve AWS' shared accounts by user id.", map[string] interface{} {
+		logger.Error("Unable to retrieve AWS' shared accounts by user id.", map[string]interface{}{
 			"error":  err.Error(),
 			"userId": user.Id,
 		})
@@ -69,7 +69,7 @@ func getAwsIdentityFromSharedAcc(user users.User, identities *[]string, context 
 	for _, sharedAccContent := range sharedAcc {
 		localAcc, localErr := models.AwsAccountByID(context, sharedAccContent.AccountID)
 		if localErr != nil {
-			logger.Error("Unable to retrieve AWS' account by shared user id.", map[string] interface{} {
+			logger.Error("Unable to retrieve AWS' account by shared user id.", map[string]interface{}{
 				"error":     localErr.Error(),
 				"accountID": sharedAccContent.AccountID,
 			})
@@ -93,7 +93,7 @@ func initialiseCacheInfos(url string, args routes.Arguments, logger jsonlog.Logg
 		user := args[users.AuthenticatedUser].(users.User)
 		awsAccs, awsAccsErr := models.AwsAccountsByUserID(tx, user.Id)
 		if awsAccsErr != nil {
-			logger.Error("Unable to retrieve AWS' accounts by user id.", map[string] interface{} {
+			logger.Error("Unable to retrieve AWS' accounts by user id.", map[string]interface{}{
 				"error":  awsAccsErr.Error(),
 				"userId": user.Id,
 			})
