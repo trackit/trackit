@@ -19,8 +19,8 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
@@ -89,9 +89,9 @@ type (
 
 	// InstanceCount contains all the information of an InstanceCount
 	InstanceCount struct {
-		Type   string              `json:"instanceType"`
-		Region string              `json:"region"`
-		Hours []InstanceCountHours `json:"hours"`
+		Type   string               `json:"instanceType"`
+		Region string               `json:"region"`
+		Hours  []InstanceCountHours `json:"hours"`
 	}
 
 	InstanceCountHours struct {
@@ -104,7 +104,7 @@ func getInstanceCountSnapshotReportResponse(oldInstanceCount instanceCount.Insta
 	hours := make([]InstanceCountHours, 0)
 	for _, value := range oldInstanceCount.InstanceCount.Hours {
 		hours = append(hours, InstanceCountHours{
-			Hour: value.Hour,
+			Hour:  value.Hour,
 			Count: value.Count,
 		})
 	}
