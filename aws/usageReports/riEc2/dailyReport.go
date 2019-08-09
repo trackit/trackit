@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/config"
 )
 
 // fetchDailyReservationsList sends in reservationInfoChan the reservations fetched from DescribeReservations
@@ -60,6 +60,7 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 				End:                aws.TimeValue(reservation.End),
 				InstanceCount:      aws.Int64Value(reservation.InstanceCount),
 				Tenancy:            aws.StringValue(reservation.InstanceTenancy),
+				UsagePrice:         aws.Float64Value(reservation.UsagePrice),
 				RecurringCharges:   charges,
 			},
 			Tags: getReservationTag(reservation.Tags),

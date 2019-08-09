@@ -22,11 +22,11 @@ import (
 	"runtime/debug"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/routes"
+	"github.com/trackit/trackit/routes"
 )
 
 // Transaction is a decorator which manages a transaction for an HTTP request.
-// It will Commit the transaction iff the handler returns something other than
+// It will Commit the transaction if the handler returns something other than
 // an error and it did not panic; it Rollbacks otherwise.
 type RequestTransaction struct {
 	Db *sql.DB

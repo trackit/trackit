@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -16,164 +16,59 @@ package reports
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/db"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/db"
 )
 
-type module struct {
-	Name      string
-	Function  func(context.Context, []aws.AwsAccount, time.Time, *sql.Tx) ([][]cell, error)
-	ErrorName string
-}
-
-var modules = []module{
-	{
-		Name:      "EC2 Usage Report",
-		Function:  getEc2UsageReport,
-		ErrorName: "ec2UsageReportError",
-	},
-	{
-		Name:      "RDS Usage Report",
-		Function:  getRdsUsageReport,
-		ErrorName: "rdsUsageReportError",
-	},
-	{
-		Name:      "ElasticSearch Usage Report",
-		Function:  getEsUsageReport,
-		ErrorName: "esUsageReportError",
-	},
-	{
-		Name:      "ElastiCache Usage Report",
-		Function:  getElasticacheUsageReport,
-		ErrorName: "elasticacheUsageReportError",
-	},
-	{
-		Name:      "Lambda Usage Report",
-		Function:  getLambdaUsageReport,
-		ErrorName: "lambdaUsageReportError",
-	},
-	{
-		Name:      "EC2 Reserved Instances Report",
-		Function:  getRiEc2Report,
-		ErrorName: "riEc2ReportError",
-	},
-	{
-		Name:      "RDS Reserved Instances Report",
-		Function:  getRiRdsReport,
-		ErrorName: "riRdsReportError",
-	},
-	{
-		Name:      "Cost Differentiator Report",
-		Function:  getCostDiff,
-		ErrorName: "CostDifferentiatorError",
-	},
-}
-
-func GenerateReport(ctx context.Context, aa aws.AwsAccount, date time.Time) (errs map[string]error) {
+// GenerateReport will generate a spreadsheet report for a given AWS account and for a given month
+// It will iterate over available modules and generate a sheet for each module.
+// Note: First sheet is removed since it is unused (Created by excelize)
+// Report is then uploaded to an S3 bucket
+// Note: File can be saved locally by using `saveSpreadsheetLocally` instead of `saveSpreadsheet`
+func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount, date time.Time) (errs map[string]error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	reportDate := formatDate(date)
-	logger.Info("Generating spreadsheet for account", map[string]interface{}{
-		"account": aa,
-		"date": reportDate,
-	})
-	errs = make(map[string]error)
-
-	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
-		sheets, errs := getSpreadsheetData(ctx, aa, date, tx)
-		if len(errs) > 0 {
-			logger.Error("Error while getting spreadsheet data", errs)
-		}
-
-		file, spreadsheetErrors := generateSpreadsheet(ctx, aa, reportDate, sheets)
-		if len(spreadsheetErrors) > 0 {
-			logger.Error("Error while generating spreadsheet", spreadsheetErrors)
-			for errorKey := range spreadsheetErrors {
-				if _, ok := errs[errorKey]; !ok {
-					errs[errorKey] = spreadsheetErrors[errorKey]
-				}
-			}
-		}
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file, false)
-	} else {
-		errs["speadsheetError"] = err
-	}
-	return
-}
-
-func GenerateMasterReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount, date time.Time) (errs map[string]error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	reportDate := formatDate(date)
-	logger.Info("Generating master spreadsheet for accounts", map[string]interface{}{
-		"masterAccount": aa,
-		"accounts": aas,
-		"date": reportDate,
-	})
-	errs = make(map[string]error)
-
-	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
-		sheets, errs := getMasterSpreadsheetData(ctx, aas, date, tx)
-		if len(errs) > 0 {
-			logger.Error("Error while getting spreadsheet data", errs)
-		}
-
-		file, spreadsheetErrors := generateSpreadsheet(ctx, aa, reportDate, sheets)
-		if len(spreadsheetErrors) > 0 {
-			logger.Error("Error while generating spreadsheet", spreadsheetErrors)
-			for errorKey := range spreadsheetErrors {
-				if _, ok := errs[errorKey]; !ok {
-					errs[errorKey] = spreadsheetErrors[errorKey]
-				}
-			}
-		}
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file, true)
-	} else {
-		errs["speadsheetError"] = err
-	}
-	return
-}
-
-func formatDate(date time.Time) string {
+	now := time.Now()
+	var masterReport bool
+	var reportDate string
 	if date.IsZero() {
-		date = time.Now().AddDate(0, -1, 0)
+		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+	} else {
+		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
 	}
-	return fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
-}
-
-func getSpreadsheetData(ctx context.Context, aa aws.AwsAccount, date time.Time, tx *sql.Tx) ([]sheet, map[string]error) {
-	sheets := make([]sheet, 0)
-	errors := make(map[string]error)
-
-	for _, module := range modules {
-		data, err := module.Function(ctx, []aws.AwsAccount{aa}, date, tx)
-		if err != nil {
-			errors[module.ErrorName] = err
-		} else {
-			sheets = append(sheets, sheet{name: module.Name, data: data})
+	if aas == nil {
+		aas = []aws.AwsAccount{aa}
+		masterReport = false
+		logger.Info("Generating spreadsheet for account", map[string]interface{}{
+			"account": aa,
+			"date":    reportDate,
+		})
+	} else {
+		masterReport = true
+		logger.Info("Generating spreadsheet for accounts", map[string]interface{}{
+			"masterAccount": aa,
+			"accounts":      aas,
+			"date":          reportDate,
+		})
+	}
+	errs = make(map[string]error)
+	file := createSpreadsheet(aa, reportDate)
+	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
+		for _, module := range modules {
+			err := module.GenerateSheet(ctx, aas, date, tx, file.File)
+			if err != nil {
+				errs[module.ErrorName] = err
+			}
 		}
+		file.File.DeleteSheet(file.File.GetSheetName(1))
+		errs["speadsheetError"] = saveSpreadsheet(ctx, file, masterReport)
+	} else {
+		errs["speadsheetError"] = err
 	}
-
-	return sheets, errors
-}
-
-func getMasterSpreadsheetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) ([]sheet, map[string]error) {
-	sheets := make([]sheet, 0)
-	errors := make(map[string]error)
-
-	for _, module := range modules {
-		data, err := module.Function(ctx, aas, date, tx)
-		if err != nil {
-			errors[module.ErrorName] = err
-		} else {
-			sheets = append(sheets, sheet{name: module.Name, data: data})
-		}
-	}
-
-	return sheets, errors
+	return
 }

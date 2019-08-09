@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -22,13 +22,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/anomaliesDetection"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit/anomaliesDetection"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 // taskAnomaliesDetection processes an AwsAccount to email
@@ -75,6 +76,13 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 			"error":        err.Error(),
 		})
 	}
+	var affectedRoutes = []string{
+		"/costs/anomalies",
+		"/costs/anomalies/filters",
+		"/costs/anomalies/snooze",
+		"/costs/anomalies/unsnooze",
+	}
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

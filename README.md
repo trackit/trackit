@@ -55,8 +55,8 @@ $> docker-compose up -d -f docker/docker-compose.yml
 ````sh
 $> mkdir -p $HOME/go/src/github.com/trackit
 $> cd $HOME/go/src/github.com/trackit
-$> git clone https://github.com/trackit/trackit-server
-$> cd trackit-server
+$> git clone https://github.com/trackit/trackit
+$> cd trackit
 ````
 
 #### 2. Check out dependencies

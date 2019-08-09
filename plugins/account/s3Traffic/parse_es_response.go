@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package plugins_account_s3_traffic
 import (
 	"encoding/json"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	core "github.com/trackit/trackit-server/plugins/account/core"
+	core "github.com/trackit/trackit/plugins/account/core"
 )
 
 type bucketsInfos = map[string]float64

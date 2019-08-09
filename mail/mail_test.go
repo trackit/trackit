@@ -15,8 +15,8 @@
 package mail
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 )
 
 func TestSendMail(t *testing.T) {
@@ -37,7 +37,7 @@ func TestSendMail(t *testing.T) {
 			"Subject: " + m.Subject + "\r\n" +
 			"\r\n" +
 			"test body!",
-		)
+	)
 	if !bytes.Equal(msg, template) {
 		t.Fatalf("Unexcepted message: (%s) instead of (%s)", msg, template)
 	}

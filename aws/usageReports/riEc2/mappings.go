@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/es"
 )
 
 const TypeReservedInstancesReport = "ri-ec2-report"
@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-ri-ec2-reports",
-	"version": 2,
+	"version": 3,
 	"mappings": {
 		"ri-ec2-report": {
 			"properties": {
@@ -95,6 +95,9 @@ const TemplateLineItem = `
 						},
 						"tenancy": {
 							"type": "keyword"
+						},
+						"usagePrice": {
+							"type": "double"
 						},
 						"recurringCharges": {
 							"type": "nested",

@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -18,10 +18,10 @@ import (
 	"fmt"
 	"time"
 
-	ts3 "github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/es"
-	core "github.com/trackit/trackit-server/plugins/account/core"
-	utils "github.com/trackit/trackit-server/plugins/utils"
+	ts3 "github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/es"
+	core "github.com/trackit/trackit/plugins/account/core"
+	utils "github.com/trackit/trackit/plugins/utils"
 )
 
 func init() {

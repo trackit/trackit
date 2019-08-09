@@ -21,9 +21,9 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 const (
@@ -73,8 +73,8 @@ func generateExternal() string {
 	var remainingBits uint64
 	for i := range b {
 	top:
-	// For performance reasons, we use all bits from the random
-	// uint64 before generating a new one.
+		// For performance reasons, we use all bits from the random
+		// uint64 before generating a new one.
 		if remainingBitsCount < externalBitsPerChar {
 			remainingBits = rand.Uint64()
 			remainingBitsCount = 64

@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -21,13 +21,14 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // pluginsQueryParams will store the parsed query params
@@ -47,6 +48,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(pluginsQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the latests plugins results",
 				Description: "Responds with the latests plugins results for the account(s) specified in the request",

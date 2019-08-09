@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -16,79 +16,83 @@ package onDemandToRiEc2
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/pricings"
-	awsEc2 "github.com/trackit/trackit-server/aws/usageReports/ec2"
-	awsriEc2 "github.com/trackit/trackit-server/aws/usageReports/riEc2"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/usageReports/ec2"
-	"github.com/trackit/trackit-server/usageReports/riEc2"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/pricings"
+	awsEc2 "github.com/trackit/trackit/aws/usageReports/ec2"
+	awsriEc2 "github.com/trackit/trackit/aws/usageReports/riEc2"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/usageReports/ec2"
+	"github.com/trackit/trackit/usageReports/riEc2"
+	"github.com/trackit/trackit/users"
 )
 
-type Cost struct {
-	PerUnit float64 `json:"perUnit"`
-	Total   float64 `json:"total"`
-}
+type (
+	Cost struct {
+		PerUnit float64 `json:"perUnit"`
+		Total   float64 `json:"total"`
+	}
 
-type OnDemandCost struct {
-	Monthly    Cost `json:"monthly"`
-	OneYear    Cost `json:"oneYear"`
-	ThreeYears Cost `json:"threeYears"`
-}
+	OnDemandCost struct {
+		Monthly    Cost `json:"monthly"`
+		OneYear    Cost `json:"oneYear"`
+		ThreeYears Cost `json:"threeYears"`
+	}
 
-type ReservationCost struct {
-	Monthly Cost `json:"monthly"`
-	Global  Cost `json:"global"`
-	Saving  Cost `json:"saving"`
-}
+	ReservationCost struct {
+		Monthly Cost `json:"monthly"`
+		Global  Cost `json:"global"`
+		Saving  Cost `json:"saving"`
+	}
 
-type OnDemandTotalCost struct {
-	MonthlyTotal    float64 `json:"monthly"`
-	OneYearTotal    float64 `json:"oneYear"`
-	ThreeYearsTotal float64 `json:"threeYears"`
-}
+	OnDemandTotalCost struct {
+		MonthlyTotal    float64 `json:"monthly"`
+		OneYearTotal    float64 `json:"oneYear"`
+		ThreeYearsTotal float64 `json:"threeYears"`
+	}
 
-type ReservationTotalCost struct {
-	MonthlyTotal float64 `json:"monthly"`
-	GlobalTotal  float64 `json:"global"`
-	SavingTotal  float64 `json:"saving"`
-}
+	ReservationTotalCost struct {
+		MonthlyTotal float64 `json:"monthly"`
+		GlobalTotal  float64 `json:"global"`
+		SavingTotal  float64 `json:"saving"`
+	}
 
-// InstancesSpecs stores the costs calculated for a given region/instance/platform
-// combination
-type InstancesSpecs struct {
-	Region        string       `json:"region"`
-	Type          string       `json:"instanceType"`
-	Platform      string       `json:"platform"`
-	InstanceCount int          `json:"instanceCount"`
-	OnDemand      OnDemandCost `json:"onDemand"`
-	Reservation   struct {
-		Type      string          `json:"type"`
-		OneYear   ReservationCost `json:"oneYear"`
-		ThreeYear ReservationCost `json:"threeYears"`
-	} `json:"reservation"`
-}
+	// InstancesSpecs stores the costs calculated for a given region/instance/platform
+	// combination
+	InstancesSpecs struct {
+		Region        string       `json:"region"`
+		Type          string       `json:"instanceType"`
+		Platform      string       `json:"platform"`
+		InstanceCount int          `json:"instanceCount"`
+		OnDemand      OnDemandCost `json:"onDemand"`
+		Reservation   struct {
+			Type      string          `json:"type"`
+			OneYear   ReservationCost `json:"oneYear"`
+			ThreeYear ReservationCost `json:"threeYears"`
+		} `json:"reservation"`
+	}
 
-// OdToRiEc2Report stores all the on demand to RI EC2 report infos
-type OdToRiEc2Report struct {
-	Account     string            `json:"account"`
-	ReportDate  time.Time         `json:"reportDate"`
-	OnDemand    OnDemandTotalCost `json:"onDemand"`
-	Reservation struct {
-		OneYear   ReservationTotalCost `json:"oneYear"`
-		ThreeYear ReservationTotalCost `json:"threeYears"`
-	} `json:"reservation"`
-	Instances []InstancesSpecs `json:"instances"`
-}
+	// OdToRiEc2Report stores all the on demand to RI EC2 report infos
+	OdToRiEc2Report struct {
+		Account     string            `json:"account"`
+		ReportDate  time.Time         `json:"reportDate"`
+		OnDemand    OnDemandTotalCost `json:"onDemand"`
+		Reservation struct {
+			OneYear   ReservationTotalCost `json:"oneYear"`
+			ThreeYear ReservationTotalCost `json:"threeYears"`
+		} `json:"reservation"`
+		Instances []InstancesSpecs `json:"instances"`
+	}
+)
 
 // addUnreservedInstance adds an instance from an ec2.InstanceReport to the list of
 // unreserved instances
@@ -318,4 +322,25 @@ func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
 	unreservedIntances := getUnreservedInstances(instancesReport, reservationsReport)
 	report = calculateCosts(ctx, unreservedIntances, ec2Pricings, report)
 	return IngestOdToRiEc2Result(ctx, aa, report)
+}
+
+// GetRiEc2Report gets RI EC2 reports based on query params
+func GetRiEc2Report(ctx context.Context, parsedParams RiEc2QueryParams, user users.User, tx *sql.Tx) (int, []OdToRiEc2Report, error) {
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, IndexPrefixOdToRiEC2Report)
+	if err != nil {
+		return returnCode, nil, err
+	}
+	parsedParams.AccountList = accountsAndIndexes.Accounts
+	parsedParams.IndexList = accountsAndIndexes.Indexes
+	res, returnCode, err := makeElasticSearchRequest(ctx, parsedParams, getElasticSearchRiEc2Params)
+	if err != nil {
+		return returnCode, nil, err
+	} else if res == nil {
+		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
+	}
+	reports, err := prepareResponseRiEc2(ctx, res)
+	if err != nil {
+		return http.StatusInternalServerError, nil, err
+	}
+	return http.StatusOK, reports, nil
 }

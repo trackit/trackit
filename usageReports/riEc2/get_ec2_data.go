@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -22,13 +22,13 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws/usageReports/riEc2"
-	terrors "github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws/usageReports/riEc2"
+	terrors "github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/users"
 )
 
 // makeElasticSearchRequest prepares and run an ES request

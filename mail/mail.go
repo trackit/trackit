@@ -16,26 +16,26 @@ package mail
 
 import (
 	"context"
-	"net/smtp"
 	"crypto/tls"
 	"fmt"
 	"net"
+	"net/smtp"
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/config"
 )
 
 // Mail contains the data necessary to send a mail.
 type Mail struct {
-	SmtpAddress string
-	SmtpPort string
-	SmtpUser string
+	SmtpAddress  string
+	SmtpPort     string
+	SmtpUser     string
 	SmtpPassword string
-	Sender string
-	Recipient string
-	Subject   string
-	Body      string
+	Sender       string
+	Recipient    string
+	Subject      string
+	Body         string
 }
 
 // SendMail is the easiest way to send a mail.
@@ -91,7 +91,7 @@ func (m Mail) setAuth(client *smtp.Client) error {
 // from the Mail structure.
 func (m Mail) getSmtpClient(ctx context.Context) (*smtp.Client, error) {
 
-	conn, err := net.Dial("tcp", m.SmtpAddress + ":" + m.SmtpPort)
+	conn, err := net.Dial("tcp", m.SmtpAddress+":"+m.SmtpPort)
 	if err != nil {
 		return nil, err
 	}

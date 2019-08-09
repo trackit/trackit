@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -25,14 +25,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
 )
 
 // getElasticSearchEc2Instance prepares and run the request to retrieve the a report of an instance
@@ -235,6 +235,13 @@ func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch [
 	return instances
 }
 
+func getEc2Recommendations(instances []InstanceReport) []InstanceReport {
+	for idx, report := range instances {
+		instances[idx].Instance.Recommendation = getEC2RecommendationTypeReason(report.Instance)
+	}
+	return instances
+}
+
 // PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
 func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -260,6 +267,7 @@ func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.Co
 		return false, err
 	}
 	instances = addCostToInstances(instances, costVolume, costCloudWatch)
+	instances = getEc2Recommendations(instances)
 	err = importInstancesToEs(ctx, aa, instances)
 	if err != nil {
 		return false, err

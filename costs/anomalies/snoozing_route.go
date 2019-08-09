@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // snoozingBody is the expected body for the snoozing route handler.
@@ -35,6 +36,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestBody{snoozingBody{[]string{"anomaly1", "anomaly2"}}},
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "snooze the anomalies",
 				Description: "Snoozes one or many anomalies with their id passed in query args",
@@ -46,6 +48,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestBody{snoozingBody{[]string{"anomaly1", "anomaly2"}}},
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "unsnooze the anomalies",
 				Description: "Unsnoozes one or many anomalies with their id passed in query args",

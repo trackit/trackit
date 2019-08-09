@@ -30,10 +30,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/util/csv"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/util/csv"
 )
 
 const (

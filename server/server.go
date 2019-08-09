@@ -25,29 +25,29 @@ import (
 	"github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 
-	_ "github.com/trackit/trackit-server/aws"
-	_ "github.com/trackit/trackit-server/aws/routes"
-	_ "github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/config"
-	_ "github.com/trackit/trackit-server/costs"
-	_ "github.com/trackit/trackit-server/costs/anomalies"
-	_ "github.com/trackit/trackit-server/costs/diff"
-	_ "github.com/trackit/trackit-server/costs/tags"
-	"github.com/trackit/trackit-server/periodic"
-	_ "github.com/trackit/trackit-server/plugins"
-	_ "github.com/trackit/trackit-server/reports"
-	"github.com/trackit/trackit-server/routes"
-	_ "github.com/trackit/trackit-server/s3/costs"
-	_ "github.com/trackit/trackit-server/usageReports/ec2"
-	_ "github.com/trackit/trackit-server/usageReports/ec2Coverage"
-	_ "github.com/trackit/trackit-server/usageReports/elasticache"
-	_ "github.com/trackit/trackit-server/usageReports/es"
-	_ "github.com/trackit/trackit-server/usageReports/lambda"
-	_ "github.com/trackit/trackit-server/usageReports/rds"
-	_ "github.com/trackit/trackit-server/usageReports/riEc2"
-	_ "github.com/trackit/trackit-server/usageReports/riRds"
-	_ "github.com/trackit/trackit-server/users"
-	_ "github.com/trackit/trackit-server/users/shared_account"
+	_ "github.com/trackit/trackit/aws"
+	_ "github.com/trackit/trackit/aws/routes"
+	_ "github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/config"
+	_ "github.com/trackit/trackit/costs"
+	_ "github.com/trackit/trackit/costs/anomalies"
+	_ "github.com/trackit/trackit/costs/diff"
+	_ "github.com/trackit/trackit/costs/tags"
+	"github.com/trackit/trackit/periodic"
+	_ "github.com/trackit/trackit/plugins"
+	_ "github.com/trackit/trackit/reports"
+	"github.com/trackit/trackit/routes"
+	_ "github.com/trackit/trackit/s3/costs"
+	_ "github.com/trackit/trackit/usageReports/ec2"
+	_ "github.com/trackit/trackit/usageReports/ec2Coverage"
+	_ "github.com/trackit/trackit/usageReports/elasticache"
+	_ "github.com/trackit/trackit/usageReports/es"
+	_ "github.com/trackit/trackit/usageReports/lambda"
+	_ "github.com/trackit/trackit/usageReports/rds"
+	_ "github.com/trackit/trackit/usageReports/riEc2"
+	_ "github.com/trackit/trackit/usageReports/riRds"
+	_ "github.com/trackit/trackit/users"
+	_ "github.com/trackit/trackit/users/shared_account"
 )
 
 var buildNumber string = "unknown-build"
@@ -126,7 +126,7 @@ func initializeHandlers() {
 		//routes.PanicAsError{},
 		routes.Cors{
 			AllowCredentials: true,
-			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization"},
+			AllowHeaders:     []string{"Content-Type", "Accept", "Authorization", "Cache-Status", "Cache-Error"},
 			AllowOrigin:      []string{"*"},
 		},
 	}

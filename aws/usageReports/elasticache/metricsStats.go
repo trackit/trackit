@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports"
 )
 
 func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc *elasticache.ElastiCache, account, region string) []utils.Tag {

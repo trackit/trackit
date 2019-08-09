@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -17,18 +17,18 @@ package elasticache
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
-	"errors"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws/usageReports/elasticache"
-	terrors "github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/aws/usageReports/elasticache"
+	terrors "github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/users"
 )
 
 // makeElasticSearchRequest prepares and run an ES request
@@ -55,7 +55,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams ElastiCacheQuery
 				"error": err.Error(),
 			})
 			return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
-		} else if err.(*elastic.Error).Details.Type == "search_phase_execution_exception" {
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,

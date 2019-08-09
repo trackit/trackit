@@ -24,11 +24,11 @@ import (
 	"database/sql"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/reports"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/reports"
 )
 
 // taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.
@@ -92,7 +92,7 @@ func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	} else if generation, err = checkReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
 	} else {
-		errs := reports.GenerateReport(ctx, aa, date)
+		errs := reports.GenerateReport(ctx, aa, nil, date)
 		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
 	}
 	if err != nil {

@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -22,15 +22,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/trackit/jsonlog"
-	"github.com/aws/aws-sdk-go/service/marketplaceentitlementservice"
-	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/service/marketplaceentitlementservice"
+	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/awsSession"
+	"github.com/trackit/trackit/awsSession"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 // taskCheckEntitlement checks the user Entitlement for AWS Marketplace users
@@ -64,7 +64,7 @@ func taskCheckEntitlement(ctx context.Context) error {
 }
 
 // getUserEntitlement calls getEntitlements function to retrieve specific user entitlement from AWS marketplace.
-func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement, error){
+func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement, error) {
 	svc := marketplaceentitlementservice.New(awsSession.Session)
 	var awsInput marketplaceentitlementservice.GetEntitlementsInput
 	var filter = make(map[string][]*string)
@@ -85,7 +85,7 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 }
 
 // checkUserEntitlement enables entitlement to be checked.
-func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) {
+func checkUserEntitlement(ctx context.Context, cuId string, userId int) error {
 	var expirationDate time.Time
 	res, err := getUserEntitlement(ctx, cuId)
 	if err != nil {
@@ -100,7 +100,7 @@ func checkUserEntitlement(ctx context.Context, cuId string, userId int) (error) 
 
 // checkExpirationDate compares expiration date given by AWS to current time.
 // According to result, an update is pushed to db.
-func checkExpirationDate(expirationDate time.Time, ctx context.Context, db *sql.DB, userId int) (error) {
+func checkExpirationDate(expirationDate time.Time, ctx context.Context, db *sql.DB, userId int) error {
 	var err error
 	currentTime := time.Now()
 	if expirationDate.After(currentTime) {
@@ -112,7 +112,7 @@ func checkExpirationDate(expirationDate time.Time, ctx context.Context, db *sql.
 }
 
 // updateCustomerEntitlement updates aws customer entitlement according to entitlement value.
-func updateCustomerEntitlement(db *sql.DB, ctx context.Context, userId int, entitlementValue bool) (error) {
+func updateCustomerEntitlement(db *sql.DB, ctx context.Context, userId int, entitlementValue bool) error {
 	dbUser, err := models.UserByID(db, userId)
 	if err != nil {
 		return err

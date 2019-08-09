@@ -21,11 +21,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
 )
 
 type (
@@ -91,7 +91,7 @@ func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQue
 			return nil, http.StatusOK, err
 		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
-				"type": fmt.Sprintf("%T", err),
+				"type":  fmt.Sprintf("%T", err),
 				"error": err,
 			})
 		} else {

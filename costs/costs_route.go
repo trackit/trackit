@@ -22,15 +22,16 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
-
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+
+	"github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 // simpleCriterionMap will map simple criterion to the boolean true.
@@ -75,6 +76,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(costsQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the costs data",
 				Description: "Responds with cost data based on the query args passed to it",
@@ -106,7 +108,7 @@ func validateCriteriaParam(parsedParams EsQueryParams) error {
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
-// with empy data
+// with empty data
 func MakeElasticSearchRequestAndParseIt(ctx context.Context, parsedParams EsQueryParams) (es.SimplifiedCostsDocument, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := strings.Join(parsedParams.IndexList, ",")

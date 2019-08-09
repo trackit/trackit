@@ -20,12 +20,12 @@ import (
 	"net/http"
 	"sort"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/aws/usageReports/es"
-	"github.com/trackit/trackit-server/errors"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/aws/usageReports/es"
+	"github.com/trackit/trackit/errors"
 )
 
 type (

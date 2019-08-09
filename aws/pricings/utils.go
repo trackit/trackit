@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import (
 func getPricingClient() *pricing.Pricing {
 	mySession := session.Must(session.NewSession(&aws.Config{
 		CredentialsChainVerboseErrors: aws.Bool(true),
-		Region: aws.String(PricingApiEndpointRegion),
+		Region:                        aws.String(PricingApiEndpointRegion),
 	}))
 	return pricing.New(mySession)
 }

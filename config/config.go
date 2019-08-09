@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -39,6 +39,8 @@ var (
 	BackendId string
 	// ReportsBucket is the bucket name where the reports are stored.
 	ReportsBucket string
+	// ReportsCover is the URL where the report cover is stored.
+	ReportsCover string
 	// DefaultRole is the role added by default to new user accounts
 	DefaultRole string
 	// DefaultRoleName is the pretty name for the role added by default
@@ -56,6 +58,10 @@ var (
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
 	EsAddress stringArray
+	// RedisAddress is the address where the Redis database resides.
+	RedisAddress string
+	// RedisPassword is the password used to connect to the Redis database.
+	RedisPassword string
 	// SmtpAddress is the SMTP address where to send mails.
 	SmtpAddress string
 	// SmtpPort is the SMTP port where to send mails.
@@ -107,6 +113,7 @@ func init() {
 	flag.StringVar(&AwsRegion, "aws-region", "us-east-1", "The AWS region the server operates in.")
 	flag.StringVar(&BackendId, "backend-id", "", "The ID to be sent to clients through the 'X-Backend-ID' field. Generated if left empty.")
 	flag.StringVar(&ReportsBucket, "reports-bucket", "", "The bucket name where the reports are stored. The feature is disabled if left empty.")
+	flag.StringVar(&ReportsCover, "reports-cover", "https://s3-us-west-2.amazonaws.com/trackit-private-artifacts/spreadsheet/introduction.jpg", "The URL where the report cover is stored.")
 	flag.StringVar(&DefaultRole, "default-role", "", "The default role added to new user accounts. No role is added if left empty.")
 	flag.StringVar(&DefaultRoleName, "default-role-name", "Demo", "The pretty name for the default role.")
 	flag.StringVar(&DefaultRoleExternal, "default-role-external", "defaultroleexternal", "The external ID for the default role.")
@@ -114,6 +121,8 @@ func init() {
 	flag.StringVar(&DefaultRoleBucketPrefix, "default-role-bucket-prefix", "", "The billing prefix for the default role.")
 	flag.StringVar(&EsAuthentication, "es-auth", "basic:elastic:changeme", "The authentication to use to connect to the ElasticSearch database.")
 	flag.Var(&EsAddress, "es-address", "The address of the ElasticSearch database.")
+	flag.StringVar(&RedisAddress, "redis-address", "127.0.0.1:6379", "The address of the Redis database.")
+	flag.StringVar(&RedisPassword, "redis-password", "changeme", "The password to use to connect to the Redis database.")
 	flag.BoolVar(&PrettyJsonResponses, "pretty-json-responses", false, "JSON HTTP responses should be pretty.")
 	flag.StringVar(&UrlEc2Pricing, "url-ec2-pricing", "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json", "The URL used to download the EC2 pricing.")
 	flag.StringVar(&SmtpAddress, "smtp-address", "", "The address of the SMTP server.")

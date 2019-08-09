@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 )
 
 func createAndConfigureTestClient(t *testing.T) *elastic.Client {

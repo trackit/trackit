@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/trackit/trackit-server/costs/anomalies/anomalyType"
+	"github.com/trackit/trackit/costs/anomalies/anomalyType"
 )
 
 type (

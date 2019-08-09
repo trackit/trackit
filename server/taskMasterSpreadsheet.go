@@ -22,11 +22,11 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/reports"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/reports"
 )
 
 // taskMasterSpreadsheet generates Spreadsheet with reports for a master AwsAccount including subaccounts.
@@ -72,7 +72,7 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 			account := aws.AwsAccountFromDbAwsAccount(*dbAccount)
 			accounts = append(accounts, account)
 		}
-		errs := reports.GenerateMasterReport(ctx, aa, accounts, date)
+		errs := reports.GenerateReport(ctx, aa, accounts, date)
 		updateMasterAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
 	}
 	if err != nil {

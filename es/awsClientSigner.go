@@ -21,8 +21,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/signer/v4"
+	"github.com/olivere/elastic"
 	"github.com/sha1sum/aws_signing_client"
-	"gopkg.in/olivere/elastic.v5"
 )
 
 const (

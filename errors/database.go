@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ func getDatabaseErrorMessage(ctx context.Context, err *DatabaseError) error {
 		break
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
-			"type": fmt.Sprintf("%T", err),
+			"type":  fmt.Sprintf("%T", err),
 			"error": err,
 		})
 		formattedErr = errors.New("Internal Error")

@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -19,9 +19,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type (
@@ -47,6 +48,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(reservedInstancesQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the list of Reserved Instances",
 				Description: "Responds with the list of Reserved Instances based on the queryparams passed to it",

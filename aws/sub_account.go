@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/organizations"
 
-	"github.com/trackit/trackit-server/config"
-	"github.com/trackit/trackit-server/models"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/models"
 )
 
 func updateExistingAccount(ctx context.Context, aa AwsAccount, subs []AwsAccount, tx *sql.Tx) error {
@@ -91,14 +91,14 @@ func PutSubAccounts(ctx context.Context, account AwsAccount, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	SubAccountsLoop:
-		for _, sub := range subAccounts {
-			for _, old := range alreadyAccounts {
-				if old.AwsIdentity == sub.AwsIdentity {
-					continue SubAccountsLoop
-				}
+SubAccountsLoop:
+	for _, sub := range subAccounts {
+		for _, old := range alreadyAccounts {
+			if old.AwsIdentity == sub.AwsIdentity {
+				continue SubAccountsLoop
 			}
-			sub.CreateAwsAccount(ctx, tx)
 		}
+		sub.CreateAwsAccount(ctx, tx)
+	}
 	return updateExistingAccount(ctx, account, subAccounts, tx)
 }

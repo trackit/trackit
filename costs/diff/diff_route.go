@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -22,18 +22,23 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
-
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/s3"
-	"github.com/trackit/trackit-server/aws/usageReports/history"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/es"
-	"github.com/trackit/trackit-server/routes"
-	"github.com/trackit/trackit-server/users"
+
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/s3"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
+
+type DateRange struct {
+	Begin time.Time
+	End   time.Time
+}
 
 type usageType = map[string]interface{}
 
@@ -72,6 +77,7 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(diffQueryArgs),
+			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the cost diff",
 				Description: "Responds with the cost diff based on the query args passed to it",
@@ -145,19 +151,12 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 }
 
 // TaskDiffData prepares an elasticsearch query and retrieves cost differentiator data
-func TaskDiffData(ctx context.Context, aa aws.AwsAccount, date time.Time) (data costDiff, err error) {
-	var dateBegin, dateEnd time.Time
-	if date.IsZero() {
-		dateBegin, dateEnd = history.GetHistoryDate()
-	} else {
-		dateBegin = date
-		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
-	}
+func TaskDiffData(ctx context.Context, aa aws.AwsAccount, dateRange DateRange, aggregationPeriod string) (data costDiff, err error) {
 	parsedParams := esQueryParams{
 		accountList:       []string{aa.AwsIdentity},
-		dateBegin:         dateBegin,
-		dateEnd:           dateEnd,
-		aggregationPeriod: "day",
+		dateBegin:         dateRange.Begin,
+		dateEnd:           dateRange.End,
+		aggregationPeriod: aggregationPeriod,
 	}
 	var tx *sql.Tx
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {

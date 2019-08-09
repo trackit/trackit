@@ -6,9 +6,9 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit-server/errors"
-	"github.com/trackit/trackit-server/models"
-	"github.com/trackit/trackit-server/users"
+	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/users"
 )
 
 const (

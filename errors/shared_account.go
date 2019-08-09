@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -42,31 +42,27 @@ func getSharedAccountErrorMessage(ctx context.Context, err *SharedAccountError) 
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var formattedErr error
 	switch err.Type {
-	case SharedAccountGenericError:
-	case SharedAccountRequestError:
+	case SharedAccountGenericError, SharedAccountRequestError:
 		if len(err.Message) > 0 {
 			formattedErr = errors.New(err.Message)
 		} else {
 			formattedErr = errors.New("Error while getting data for shared account")
 		}
-		break
 	case SharedAccountNoPermission:
 		if len(err.Message) > 0 {
 			formattedErr = errors.New(err.Message)
 		} else {
 			formattedErr = errors.New("Not enough permissions")
 		}
-		break
 	case SharedAccountBadPermission:
 		if len(err.Message) > 0 {
 			formattedErr = errors.New(err.Message)
 		} else {
 			formattedErr = errors.New("Bad permissions")
 		}
-		break
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
-			"type": fmt.Sprintf("%T", err),
+			"type":  fmt.Sprintf("%T", err),
 			"error": err,
 		})
 		formattedErr = errors.New("Internal Error")

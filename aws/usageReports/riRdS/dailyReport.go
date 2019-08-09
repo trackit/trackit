@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/config"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/config"
 )
 
 // fetchDailyInstancesList fetches the list of reserved RDS for a specific region

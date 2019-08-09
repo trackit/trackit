@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/trackit/trackit-server/config"
-	core "github.com/trackit/trackit-server/plugins/account/core"
-	utils "github.com/trackit/trackit-server/plugins/utils"
+	"github.com/trackit/trackit/config"
+	core "github.com/trackit/trackit/plugins/account/core"
+	utils "github.com/trackit/trackit/plugins/utils"
 )
 
 func init() {

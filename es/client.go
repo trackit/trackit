@@ -23,11 +23,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/ec2rolecreds"
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
-	"github.com/trackit/trackit-server/awsSession"
-	"github.com/trackit/trackit-server/config"
+	"github.com/trackit/trackit/awsSession"
+	"github.com/trackit/trackit/config"
 )
 
 var Client *elastic.Client
@@ -44,7 +44,7 @@ func init() {
 	for r := retryCount; r > 0; r-- {
 		Client, err = elastic.NewClient(options...)
 		if err != nil {
-			logger.Warning(fmt.Sprintf("Failed to connect to ElasticSearch database. Retrying in %s seconds.", retrySeconds), err.Error())
+			logger.Warning(fmt.Sprintf("Failed to connect to ElasticSearch database. Retrying in %v seconds.", retrySeconds), err.Error())
 			time.Sleep(retrySeconds * time.Second)
 		} else {
 			logger.Info("Successfully connected to ElasticSearch database.", nil)
@@ -52,6 +52,7 @@ func init() {
 		}
 	}
 	logger.Error("Failed to connect to ElasticSearch database. Not retrying.", nil)
+	os.Exit(1)
 }
 
 // getElasticSearchConfig retrieves the elastic.ClientOptionFunc required to

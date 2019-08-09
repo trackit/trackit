@@ -25,11 +25,13 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/es"
-	core "github.com/trackit/trackit-server/plugins/account/core"
-	"github.com/trackit/trackit-server/users"
+
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/cache"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
+	core "github.com/trackit/trackit/plugins/account/core"
+	"github.com/trackit/trackit/users"
 )
 
 // taskProcessAccountPlugins is the entry point for account plugins processing
@@ -80,6 +82,10 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 			"error":        err.Error(),
 		})
 	}
+	var affectedRoutes = []string{
+		"/plugins/results",
+	}
+	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

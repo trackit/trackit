@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import (
 	"github.com/aws/aws-sdk-go/service/costexplorer"
 	"github.com/trackit/jsonlog"
 
-	taws "github.com/trackit/trackit-server/aws"
-	"github.com/trackit/trackit-server/aws/usageReports"
-	"github.com/trackit/trackit-server/db"
-	"github.com/trackit/trackit-server/usageReports/ec2"
-	"github.com/trackit/trackit-server/users"
+	taws "github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/usageReports/ec2"
+	"github.com/trackit/trackit/users"
 )
 
 // geEc2CoverageReport get EC2 coverage data from the AWS Cost Explorer
