@@ -96,7 +96,14 @@ workflows:
   version: 2
   build:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              ignore:
+                - master
+                - stg
+  build-and-push:
+    jobs:
       - build-and-push:
           filters:
             branches:
