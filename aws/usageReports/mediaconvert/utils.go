@@ -39,61 +39,16 @@ type (
 	}
 
 	// JobBase contains basics information of an MediaConvert instance
-	ReportBase struct {
-		Arn string
-		BillingTagsSource string
-		CreatedAt time.Time
-		CurrentPhase string
-		ErrorCode int64
-		ErrorMessage string
-		Id string
-		JobPercentComplete int64
-		JobTemplate string
-		Priority int64
-		Queue string
-		RetryCount int64
-		Role string
-		Status string
-		StatusUpdateInterval string
+	JobBase struct {
+		Arn    string `json:"arn"`
+		Region string `json:"region"`
+		Id     string `json:"id"`
 	}
 
 	// Job contains all the information of an MediaConvert instance
 	Job struct {
-		ReportBase
-		Tags  []utils.Tag        `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
-		Stats Stats              `json:"stats"`
-		//Timing *Timing
-		//Settings *JobSettings
-		//OutputGroupDetails []*OutputGroupDetail
-		//AccelerationSettings *AccelerationSettings
-		UserMetadata map[string]string
-	}
-
-	// Stats contains statistics of an instance get on CloudWatch
-	Stats struct {
-		Cpu     Cpu      `json:"cpu"`
-		Network Network  `json:"network"`
-		Volumes []Volume `json:"volumes"`
-	}
-
-	// Cpu contains cpu statistics of an instance
-	Cpu struct {
-		Average float64 `json:"average"`
-		Peak    float64 `json:"peak"`
-	}
-
-	// Network contains network statistics of an instance
-	Network struct {
-		In  float64 `json:"in"`
-		Out float64 `json:"out"`
-	}
-
-	// Volume contains information about an EBS volume
-	Volume struct {
-		Id    string  `json:"id"`
-		Read  float64 `json:"read"`
-		Write float64 `json:"write"`
+		JobBase
+		Costs map[time.Time]float64 `json:"costs"`
 	}
 )
 
