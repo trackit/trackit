@@ -16,8 +16,10 @@ package mediaconvert
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
+	"github.com/trackit/trackit/es"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -61,89 +63,60 @@ func getElasticSearchMediaConvertJob(ctx context.Context, account, instance stri
 	}
 	return res, nil
 }
-/*
+
 // getJobInfoFromEs gets information about an instance from previous report to put it in the new report
-func getJobInfoFromES(ctx context.Context, instance utils.CostPerResource, account string, userId int) Job {
+func getJobInfoFromES(ctx context.Context, cost JobInformations, account string, userId int) Job {
 	var docType JobReport
-	var inst = Job{
+	var job = Job{
 		JobBase: JobBase{
 			Id:         "N/A",
 			Region:     "N/A",
-			State:      "N/A",
-			Purchasing: "N/A",
-			KeyPair:    "",
-			Type:       "N/A",
-			Platform:   "Linux/UNIX",
+			Arn:      "N/A",
 		},
-		Tags:  make([]utils.Tag, 0),
-		Costs: make(map[string]float64, 0),
-		Stats: Stats{
-			Cpu: Cpu{
-				Average: -1,
-				Peak:    -1,
-			},
-			Network: Network{
-				In:  -1,
-				Out: -1,
-			},
-			Volumes: make([]Volume, 0),
-		},
+		Costs: make(map[time.Time]float64, 0),
 	}
-	inst.Costs["instance"] = instance.Cost
-	res, err := getElasticSearchMediaConvertJob(ctx, account, instance.Resource,
+	res, err := getElasticSearchMediaConvertJob(ctx, account, cost.Arn,
 		es.Client, es.IndexNameForUserId(userId, IndexPrefixMediaConvertReport))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
-			inst.Region = docType.Job.Region
-			inst.Purchasing = docType.Job.Purchasing
-			inst.KeyPair = docType.Job.KeyPair
-			inst.Type = docType.Job.Type
-			inst.Platform = docType.Job.Platform
-			inst.Tags = docType.Job.Tags
+			job.Region = docType.Job.Region
+			job.Id = docType.Job.Id
+			job.Arn = docType.Job.Arn
+			job.Costs = docType.Job.Costs
 		}
 	}
-	return inst
-}*/
+	return job
+}
 
 // fetchMonthlyJobsList sends in instanceInfoChan the instances fetched from DescribeJobs
 // and filled by DescribeJobs and getJobStats.
 func fetchMonthlyJobsList(ctx context.Context, creds *credentials.Credentials,
-	account, region string, instanceChan chan Job, startDate, endDate time.Time, userId int) error {
+	account, region, jobId string, cost JobInformations, instanceChan chan Job, startDate, endDate time.Time, userId int) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
 	svc := mediaconvert.New(sess)
-	listJobs, err := svc.ListJobs(&mediaconvert.ListJobsInput{})
+	job, err := svc.GetJob(&mediaconvert.GetJobInput{Id: &jobId})
 	if err != nil {
-		//instanceChan <- getJobInfoFromES(ctx, inst, account, userId)
+		instanceChan <- getJobInfoFromES(ctx, cost, account, userId)
 		return err
 	}
-	for _, job := range listJobs.Jobs {
-		instanceChan <- Job{
-			ReportBase: ReportBase{
-				Id: aws.StringValue(job.Id),
-				Arn: aws.StringValue(job.Arn),
-				BillingTagsSource: aws.StringValue(job.BillingTagsSource),
-				CreatedAt: aws.TimeValue(job.CreatedAt),
-				CurrentPhase: aws.StringValue(job.CurrentPhase),
-			},
-			Tags:    nil,
-			Costs:   nil,
-			Stats:   Stats{},
-		}
-		log.Printf("in CHANNEL =========", map[string]interface{}{
-			"chan": instanceChan,
-			"ID": job.Id,
-		})
+	instanceChan <- Job{
+		JobBase: JobBase{
+			Id: aws.StringValue(job.Job.Id),
+			Arn: aws.StringValue(job.Job.Arn),
+			Region: cost.Region,
+		},
+		Costs:   cost.Cost,
 	}
 	return nil
 }
 
 // getMediaConvertMetrics gets credentials, accounts and region to fetch MediaConvert instances stats
-func fetchMonthlyJobsStats(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]JobReport, error) {
+func fetchMonthlyJobsStats(ctx context.Context, aa taws.AwsAccount, costs []JobInformations, startDate, endDate time.Time) ([]JobReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorJobStsSessionName)
 	if err != nil {
@@ -165,14 +138,20 @@ func fetchMonthlyJobsStats(ctx context.Context, aa taws.AwsAccount, startDate, e
 		return nil, err
 	}
 	jobChans := make([]<-chan Job, 0, len(regions))
+	for _, cost := range costs {
+		jobRegion := getJobRegion(cost.Arn)
+		jobId := getJobId(cost.Arn)
 		for _, region := range regions {
+			if strings.Contains(region, jobRegion) {
 				jobChan := make(chan Job)
-				go fetchMonthlyJobsList(ctx, creds, account, region, jobChan, startDate, endDate, aa.UserId)
+				go fetchMonthlyJobsList(ctx, creds, account, region, jobId, cost, jobChan, startDate, endDate, aa.UserId)
 				jobChans = append(jobChans, jobChan)
+			}
 		}
-	instancesList := make([]JobReport, 0)
+	}
+	jobsList := make([]JobReport, 0)
 	for instance := range merge(jobChans...) {
-		instancesList = append(instancesList, JobReport{
+		jobsList = append(jobsList, JobReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
@@ -181,7 +160,7 @@ func fetchMonthlyJobsStats(ctx context.Context, aa taws.AwsAccount, startDate, e
 			Job: instance,
 		})
 	}
-	return instancesList, nil
+	return jobsList, nil
 }
 
 // PutMediaConvertMonthlyReport puts a monthly report of MediaConvert instance in ES
@@ -192,6 +171,7 @@ func PutMediaConvertMonthlyReport(ctx context.Context, aa taws.AwsAccount, start
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
+	costs := getMediaConvertJobCosts(ctx, aa, startDate, endDate)
 	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaConvertReport)
 	if err != nil {
 		return false, err
@@ -199,11 +179,11 @@ func PutMediaConvertMonthlyReport(ctx context.Context, aa taws.AwsAccount, start
 		logger.Info("There is already an MediaConvert monthly report", nil)
 		return false, nil
 	}
-	instances, err := fetchMonthlyJobsStats(ctx, aa, startDate, endDate)
+	jobs, err := fetchMonthlyJobsStats(ctx, aa, costs, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
-	err = importJobsToEs(ctx, aa, instances)
+	err = importJobsToEs(ctx, aa, jobs)
 	if err != nil {
 		return false, err
 	}
