@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package mediastore
+package mediapackage
 
 import (
 	"context"
@@ -23,28 +23,28 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const TypeMediaStoreReport = "mediastore-report"
-const IndexPrefixMediaStoreReport = "mediastore-reports"
-const TemplateNameMediaStoreReport = "mediastore-reports"
+const TypeMediaPackageReport = "mediapackage-report"
+const IndexPrefixMediaPackageReport = "mediapackage-reports"
+const TemplateNameMediaPackageReport = "mediapackage-reports"
 
-// put the ElasticSearch index for *-mediastore-reports indices at startup.
+// put the ElasticSearch index for *-mediapackage-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameMediaStoreReport).BodyString(TemplateMediaStoreReport).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(TemplateNameMediaPackageReport).BodyString(TemplateMediaPackageReport).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index MediaStoreReport.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index MediaPackageReport.", err)
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index MediaStoreReport.", res)
+		jsonlog.DefaultLogger.Info("Put ES index MediaPackageReport.", res)
 		ctxCancel()
 	}
 }
 
-const TemplateMediaStoreReport = `
+const TemplateMediaPackageReport = `
 {
-	"template": "*-mediastore-reports",
+	"template": "*-mediapackage-reports",
 	"version": 1,
 	"mappings": {
-		"mediastore-report": {
+		"mediapackage-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,7 +55,7 @@ const TemplateMediaStoreReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"container": {
+				"channel": {
 					"properties": {
 						"arn": {
 							"type": "keyword"
@@ -63,7 +63,7 @@ const TemplateMediaStoreReport = `
 						"region": {
 							"type": "keyword"
 						},
-						"name": {
+						"id": {
 							"type": "keyword"
 						},
 						"costs": {
@@ -74,6 +74,17 @@ const TemplateMediaStoreReport = `
 								},
 								"value": {
 									"type": "double"
+								}
+							}
+						},
+						"tags": {
+							"type": "nested",
+							"properties": {
+								"key": {
+									"type": "keyword"
+								},
+								"value": {
+									"type": "keyword"
 								}
 							}
 						}

@@ -1,9 +1,10 @@
-package mediastore
+package mediapackage
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
 	elastic2 "github.com/olivere/elastic"
 	"regexp"
 	"time"
@@ -19,7 +20,7 @@ import (
 const aggregationMaxSize = 0x7FFFFFFF
 
 type (
-	ResponseContainerIdCostMonthly struct {
+	ResponseChannelIdCostMonthly struct {
 		Id struct {
 			Buckets []struct {
 				Key string `json:"key"`
@@ -36,7 +37,7 @@ type (
 			} `json:"buckets"`
 		} `json:"resourceId"`
 	}
-	ContainerInformations struct {
+	ChannelInformations struct {
 		Id     string
 		Region string
 		Cost   map[time.Time]float64
@@ -48,7 +49,7 @@ func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, use
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewRangeQuery("usageEndDate").From(startDate).To(endDate))
-	query = query.Filter(elastic.NewTermQuery("productCode", "AWSElementalMediaStore"))
+	query = query.Filter(elastic.NewTermQuery("productCode", "AWSElementalMediaPackage"))
 	search := es.Client.Search().Index(es.IndexNameForUserId(userId, es.IndexPrefixLineItems)).Size(0).Query(query)
 	search.Aggregation("resourceId", elastic.NewTermsAggregation().Field("resourceId").Size(aggregationMaxSize).
 		SubAggregation("usageStartDate", elastic.NewDateHistogramAggregation().Field("usageStartDate").MinDocCount(0).Interval("hour").
@@ -74,8 +75,8 @@ func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, use
 	return res, nil
 }
 
-func getMediaStoreContainerCosts(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) []ContainerInformations {
-	var response ResponseContainerIdCostMonthly
+func getMediaPackageChannelCosts(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) []ChannelInformations {
+	var response ResponseChannelIdCostMonthly
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	res, err := getElasticSearchCost(ctx, startDate, endDate, aa.UserId)
 	if err != nil {
@@ -86,10 +87,10 @@ func getMediaStoreContainerCosts(ctx context.Context, aa taws.AwsAccount, startD
 		logger.Error("Unmarshal execution failedd", err)
 		return nil
 	}
-	containerInformations := make([]ContainerInformations, 0)
+	channelInformations := make([]ChannelInformations, 0)
 	for _, id := range response.Id.Buckets {
-		containerId := getContainerId(id.Key)
-		containerRegion := getContainerRegion(id.Key)
+		channelId := getChannelId(id.Key)
+		channelRegion := getChannelRegion(id.Key)
 		datesCosts := make(map[time.Time]float64)
 		for _, date := range id.Date.Buckets {
 			totalCosts := 0.0
@@ -99,19 +100,19 @@ func getMediaStoreContainerCosts(ctx context.Context, aa taws.AwsAccount, startD
 			dateTime, _ := time.Parse("2006-01-02T15:04:05.000Z", date.Key)
 			datesCosts[dateTime] = totalCosts
 		}
-		containerInformations = append(containerInformations, ContainerInformations{
-			Id:     containerId,
-			Region: containerRegion,
+		channelInformations = append(channelInformations, ChannelInformations{
+			Id:     channelId,
+			Region: channelRegion,
 			Cost:   datesCosts,
 			Arn:    id.Key,
 		})
 	}
-	return containerInformations
+	return channelInformations
 }
 
-func getContainerId(resourceId string) string {
+func getChannelId(resourceId string) string {
 	var rgxArray []string
-	reg, err := regexp.Compile("^arn:aws:mediastore:[\\w\\d\\-]+:\\d+:container/([\\w\\d\\-]+)")
+	reg, err := regexp.Compile("^arn:aws:mediapackage:[\\w\\d\\-]+:\\d+:channel/([\\w\\d\\-]+)")
 	if err != nil {
 		return ""
 	} else if rgxArray = reg.FindStringSubmatch(resourceId); len(rgxArray) < 2 {
@@ -120,13 +121,21 @@ func getContainerId(resourceId string) string {
 	return rgxArray[1]
 }
 
-func getContainerRegion(resourceId string) string {
+func getChannelRegion(resourceId string) string {
 	var rgxArray []string
-	reg, err := regexp.Compile("^arn:aws:mediastore:([\\w\\d\\-]+):\\d+:container")
+	reg, err := regexp.Compile("^arn:aws:mediapackage:([\\w\\d\\-]+):\\d+:channel")
 	if err != nil {
 		return ""
 	} else if rgxArray = reg.FindStringSubmatch(resourceId); len(rgxArray) < 2 {
 		return ""
 	}
 	return rgxArray[1]
+}
+
+func getChannelTags(tags map[string]*string) map[string]string {
+	formatTags := make(map[string]string)
+	for key, value := range tags {
+		formatTags[key] = aws.StringValue(value)
+	}
+	return formatTags
 }

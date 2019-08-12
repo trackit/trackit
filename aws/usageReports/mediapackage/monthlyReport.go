@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package mediastore
+package mediapackage
 
 import (
 	"context"
@@ -24,7 +24,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/mediastore"
+	"github.com/aws/aws-sdk-go/service/mediapackage"
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
@@ -35,9 +35,9 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-// getElasticSearchMediaStoreContainer prepares and run the request to retrieve the a report of an instance
+// getElasticSearchMediaPackageChannel prepares and run the request to retrieve the a report of an instance
 // It will return the data and an error.
-func getElasticSearchMediaStoreContainer(ctx context.Context, account, instance string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
+func getElasticSearchMediaPackageChannel(ctx context.Context, account, instance string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("account", account))
@@ -64,61 +64,62 @@ func getElasticSearchMediaStoreContainer(ctx context.Context, account, instance 
 	return res, nil
 }
 
-// getContainerInfoFromEs gets information about an instance from previous report to put it in the new report
-func getContainerInfoFromES(ctx context.Context, cost ContainerInformations, account string, userId int) Container {
-	var docType ContainerReport
-	var container = Container{
-		ContainerBase: ContainerBase{
-			Name:         "N/A",
+// getChannelInfoFromEs gets information about an instance from previous report to put it in the new report
+func getChannelInfoFromES(ctx context.Context, cost ChannelInformations, account string, userId int) Channel {
+	var docType ChannelReport
+	var channel = Channel{
+		ChannelBase: ChannelBase{
+			Id:         "N/A",
 			Region:     "N/A",
 			Arn:      "N/A",
 		},
 		Costs: make(map[time.Time]float64, 0),
 	}
-	res, err := getElasticSearchMediaStoreContainer(ctx, account, cost.Arn,
-		es.Client, es.IndexNameForUserId(userId, IndexPrefixMediaStoreReport))
+	res, err := getElasticSearchMediaPackageChannel(ctx, account, cost.Arn,
+		es.Client, es.IndexNameForUserId(userId, IndexPrefixMediaPackageReport))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
-			container.Region = docType.Container.Region
-			container.Name = docType.Container.Name
-			container.Arn = docType.Container.Arn
-			container.Costs = docType.Container.Costs
+			channel.Region = docType.Channel.Region
+			channel.Id = docType.Channel.Id
+			channel.Arn = docType.Channel.Arn
+			channel.Costs = docType.Channel.Costs
 		}
 	}
-	return container
+	return channel
 }
 
-// fetchMonthlyContainersList sends in instanceInfoChan the instances fetched from DescribeContainers
-// and filled by DescribeContainers and getContainerStats.
-func fetchMonthlyContainersList(ctx context.Context, creds *credentials.Credentials,
-	account, region, containerId string, cost ContainerInformations, instanceChan chan Container, startDate, endDate time.Time, userId int) error {
+// fetchMonthlyChannelsList sends in instanceInfoChan the instances fetched from DescribeChannels
+// and filled by DescribeChannels and getChannelStats.
+func fetchMonthlyChannelsList(ctx context.Context, creds *credentials.Credentials,
+	account, region, channelId string, cost ChannelInformations, instanceChan chan Channel, startDate, endDate time.Time, userId int) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
-	svc := mediastore.New(sess)
-	container, err := svc.DescribeContainer(&mediastore.DescribeContainerInput{ContainerName: &containerId})
+	svc := mediapackage.New(sess)
+	channel, err := svc.DescribeChannel(&mediapackage.DescribeChannelInput{Id: &channelId})
 	if err != nil {
-		instanceChan <- getContainerInfoFromES(ctx, cost, account, userId)
+		instanceChan <- getChannelInfoFromES(ctx, cost, account, userId)
 		return err
 	}
-	instanceChan <- Container{
-		ContainerBase: ContainerBase{
-			Name: aws.StringValue(container.Container.Name),
-			Arn: aws.StringValue(container.Container.ARN),
+	instanceChan <- Channel{
+		ChannelBase: ChannelBase{
+			Id: aws.StringValue(channel.Id),
+			Arn: aws.StringValue(channel.Arn),
 			Region: cost.Region,
 		},
+		Tags: getChannelTags(channel.Tags),
 		Costs:   cost.Cost,
 	}
 	return nil
 }
 
-// getMediaStoreMetrics gets credentials, accounts and region to fetch MediaStore instances stats
-func fetchMonthlyContainersStats(ctx context.Context, aa taws.AwsAccount, costs []ContainerInformations, startDate, endDate time.Time) ([]ContainerReport, error) {
+// getMediaPackageMetrics gets credentials, accounts and region to fetch MediaPackage instances stats
+func fetchMonthlyChannelsStats(ctx context.Context, aa taws.AwsAccount, costs []ChannelInformations, startDate, endDate time.Time) ([]ChannelReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	creds, err := taws.GetTemporaryCredentials(aa, MonitorContainerStsSessionName)
+	creds, err := taws.GetTemporaryCredentials(aa, MonitorChannelStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
 		return nil, err
@@ -137,53 +138,53 @@ func fetchMonthlyContainersStats(ctx context.Context, aa taws.AwsAccount, costs 
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, err
 	}
-	containerChans := make([]<-chan Container, 0, len(regions))
+	channelChans := make([]<-chan Channel, 0, len(regions))
 	for _, cost := range costs {
-		containerRegion := getContainerRegion(cost.Arn)
-		containerId := getContainerId(cost.Arn)
+		channelRegion := getChannelRegion(cost.Arn)
+		channelId := getChannelId(cost.Arn)
 		for _, region := range regions {
-			if strings.Contains(region, containerRegion) {
-				containerChan := make(chan Container)
-				go fetchMonthlyContainersList(ctx, creds, account, region, containerId, cost, containerChan, startDate, endDate, aa.UserId)
-				containerChans = append(containerChans, containerChan)
+			if strings.Contains(region, channelRegion) {
+				channelChan := make(chan Channel)
+				go fetchMonthlyChannelsList(ctx, creds, account, region, channelId, cost, channelChan, startDate, endDate, aa.UserId)
+				channelChans = append(channelChans, channelChan)
 			}
 		}
 	}
-	containersList := make([]ContainerReport, 0)
-	for instance := range merge(containerChans...) {
-		containersList = append(containersList, ContainerReport{
+	channelsList := make([]ChannelReport, 0)
+	for instance := range merge(channelChans...) {
+		channelsList = append(channelsList, ChannelReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
 			},
-			Container: instance,
+			Channel: instance,
 		})
 	}
-	return containersList, nil
+	return channelsList, nil
 }
 
-// PutMediaStoreMonthlyReport puts a monthly report of MediaStore instance in ES
-func PutMediaStoreMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+// PutMediaPackageMonthlyReport puts a monthly report of MediaPackage instance in ES
+func PutMediaPackageMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Starting MediaStore monthly report", map[string]interface{}{
+	logger.Info("Starting MediaPackage monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	costs := getMediaStoreContainerCosts(ctx, aa, startDate, endDate)
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaStoreReport)
+	costs := getMediaPackageChannelCosts(ctx, aa, startDate, endDate)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaPackageReport)
 	if err != nil {
 		return false, err
 	} else if already {
-		logger.Info("There is already an MediaStore monthly report", nil)
+		logger.Info("There is already an MediaPackage monthly report", nil)
 		return false, nil
 	}
-	containers, err := fetchMonthlyContainersStats(ctx, aa, costs, startDate, endDate)
+	channels, err := fetchMonthlyChannelsStats(ctx, aa, costs, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
-	err = importContainersToEs(ctx, aa, containers)
+	err = importChannelsToEs(ctx, aa, channels)
 	if err != nil {
 		return false, err
 	}

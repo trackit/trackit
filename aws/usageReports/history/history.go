@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/trackit/trackit/aws/usageReports/mediastore"
 	"net/http"
 	"time"
 
@@ -34,6 +33,7 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	tes "github.com/trackit/trackit/aws/usageReports/es"
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
+	"github.com/trackit/trackit/aws/usageReports/mediapackage"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/es"
 )
@@ -186,9 +186,9 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	}
 	ec2CoverageCreated, ec2CoverageErr := ec2Coverage.PutEc2MonthlyCoverageReport(ctx, aa, startDate, endDate)
 	instanceCountCreated, instanceCountErr := instanceCount.PutInstanceCountMonthlyReport(ctx, aa, startDate, endDate)
-	mediaStoreCreated, mediaStoreErr := mediastore.PutMediaStoreMonthlyReport(ctx, aa, startDate, endDate)
-	reportsCreated := ebsCreated || ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated || instanceCountCreated || mediaStoreCreated
-	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr, instanceCountErr, mediaStoreErr})
+	mediaPackageCreated, mediaPackageErr := mediapackage.PutMediaPackageMonthlyReport(ctx, aa, startDate, endDate)
+	reportsCreated := ebsCreated || ec2Created || rdsCreated || esCreated || elastiCacheCreated || ec2CoverageCreated || instanceCountCreated || mediaPackageCreated
+	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr, instanceCountErr, mediaPackageErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.

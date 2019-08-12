@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package mediastore
+package mediapackage
 
 import (
 	"context"
@@ -29,37 +29,38 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const MonitorContainerStsSessionName = "monitor-instance"
+const MonitorChannelStsSessionName = "monitor-instance"
 
 type (
-	// ContainerReport is saved in ES to have all the information of an MediaStore instance
-	ContainerReport struct {
+	// ChannelReport is saved in ES to have all the information of a MediaPackage instance
+	ChannelReport struct {
 		utils.ReportBase
-		Container Container `json:"container"`
+		Channel Channel `json:"channel"`
 	}
 
-	// ContainerBase contains basics information of an MediaStore instance
-	ContainerBase struct {
+	// ChannelBase contains basics information of a MediaPackage instance
+	ChannelBase struct {
 		Arn    string `json:"arn"`
 		Region string `json:"region"`
-		Name   string `json:"name"`
+		Id     string `json:"id"`
 	}
 
-	// Container contains all the information of an MediaStore instance
-	Container struct {
-		ContainerBase
+	// Channel contains all the information of a MediaPackage instance
+	Channel struct {
+		ChannelBase
 		Costs map[time.Time]float64 `json:"costs"`
+		Tags  map[string]string     `json:"tags"`
 	}
 )
 
-// importContainersToEs imports MediaStore instances in ElasticSearch.
+// importChannelsToEs imports MediaPackage instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importContainersToEs(ctx context.Context, aa taws.AwsAccount, instances []ContainerReport) error {
+func importChannelsToEs(ctx context.Context, aa taws.AwsAccount, instances []ChannelReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Updating MediaStore instances for AWS account.", map[string]interface{}{
+	logger.Info("Updating MediaPackage instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixMediaStoreReport)
+	index := es.IndexNameForUserId(aa.UserId, IndexPrefixMediaPackageReport)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -71,19 +72,19 @@ func importContainersToEs(ctx context.Context, aa taws.AwsAccount, instances []C
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeMediaStoreReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, TypeMediaPackageReport, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
 	if err != nil {
-		logger.Error("Fail to put MediaStore instances in ES", err.Error())
+		logger.Error("Fail to put MediaPackage instances in ES", err.Error())
 		return err
 	}
-	logger.Info("MediaStore instances put in ES", nil)
+	logger.Info("MediaPackage instances put in ES", nil)
 	return nil
 }
 
-func generateId(instance ContainerReport) (string, error) {
+func generateId(instance ChannelReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -91,7 +92,7 @@ func generateId(instance ContainerReport) (string, error) {
 	}{
 		instance.Account,
 		instance.ReportDate,
-		instance.Container.Name,
+		instance.Channel.Name,
 	})
 	if err != nil {
 		return "", err
@@ -103,13 +104,13 @@ func generateId(instance ContainerReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Container) <-chan Container {
+func merge(cs ...<-chan Channel) <-chan Channel {
 	var wg sync.WaitGroup
-	out := make(chan Container)
+	out := make(chan Channel)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Container) {
+	output := func(c <-chan Channel) {
 		for n := range c {
 			out <- n
 		}
