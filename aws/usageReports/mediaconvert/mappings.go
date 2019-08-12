@@ -42,7 +42,7 @@ func init() {
 const TemplateMediaConvertReport = `
 {
 	"template": "*-mediaconvert-reports",
-	"version": 7,
+	"version": 1,
 	"mappings": {
 		"mediaconvert-report": {
 			"properties": {
@@ -55,81 +55,25 @@ const TemplateMediaConvertReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instance": {
+				"job": {
 					"properties": {
-						"id": {
+						"arn": {
 							"type": "keyword"
 						},
 						"region": {
 							"type": "keyword"
 						},
-						"state": {
+						"id": {
 							"type": "keyword"
 						},
-						"purchasing": {
-							"type": "keyword"
-						},
-						"keyPair": {
-							"type": "keyword"
-						},
-						"type": {
-							"type": "keyword"
-						},
-						"platform": {
-							"type": "keyword"
-						},
-						"tags": {
+						"costs": {
 							"type": "nested",
 							"properties": {
 								"key": {
-									"type": "keyword"
+									"type": "date"
 								},
 								"value": {
-									"type": "keyword"
-								}
-							}
-						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"network": {
-									"type": "object",
-									"properties": {
-											"in": {
-												"type": "double"
-											},
-											"out": {
-												"type": "double"
-											}
-									}
-								},
-								"volumes": {
-									"type": "nested",
-									"properties": {
-										"id": {
-											"type": "keyword"
-										},
-										"read": {
-											"type": "double"
-										},
-										"write": {
-											"type": "double"
-										}
-									}
+									"type": "double"
 								}
 							}
 						}
