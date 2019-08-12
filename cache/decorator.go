@@ -53,7 +53,7 @@ func init() {
 	mainClient = redis.NewClient(&redis.Options{
 		Addr:        config.RedisAddress,
 		Password:    config.RedisPassword,
-		DB:          1,
+		DB:          config.RedisDB,
 		IdleTimeout: -1,
 	})
 	_, err := mainClient.Ping().Result()
