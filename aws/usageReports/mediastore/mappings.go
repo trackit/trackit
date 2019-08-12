@@ -42,7 +42,7 @@ func init() {
 const TemplateMediaStoreReport = `
 {
 	"template": "*-mediastore-reports",
-	"version": 7,
+	"version": 1,
 	"mappings": {
 		"mediastore-report": {
 			"properties": {
