@@ -42,7 +42,7 @@ func init() {
 const TemplateMediaLiveInputReport = `
 {
 	"template": "*-medialive-input-reports",
-	"version": 2,
+	"version": 1,
 	"mappings": {
 		"medialive-input-report": {
 			"properties": {
@@ -67,7 +67,7 @@ const TemplateMediaLiveInputReport = `
 							"type": "keyword"
 						},
 						"region": {
-							"type": "boolean"
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",

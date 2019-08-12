@@ -54,7 +54,7 @@ type (
 	}
 	InputReport struct {
 		utils.ReportBase
-		Input Input `json:"channel"`
+		Input Input `json:"input"`
 	}
 
 	// InputBase contains basics information of an MediaLive channel
