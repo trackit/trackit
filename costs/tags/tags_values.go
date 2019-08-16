@@ -34,32 +34,41 @@ type (
 		Type   string
 	}
 
+
 	// structs that allows to parse ES result
-	esTagsValuesResult struct {
+	esTagsValuesDetailedResult struct {
 		Keys struct {
 			Buckets []struct {
 				Key  string       `json:"key"`
-				Tags esTagsResult `json:"tags"`
+				Tags esTagsDetailedResult `json:"tags"`
 			} `json:"buckets"`
 		} `json:"keys"`
 	}
 
-	esTagsResult struct {
+	esTagsDetailedResult struct {
 		Buckets []struct {
 			Tag string `json:"key"`
 			Rev struct {
-				Filter esFilterResult `json:"filter"`
+				Filter esFilterDetailedResult `json:"filter"`
 			} `json:"rev"`
 		} `json:"buckets"`
 	}
 
-	esFilterResult struct {
+	esFilterDetailedResult struct {
 		Buckets []struct {
 			Time string      `json:"key_as_string"`
 			Item interface{} `json:"key"`
+			Type struct {
+				Buckets []struct {
+					Key  string `json:"key"`
+					Cost struct {
+						Value float64 `json:"value"`
+					} `json:"cost"`
+				} `json:"buckets"`
+			} `json:"type,omitempty"`
 			Cost struct {
 				Value float64 `json:"value"`
-			} `json:"cost"`
+			} `json:"cost,omitempty"`
 		} `json:"buckets"`
 	}
 
@@ -69,10 +78,21 @@ type (
 		Cost float64 `json:"cost"`
 	}
 
+	ValueDetailed struct {
+		UsageType string  `json:"usagetype"`
+		Cost      float64 `json:"cost"`
+	}
+
+	TagValueDetailed struct {
+		Item       string          `json:"item"`
+		UsageTypes []ValueDetailed `json:"usagetypes"`
+	}
+
 	// contain a tag and the list of products associated
 	TagsValues struct {
-		Tag   string     `json:"tag"`
-		Costs []TagValue `json:"costs"`
+		Tag       string             `json:"tag"`
+		Costs     []TagValue         `json:"costs,omitempty"`
+		Items     []TagValueDetailed `json:"items,omitempty"`
 	}
 
 	// response format of the endpoint
@@ -83,7 +103,7 @@ type (
 func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams) (int, interface{}) {
 	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	var typedDocument esTagsValuesResult
+	var typedDocument esTagsValuesDetailedResult
 	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
 	if err != nil {
 		if returnCode == http.StatusOK {
@@ -92,10 +112,54 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		return returnCode, errors.GetErrorMessage(ctx, err)
 	}
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
+	l.Debug("typedDocument ========", map[string]interface{}{
+		"doc": typedDocument,
+	})
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
 		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
 	}
+	if params.Detailed == true {
+		response = getTagsResponseDetailed(typedDocument, params)
+	} else {
+		response = getTagsResponse(typedDocument, params)
+	}
+	return http.StatusOK, response
+}
+
+//getTagsResponseDetailed get response for tagging when detailed is true
+func getTagsResponseDetailed(typedDocument esTagsValuesDetailedResult, params tagsValuesQueryParams) TagsValuesResponse {
+	response := TagsValuesResponse{}
+	for _, key := range typedDocument.Keys.Buckets {
+		var values []TagsValues
+		for _, tag := range key.Tags.Buckets {
+			var products []TagValueDetailed
+			var valueDetailed []ValueDetailed
+			for _, filter := range tag.Rev.Filter.Buckets {
+				for _, usageType := range filter.Type.Buckets {
+					valueDetailed = append(valueDetailed, ValueDetailed{
+						UsageType: usageType.Key,
+						Cost:      usageType.Cost.Value,
+					})
+				}
+				if filter.Time != "" {
+					products = append(products, TagValueDetailed{Item: filter.Time, UsageTypes: valueDetailed})
+				} else {
+					products = append(products, TagValueDetailed{Item: filter.Item.(string), UsageTypes: valueDetailed})
+				}
+			}
+			values = append(values, TagsValues{Tag: tag.Tag, Items: products})
+		}
+		if len(params.TagsKeys) == 0 || arrayContainsString(params.TagsKeys, key.Key) {
+			response[key.Key] = values
+		}
+	}
+	return response
+}
+
+//getTagsResponseDetailed get response for tagging when detailed is false
+func getTagsResponse(typedDocument esTagsValuesDetailedResult, params tagsValuesQueryParams) TagsValuesResponse {
+	response := TagsValuesResponse{}
 	for _, key := range typedDocument.Keys.Buckets {
 		var values []TagsValues
 		for _, tag := range key.Tags.Buckets {
@@ -107,13 +171,42 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 					costs = append(costs, TagValue{cost.Item.(string), cost.Cost.Value})
 				}
 			}
-			values = append(values, TagsValues{tag.Tag, costs})
+			values = append(values, TagsValues{Tag: tag.Tag, Costs: costs})
 		}
 		if len(params.TagsKeys) == 0 || arrayContainsString(params.TagsKeys, key.Key) {
 			response[key.Key] = values
 		}
 	}
-	return http.StatusOK, response
+	return response
+}
+
+//getAggregationForTagsValues get NewReversedNestedAggregation if detailed is true or false
+func getAggregationForTagsValues(params tagsValuesQueryParams, filter FilterType) (aggregation *elastic.ReverseNestedAggregation) {
+	if params.Detailed == true {
+		aggregation = elastic.NewReverseNestedAggregation().
+			SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
+				SubAggregation("type", elastic.NewTermsAggregation().Field("usageType").Size(maxAggregationSize).
+					SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
+		if filter.Type == "time" {
+			aggregation = elastic.NewReverseNestedAggregation().
+				SubAggregation("filter", elastic.NewDateHistogramAggregation().
+					Field("usageStartDate").MinDocCount(0).Interval(filter.Filter).
+					SubAggregation("type", elastic.NewTermsAggregation().Field("usageType").Size(maxAggregationSize).
+						SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost"))))
+		}
+		return
+	} else {
+		aggregation = elastic.NewReverseNestedAggregation().
+			SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
+				SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
+		if filter.Type == "time" {
+			aggregation = elastic.NewReverseNestedAggregation().
+				SubAggregation("filter", elastic.NewDateHistogramAggregation().
+					Field("usageStartDate").MinDocCount(0).Interval(filter.Filter).
+					SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
+		}
+		return
+	}
 }
 
 // makeElasticSearchRequestForTagsValues will make the actual request to the ElasticSearch
@@ -127,15 +220,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
 	index := strings.Join(params.IndexList, ",")
-	aggregation := elastic.NewReverseNestedAggregation().
-		SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
-			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
-	if filter.Type == "time" {
-		aggregation = elastic.NewReverseNestedAggregation().
-			SubAggregation("filter", elastic.NewDateHistogramAggregation().
-				Field("usageStartDate").MinDocCount(0).Interval(filter.Filter).
-				SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))
-	}
+	aggregation := getAggregationForTagsValues(params, filter)
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("data", elastic.NewNestedAggregation().Path("tags").
 		SubAggregation("keys", elastic.NewTermsAggregation().Field("tags.key").Size(maxAggregationSize).
