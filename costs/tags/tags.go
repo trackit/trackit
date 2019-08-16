@@ -75,8 +75,8 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 	routes.DetailedQueryArg,
 }
 
-// tagsValuesQueryParams will store the parsed query params for /tags/values endpoint
-type tagsValuesQueryParams struct {
+// TagsValuesQueryParams will store the parsed query params for /tags/values endpoint
+type TagsValuesQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	IndexList   []string  `json:"indexes"`
 	DateBegin   time.Time `json:"begin"`
@@ -89,7 +89,7 @@ type tagsValuesQueryParams struct {
 // getTagsValues returns tags and their values (cost) based on the query params, in JSON format.
 func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := tagsValuesQueryParams{
+	parsedParams := TagsValuesQueryParams{
 		AccountList: []string{},
 		IndexList:   []string{},
 		DateBegin:   a[tagsValuesQueryArgs[1]].(time.Time),

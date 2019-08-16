@@ -34,12 +34,11 @@ type (
 		Type   string
 	}
 
-
 	// structs that allows to parse ES result
 	esTagsValuesDetailedResult struct {
 		Keys struct {
 			Buckets []struct {
-				Key  string       `json:"key"`
+				Key  string               `json:"key"`
 				Tags esTagsDetailedResult `json:"tags"`
 			} `json:"buckets"`
 		} `json:"keys"`
@@ -90,9 +89,9 @@ type (
 
 	// contain a tag and the list of products associated
 	TagsValues struct {
-		Tag       string             `json:"tag"`
-		Costs     []TagValue         `json:"costs,omitempty"`
-		Items     []TagValueDetailed `json:"items,omitempty"`
+		Tag   string             `json:"tag"`
+		Costs []TagValue         `json:"costs,omitempty"`
+		Items []TagValueDetailed `json:"items,omitempty"`
 	}
 
 	// response format of the endpoint
@@ -100,7 +99,7 @@ type (
 )
 
 // getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryParams) (int, interface{}) {
+func getTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryParams) (int, interface{}) {
 	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTagsValuesDetailedResult
@@ -125,7 +124,7 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 }
 
 //getTagsResponseDetailed get response for tagging when detailed is true
-func getTagsResponseDetailed(typedDocument esTagsValuesDetailedResult, params tagsValuesQueryParams) TagsValuesResponse {
+func getTagsResponseDetailed(typedDocument esTagsValuesDetailedResult, params TagsValuesQueryParams) TagsValuesResponse {
 	response := TagsValuesResponse{}
 	for _, key := range typedDocument.Keys.Buckets {
 		var values []TagsValues
@@ -155,7 +154,7 @@ func getTagsResponseDetailed(typedDocument esTagsValuesDetailedResult, params ta
 }
 
 //getTagsResponseDetailed get response for tagging when detailed is false
-func getTagsResponse(typedDocument esTagsValuesDetailedResult, params tagsValuesQueryParams) TagsValuesResponse {
+func getTagsResponse(typedDocument esTagsValuesDetailedResult, params TagsValuesQueryParams) TagsValuesResponse {
 	response := TagsValuesResponse{}
 	for _, key := range typedDocument.Keys.Buckets {
 		var values []TagsValues
@@ -178,7 +177,7 @@ func getTagsResponse(typedDocument esTagsValuesDetailedResult, params tagsValues
 }
 
 //getAggregationForTagsValues get NewReversedNestedAggregation if detailed is true or false
-func getAggregationForTagsValues(params tagsValuesQueryParams, filter FilterType) (aggregation *elastic.ReverseNestedAggregation) {
+func getAggregationForTagsValues(params TagsValuesQueryParams, filter FilterType) (aggregation *elastic.ReverseNestedAggregation) {
 	if params.Detailed == true {
 		aggregation = elastic.NewReverseNestedAggregation().
 			SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
@@ -212,7 +211,7 @@ func getAggregationForTagsValues(params tagsValuesQueryParams, filter FilterType
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValuesQueryParams, client *elastic.Client) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequestForTagsValues(ctx context.Context, params TagsValuesQueryParams, client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
@@ -245,7 +244,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 }
 
 // getTagsValuesQuery will generate a query for the ElasticSearch based on params
-func getTagsValuesQuery(params tagsValuesQueryParams) *elastic.BoolQuery {
+func getTagsValuesQuery(params TagsValuesQueryParams) *elastic.BoolQuery {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(params.AccountList))
