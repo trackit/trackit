@@ -112,9 +112,6 @@ func getTagsValuesWithParsedParams(ctx context.Context, params tagsValuesQueryPa
 		return returnCode, errors.GetErrorMessage(ctx, err)
 	}
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
-	l.Debug("typedDocument ========", map[string]interface{}{
-		"doc": typedDocument,
-	})
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
 		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
@@ -134,8 +131,8 @@ func getTagsResponseDetailed(typedDocument esTagsValuesDetailedResult, params ta
 		var values []TagsValues
 		for _, tag := range key.Tags.Buckets {
 			var products []TagValueDetailed
-			var valueDetailed []ValueDetailed
 			for _, filter := range tag.Rev.Filter.Buckets {
+				var valueDetailed []ValueDetailed
 				for _, usageType := range filter.Type.Buckets {
 					valueDetailed = append(valueDetailed, ValueDetailed{
 						UsageType: usageType.Key,
