@@ -96,6 +96,16 @@ var (
 		Optional:    false,
 	}
 
+	// DetailedQueryArg allows to get detailed
+	// Parameters with routes.QueryArgs. This type will be a
+	// bool stored in the routes.Arguments map with itself for key.
+	DetailedQueryArg = QueryArg{
+		Name: "detailed",
+		Type:  QueryArgBool{},
+		Description: "The detailed arg",
+		Optional: false,
+	}
+
 	// ReportTypeQueryArg allows to get the report type in the URL
 	// Parameters with routes.QueryArgs. This type will be a
 	// string stored in the routes.Arguments map with itself for key.
