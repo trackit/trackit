@@ -45,7 +45,7 @@ type (
 const maxAggregationSize = 0x7FFFFFFF
 
 // getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams) (int, interface{}) {
+func getTagsKeysWithParsedParams(ctx context.Context, params TagsKeysQueryParams) (int, interface{}) {
 	var typedDocument esTagsKeysResult
 	var response = TagsKeys{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -67,13 +67,36 @@ func getTagsKeysWithParsedParams(ctx context.Context, params tagsKeysQueryParams
 	return http.StatusOK, response
 }
 
+// getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
+func GetTagsKeysWithParsedParams(ctx context.Context, params TagsKeysQueryParams) (error, TagsKeys) {
+	var typedDocument esTagsKeysResult
+	var response = TagsKeys{}
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	res, returnCode, err := makeElasticSearchRequestForTagsKeys(ctx, params, es.Client)
+	if err != nil {
+		if returnCode == http.StatusOK {
+			return err, response
+		}
+		return errors.GetErrorMessage(ctx, err), nil
+	}
+	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
+	if err != nil {
+		l.Error("Error while unmarshaling", err)
+		return errors.GetErrorMessage(ctx, err), nil
+	}
+	for _, key := range typedDocument.Keys.Buckets {
+		response = append(response, key.Key)
+	}
+	return nil, response
+}
+
 // makeElasticSearchRequestForTagsKeys will make the actual request to the ElasticSearch
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQueryParams,
+func makeElasticSearchRequestForTagsKeys(ctx context.Context, params TagsKeysQueryParams,
 	client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := getTagsKeysQuery(params)
@@ -103,7 +126,7 @@ func makeElasticSearchRequestForTagsKeys(ctx context.Context, params tagsKeysQue
 }
 
 // getTagsKeysQuery will generate a query for the ElasticSearch based on params
-func getTagsKeysQuery(params tagsKeysQueryParams) *elastic.BoolQuery {
+func getTagsKeysQuery(params TagsKeysQueryParams) *elastic.BoolQuery {
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(params.AccountList))

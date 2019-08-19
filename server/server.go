@@ -66,6 +66,7 @@ var tasks = map[string]func(context.Context) error{
 	"anomalies-detection":         taskAnomaliesDetection,
 	"check-user-entitlement":      taskCheckEntitlement,
 	"generate-spreadsheet":        taskSpreadsheet,
+	"generate-tags-spreadsheet":   taskTagsSpreadsheet,
 	"generate-master-spreadsheet": taskMasterSpreadsheet,
 	"update-aws-identity":         taskUpdateAwsIdentity,
 	"check-cost":                  taskCheckCost,

@@ -123,6 +123,31 @@ func getTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryPa
 	return http.StatusOK, response
 }
 
+// getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
+func GetTagsValuesWithParsedParamsForSheet(ctx context.Context, params TagsValuesQueryParams) (error, TagsValuesResponse) {
+	response := TagsValuesResponse{}
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	var typedDocument esTagsValuesDetailedResult
+	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
+	if err != nil {
+		if returnCode == http.StatusOK {
+			return err, nil
+		}
+		return errors.GetErrorMessage(ctx, err), nil
+	}
+	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
+	if err != nil {
+		l.Error("Error while unmarshaling", err)
+		return errors.GetErrorMessage(ctx, err), nil
+	}
+	if params.Detailed == true {
+		response = getTagsResponseDetailed(typedDocument, params)
+	} else {
+		response = getTagsResponse(typedDocument, params)
+	}
+	return nil, response
+}
+
 //getTagsResponseDetailed get response for tagging when detailed is true
 func getTagsResponseDetailed(typedDocument esTagsValuesDetailedResult, params TagsValuesQueryParams) TagsValuesResponse {
 	response := TagsValuesResponse{}
