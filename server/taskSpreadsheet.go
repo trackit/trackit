@@ -47,6 +47,22 @@ func taskSpreadsheet(ctx context.Context) error {
 	}
 }
 
+// taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.
+func taskTagsSpreadsheet(ctx context.Context) error {
+	args := flag.Args()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Debug("Running task 'Spreadsheet Tags'.", map[string]interface{}{
+		"args": args,
+	})
+
+	aaId, date, err := checkArguments(args)
+	if err != nil {
+		return err
+	} else {
+		return generateTagsReport(ctx, aaId, date)
+	}
+}
+
 func checkArguments(args []string) (int, time.Time, error) {
 	var aaId int
 	var date time.Time
@@ -97,6 +113,40 @@ func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	}
 	if err != nil {
 		logger.Error("Error while generating spreadsheet report.", map[string]interface{}{
+			"awsAccountId": aaId,
+			"error":        err.Error(),
+		})
+		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, err, nil, forceGeneration)
+	}
+	return
+}
+
+func generateTagsReport(ctx context.Context, aaId int, date time.Time) (err error) {
+	var tx *sql.Tx
+	var aa aws.AwsAccount
+	var updateId int64
+	var generation bool
+	forceGeneration := !date.IsZero()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	defer func() {
+		if tx != nil {
+			if err != nil {
+				tx.Rollback()
+			} else {
+				tx.Commit()
+			}
+		}
+	}()
+	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
+	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if generation, err = checkReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
+	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
+	} else {
+		errs := reports.GenerateTagsReport(ctx, aa, nil, date)
+		updateAccountReportGenerationCompletion(ctx, aaId, db.Db, updateId, nil, errs, forceGeneration)
+	}
+	if err != nil {
+		logger.Error("Error while generating spreadsheet tags report.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
 		})
