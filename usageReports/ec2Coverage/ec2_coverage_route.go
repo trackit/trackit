@@ -16,6 +16,7 @@ package ec2Coverage
 
 import (
 	"database/sql"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"time"
 
@@ -31,6 +32,7 @@ type (
 		AccountList []string
 		IndexList   []string
 		Date        time.Time
+		Pagination  pagination.Pagination
 	}
 )
 
@@ -39,6 +41,8 @@ var (
 	ec2CoverageQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
+		routes.PaginationNumberElementsQueryArg,
+		routes.PaginationPageQueryArg,
 	}
 )
 
@@ -64,6 +68,7 @@ func getEc2CoverageReservations(request *http.Request, a routes.Arguments) (int,
 	parsedParams := Ec2CoverageQueryParams{
 		AccountList: []string{},
 		Date:        a[routes.DateQueryArg].(time.Time),
+		Pagination:  pagination.NewPagination(a),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
 		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)

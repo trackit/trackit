@@ -127,6 +127,7 @@ func makeElasticSearchRequestForTagsValues(ctx context.Context, params tagsValue
 	filter := getTagsValuesFilter(params.By)
 	query := getTagsValuesQuery(params)
 	index := strings.Join(params.IndexList, ",")
+	fmt.Printf("Index list is '%v'\n", index)
 	aggregation := elastic.NewReverseNestedAggregation().
 		SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
 			SubAggregation("cost", elastic.NewSumAggregation().Field("unblendedCost")))

@@ -16,6 +16,7 @@ package ec2Coverage
 
 import (
 	"context"
+	"github.com/trackit/trackit/pagination"
 	"strconv"
 	"strings"
 	"time"
@@ -138,7 +139,12 @@ func PutEc2MonthlyCoverageReport(ctx context.Context, aa taws.AwsAccount, start,
 	} else if user, err := users.GetUserWithId(tx, aa.UserId); err != nil {
 		logger.Error("Failed to get User by Id", err.Error())
 		return false, err
-	} else if _, instances, err := ec2.GetEc2Data(ctx, ec2.Ec2QueryParams{[]string{aa.AwsIdentity}, nil, start}, user, tx); err != nil {
+	} else if _, instances, err := ec2.GetEc2Data(ctx, ec2.Ec2QueryParams{
+		AccountList: []string{aa.AwsIdentity},
+		IndexList:   nil,
+		Date:        start,
+		Pagination:  pagination.NewPagination(nil),
+	}, user, tx); err != nil {
 		return false, err
 	} else if creds, err := taws.GetTemporaryCredentials(aa, "monitor-coverage"); err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())

@@ -16,6 +16,7 @@ package lambda
 
 import (
 	"database/sql"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"time"
 
@@ -31,6 +32,7 @@ type (
 		AccountList []string
 		IndexList   []string
 		Date        time.Time
+		Pagination  pagination.Pagination
 	}
 )
 
@@ -39,6 +41,8 @@ var (
 	lambdaQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
+		routes.PaginationPageQueryArg,
+		routes.PaginationNumberElementsQueryArg,
 	}
 )
 
@@ -64,14 +68,15 @@ func getLambdaFunctions(request *http.Request, a routes.Arguments) (int, interfa
 	parsedParams := LambdaQueryParams{
 		AccountList: []string{},
 		Date:        a[routes.DateQueryArg].(time.Time),
+		Pagination:  pagination.NewPagination(a),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
 		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
-	returnCode, report, err := GetLambdaData(request.Context(), parsedParams, user, tx)
+	returnCode, report, parsedParams, err := GetLambdaData(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err
 	} else {
-		return returnCode, report
+		return returnCode, pagination.WrapPagination(parsedParams.Pagination, report)
 	}
 }

@@ -16,6 +16,7 @@ package ec2
 
 import (
 	"database/sql"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"time"
 
@@ -31,6 +32,7 @@ type (
 		AccountList []string
 		IndexList   []string
 		Date        time.Time
+		Pagination  pagination.Pagination
 	}
 
 	// Ec2UnusedQueryParams will store the parsed query params
@@ -47,6 +49,8 @@ var (
 	ec2QueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
+		routes.PaginationPageQueryArg,
+		routes.PaginationNumberElementsQueryArg,
 	}
 
 	// ec2UnusedQueryArgs allows to get required queryArgs params
@@ -96,10 +100,12 @@ func getEc2Instances(request *http.Request, a routes.Arguments) (int, interface{
 	parsedParams := Ec2QueryParams{
 		AccountList: []string{},
 		Date:        a[routes.DateQueryArg].(time.Time),
+		Pagination:  pagination.NewPagination(a),
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
 		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
+	//fmt.Printf("pagination => %+v\n", parsedParams.pagination)
 	returnCode, report, err := GetEc2Data(request.Context(), parsedParams, user, tx)
 	if err != nil {
 		return returnCode, err

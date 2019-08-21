@@ -20,8 +20,6 @@ import (
 	"github.com/olivere/elastic"
 )
 
-const maxAggregationSize = 0x7FFFFFFF
-
 // getDateForDailyReport returns the end and the begin of the date of the report based on a date
 // if the date given as parameter is in the actual month, it returns the the the begin of the month et now at midnight
 // if the date is before the actual month, it returns the begin and the end of the month given as parameter
@@ -59,6 +57,10 @@ func createQueryAccountFilterLambda(accountList []string) *elastic.TermsQuery {
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
 func getElasticSearchLambdaDailyParams(params LambdaQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+	//cardinalitySearch := elastic.NewCardinalityAggregation().Field("account")
+	//src, _ := cardinalitySearch.Source()
+	//data, _ := json.Marshal(src)
+	//fmt.Printf("Data from cardinality: %v\n", string(data))
 	query := elastic.NewBoolQuery()
 	if len(params.AccountList) > 0 {
 		query = query.Filter(createQueryAccountFilterLambda(params.AccountList))
@@ -70,6 +72,6 @@ func getElasticSearchLambdaDailyParams(params LambdaQueryParams, client *elastic
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
-			SubAggregation("functions", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
+			SubAggregation("functions", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(params.Pagination.Elements))))
 	return search
 }

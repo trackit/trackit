@@ -16,6 +16,7 @@ package es
 
 import (
 	"database/sql"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"time"
 
@@ -31,6 +32,7 @@ type (
 		AccountList []string
 		IndexList   []string
 		Date        time.Time
+		Pagination  pagination.Pagination
 	}
 
 	// Ec2UnusedQueryParams will store the parsed query params
@@ -39,6 +41,7 @@ type (
 		IndexList   []string
 		Date        time.Time
 		Count       int
+		Pagination  pagination.Pagination
 	}
 )
 
@@ -47,6 +50,8 @@ var (
 	esQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
+		routes.PaginationPageQueryArg,
+		routes.PaginationNumberElementsQueryArg,
 	}
 
 	// esUnusedQueryArgs allows to get required queryArgs params
@@ -59,6 +64,8 @@ var (
 			Description: "Number of element in the response, all if not specified or negative",
 			Optional:    true,
 		},
+		routes.PaginationPageQueryArg,
+		routes.PaginationNumberElementsQueryArg,
 	}
 )
 
@@ -96,6 +103,7 @@ func getESDomains(request *http.Request, a routes.Arguments) (int, interface{}) 
 	parsedParams := EsQueryParams{
 		AccountList: []string{},
 		Date:        a[esQueryArgs[1]].(time.Time),
+		Pagination:  pagination.NewPagination(a),
 	}
 	if a[esQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[esQueryArgs[0]].([]string)
@@ -116,6 +124,7 @@ func getESUnusedDomains(request *http.Request, a routes.Arguments) (int, interfa
 		AccountList: []string{},
 		Date:        a[esUnusedQueryArgs[1]].(time.Time),
 		Count:       -1,
+		Pagination:  pagination.NewPagination(a),
 	}
 	if a[esUnusedQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[esUnusedQueryArgs[0]].([]string)

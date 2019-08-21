@@ -15,6 +15,7 @@
 package ec2
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/olivere/elastic"
@@ -67,10 +68,11 @@ func getElasticSearchEc2DailyParams(params Ec2QueryParams, client *elastic.Clien
 	dateStart, dateEnd := getDateForDailyReport(params.Date)
 	query = query.Filter(elastic.NewRangeQuery("reportDate").
 		From(dateStart).To(dateEnd))
-	search := client.Search().Index(index).Size(0).Query(query)
+	fmt.Printf("pagination inside daily report func => '%+v' + %v\n", params.Pagination, params.Pagination.GetFromValue())
+	search := client.Search().Index(index).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
-			SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
+			SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(params.Pagination.Elements).From(params.Pagination.GetFromValue()))))
 	return search
 }
 
@@ -94,7 +96,7 @@ func getElasticSearchEc2MonthlyParams(params Ec2QueryParams, client *elastic.Cli
 	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
+		SubAggregation("instances", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(params.Pagination.Elements).From(params.Pagination.GetFromValue())))
 	return search
 }
 

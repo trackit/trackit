@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"strings"
 
@@ -128,7 +129,7 @@ func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User,
 
 // GetEsUnusedData gets ES reports and parse them based on query params to have an array of unused domains
 func GetEsUnusedData(ctx context.Context, params EsUnusedQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
-	returnCode, reports, err := GetEsData(ctx, EsQueryParams{params.AccountList, nil, params.Date}, user, tx)
+	returnCode, reports, err := GetEsData(ctx, EsQueryParams{params.AccountList, nil, params.Date, pagination.NewPagination(nil)}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}

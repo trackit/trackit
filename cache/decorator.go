@@ -16,6 +16,7 @@ package cache
 
 import (
 	"database/sql"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"os"
 	"time"
@@ -100,7 +101,7 @@ func (uc UsersCache) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 				deleteUserCache(rdCache, logger)
 			} else {
 				writeHeaderCacheStatus(writer, cacheStatusUsed)
-				return http.StatusOK, retrieveCache
+				return http.StatusOK, pagination.WrapPagination(pagination.NewPagination(args), retrieveCache)
 			}
 		}
 		status, routeData := hf(writer, request, args)

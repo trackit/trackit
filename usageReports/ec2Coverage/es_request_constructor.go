@@ -49,6 +49,6 @@ func getElasticSearchEc2CoverageMonthlyParams(params Ec2CoverageQueryParams, cli
 	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("reservations", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
+		SubAggregation("reservations", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(params.Pagination.Elements).From(params.Pagination.GetFromValue())))
 	return search
 }

@@ -16,6 +16,7 @@ package plugins_account_network_ec2
 
 import (
 	"fmt"
+	"github.com/trackit/trackit/pagination"
 	"time"
 
 	"github.com/trackit/trackit/db"
@@ -80,7 +81,12 @@ func processNetworkEc2(params core.PluginParams) (res core.PluginResult) {
 		return
 	}
 	_, instances, err := ec2.GetEc2Data(params.Context,
-		ec2.Ec2QueryParams{[]string{params.AccountId}, nil, time.Now().UTC()},
+		ec2.Ec2QueryParams{
+			AccountList: []string{params.AccountId},
+			IndexList:   nil,
+			Date:        time.Now().UTC(),
+			Pagination:  pagination.NewPagination(nil),
+		},
 		params.User, tx)
 	if err != nil {
 		res.Status = "red"

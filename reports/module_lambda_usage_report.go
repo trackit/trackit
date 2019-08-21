@@ -57,7 +57,7 @@ func lambdaUsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, d
 	return
 }
 
-func lambdaUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []lambda.FunctionReport, err error) {
+	func lambdaUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []lambda.FunctionReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	identities := getAwsIdentities(aas)
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
@@ -72,7 +72,7 @@ func lambdaUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date ti
 		"accounts": aas,
 		"date":     date,
 	})
-	_, reports, err = lambda.GetLambdaData(ctx, parameters, user, tx)
+	_, reports, parameters, err = lambda.GetLambdaData(ctx, parameters, user, tx)
 	if err != nil {
 		logger.Error("An error occurred while generating an Lambda Usage Report", map[string]interface{}{
 			"error":    err,

@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"strings"
 
@@ -48,6 +49,9 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams LambdaQueryParam
 		index,
 	)
 	res, err := searchService.Do(ctx)
+	if res != nil && res.Hits != nil {
+		fmt.Printf("Total hits from es requestion: %v\n", res.TotalHits())
+	}
 	if err != nil {
 		if elastic.IsNotFound(err) {
 			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
@@ -69,31 +73,47 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams LambdaQueryParam
 }
 
 // GetLambdaDailyFunctions does an elastic request and returns an array of functions daily report based on query params
-func GetLambdaDailyFunctions(ctx context.Context, params LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, error) {
+func GetLambdaDailyFunctions(ctx context.Context, params LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, LambdaQueryParams, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSearchLambdaDailyParams)
+	//search.Aggregation("accounts", elastic.NewCompositeAggregation().Field("account"))
+	//val := elastic.NewCompositeAggregation().
+	//	SubAggregation("compose", elastic.NewCompositeAggregation().Size(5).Sources(elastic.NewCompositeAggregationTermsValuesSource("by_dates").Field("reportDate"))).
+	//	SubAggregation("accounts", elastic.NewTermsAggregation().Field("account").
+	//		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
+	//			SubAggregation("functions", elastic.NewTopHitsAggregation().Sort("reportDate", false))))
+	//valSource, _ := val.Source()
+	//data, _ := json.Marshal(valSource)
+	//searchComposite, err := es.Client.Search().Source(valSource).Do(ctx)
+	//if searchComposite != nil && searchComposite.Hits != nil {
+	//	fmt.Printf("Source for composite aggregation: '%+v' & total hits: %v\n", string(data), searchComposite.Hits.TotalHits)
+	//} else {
+	//	fmt.Print("Search composite is nil\n")
+	//}
 	if err != nil {
-		return returnCode, nil, err
+		return returnCode, nil, params, err
 	} else if res == nil {
-		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
+		return http.StatusInternalServerError, nil, params, errors.New("Error while getting data. Please check again in few hours.")
 	}
 	functions, err := prepareResponseLambdaDaily(ctx, res)
 	if err != nil {
-		return http.StatusInternalServerError, nil, err
+		return http.StatusInternalServerError, nil, params, err
 	}
-	return http.StatusOK, functions, nil
+	pagination.StoreTotalHits(&params.Pagination, res.Hits.TotalHits, len(functions))
+	return http.StatusOK, functions, params, nil
 }
 
 // GetLambdaData gets Lambda monthly reports based on query params, if there isn't a monthly report, it gets daily reports
-func GetLambdaData(ctx context.Context, parsedParams LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, error) {
+func GetLambdaData(ctx context.Context, parsedParams LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, LambdaQueryParams, error) {
 	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lambda.IndexPrefixLambdaReport)
 	if err != nil {
-		return returnCode, nil, err
+		return returnCode, nil, parsedParams, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	returnCode, dailyFunctions, err := GetLambdaDailyFunctions(ctx, parsedParams, user, tx)
+	returnCode, dailyFunctions, parsedParams, err := GetLambdaDailyFunctions(ctx, parsedParams, user, tx)
+	fmt.Printf("Daily func from parsed params, hits: %v\n", parsedParams.Pagination.TotalElements)
 	if err != nil {
-		return returnCode, nil, err
+		return returnCode, nil, parsedParams, err
 	}
-	return returnCode, dailyFunctions, nil
+	return returnCode, dailyFunctions, parsedParams, nil
 }

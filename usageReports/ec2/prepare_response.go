@@ -17,6 +17,7 @@ package ec2
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -188,13 +189,14 @@ func prepareResponseEc2Daily(ctx context.Context, resEc2 *elastic.SearchResult, 
 	var parsedEc2 ResponseEc2Daily
 	var parsedCost ResponseCost
 	instances := make([]InstanceReport, 0)
+	fmt.Printf("Aggregations from rece2: %v\n", resEc2.Aggregations)
 	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &parsedEc2.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EC2 response", err)
 		return nil, err
 	}
 	if resCost != nil {
-		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost.Accounts)
+		err = json.Unmarshal(*resCost.Aggregations["accounts"], &parsedCost)
 		if err != nil {
 			logger.Error("Error while unmarshaling ES cost response", err)
 		}

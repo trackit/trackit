@@ -69,7 +69,7 @@ func getElasticSearchEsDailyParams(params EsQueryParams, client *elastic.Client,
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
-			SubAggregation("domains", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
+			SubAggregation("domains", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(params.Pagination.Elements).From(params.Pagination.GetFromValue()))))
 	return search
 }
 
@@ -93,7 +93,7 @@ func getElasticSearchEsMonthlyParams(params EsQueryParams, client *elastic.Clien
 	query = query.Filter(elastic.NewTermQuery("reportDate", params.Date))
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("domains", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize)))
+		SubAggregation("domains", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(params.Pagination.Elements).From(params.Pagination.GetFromValue())))
 	return search
 }
 

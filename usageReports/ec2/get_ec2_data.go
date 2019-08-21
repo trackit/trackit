@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/trackit/trackit/pagination"
 	"net/http"
 	"strings"
 
@@ -65,6 +66,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2QueryParams,
 		}
 		return nil, http.StatusInternalServerError, terrors.GetErrorMessage(ctx, err)
 	}
+	//fmt.Printf("Hits: %v\n", res.Hits.TotalHits)
 	return res, http.StatusOK, nil
 }
 
@@ -97,11 +99,14 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	}
 	params.AccountList = accountsAndIndexes.Accounts
 	params.IndexList = accountsAndIndexes.Indexes
+	fmt.Printf("Inside getec2daily instance w/ %v hits w/ a size of %v\n", res.Hits.TotalHits, len(res.Hits.Hits))
 	costRes, _, _ := makeElasticSearchRequest(ctx, params, getElasticSearchCostParams)
+	fmt.Printf("After doing es request => %v\n", costRes.Hits.TotalHits)
 	instances, err := prepareResponseEc2Daily(ctx, res, costRes)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
+	fmt.Printf("Instance from daily report: %v\n", len(instances))
 	return http.StatusOK, instances, nil
 }
 
@@ -128,7 +133,7 @@ func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.Use
 
 // GetEc2UnusedData gets EC2 reports and parse them based on query params to have an array of unused instances
 func GetEc2UnusedData(ctx context.Context, params Ec2UnusedQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	returnCode, instances, err := GetEc2Data(ctx, Ec2QueryParams{params.AccountList, nil, params.Date}, user, tx)
+	returnCode, instances, err := GetEc2Data(ctx, Ec2QueryParams{params.AccountList, nil, params.Date, pagination.NewPagination(nil)}, user, tx)
 	if err != nil {
 		return returnCode, nil, err
 	}

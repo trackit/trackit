@@ -61,7 +61,7 @@ func createUserCache(rdCache redisCache, data interface{}, logger jsonlog.Logger
 		return
 	}
 	var err error
-	rdCache.cacheContent, err = json.Marshal(data)
+	rdCache.cacheContent, err = json.Marshal(data) // Produce a JSON document
 	if err != nil {
 		logger.Error("Unable to marshal API content to create cache.", map[string]interface{}{
 			"error":   err.Error(),
@@ -69,9 +69,9 @@ func createUserCache(rdCache redisCache, data interface{}, logger jsonlog.Logger
 		})
 		return
 	}
-	cmdStat := mainClient.Append(rdCache.key, string(rdCache.cacheContent))
+	cmdStat := mainClient.Append(rdCache.key, string(rdCache.cacheContent)) // Add the new key and content to Redis
 	if cmdStat.Err() == nil {
-		mainClient.Expire(rdCache.key, cacheExpireTime)
+		mainClient.Expire(rdCache.key, cacheExpireTime) // If there is no error, we set an expire, to the key recently created, time which is by default 24h
 	} else {
 		logger.Error("Unable to append content.", map[string]interface{}{
 			"error":   cmdStat.Err().Error(),

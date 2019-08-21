@@ -121,7 +121,7 @@ func s3CostReportGenerateHeader(file *excelize.File) {
 		newCell("Bandwidth", "E2"),
 		newCell("Requests", "F2"),
 		newCell("Total", "G2"),
-		newCell("Data Transfers (GigaBytes)", "H1").mergeTo("I1"),
+		newCell("data Transfers (GigaBytes)", "H1").mergeTo("I1"),
 		newCell("In", "H2"),
 		newCell("Out", "I2"),
 	}

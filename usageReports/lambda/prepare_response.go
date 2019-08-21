@@ -17,7 +17,7 @@ package lambda
 import (
 	"context"
 	"encoding/json"
-
+	"fmt"
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
@@ -86,6 +86,7 @@ func prepareResponseLambdaDaily(ctx context.Context, resLambda *elastic.SearchRe
 		logger.Error("Error while unmarshaling ES Lambda response", err)
 		return nil, err
 	}
+	fmt.Printf("Len: %v\n", len(parsedLambda.Accounts.Buckets[0].Dates.Buckets[0].Functions.Hits.Hits))
 	for _, account := range parsedLambda.Accounts.Buckets {
 		var lastDate = ""
 		for _, date := range account.Dates.Buckets {

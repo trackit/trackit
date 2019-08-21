@@ -82,7 +82,7 @@ var (
 	DateBeginQueryArg = QueryArg{
 		Name:        "begin",
 		Type:        QueryArgDate{},
-		Description: "Begining of date interval. Format is ISO8601",
+		Description: "Beginning of date interval. Format is ISO8601",
 		Optional:    false,
 	}
 
@@ -123,5 +123,19 @@ var (
 		Name:        "share-id",
 		Type:        QueryArgInt{},
 		Description: "The DB ID of the sharing",
+	}
+
+	PaginationPageQueryArg = QueryArg{
+		Name:         "page",
+		Type:         QueryArgInt{},
+		Description:  "The wanted page for pagination",
+		Optional:     true,
+	}
+
+	PaginationNumberElementsQueryArg = QueryArg{
+		Name:         "elements",
+		Type:         QueryArgInt{},
+		Description:  "The number of element per page",
+		Optional:     true,
 	}
 )
