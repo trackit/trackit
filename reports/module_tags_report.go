@@ -18,6 +18,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -157,7 +158,8 @@ func putProductDataInSheet(file *excelize.File, sheetName string, tag tags.TagsV
 	for _, product := range tag.Items {
 		productCostCells := make([]string, 0)
 		valueTypeExist := false
-		for _, usageType := range product.UsageTypes {
+		usageTypes := sortUsageTypesCosts(product.UsageTypes)
+		for _, usageType := range usageTypes {
 			if usageType.Cost != 0 {
 				usageTypeCells := cells{
 					newCell(usageType.UsageType, "C"+strconv.Itoa(maxColumn)),
@@ -181,6 +183,34 @@ func putProductDataInSheet(file *excelize.File, sheetName string, tag tags.TagsV
 		}
 	}
 	return maxColumn, totalCostCells, valueProductExist
+}
+
+func sortUsageTypesCosts(usageTypes []tags.ValueDetailed) (sortTypes []tags.ValueDetailed) {
+	sortTypes = make([]tags.ValueDetailed, 0)
+	toSort := make([]float64, 0)
+	for _, usageType := range usageTypes {
+		toSort = append(toSort, usageType.Cost)
+	}
+	sort.Float64s(toSort)
+	sort.Sort(sort.Reverse(sort.Float64Slice(toSort)))
+	for _, numberSort := range toSort {
+		for _, usageType := range usageTypes {
+			if alreadySort := checkTypeIsSort(usageType.UsageType, sortTypes); !alreadySort && usageType.Cost == numberSort {
+				sortTypes = append(sortTypes, usageType)
+				break
+			}
+		}
+	}
+	return
+}
+
+func checkTypeIsSort(usageType string, sortTypes []tags.ValueDetailed) bool {
+	for _, sortType := range sortTypes {
+		if sortType.UsageType == usageType {
+			return true
+		}
+	}
+	return false
 }
 
 func tagsUsageReportGenerateHeader(file *excelize.File, key string) {
