@@ -45,49 +45,26 @@ type (
 const maxAggregationSize = 0x7FFFFFFF
 
 // getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsKeysWithParsedParams(ctx context.Context, params TagsKeysQueryParams) (int, interface{}) {
+func GetTagsKeysWithParsedParams(ctx context.Context, params TagsKeysQueryParams) (int, TagsKeys, error) {
 	var typedDocument esTagsKeysResult
 	var response = TagsKeys{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	res, returnCode, err := makeElasticSearchRequestForTagsKeys(ctx, params, es.Client)
 	if err != nil {
 		if returnCode == http.StatusOK {
-			return returnCode, response
+			return returnCode, response, err
 		}
-		return returnCode, errors.GetErrorMessage(ctx, err)
+		return returnCode, nil, errors.GetErrorMessage(ctx, err)
 	}
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
-		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
+		return http.StatusInternalServerError, nil, errors.GetErrorMessage(ctx, err)
 	}
 	for _, key := range typedDocument.Keys.Buckets {
 		response = append(response, key.Key)
 	}
-	return http.StatusOK, response
-}
-
-// getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
-func GetTagsKeysWithParsedParams(ctx context.Context, params TagsKeysQueryParams) (error, TagsKeys) {
-	var typedDocument esTagsKeysResult
-	var response = TagsKeys{}
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	res, returnCode, err := makeElasticSearchRequestForTagsKeys(ctx, params, es.Client)
-	if err != nil {
-		if returnCode == http.StatusOK {
-			return err, response
-		}
-		return errors.GetErrorMessage(ctx, err), nil
-	}
-	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
-	if err != nil {
-		l.Error("Error while unmarshaling", err)
-		return errors.GetErrorMessage(ctx, err), nil
-	}
-	for _, key := range typedDocument.Keys.Buckets {
-		response = append(response, key.Key)
-	}
-	return nil, response
+	return http.StatusOK, response, nil
 }
 
 // makeElasticSearchRequestForTagsKeys will make the actual request to the ElasticSearch

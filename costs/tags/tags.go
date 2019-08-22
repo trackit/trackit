@@ -151,5 +151,9 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	return getTagsKeysWithParsedParams(request.Context(), parsedParams)
+	returnCode, res, err := GetTagsKeysWithParsedParams(request.Context(), parsedParams)
+	if returnCode == http.StatusOK {
+		return returnCode, res
+	}
+	return returnCode, err
 }
