@@ -105,7 +105,7 @@ func GenerateTagsReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAcc
 	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
 		err := generateTagsUsageReportSheet(ctx, aas, date, tx, file.File)
 		if err != nil {
-			errs["tagsUsageReportError"] = err
+			errs["tagsError"] = err
 		}
 		file.File.DeleteSheet(file.File.GetSheetName(1))
 		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, TagsReport)

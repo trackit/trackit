@@ -43,7 +43,7 @@ var tagsUsageReportModule = module{
 	GenerateSheet: generateTagsUsageReportSheet,
 }
 
-// generateEc2UsageReportSheet will generate a sheet with Tags usage report
+// generateTagsUsageReportSheet will generate a sheet with Tags usage report
 // It will get data for given AWS account and for a given date
 func generateTagsUsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
@@ -72,7 +72,7 @@ func getTagsKey(ctx context.Context, parsedParams tags.TagsValuesQueryParams) ([
 		DateBegin:   parsedParams.DateBegin,
 		DateEnd:     parsedParams.DateEnd,
 	}
-	err, keys := tags.GetTagsKeysWithParsedParams(ctx, parsedParamsKeys)
+	_, keys, err := tags.GetTagsKeysWithParsedParams(ctx, parsedParamsKeys)
 	if err != nil {
 		logger.Error("Error when getting Tags Keys", err)
 		return nil, err
@@ -185,34 +185,6 @@ func putProductDataInSheet(file *excelize.File, sheetName string, tag tags.TagsV
 	return maxColumn, totalCostCells, valueProductExist
 }
 
-func sortUsageTypesCosts(usageTypes []tags.ValueDetailed) (sortTypes []tags.ValueDetailed) {
-	sortTypes = make([]tags.ValueDetailed, 0)
-	toSort := make([]float64, 0)
-	for _, usageType := range usageTypes {
-		toSort = append(toSort, usageType.Cost)
-	}
-	sort.Float64s(toSort)
-	sort.Sort(sort.Reverse(sort.Float64Slice(toSort)))
-	for _, numberSort := range toSort {
-		for _, usageType := range usageTypes {
-			if alreadySort := checkTypeIsSort(usageType.UsageType, sortTypes); !alreadySort && usageType.Cost == numberSort {
-				sortTypes = append(sortTypes, usageType)
-				break
-			}
-		}
-	}
-	return
-}
-
-func checkTypeIsSort(usageType string, sortTypes []tags.ValueDetailed) bool {
-	for _, sortType := range sortTypes {
-		if sortType.UsageType == usageType {
-			return true
-		}
-	}
-	return false
-}
-
 func tagsUsageReportGenerateHeader(file *excelize.File, key string) {
 	header := cells{
 		newCell("Tags", "A1"),
@@ -268,4 +240,32 @@ func generateLinearChart(ctx context.Context, file *excelize.File, sheetName, da
 		logger.Error("Error when generating the chart", err)
 	}
 	return nil
+}
+
+func sortUsageTypesCosts(usageTypes []tags.ValueDetailed) (sortTypes []tags.ValueDetailed) {
+	sortTypes = make([]tags.ValueDetailed, 0)
+	toSort := make([]float64, 0)
+	for _, usageType := range usageTypes {
+		toSort = append(toSort, usageType.Cost)
+	}
+	sort.Float64s(toSort)
+	sort.Sort(sort.Reverse(sort.Float64Slice(toSort)))
+	for _, numberSort := range toSort {
+		for _, usageType := range usageTypes {
+			if alreadySort := checkTypeIsSort(usageType.UsageType, sortTypes); !alreadySort && usageType.Cost == numberSort {
+				sortTypes = append(sortTypes, usageType)
+				break
+			}
+		}
+	}
+	return
+}
+
+func checkTypeIsSort(usageType string, sortTypes []tags.ValueDetailed) bool {
+	for _, sortType := range sortTypes {
+		if sortType.UsageType == usageType {
+			return true
+		}
+	}
+	return false
 }
