@@ -99,53 +99,28 @@ type (
 )
 
 // getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
-func getTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryParams) (int, interface{}) {
+func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryParams) (int, TagsValuesResponse, error) {
 	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTagsValuesDetailedResult
 	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
 	if err != nil {
 		if returnCode == http.StatusOK {
-			return returnCode, response
+			return returnCode, nil, err
 		}
-		return returnCode, errors.GetErrorMessage(ctx, err)
+		return returnCode, nil, errors.GetErrorMessage(ctx, err)
 	}
 	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
 	if err != nil {
 		l.Error("Error while unmarshaling", err)
-		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
+		return http.StatusInternalServerError, nil, errors.GetErrorMessage(ctx, err)
 	}
 	if params.Detailed == true {
 		response = getTagsResponseDetailed(typedDocument, params)
 	} else {
 		response = getTagsResponse(typedDocument, params)
 	}
-	return http.StatusOK, response
-}
-
-// getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
-func GetTagsValuesWithParsedParamsForSheet(ctx context.Context, params TagsValuesQueryParams) (error, TagsValuesResponse) {
-	response := TagsValuesResponse{}
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	var typedDocument esTagsValuesDetailedResult
-	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
-	if err != nil {
-		if returnCode == http.StatusOK {
-			return err, nil
-		}
-		return errors.GetErrorMessage(ctx, err), nil
-	}
-	err = json.Unmarshal(*res.Aggregations["data"], &typedDocument)
-	if err != nil {
-		l.Error("Error while unmarshaling", err)
-		return errors.GetErrorMessage(ctx, err), nil
-	}
-	if params.Detailed == true {
-		response = getTagsResponseDetailed(typedDocument, params)
-	} else {
-		response = getTagsResponse(typedDocument, params)
-	}
-	return nil, response
+	return http.StatusOK, response, err
 }
 
 //getTagsResponseDetailed get response for tagging when detailed is true

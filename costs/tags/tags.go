@@ -114,7 +114,11 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	if getTagsValuesFilter(parsedParams.By).Filter == "error" {
 		return http.StatusBadRequest, errors.New("Invalid filter: " + parsedParams.By)
 	}
-	return getTagsValuesWithParsedParams(request.Context(), parsedParams)
+	returnCode, res, err := GetTagsValuesWithParsedParams(request.Context(), parsedParams)
+	if returnCode == http.StatusOK {
+		return returnCode, res
+	}
+	return returnCode, err
 }
 
 // tagsKeysQueryArgs allows to get required queryArgs params for /tags/keys endpoint
