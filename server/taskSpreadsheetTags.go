@@ -16,10 +16,10 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"time"
 
-	"database/sql"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
@@ -36,7 +36,6 @@ func taskTagsSpreadsheet(ctx context.Context) error {
 	logger.Debug("Running task 'Spreadsheet Tags'.", map[string]interface{}{
 		"args": args,
 	})
-
 	aaId, date, err := checkArguments(args)
 	if err != nil {
 		return err
@@ -149,7 +148,7 @@ func registerAccountTagsReportGenerationCompletion(db *sql.DB, aaId int, updateI
 		if err != nil {
 			return err
 		}
-		dbAccount.LastSpreadsheetReportGeneration = date
+		dbAccount.LastTagsSpreadsheetReportGeneration = date
 		err = dbAccount.Update(db)
 	}
 	return err
