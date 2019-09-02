@@ -112,7 +112,7 @@ func tagsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time
 		"accounts": aas,
 		"date":     date,
 	})
-	err, reports = tags.GetTagsValuesWithParsedParamsForSheet(ctx, parsedParams)
+	_, reports, err = tags.GetTagsValuesWithParsedParams(ctx, parsedParams)
 	return
 }
 
