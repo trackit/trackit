@@ -43,5 +43,4 @@ var modules = []module{
 	ebsUsageReportModule,
 	instanceCountUsageReportModule,
 	riEc2ReportModule,
-	tagsUsageReportModule,
 }

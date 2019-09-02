@@ -965,3 +965,6 @@ CREATE TABLE aws_account_tags_reports_job (
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 );
+
+ALTER TABLE aws_account ADD last_tags_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+ALTER TABLE aws_account ADD next_tags_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
