@@ -42,7 +42,7 @@ services:
       - AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
     ports:
-      - '127.0.0.1:8580:80'
+      - '127.0.0.1:8080:80'
     networks:
       - app
 networks:
