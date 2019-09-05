@@ -30,8 +30,9 @@ import (
 // patchAwsAccountRequestBody is all the possible bodies for the
 // patchAwsAccount request handler.
 type patchAwsAccountRequestBody struct {
-	Pretty string `json:"pretty"`
-	Payer  bool   `json:"payer"`
+	Pretty  string `json:"pretty"`
+	Payer   bool   `json:"payer"`
+	RoleArn string `json:"roleArn"`
 }
 
 var (
@@ -49,7 +50,7 @@ func patchAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 		id := a[routes.AwsAccountIdQueryArg].(int)
 		return patchAwsAccountWithValidBody(r, tx, u, body, int(id))
 	} else {
-		return 400, errors.New("body is invalid")
+		return http.StatusBadRequest, errors.New("body is invalid")
 	}
 }
 
@@ -62,13 +63,14 @@ func patchAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, 
 	if err == nil {
 		awsAccount.Pretty = body.Pretty
 		awsAccount.Payer = body.Payer
+		awsAccount.RoleArn = body.RoleArn
 		if err := awsAccount.UpdatePrettyAwsAccount(ctx, tx); err != nil {
 			logger.Error("failed to update AWS Account", err)
-			return 500, errFailUpdateAccount
+			return http.StatusInternalServerError, errFailUpdateAccount
 		}
 	} else {
 		logger.Error("failed to get user's AWS accounts", err.Error())
-		return 500, errors.New("failed to retrieve AWS accounts")
+		return http.StatusInternalServerError, errors.New("failed to retrieve AWS accounts")
 	}
-	return 200, awsAccount
+	return http.StatusOK, awsAccount
 }
