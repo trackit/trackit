@@ -79,7 +79,7 @@ $> sudo sysctl -w vm.max_map_count=262144
 
 #### 4. Now you can use TrackIt
 
-TrackIt API is now listening on `localhost:8580`
+TrackIt API is now listening on `localhost:8080`
 
 ## Web UI
 
