@@ -297,11 +297,11 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 // RunOnDemandToRiEc2 generates a report listing the unreserved instances and the
 // savings that can be done by buying reservations
 // The result is saved into ES
-func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
+func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount, now time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	report := OdToRiEc2Report{
 		Account:    aa.AwsIdentity,
-		ReportDate: time.Now().UTC(),
+		ReportDate: now,
 	}
 	logger.Info("Generating on demand to reserved instances EC2 report", map[string]interface{}{"awsAccountId": aa.Id})
 	reservationsReport, err := getRIReport(ctx, aa)

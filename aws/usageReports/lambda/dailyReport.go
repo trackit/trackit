@@ -67,7 +67,7 @@ func fetchDailyFunctionsList(ctx context.Context, creds *credentials.Credentials
 // FetchDailyFunctionsStats fetches the stats of the Lambda functions of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchFunctionsStats should be called every hour.
-func FetchDailyFunctionsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+func FetchDailyFunctionsStats(ctx context.Context, awsAccount taws.AwsAccount, now time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching Lambda function stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorFunctionStsSessionName)
@@ -79,7 +79,6 @@ func FetchDailyFunctionsStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
-	now := time.Now().UTC()
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())

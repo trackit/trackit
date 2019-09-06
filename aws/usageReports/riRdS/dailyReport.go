@@ -68,7 +68,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 }
 
 // FetchDailyInstanceStats retrieves RDS information from the AWS API and generates a report
-func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount) error {
+func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount, now time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching Reserved RDS instance stats", map[string]interface{}{"awsAccountId": aa.Id})
 	creds, err := taws.GetTemporaryCredentials(aa, RDSStsSessionName)
@@ -80,7 +80,6 @@ func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount) error {
 		Credentials: creds,
 		Region:      aws.String(config.AwsRegion),
 	}))
-	now := time.Now().UTC()
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())

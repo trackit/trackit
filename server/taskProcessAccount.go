@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -39,6 +40,33 @@ import (
 	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 )
 
+const invalidAccId = -1
+
+var invalidTime = time.Time{}
+
+func checkArgumentsForProcessAccount(args []string) (int, time.Time, error) {
+	if len(args) < 1 {
+		return invalidAccId, invalidTime, errors.New("process account task requires at least an integer argument as AWS Account UD")
+	}
+	accId, err := strconv.Atoi(args[0])
+	if err != nil {
+		return invalidAccId, invalidTime, err
+	}
+	now := time.Now().UTC()
+	if len(args) == 3 {
+		if month, err := strconv.Atoi(args[1]); err != nil {
+			return invalidAccId, invalidTime, err
+		} else if year, err := strconv.Atoi(args[2]); err != nil {
+			return invalidAccId, invalidTime, err
+		} else {
+			formattedMonth := time.Month(month)
+			date := time.Date(year, formattedMonth, 1, 0, 0, 0, 0, now.Location()).UTC()
+			return accId, date, nil
+		}
+	}
+	return accId, time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, now.Location()).UTC(), nil
+}
+
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
 func taskProcessAccount(ctx context.Context) error {
 	args := flag.Args()
@@ -46,17 +74,17 @@ func taskProcessAccount(ctx context.Context) error {
 	logger.Debug("Running task 'process-account'.", map[string]interface{}{
 		"args": args,
 	})
-	if len(args) != 1 {
-		return errors.New("taskProcessAccount requires an integer argument")
-	} else if aaId, err := strconv.Atoi(args[0]); err != nil {
+	aaId, date, err := checkArgumentsForProcessAccount(args)
+	if err != nil {
 		return err
-	} else {
-		return ingestDataForAccount(ctx, aaId)
 	}
+	fmt.Printf("Perferming process acc on accid: %v & date: '%v'\n", aaId, date.String())
+	return ingestDataForAccount(ctx, aaId, date)
+
 }
 
 // ingestDataForAccount ingests the AWS api data for an AwsAccount.
-func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
+func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var updateId int64
@@ -74,15 +102,15 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
-		ec2Err := processAccountEC2(ctx, aa)
-		rdsErr := processAccountRDS(ctx, aa)
-		esErr := processAccountES(ctx, aa)
-		elastiCacheErr := processAccountElastiCache(ctx, aa)
-		lambdaErr := processAccountLambda(ctx, aa)
-		riEc2Err := riEc2.FetchDailyReservationsStats(ctx, aa)
-		riRdsErr := riRdS.FetchDailyInstancesStats(ctx, aa)
-		odToRiEc2Err := onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
-		ebsErr := processAccountEbsSnapshot(ctx, aa)
+		ec2Err := processAccountEC2(ctx, aa, date)
+		rdsErr := processAccountRDS(ctx, aa, date)
+		esErr := processAccountES(ctx, aa, date)
+		elastiCacheErr := processAccountElastiCache(ctx, aa, date)
+		lambdaErr := processAccountLambda(ctx, aa, date)
+		riEc2Err := riEc2.FetchDailyReservationsStats(ctx, aa, date)
+		riRdsErr := riRdS.FetchDailyInstancesStats(ctx, aa, date)
+		odToRiEc2Err := onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa, date)
+		ebsErr := processAccountEbsSnapshot(ctx, aa, date)
 		historyCreated, historyErr := processAccountHistory(ctx, aa)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
 	}
@@ -172,7 +200,7 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 }
 
 // processAccountRDS processes all the RDS data for an AwsAccount
-func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
+func processAccountRDS(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
 	err := rds.FetchDailyInstancesStats(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -185,8 +213,8 @@ func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountEC2 processes all the EC2 data for an AwsAccount
-func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
-	err := ec2.FetchDailyInstancesStats(ctx, aa)
+func processAccountEC2(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
+	err := ec2.FetchDailyInstancesStats(ctx, aa, date)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest EC2 data.", map[string]interface{}{
@@ -198,8 +226,8 @@ func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountES processes all the ES data for an AwsAccount
-func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
-	err := es.FetchDomainsStats(ctx, aa)
+func processAccountES(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
+	err := es.FetchDomainsStats(ctx, aa, date)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest ES data", map[string]interface{}{
@@ -211,8 +239,8 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountElastiCache processes all the ElastiCache data for an AwsAccount
-func processAccountElastiCache(ctx context.Context, aa aws.AwsAccount) error {
-	err := elasticache.FetchDailyInstancesStats(ctx, aa)
+func processAccountElastiCache(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
+	err := elasticache.FetchDailyInstancesStats(ctx, aa, date)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest ElastiCache data", map[string]interface{}{
@@ -224,8 +252,8 @@ func processAccountElastiCache(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountEbsSnapshot process all the EBS Snapshot data for an AwsAccount
-func processAccountEbsSnapshot(ctx context.Context, aa aws.AwsAccount) error {
-	err := ebs.FetchDailySnapshotsStats(ctx, aa)
+func processAccountEbsSnapshot(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
+	err := ebs.FetchDailySnapshotsStats(ctx, aa, date)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest EBS Snapshots data", map[string]interface{}{
@@ -237,8 +265,8 @@ func processAccountEbsSnapshot(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountLambda processes all the Lambda data for an AwsAccount
-func processAccountLambda(ctx context.Context, aa aws.AwsAccount) error {
-	err := lambda.FetchDailyFunctionsStats(ctx, aa)
+func processAccountLambda(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
+	err := lambda.FetchDailyFunctionsStats(ctx, aa, date)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest Lambda data", map[string]interface{}{
