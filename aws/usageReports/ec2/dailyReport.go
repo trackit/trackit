@@ -71,7 +71,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 // FetchDailyInstancesStats fetches the stats of the EC2 instances of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchInstancesStats should be called every hour.
-func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount, now time.Time) error {
+func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount, date time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorInstanceStsSessionName)
@@ -104,7 +104,7 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount, n
 		instances = append(instances, InstanceReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
-				ReportDate: now,
+				ReportDate: date,
 				ReportType: "daily",
 			},
 			Instance: instance,

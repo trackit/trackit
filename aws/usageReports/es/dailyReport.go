@@ -89,7 +89,7 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 }
 
 // FetchDomainsStats retrieces ES information from the AWS API and generate a report
-func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount, now time.Time) error {
+func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount, date time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching ES instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorDomainStsSessionName)
@@ -122,7 +122,7 @@ func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount, now time
 		domains = append(domains, DomainReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
-				ReportDate: now,
+				ReportDate: date,
 				ReportType: "daily",
 			},
 			Domain: domain,

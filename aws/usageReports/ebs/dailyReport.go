@@ -72,7 +72,7 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 // FetchDailySnapshotsStats fetches the stats of the EBS snapshots of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchSnapshotsStats should be called every hour.
-func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount, now time.Time) error {
+func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount, date time.Time) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching EBS snapshot stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorSnapshotStsSessionName)
@@ -105,7 +105,7 @@ func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount, n
 		snapshots = append(snapshots, SnapshotReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
-				ReportDate: now,
+				ReportDate: date,
 				ReportType: "daily",
 			},
 			Snapshot: snapshot,

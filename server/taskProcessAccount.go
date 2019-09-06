@@ -103,7 +103,7 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
 		ec2Err := processAccountEC2(ctx, aa, date)
-		rdsErr := processAccountRDS(ctx, aa, date)
+		rdsErr := processAccountRDS(ctx, aa)
 		esErr := processAccountES(ctx, aa, date)
 		elastiCacheErr := processAccountElastiCache(ctx, aa, date)
 		lambdaErr := processAccountLambda(ctx, aa, date)
@@ -200,7 +200,7 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 }
 
 // processAccountRDS processes all the RDS data for an AwsAccount
-func processAccountRDS(ctx context.Context, aa aws.AwsAccount, date time.Time) error {
+func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
 	err := rds.FetchDailyInstancesStats(ctx, aa)
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
