@@ -44,13 +44,6 @@ type AwsAccount struct {
 	ParentId       sql.NullInt64 `json:"-"`
 }
 
-const (
-	// assumeRoleDuration is the duration in seconds assumed-role
-	// credentials are requested to last. 3600 seconds is the maximum valid
-	// value.
-	assumeRoleDuration = 3600
-)
-
 var (
 	// stsService gives access to the AWS STS API.
 	stsService *sts.STS
@@ -186,6 +179,7 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 	} else {
 		dbAwsAccount.Pretty = a.Pretty
 		dbAwsAccount.Payer = a.Payer
+		dbAwsAccount.RoleArn = a.RoleArn
 		err := dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
