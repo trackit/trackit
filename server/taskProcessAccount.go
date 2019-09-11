@@ -19,6 +19,9 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"github.com/trackit/trackit/aws/usageReports/riEc2"
+	"github.com/trackit/trackit/aws/usageReports/riRdS"
+	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 	"strconv"
 	"time"
 
@@ -32,11 +35,8 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/history"
 	"github.com/trackit/trackit/aws/usageReports/lambda"
 	"github.com/trackit/trackit/aws/usageReports/rds"
-	"github.com/trackit/trackit/aws/usageReports/riEc2"
-	"github.com/trackit/trackit/aws/usageReports/riRdS"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
-	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 )
 
 const invalidAccId = -1
@@ -100,15 +100,18 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
-		ec2Err := processAccountEC2(ctx, aa)
-		rdsErr := processAccountRDS(ctx, aa)
-		esErr := processAccountES(ctx, aa)
-		elastiCacheErr := processAccountElastiCache(ctx, aa)
-		lambdaErr := processAccountLambda(ctx, aa)
-		riEc2Err := riEc2.FetchDailyReservationsStats(ctx, aa)
-		riRdsErr := riRdS.FetchDailyInstancesStats(ctx, aa)
-		odToRiEc2Err := onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
-		ebsErr := processAccountEbsSnapshot(ctx, aa)
+		var ec2Err, rdsErr, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, ebsErr error
+		if date.IsZero() {
+			ec2Err = processAccountEC2(ctx, aa)
+			rdsErr = processAccountRDS(ctx, aa)
+			esErr = processAccountES(ctx, aa)
+			elastiCacheErr = processAccountElastiCache(ctx, aa)
+			lambdaErr = processAccountLambda(ctx, aa)
+			riEc2Err = riEc2.FetchDailyReservationsStats(ctx, aa)
+			riRdsErr = riRdS.FetchDailyInstancesStats(ctx, aa)
+			odToRiEc2Err = onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
+			ebsErr = processAccountEbsSnapshot(ctx, aa)
+		}
 		historyCreated, historyErr := processAccountHistory(ctx, aa, date)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
 	}
