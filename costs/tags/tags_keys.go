@@ -44,7 +44,7 @@ type (
 
 const maxAggregationSize = 0x7FFFFFFF
 
-// getTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
+// GetTagsKeysWithParsedParams will parse the data from ElasticSearch and return it
 func GetTagsKeysWithParsedParams(ctx context.Context, params TagsKeysQueryParams) (int, TagsKeys, error) {
 	var typedDocument esTagsKeysResult
 	var response = TagsKeys{}
