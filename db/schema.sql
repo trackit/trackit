@@ -968,3 +968,7 @@ CREATE TABLE aws_account_tags_reports_job (
 
 ALTER TABLE aws_account ADD last_tags_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
 ALTER TABLE aws_account ADD next_tags_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
+
+CREATE OR REPLACE VIEW aws_account_tags_spreadsheets_reports_due_update AS
+SELECT * FROM aws_account WHERE next_tags_spreadsheet_report_generation <= NOW()
+;

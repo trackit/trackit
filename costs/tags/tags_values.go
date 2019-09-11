@@ -98,7 +98,7 @@ type (
 	TagsValuesResponse map[string][]TagsValues
 )
 
-// getTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
+// GetTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
 func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryParams) (int, TagsValuesResponse, error) {
 	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
