@@ -34,6 +34,7 @@ import (
 	tes "github.com/trackit/trackit/aws/usageReports/es"
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/aws/usageReports/rds"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 )
 
@@ -114,6 +115,24 @@ func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.T
 	var parsedResult EsRegionPerResourceResult
 	response := make([]utils.CostPerResource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	if aa.ParentId.Valid {
+		if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
+			aa, err = aws.GetAwsAccountWithId(int(aa.ParentId.Int64), tx)
+			if err != nil {
+				logger.Error("Unable to retrieve AWS account by parent id", map[string]interface{}{
+					"error":    err.Error(),
+					"parentId": aa.ParentId.Int64,
+				})
+				return nil, err
+			}
+		} else {
+			logger.Error("Failed to get tx during executing getCostPerResource", map[string]interface{}{
+				"error":    err.Error(),
+				"parentId": aa.ParentId.Int64,
+			})
+			return nil, err
+		}
+	}
 	for i := 0; i < numPartition; i++ {
 		result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate, product, i)
 		if err != nil {
@@ -222,14 +241,21 @@ func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 }
 
 // FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
-func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (bool, error) {
+func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	startDate, endDate := GetHistoryDate()
+	var startDate, endDate time.Time
+	if date.IsZero() {
+		startDate, endDate = GetHistoryDate()
+	} else {
+		startDate = date
+		endDate = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location())
+	}
 	logger.Info("Starting history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
+	fmt.Printf("Start history at '%v' & '%v'\n", startDate, endDate)
 	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
 		return false, err
