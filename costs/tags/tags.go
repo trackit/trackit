@@ -114,7 +114,11 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	if getTagsValuesFilter(parsedParams.By).Filter == "error" {
 		return http.StatusBadRequest, errors.New("Invalid filter: " + parsedParams.By)
 	}
-	return getTagsValuesWithParsedParams(request.Context(), parsedParams)
+	returnCode, res, err := GetTagsValuesWithParsedParams(request.Context(), parsedParams)
+	if returnCode == http.StatusOK {
+		return returnCode, res
+	}
+	return returnCode, err
 }
 
 // tagsKeysQueryArgs allows to get required queryArgs params for /tags/keys endpoint
@@ -124,8 +128,8 @@ var tagsKeysQueryArgs = []routes.QueryArg{
 	routes.DateEndQueryArg,
 }
 
-// tagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
-type tagsKeysQueryParams struct {
+// TagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
+type TagsKeysQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	IndexList   []string  `json:"indexes"`
 	DateBegin   time.Time `json:"begin"`
@@ -135,7 +139,7 @@ type tagsKeysQueryParams struct {
 // getTagsKeys returns the list of the tag keys based on the query params, in JSON format.
 func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	user := a[users.AuthenticatedUser].(users.User)
-	parsedParams := tagsKeysQueryParams{
+	parsedParams := TagsKeysQueryParams{
 		AccountList: []string{},
 		IndexList:   []string{},
 		DateBegin:   a[tagsKeysQueryArgs[1]].(time.Time),
@@ -151,5 +155,9 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	return getTagsKeysWithParsedParams(request.Context(), parsedParams)
+	returnCode, res, err := GetTagsKeysWithParsedParams(request.Context(), parsedParams)
+	if returnCode == http.StatusOK {
+		return returnCode, res
+	}
+	return returnCode, err
 }

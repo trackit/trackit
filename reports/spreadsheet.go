@@ -37,6 +37,14 @@ type spreadsheet struct {
 	File    *excelize.File
 }
 
+type spreadsheetType uint8
+
+const (
+	MasterReport = spreadsheetType(iota)
+	RegularReport
+	TagsReport
+)
+
 func createSpreadsheet(aa taws.AwsAccount, date string) spreadsheet {
 	return spreadsheet{
 		account: aa,
@@ -45,22 +53,24 @@ func createSpreadsheet(aa taws.AwsAccount, date string) spreadsheet {
 	}
 }
 
-func getFilenameLocally(account taws.AwsAccount, date string, masterReport bool) string {
-	return fmt.Sprintf("/reports/%s", getFilename(account, date, masterReport))
+func getFilenameLocally(account taws.AwsAccount, date string, reportType spreadsheetType) string {
+	return fmt.Sprintf("/reports/%s", getFilename(account, date, reportType))
 }
 
-func getFilename(account taws.AwsAccount, date string, masterReport bool) string {
-	masterReportName := ""
-	if masterReport {
-		masterReportName = "MasterReport_"
+func getFilename(account taws.AwsAccount, date string, reportType spreadsheetType) string {
+	reportName := ""
+	if reportType == MasterReport {
+		reportName = "MasterReport_"
+	} else if reportType == TagsReport {
+		reportName = "TagsReport_"
 	}
-	return fmt.Sprintf("TRACKIT_%s%s_%s.xlsx", masterReportName, account.Pretty, date)
+	return fmt.Sprintf("TRACKIT_%s%s_%s.xlsx", reportName, account.Pretty, date)
 }
 
-func saveSpreadsheetLocally(ctx context.Context, file spreadsheet, masterReport bool) (err error) {
+func saveSpreadsheetLocally(ctx context.Context, file spreadsheet, reportType spreadsheetType) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	filename := getFilenameLocally(file.account, file.date, masterReport)
+	filename := getFilenameLocally(file.account, file.date, reportType)
 
 	err = file.File.SaveAs(filename)
 	if err != nil {
@@ -69,10 +79,10 @@ func saveSpreadsheetLocally(ctx context.Context, file spreadsheet, masterReport 
 	return
 }
 
-func saveSpreadsheet(ctx context.Context, file spreadsheet, masterReport bool) (err error) {
+func saveSpreadsheet(ctx context.Context, file spreadsheet, reportType spreadsheetType) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	filename := getFilename(file.account, file.date, masterReport)
+	filename := getFilename(file.account, file.date, reportType)
 	reportPath := path.Join(strconv.Itoa(file.account.Id), "generated-report", filename)
 
 	logger.Info("Uploading spreadsheet", reportPath)
