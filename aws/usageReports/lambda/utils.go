@@ -109,10 +109,12 @@ func generateId(function FunctionReport) (string, error) {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
+		Type       string    `json:"reportType"`
 	}{
 		function.Account,
 		function.ReportDate,
 		function.Function.Name,
+		function.ReportType,
 	})
 	if err != nil {
 		return "", err

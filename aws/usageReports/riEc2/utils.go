@@ -105,10 +105,12 @@ func generateId(reservation ReservationReport) (string, error) {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
+		Type       string    `json:"reportType"`
 	}{
 		reservation.Account,
 		reservation.ReportDate,
 		reservation.Reservation.Id,
+		reservation.ReportType,
 	})
 	if err != nil {
 		return "", err

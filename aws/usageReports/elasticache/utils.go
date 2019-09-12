@@ -118,10 +118,12 @@ func generateId(instance InstanceReport) (string, error) {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
+		Type       string    `json:"reportType"`
 	}{
 		instance.Account,
 		instance.ReportDate,
 		instance.Instance.Id,
+		instance.ReportType,
 	})
 	if err != nil {
 		return "", err

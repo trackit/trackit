@@ -34,7 +34,6 @@ import (
 	tes "github.com/trackit/trackit/aws/usageReports/es"
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/aws/usageReports/rds"
-	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 )
 
@@ -115,24 +114,6 @@ func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.T
 	var parsedResult EsRegionPerResourceResult
 	response := make([]utils.CostPerResource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	if aa.ParentId.Valid {
-		if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
-			aa, err = aws.GetAwsAccountWithId(int(aa.ParentId.Int64), tx)
-			if err != nil {
-				logger.Error("Unable to retrieve AWS account by parent id", map[string]interface{}{
-					"error":    err.Error(),
-					"parentId": aa.ParentId.Int64,
-				})
-				return nil, err
-			}
-		} else {
-			logger.Error("Failed to get tx during executing getCostPerResource", map[string]interface{}{
-				"error":    err.Error(),
-				"parentId": aa.ParentId.Int64,
-			})
-			return nil, err
-		}
-	}
 	for i := 0; i < numPartition; i++ {
 		result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate, product, i)
 		if err != nil {
