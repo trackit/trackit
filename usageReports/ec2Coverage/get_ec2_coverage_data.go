@@ -54,7 +54,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams Ec2CoverageQuery
 				"error": err.Error(),
 			})
 			return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
-		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details != nil && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,
