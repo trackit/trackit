@@ -28,7 +28,6 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/anomaliesDetection"
-	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/costs/anomalies/anomalyFilters"
 	"github.com/trackit/trackit/costs/anomalies/anomalyType"
@@ -69,7 +68,6 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(anomalyQueryArgs),
-			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "get the cost anomalies",
 				Description: "Responds with the cost anomalies based on the query args passed to it",
@@ -218,6 +216,7 @@ func applyFilters(res anomalyType.AnomaliesDetectionResponse, user users.User, c
 					"error":  err.Error(),
 				})
 			} else {
+				fmt.Printf("filters = %+v\n\n", filters)
 				res = anomalyFilters.Apply(filters.Filters, res)
 			}
 		}

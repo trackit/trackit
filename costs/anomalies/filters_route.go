@@ -8,7 +8,6 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/costs/anomalies/anomalyFilters"
 	"github.com/trackit/trackit/costs/anomalies/anomalyType"
 	"github.com/trackit/trackit/db"
@@ -50,7 +49,6 @@ func init() {
 					},
 				},
 			}},
-			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "edit the anomalies filters",
 				Description: "Edits the anomalies filters based on the body",
