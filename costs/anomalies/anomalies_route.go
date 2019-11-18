@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/trackit/trackit/cache"
 	"net/http"
 	"strconv"
 	"strings"
@@ -72,6 +73,7 @@ func init() {
 				Summary:     "get the cost anomalies",
 				Description: "Responds with the cost anomalies based on the query args passed to it",
 			},
+			cache.UsersCache{},
 		),
 	}.H().Register("/costs/anomalies")
 }

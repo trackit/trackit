@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"net/http"
-
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/cache"
+	"net/http"
 
 	"github.com/trackit/trackit/costs/anomalies/anomalyFilters"
 	"github.com/trackit/trackit/costs/anomalies/anomalyType"
@@ -98,6 +99,18 @@ func postAnomaliesFilters(r *http.Request, a routes.Arguments) (int, interface{}
 			"error":  err.Error(),
 		})
 		return http.StatusInternalServerError, errors.New("Failed to update filters.")
+	}
+	var aa aws.AwsAccount
+	if aa, err = aws.GetAwsAccountWithId(user.Id, tx); err != nil {
+		l.Error("Failed to get Aws Account", map[string]interface{}{
+			"userId": user.Id,
+			"error": err.Error(),
+		})
+	} else if err := cache.RemoveMatchingCache([]string{"/costs/anomalies"}, []string{aa.AwsIdentity}, l); err != nil {
+		l.Error("Failed to remove cache", map[string]interface{}{
+			"userId": user.Id,
+			"error": err.Error(),
+		})
 	}
 	return postAnomaliesFiltersWithValidBody(r, tx, dbUser, body)
 }
