@@ -216,7 +216,6 @@ func applyFilters(res anomalyType.AnomaliesDetectionResponse, user users.User, c
 					"error":  err.Error(),
 				})
 			} else {
-				fmt.Printf("filters = %+v\n\n", filters)
 				res = anomalyFilters.Apply(filters.Filters, res)
 			}
 		}
