@@ -45,9 +45,46 @@ type (
 		Id     string `json:"id"`
 	}
 
-	// Job contains all the information of an MediaConvert instance
+	VideoDetail struct {
+		HeightInPx int64 `locationName:"heightInPx" type:"integer"`
+		WidthInPx int64 `locationName:"widthInPx" type:"integer"`
+	}
+
+	OutputDetail struct {
+		DurationInMs int64 `locationName:"durationInMs" type:"integer"`
+		VideoDetails VideoDetail `locationName:"videoDetails" type:"structure"`
+	}
+
+	OutputGroupDetail struct {
+		OutputDetails []OutputDetail `locationName:"outputDetails" type:"list"`
+	}
+
+	Timing struct {
+		FinishTime time.Time `locationName:"finishTime" type:"timestamp" timestampFormat:"unixTimestamp"`
+		StartTime time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"unixTimestamp"`
+		SubmitTime time.Time `locationName:"submitTime" type:"timestamp" timestampFormat:"unixTimestamp"`
+	}
+
 	Job struct {
-		JobBase
+		JobBase JobBase
+		AccelerationStatus string `locationName:"accelerationStatus" type:"string" enum:"AccelerationStatus"`
+		Arn string `locationName:"arn" type:"string"`
+		BillingTagsSource string `locationName:"billingTagsSource" type:"string" enum:"BillingTagsSource"`
+		CreatedAt time.Time `locationName:"createdAt" type:"timestamp" timestampFormat:"unixTimestamp"`
+		CurrentPhase string `locationName:"currentPhase" type:"string" enum:"JobPhase"`
+		ErrorCode int64 `locationName:"errorCode" type:"integer"`
+		ErrorMessage string `locationName:"errorMessage" type:"string"`
+		Id string `locationName:"id" type:"string"`
+		JobPercentComplete int64 `locationName:"jobPercentComplete" type:"integer"`
+		JobTemplate string `locationName:"jobTemplate" type:"string"`
+		OutputGroupDetails []OutputGroupDetail `locationName:"outputGroupDetails" type:"list"`
+		Queue string `locationName:"queue" type:"string"`
+		RetryCount int64 `locationName:"retryCount" type:"integer"`
+		Role string `locationName:"role" type:"string" required:"true"`
+		Status string `locationName:"status" type:"string" enum:"JobStatus"`
+		StatusUpdateInterval string `locationName:"statusUpdateInterval" type:"string" enum:"StatusUpdateInterval"`
+		Timing Timing `locationName:"timing" type:"structure"`
+		UserMetadata map[string]string `locationName:"userMetadata" type:"map"`
 		Costs map[time.Time]float64 `json:"costs"`
 	}
 )

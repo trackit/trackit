@@ -16,6 +16,7 @@ package mediaconvert
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -38,9 +39,30 @@ func fetchDailyJobsList(ctx context.Context, creds *credentials.Credentials,
 		Region:      aws.String(region),
 	}))
 	svc := mediaconvert.New(sess)
-	listJob, err := svc.ListJobs(&mediaconvert.ListJobsInput{})
+	endpoints, err := svc.DescribeEndpoints(nil)
 	if err != nil {
 		return err
+	} else if endpoints == nil {
+		return nil
+	}
+	var nextToken *string
+	for _, endpoint := range endpoints.Endpoints {
+		subSvc := mediaconvert.New(sess, &aws.Config{Endpoint: endpoint.Url})
+		nextToken = nil
+		for nextToken, err = getJobsFromAWS(jobsChan, subSvc, region, nextToken); nextToken != nil; {
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func getJobsFromAWS(jobsChan chan Job, svc *mediaconvert.MediaConvert, region string, token *string) (*string, error) {
+	listJob, err := svc.ListJobs(&mediaconvert.ListJobsInput{NextToken: token})
+	log.Printf("listJob = %v\n", listJob)
+	if err != nil {
+		return nil, err
 	}
 	for _, job := range listJob.Jobs {
 		jobsChan <- Job{
@@ -49,9 +71,57 @@ func fetchDailyJobsList(ctx context.Context, creds *credentials.Credentials,
 				Arn: aws.StringValue(job.Arn),
 				Region: region,
 			},
+			AccelerationStatus: nil,
+			Arn: aws.StringValue(job.Arn),
+			BillingTagsSource: aws.StringValue(job.BillingTagsSource),
+			CreatedAt: aws.TimeValue(job.CreatedAt),
+			CurrentPhase: aws.StringValue(job.CurrentPhase),
+			ErrorCode: aws.Int64Value(job.ErrorCode),
+			ErrorMessage: aws.StringValue(job.ErrorMessage),
+			Id: aws.StringValue(job.Id),
+			JobPercentComplete: aws.Int64Value(job.JobPercentComplete),
+			JobTemplate: aws.StringValue(job.JobTemplate),
+			OutputGroupDetails: getOutputGroupDetails(job.OutputGroupDetails),
+			Queue: aws.StringValue(job.Queue),
+			RetryCount: aws.Int64Value(job.RetryCount),
+			Role: aws.StringValue(job.Role),
+			Status: aws.StringValue(job.Status),
+			StatusUpdateInterval: aws.StringValue(job.StatusUpdateInterval),
+			Timing: Timing{
+				FinishTime: aws.TimeValue(job.Timing.FinishTime),
+				StartTime: aws.TimeValue(job.Timing.StartTime),
+				SubmitTime: aws.TimeValue(job.Timing.SubmitTime),
+			},
+			UserMetadata: getUserMetadata(job.UserMetadata),
 		}
 	}
-	return nil
+	return listJob.NextToken, nil
+}
+
+func getOutputGroupDetails(groupDetails []*mediaconvert.OutputGroupDetail) []OutputGroupDetail {
+	var outputGroupDetail []OutputGroupDetail
+	for _, groupDetail := range groupDetails {
+		var outputDetail OutputGroupDetail
+		for _, detail := range groupDetail.OutputDetails {
+			outputDetail.OutputDetails = append(outputDetail.OutputDetails, OutputDetail{
+				DurationInMs: aws.Int64Value(detail.DurationInMs),
+				VideoDetails: VideoDetail{
+					HeightInPx: aws.Int64Value(detail.VideoDetails.HeightInPx),
+					WidthInPx:  aws.Int64Value(detail.VideoDetails.WidthInPx),
+				},
+			})
+		}
+		outputGroupDetail = append(outputGroupDetail, outputDetail)
+	}
+	return outputGroupDetail
+}
+
+func getUserMetadata(initialUserMetadata map[string]*string) map[string]string{
+	UserMetadata := make(map[string]string, 0)
+	for key, value := range initialUserMetadata {
+		UserMetadata[key] = aws.StringValue(value)
+	}
+	return UserMetadata
 }
 
 // getMediaConvertMetrics gets credentials, accounts and region to fetch MediaConvert instances stats
