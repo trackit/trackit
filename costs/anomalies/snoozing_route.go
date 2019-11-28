@@ -18,6 +18,9 @@ import (
 	"database/sql"
 	"net/http"
 
+	"github.com/trackit/jsonlog"
+
+	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
@@ -36,7 +39,6 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestBody{snoozingBody{[]string{"anomaly1", "anomaly2"}}},
-			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "snooze the anomalies",
 				Description: "Snoozes one or many anomalies with their id passed in query args",
@@ -48,7 +50,6 @@ func init() {
 			db.RequestTransaction{Db: db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.RequestBody{snoozingBody{[]string{"anomaly1", "anomaly2"}}},
-			cache.UsersCache{},
 			routes.Documentation{
 				Summary:     "unsnooze the anomalies",
 				Description: "Unsnoozes one or many anomalies with their id passed in query args",
@@ -59,6 +60,7 @@ func init() {
 
 // snoozeAnomalies checks the request and snooze the anomalies passed in body.
 func snoozeAnomalies(request *http.Request, a routes.Arguments) (int, interface{}) {
+	l := jsonlog.LoggerFromContextOrDefault(request.Context())
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	var body snoozingBody
@@ -73,11 +75,23 @@ func snoozeAnomalies(request *http.Request, a routes.Arguments) (int, interface{
 			res.Anomalies = append(res.Anomalies, anomalyId)
 		}
 	}
+	if aa, err := aws.GetAwsAccountWithId(user.Id, tx); err != nil {
+		l.Error("Failed to get Aws Account", map[string]interface{}{
+			"userId": user.Id,
+			"error": err.Error(),
+		})
+	} else if err := cache.RemoveMatchingCache([]string{"/costs/anomalies"}, []string{aa.AwsIdentity}, l); err != nil {
+		l.Error("Failed to remove cache", map[string]interface{}{
+			"userId": user.Id,
+			"error": err.Error(),
+		})
+	}
 	return http.StatusOK, res
 }
 
 // unsnoozeAnomalies checks the request and unsnooze the anomalies passed in body.
 func unsnoozeAnomalies(request *http.Request, a routes.Arguments) (int, interface{}) {
+	l := jsonlog.LoggerFromContextOrDefault(request.Context())
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	var body snoozingBody
@@ -88,6 +102,17 @@ func unsnoozeAnomalies(request *http.Request, a routes.Arguments) (int, interfac
 		if err == nil && dbAnomalySnoozing.Delete(tx) == nil {
 			res.Anomalies = append(res.Anomalies, anomalyId)
 		}
+	}
+	if aa, err := aws.GetAwsAccountWithId(user.Id, tx); err != nil {
+		l.Error("Failed to get Aws Account", map[string]interface{}{
+			"userId": user.Id,
+			"error": err.Error(),
+		})
+	} else if err := cache.RemoveMatchingCache([]string{"/costs/anomalies"}, []string{aa.AwsIdentity}, l); err != nil {
+		l.Error("Failed to remove cache", map[string]interface{}{
+			"userId": user.Id,
+			"error": err.Error(),
+		})
 	}
 	return http.StatusOK, res
 }
