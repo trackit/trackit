@@ -66,6 +66,81 @@ const TemplateMediaConvertReport = `
 						"id": {
 							"type": "keyword"
 						},
+						"billingTagsSource": {
+							"type": "keyword"
+						},
+						"createdAt": {
+							"type": "date"
+						},
+						"currentPhase": {
+							"type": "keyword"
+						},
+						"errorCode": {
+							"type": "long"
+						},
+						"ErrorMessage": {
+							"type": "keyword"
+						},
+						"jobPercentComplete": {
+							"type": "long"
+						},
+						"jobTemplate": {
+							"type": "keyword"
+						},
+						"outputGroupDetails": {
+							"type": "nested",
+							"properties": {
+								"outputDetails": {
+									"type": "nested",
+									"properties": {
+										"durationInMs": {
+											"type": "long"
+										},
+										"heightInPx": {
+											"type": "long"
+										},
+										"widthInPx": {
+											"type": "long"
+										}
+									}
+								}
+							}
+						},
+						"queue": {
+							"type": "keyword"
+						},
+						"retryCount": {
+							"type": "long"
+						},
+						"role": {
+							"type": "keyword"
+						},
+						"status": {
+							"type": "keyword"
+						},
+						"statusUpdateInterval": {
+							"type": "keyword"
+						},
+						"finishTime": {
+							"type": "date"
+						},
+						"startTime": {
+							"type": "date"
+						},
+						"submitTime": {
+							"type": "date"
+						},
+						"userMetadata": {
+							"type": "nested",
+							"properties": {
+								"key": {
+									"type": "keyword"
+								},
+								"value": {
+									"type": "keyword"
+								}
+							}
+						},
 						"costs": {
 							"type": "nested",
 							"properties": {

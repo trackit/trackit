@@ -68,11 +68,9 @@ func getElasticSearchMediaConvertJob(ctx context.Context, account, instance stri
 func getJobInfoFromES(ctx context.Context, cost JobInformations, account string, userId int) Job {
 	var docType JobReport
 	var job = Job{
-		JobBase: JobBase{
-			Id:         "N/A",
-			Region:     "N/A",
-			Arn:      "N/A",
-		},
+		Id:         "N/A",
+		Region:     "N/A",
+		Arn:      "N/A",
 		Costs: make(map[time.Time]float64, 0),
 	}
 	res, err := getElasticSearchMediaConvertJob(ctx, account, cost.Arn,
@@ -99,17 +97,47 @@ func fetchMonthlyJobsList(ctx context.Context, creds *credentials.Credentials,
 		Region:      aws.String(region),
 	}))
 	svc := mediaconvert.New(sess)
-	job, err := svc.GetJob(&mediaconvert.GetJobInput{Id: &jobId})
-	if err != nil {
+	endpoints, err := svc.DescribeEndpoints(nil)
+	if endpoints == nil || err != nil {
+		instanceChan <- getJobInfoFromES(ctx, cost, account, userId)
+		return err
+	}
+	var job *mediaconvert.GetJobOutput
+	job = nil
+	for _, endpoint := range endpoints.Endpoints {
+		subSvc := mediaconvert.New(sess, &aws.Config{Endpoint: endpoint.Url})
+		job, err = subSvc.GetJob(&mediaconvert.GetJobInput{Id: &jobId})
+		if job != nil {
+			break
+		}
+	}
+	if job == nil {
 		instanceChan <- getJobInfoFromES(ctx, cost, account, userId)
 		return err
 	}
 	instanceChan <- Job{
-		JobBase: JobBase{
-			Id: aws.StringValue(job.Job.Id),
-			Arn: aws.StringValue(job.Job.Arn),
-			Region: cost.Region,
+		Id: aws.StringValue(job.Job.Id),
+		Arn: aws.StringValue(job.Job.Arn),
+		Region: cost.Region,
+		BillingTagsSource: aws.StringValue(job.Job.BillingTagsSource),
+		CreatedAt: aws.TimeValue(job.Job.CreatedAt),
+		CurrentPhase: aws.StringValue(job.Job.CurrentPhase),
+		ErrorCode: aws.Int64Value(job.Job.ErrorCode),
+		ErrorMessage: aws.StringValue(job.Job.ErrorMessage),
+		JobPercentComplete: aws.Int64Value(job.Job.JobPercentComplete),
+		JobTemplate: aws.StringValue(job.Job.JobTemplate),
+		OutputGroupDetails: getOutputGroupDetails(job.Job.OutputGroupDetails),
+		Queue: aws.StringValue(job.Job.Queue),
+		RetryCount: aws.Int64Value(job.Job.RetryCount),
+		Role: aws.StringValue(job.Job.Role),
+		Status: aws.StringValue(job.Job.Status),
+		StatusUpdateInterval: aws.StringValue(job.Job.StatusUpdateInterval),
+		Timing: Timing{
+			FinishTime: aws.TimeValue(job.Job.Timing.FinishTime),
+			StartTime: aws.TimeValue(job.Job.Timing.StartTime),
+			SubmitTime: aws.TimeValue(job.Job.Timing.SubmitTime),
 		},
+		UserMetadata: getUserMetadata(job.Job.UserMetadata),
 		Costs:   cost.Cost,
 	}
 	return nil
@@ -150,14 +178,14 @@ func fetchMonthlyJobsStats(ctx context.Context, aa taws.AwsAccount, costs []JobI
 		}
 	}
 	jobsList := make([]JobReport, 0)
-	for instance := range merge(jobChans...) {
+	for job := range merge(jobChans...) {
 		jobsList = append(jobsList, JobReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
 			},
-			Job: instance,
+			Job: job,
 		})
 	}
 	return jobsList, nil
