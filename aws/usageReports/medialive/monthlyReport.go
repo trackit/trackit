@@ -248,6 +248,7 @@ func fetchMonthlyChannelsInputsStats(ctx context.Context, aa taws.AwsAccount, st
 	}*/
 	channelsList := fetchChannels(ctx, aa, startDate, endDate, regions, account, creds)
 	inputsList := fetchInputs(ctx, aa, startDate, endDate, regions, account, creds)
+	fmt.Printf("channel = %v\ninput = %v\n", channelsList, inputsList)
 	return channelsList, inputsList, nil
 }
 
@@ -266,17 +267,17 @@ func PutMedialiveMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDat
 		logger.Info("There is already an MediaLive monthly report", nil)
 		return false, nil
 	}*/
-	channels, inputs, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
+	_, _, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
-	err = importChannelsToEs(ctx, aa, channels)
+	/*err = importChannelsToEs(ctx, aa, channels)
 	if err != nil {
 		return false, err
 	}
 	err = importInputsToEs(ctx, aa, inputs)
 	if err != nil {
 		return false, err
-	}
+	}*/
 	return true, nil
 }

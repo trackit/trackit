@@ -61,6 +61,8 @@ type (
 func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, userId int) (*elastic.SearchResult, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
+	now := time.Now().UTC() // line to remove
+	startDate = time.Date(now.Year()-1, now.Month()-1, 1, 0, 0, 0, 0, now.Location()).UTC() // line to remove
 	query = query.Filter(elastic.NewRangeQuery("usageEndDate").From(startDate).To(endDate))
 	query = query.Filter(elastic.NewTermQuery("productCode", "AWSElementalMediaLive"))
 	search := es.Client.Search().Index(es.IndexNameForUserId(userId, es.IndexPrefixLineItems)).Size(0).Query(query)
@@ -74,7 +76,6 @@ func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, use
 				"index": es.IndexNameForUserId(userId, es.IndexPrefixLineItems),
 				"error": err.Error(),
 			})
-			return nil, errors.GetErrorMessage(ctx, err)
 		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
 			logger.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
@@ -95,6 +96,7 @@ func getMediaLiveChannelCosts(ctx context.Context, aa taws.AwsAccount, startDate
 	if err != nil {
 		return nil
 	}
+	fmt.Printf("response = %v\n", res)
 	err = json.Unmarshal(*res.Aggregations["resourceId"], &response.Id)
 	if err != nil {
 		logger.Error("Unmarshal execution failedd", err)
