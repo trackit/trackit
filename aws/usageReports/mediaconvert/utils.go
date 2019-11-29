@@ -19,6 +19,8 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/mediaconvert"
 	"sync"
 	"time"
 
@@ -38,53 +40,45 @@ type (
 		Job Job `json:"job"`
 	}
 
-	// JobBase contains basics information of an MediaConvert instance
-	JobBase struct {
-		Arn    string `json:"arn"`
-		Region string `json:"region"`
-		Id     string `json:"id"`
-	}
-
 	VideoDetail struct {
-		HeightInPx int64 `locationName:"heightInPx" type:"integer"`
-		WidthInPx int64 `locationName:"widthInPx" type:"integer"`
+		HeightInPx int64 `json:"heightInPx"`
+		WidthInPx int64 `json:"widthInPx"`
 	}
 
 	OutputDetail struct {
-		DurationInMs int64 `locationName:"durationInMs" type:"integer"`
-		VideoDetails VideoDetail `locationName:"videoDetails" type:"structure"`
+		DurationInMs int64 `json:"durationInMs"`
+		VideoDetails VideoDetail
 	}
 
 	OutputGroupDetail struct {
-		OutputDetails []OutputDetail `locationName:"outputDetails" type:"list"`
+		OutputDetails []OutputDetail `json:"outputDetails"`
 	}
 
 	Timing struct {
-		FinishTime time.Time `locationName:"finishTime" type:"timestamp" timestampFormat:"unixTimestamp"`
-		StartTime time.Time `locationName:"startTime" type:"timestamp" timestampFormat:"unixTimestamp"`
-		SubmitTime time.Time `locationName:"submitTime" type:"timestamp" timestampFormat:"unixTimestamp"`
+		FinishTime time.Time `json:"finishTime"`
+		StartTime time.Time `json:"startTime"`
+		SubmitTime time.Time `json:"submitTime"`
 	}
 
 	Job struct {
-		JobBase JobBase
-		AccelerationStatus string `locationName:"accelerationStatus" type:"string" enum:"AccelerationStatus"`
-		Arn string `locationName:"arn" type:"string"`
-		BillingTagsSource string `locationName:"billingTagsSource" type:"string" enum:"BillingTagsSource"`
-		CreatedAt time.Time `locationName:"createdAt" type:"timestamp" timestampFormat:"unixTimestamp"`
-		CurrentPhase string `locationName:"currentPhase" type:"string" enum:"JobPhase"`
-		ErrorCode int64 `locationName:"errorCode" type:"integer"`
-		ErrorMessage string `locationName:"errorMessage" type:"string"`
-		Id string `locationName:"id" type:"string"`
-		JobPercentComplete int64 `locationName:"jobPercentComplete" type:"integer"`
-		JobTemplate string `locationName:"jobTemplate" type:"string"`
-		OutputGroupDetails []OutputGroupDetail `locationName:"outputGroupDetails" type:"list"`
-		Queue string `locationName:"queue" type:"string"`
-		RetryCount int64 `locationName:"retryCount" type:"integer"`
-		Role string `locationName:"role" type:"string" required:"true"`
-		Status string `locationName:"status" type:"string" enum:"JobStatus"`
-		StatusUpdateInterval string `locationName:"statusUpdateInterval" type:"string" enum:"StatusUpdateInterval"`
-		Timing Timing `locationName:"timing" type:"structure"`
-		UserMetadata map[string]string `locationName:"userMetadata" type:"map"`
+		Arn string `json:"arn"`
+		Id string `json:"id"`
+		Region string `json:"region"`
+		BillingTagsSource string `json:"billingTagsSource"`
+		CreatedAt time.Time `json:"createdAt"`
+		CurrentPhase string `json:"currentPhase"`
+		ErrorCode int64 `json:"errorCode"`
+		ErrorMessage string `json:"errorMessage"`
+		JobPercentComplete int64 `json:"jobPercentComplete"`
+		JobTemplate string `json:"jobTemplate"`
+		OutputGroupDetails []OutputGroupDetail `json:"outputGroupDetails"`
+		Queue string `json:"queue"`
+		RetryCount int64 `json:"retryCount"`
+		Role string `json:"role"`
+		Status string `json:"status"`
+		StatusUpdateInterval string `json:"statusUpdateInterval"`
+		Timing Timing
+		UserMetadata map[string]string `json:"userMetadata"`
 		Costs map[time.Time]float64 `json:"costs"`
 	}
 )
@@ -166,10 +160,28 @@ func merge(cs ...<-chan Job) <-chan Job {
 	return out
 }
 
-// getPlatformName normalizes the platform name
-func getPlatformName(platform string) string {
-	if platform == "" {
-		return "Linux/UNIX"
+func getOutputGroupDetails(groupDetails []*mediaconvert.OutputGroupDetail) []OutputGroupDetail {
+	var outputGroupDetail []OutputGroupDetail
+	for _, groupDetail := range groupDetails {
+		var outputDetail OutputGroupDetail
+		for _, detail := range groupDetail.OutputDetails {
+			outputDetail.OutputDetails = append(outputDetail.OutputDetails, OutputDetail{
+				DurationInMs: aws.Int64Value(detail.DurationInMs),
+				VideoDetails: VideoDetail{
+					HeightInPx: aws.Int64Value(detail.VideoDetails.HeightInPx),
+					WidthInPx:  aws.Int64Value(detail.VideoDetails.WidthInPx),
+				},
+			})
+		}
+		outputGroupDetail = append(outputGroupDetail, outputDetail)
 	}
-	return platform
+	return outputGroupDetail
+}
+
+func getUserMetadata(initialUserMetadata map[string]*string) map[string]string{
+	UserMetadata := make(map[string]string, 0)
+	for key, value := range initialUserMetadata {
+		UserMetadata[key] = aws.StringValue(value)
+	}
+	return UserMetadata
 }
