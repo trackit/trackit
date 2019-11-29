@@ -176,7 +176,6 @@ func putProductDataInSheet(file *excelize.File, sheetName string, tag tags.TagsV
 				newCell(product.Item, "B"+strconv.Itoa(productColumn)).mergeTo("B" + strconv.Itoa(maxColumn-1)),
 				newFormula(fmt.Sprintf("SUM(%s)", strings.Join(productCostCells, ",")), "E"+strconv.Itoa(productColumn)).mergeTo("E" + strconv.Itoa(maxColumn-1)).addStyles("price"),
 			}
-			fmt.Printf("productcolumn = %v, maxColumn = %v\n", productColumn, maxColumn)
 			productCells.addStyles("borders", "centerText").setValues(file, sheetName)
 			totalCostCells = append(totalCostCells, "E"+strconv.Itoa(productColumn))
 			productColumn = maxColumn
