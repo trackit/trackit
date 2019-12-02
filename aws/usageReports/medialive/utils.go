@@ -52,34 +52,12 @@ type (
 	// Channel contains all the information of an MediaLive channel
 	Channel struct {
 		ChannelBase
-
-		// The class for this channel. STANDARD for a channel with two pipelines or
-		// SINGLE_PIPELINE for a channel with one pipeline.
-		ChannelClass *string `locationName:"channelClass" type:"string" enum:"ChannelClass"`
-
-		// The endpoints where outgoing connections initiate from
-		EgressEndpoints []*ChannelEgressEndpoint `locationName:"egressEndpoints" type:"list"`
-
-		// Encoder Settings
-		EncoderSettings *EncoderSettings `locationName:"encoderSettings" type:"structure"`
-
-		// List of input attachments for channel.
-		InputAttachments []*InputAttachment `locationName:"inputAttachments" type:"list"`
-
-		InputSpecification *InputSpecification `locationName:"inputSpecification" type:"structure"`
-
-		// The log level being written to CloudWatch Logs.
-		LogLevel *string `locationName:"logLevel" type:"string" enum:"LogLevel"`
-
-		// Runtime details for the pipelines of a running channel.
-		PipelineDetails []*PipelineDetail `locationName:"pipelineDetails" type:"list"`
-
-		// The number of currently healthy pipelines.
-		PipelinesRunningCount *int64 `locationName:"pipelinesRunningCount" type:"integer"`
-
-		State *string `locationName:"state" type:"string" enum:"ChannelState"`
-		Cost map[time.Time]float64 `json:"cost"`
+		ChannelClass string `json:"channelClass"`
+		LogLevel string `json:"logLevel"`
+		PipelinesRunningCount int64 `json:"pipelinesRunningCount"`
+		State string `json:"state"`
 		Tags map[string]string     `json:"tags"`
+		Cost map[time.Time]float64 `json:"cost"`
 	}
 	InputReport struct {
 		utils.ReportBase
@@ -97,8 +75,14 @@ type (
 	// Input contains all the information of an MediaLive channel
 	Input struct {
 		InputBase
-		Cost map[time.Time]float64 `json:"cost"`
+		AttachedChannels []string `json:"attachedChannels"`
+		InputClass string `json:"inputClass"`
+		RoleArn string `json:"roleArn"`
+		SecurityGroups []string `json:"securityGroups"`
+		State string `json:"state"`
+		Type string `json:"type"`
 		Tags map[string]string     `json:"tags"`
+		Cost map[time.Time]float64 `json:"cost"`
 	}
 )
 

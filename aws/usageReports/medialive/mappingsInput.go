@@ -69,6 +69,24 @@ const TemplateMediaLiveInputReport = `
 						"region": {
 							"type": "keyword"
 						},
+						"attachedChannels": {
+							"type": "keyword"
+						},
+						"inputClass": {
+							"type": "keyword"
+						},
+						"roleArn": {
+							"type": "keyword"
+						},
+						"securityGroups": {
+							"type": "keyword"
+						},
+						"state": {
+							"type": "keyword"
+						},
+						"type": {
+							"type": "keyword"
+						},
 						"tags": {
 							"type": "nested",
 							"properties": {

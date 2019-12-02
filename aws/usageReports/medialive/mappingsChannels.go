@@ -67,7 +67,19 @@ const TemplateMediaLiveChannelReport = `
 							"type": "keyword"
 						},
 						"region": {
-							"type": "boolean"
+							"type": "keyword"
+						},
+						"channelClass": {
+							"type": "keyword"
+						},
+						"logLevel": {
+							"type": "keyword"
+						},
+						"pipelinesRunningCount": {
+							"type": "keyword"
+						},
+						"state": {
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",

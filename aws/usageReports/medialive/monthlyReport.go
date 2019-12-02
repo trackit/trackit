@@ -144,6 +144,10 @@ func fetchMonthlyChannelsList(ctx context.Context, creds *credentials.Credential
 			Name:   aws.StringValue(describeChannel.Name),
 			Region: region,
 		},
+		ChannelClass: aws.StringValue(describeChannel.ChannelClass),
+		LogLevel: aws.StringValue(describeChannel.LogLevel),
+		PipelinesRunningCount: aws.Int64Value(describeChannel.PipelinesRunningCount),
+		State: aws.StringValue(describeChannel.State),
 		Tags: getChannelTags(describeChannel.Tags),
 		Cost: cost.Cost,
 	}
@@ -172,6 +176,12 @@ func fetchMonthlyInput(ctx context.Context, creds *credentials.Credentials, cost
 			Name:   aws.StringValue(describeInput.Name),
 			Region: region,
 		},
+		AttachedChannels: aws.StringValueSlice(describeInput.AttachedChannels),
+		InputClass: aws.StringValue(describeInput.InputClass),
+		RoleArn: aws.StringValue(describeInput.RoleArn),
+		SecurityGroups: aws.StringValueSlice(describeInput.SecurityGroups),
+		State: aws.StringValue(describeInput.State),
+		Type: aws.StringValue(describeInput.Type),
 		Tags: getInputTags(describeInput.Tags),
 		Cost: cost.Cost,
 	}
@@ -267,10 +277,11 @@ func PutMedialiveMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDat
 		logger.Info("There is already an MediaLive monthly report", nil)
 		return false, nil
 	}*/
-	_, _, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
+	channel, input, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
+	fmt.Printf("channels = %v, input = %v\n", channel, input)
 	/*err = importChannelsToEs(ctx, aa, channels)
 	if err != nil {
 		return false, err
