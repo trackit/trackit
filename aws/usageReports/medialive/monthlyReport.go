@@ -135,7 +135,6 @@ func fetchMonthlyChannelsList(ctx context.Context, creds *credentials.Credential
 	describeChannel, err := svc.DescribeChannel(&medialive.DescribeChannelInput{ChannelId: &cost.Id})
 	if err != nil {
 		channelChan <- getChannelInfoFromES(ctx, cost, account, userId)
-		fmt.Printf("error = %v\n", err)
 		return err
 	}
 	channelChan <- Channel{
