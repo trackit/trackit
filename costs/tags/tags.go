@@ -28,18 +28,19 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-// tagsValuesQueryParams will store the parsed query params for /tags/values endpoint
-type tagsValuesQueryParams struct {
+// TagsValuesQueryParams will store the parsed query params for /tags/values endpoint
+type TagsValuesQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	IndexList   []string  `json:"indexes"`
 	DateBegin   time.Time `json:"begin"`
 	DateEnd     time.Time `json:"end"`
 	TagsKeys    []string  `json:"keys"`
 	By          string    `json:"by"`
+	Detailed    bool      `json:"detailed"`
 }
 
-// tagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
-type tagsKeysQueryParams struct {
+// TagsKeysQueryParams will store the parsed query params for /tags/keys endpoint
+type TagsKeysQueryParams struct {
 	AccountList []string  `json:"awsAccounts"`
 	IndexList   []string  `json:"indexes"`
 	DateBegin   time.Time `json:"begin"`
