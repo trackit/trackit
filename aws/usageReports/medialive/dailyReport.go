@@ -31,7 +31,7 @@ import (
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
+func fetchDailyChannelsList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
 	defer close(instanceChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -74,7 +74,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
-	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorInstanceStsSessionName)
+	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorChannelStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
 		return err
@@ -94,22 +94,22 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	channelChan := make([]<-chan Channel, 0, len(regions))
 	for _, region := range regions {
-		instanceChan := make(chan Instance)
-		go fetchDailyInstancesList(ctx, creds, region, instanceChan)
-		instanceChans = append(instanceChans, instanceChan)
+		instanceChan := make(chan Channel)
+		go fetchDailyChannelsList(ctx, creds, region, instanceChan)
+		channelChan = append(channelChan, instanceChan)
 	}
-	instances := make([]InstanceReport, 0)
-	for instance := range merge(instanceChans...) {
-		instances = append(instances, InstanceReport{
+	instances := make([]ChannelReport, 0)
+	for instance := range mergeChannels(channelChan...) {
+		instances = append(instances, ChannelReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",
 			},
-			Instance: instance,
+			Channel: instance,
 		})
 	}
-	return importInstancesToEs(ctx, awsAccount, instances)
+	return importChannelsToEs(ctx, awsAccount, instances)
 }
