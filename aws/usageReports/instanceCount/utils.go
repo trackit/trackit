@@ -85,7 +85,7 @@ func generateId(report InstanceCountReport) (string, error) {
 		ReportDate time.Time `json:"reportDate"`
 		Type       string    `json:"type"`
 		Region     string    `json:"region"`
-		ReportType       string    `json:"reportType"`
+		ReportType string    `json:"reportType"`
 	}{
 		report.Account,
 		report.ReportDate,

@@ -236,7 +236,6 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	fmt.Printf("Start history at '%v' & '%v'\n", startDate, endDate)
 	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
 		return false, err
