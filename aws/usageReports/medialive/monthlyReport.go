@@ -135,6 +135,7 @@ func fetchMonthlyChannelsList(ctx context.Context, creds *credentials.Credential
 	describeChannel, err := svc.DescribeChannel(&medialive.DescribeChannelInput{ChannelId: &cost.Id})
 	if err != nil {
 		channelChan <- getChannelInfoFromES(ctx, cost, account, userId)
+		fmt.Printf("error = %v\n", err)
 		return err
 	}
 	channelChan <- Channel{
@@ -210,55 +211,8 @@ func fetchMonthlyChannelsInputsStats(ctx context.Context, aa taws.AwsAccount, st
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, nil, err
 	}
-	/*channelsCosts := getMediaLiveChannelCosts(ctx, aa, startDate, endDate)
-	channelChans := make([]<-chan Channel, 0, len(regions))
-	for _, cost := range channelsCosts {
-		for _, region := range regions {
-			log.Printf("REGION = %v\n", region)
-			if strings.Contains(cost.Region, region) && cost.Id != "" {
-				channelChan := make(chan Channel)
-				go fetchMonthlyChannelsList(ctx, creds, cost, account, region, channelChan, aa.UserId)
-				channelChans = append(channelChans, channelChan)
-			}
-		}
-	}
-	channelsList := make([]ChannelReport, 0)
-	for channel := range merge(channelChans...) {
-		channelsList = append(channelsList, ChannelReport{
-			ReportBase: utils.ReportBase{
-				Account:    account,
-				ReportDate: startDate,
-				ReportType: "monthly",
-			},
-			Channel: channel,
-		})
-	}
-	inputsCosts := getMediaLiveInputCosts(ctx, aa, startDate, endDate)
-	inputChans := make([]<-chan Input, 0, len(regions))
-	for _, cost := range inputsCosts {
-		for _, region := range regions {
-			log.Printf("REGION = %v\n", region)
-			if strings.Contains(cost.Region, region) && cost.Id != "" {
-				inputChan := make(chan Input)
-				go fetchMonthlyInput(ctx, creds, cost, account, region, inputChan, aa.UserId)
-				inputChans = append(inputChans, inputChan)
-			}
-		}
-	}
-	inputsList := make([]InputReport, 0)
-	for input := range mergeInput(inputChans...) {
-		inputsList = append(inputsList, InputReport{
-			ReportBase: utils.ReportBase{
-				Account:    account,
-				ReportDate: startDate,
-				ReportType: "monthly",
-			},
-			Input: input,
-		})
-	}*/
 	channelsList := fetchChannels(ctx, aa, startDate, endDate, regions, account, creds)
 	inputsList := fetchInputs(ctx, aa, startDate, endDate, regions, account, creds)
-	fmt.Printf("channel = %v\ninput = %v\n", channelsList, inputsList)
 	return channelsList, inputsList, nil
 }
 
@@ -277,18 +231,17 @@ func PutMedialiveMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDat
 		logger.Info("There is already an MediaLive monthly report", nil)
 		return false, nil
 	}*/
-	channel, input, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
+	channels, inputs, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
-	fmt.Printf("channels = %v, input = %v\n", channel, input)
-	/*err = importChannelsToEs(ctx, aa, channels)
+	err = importChannelsToEs(ctx, aa, channels)
 	if err != nil {
 		return false, err
 	}
 	err = importInputsToEs(ctx, aa, inputs)
 	if err != nil {
 		return false, err
-	}*/
+	}
 	return true, nil
 }

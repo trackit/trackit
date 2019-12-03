@@ -2,7 +2,6 @@ package medialive
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -18,7 +17,6 @@ creds *credentials.Credentials) []ChannelReport {
 	channelsCosts := getMediaLiveChannelCosts(ctx, aa, startDate, endDate)
 	channelChans := make([]<-chan Channel, 0, len(regions))
 	for _, cost := range channelsCosts {
-		fmt.Printf("channel = %v\n", cost)
 		for _, region := range regions {
 			if strings.Contains(cost.Region, region) && cost.Id != "" {
 				channelChan := make(chan Channel)
