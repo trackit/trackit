@@ -73,6 +73,12 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 		Optional:    false,
 	},
 	routes.DetailedQueryArg,
+	routes.QueryArg{
+		Name:        "Detailed",
+		Description: "Specify if the report will be detailed or not",
+		Type:        routes.QueryArgBool{},
+		Optional:    true,
+	},
 }
 
 // TagsValuesQueryParams will store the parsed query params for /tags/values endpoint
@@ -96,7 +102,7 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 		DateEnd:     a[tagsValuesQueryArgs[2]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59)),
 		TagsKeys:    []string{},
 		By:          a[tagsValuesQueryArgs[4]].(string),
-		Detailed:    a[tagsValuesQueryArgs[5]].(bool),
+		Detailed:    false,
 	}
 	if a[tagsValuesQueryArgs[0]] != nil {
 		parsedParams.AccountList = a[tagsValuesQueryArgs[0]].([]string)
@@ -110,6 +116,9 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 	parsedParams.IndexList = accountsAndIndexes.Indexes
 	if a[tagsValuesQueryArgs[3]] != nil {
 		parsedParams.TagsKeys = a[tagsValuesQueryArgs[3]].([]string)
+	}
+	if a[tagsValuesQueryArgs[5]] != nil {
+		parsedParams.Detailed = a[tagsValuesQueryArgs[5]].(bool)
 	}
 	if getTagsValuesFilter(parsedParams.By).Filter == "error" {
 		return http.StatusBadRequest, errors.New("Invalid filter: " + parsedParams.By)
