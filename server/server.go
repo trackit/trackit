@@ -45,7 +45,7 @@ import (
 	_ "github.com/trackit/trackit/usageReports/lambda"
 	_ "github.com/trackit/trackit/usageReports/rds"
 	_ "github.com/trackit/trackit/usageReports/riEc2"
-	_ "github.com/trackit/trackit/usageReports/riRds"
+	_ "github.com/trackit/trackit/usageReports/riRDS"
 	_ "github.com/trackit/trackit/users"
 	_ "github.com/trackit/trackit/users/shared_account"
 )
@@ -66,7 +66,6 @@ var tasks = map[string]func(context.Context) error{
 	"anomalies-detection":         taskAnomaliesDetection,
 	"check-user-entitlement":      taskCheckEntitlement,
 	"generate-spreadsheet":        taskSpreadsheet,
-	"generate-tags-spreadsheet":   taskTagsSpreadsheet,
 	"generate-master-spreadsheet": taskMasterSpreadsheet,
 	"update-aws-identity":         taskUpdateAwsIdentity,
 	"check-cost":                  taskCheckCost,

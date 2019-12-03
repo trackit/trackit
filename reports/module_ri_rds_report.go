@@ -25,54 +25,54 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports/history"
-	"github.com/trackit/trackit/usageReports/riRds"
+	"github.com/trackit/trackit/usageReports/riRDS"
 	"github.com/trackit/trackit/users"
 )
 
-const riRdsReportSheetName = "Reserved Instances Rds Report"
+const riRDSReportSheetName = "Reserved Instances RDS Report"
 
-var riRdsReportModule = module{
-	Name:          "Reserved Instances Rds Report",
-	SheetName:     riRdsReportSheetName,
-	ErrorName:     "riRdsReportError",
-	GenerateSheet: generateRiRdsReportSheet,
+var riRDSReportModule = module{
+	Name:          "Reserved Instances RDS Report",
+	SheetName:     riRDSReportSheetName,
+	ErrorName:     "riRDSReportError",
+	GenerateSheet: generateRiRDSReportSheet,
 }
 
-// generateRiRdsReportSheet will generate a sheet with Ri Rds usage report
+// generateRiRDSReportSheet will generate a sheet with Ri RDS usage report
 // It will get data for given AWS account and for a given date
-func generateRiRdsReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
+func generateRiRDSReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
 	}
-	return riRdsReportGenerateSheet(ctx, aas, date, tx, file)
+	return riRDSReportGenerateSheet(ctx, aas, date, tx, file)
 }
 
-func riRdsReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
-	data, err := riRdsReportGetData(ctx, aas, date, tx)
+func riRDSReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
+	data, err := riRDSReportGetData(ctx, aas, date, tx)
 	if err == nil {
-		return riRdsReportInsertDataInSheet(aas, file, data)
+		return riRDSReportInsertDataInSheet(aas, file, data)
 	}
 	return
 }
 
-func riRdsReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []riRds.ReservationReport, err error) {
+func riRDSReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []riRDS.ReservationReport, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	identities := getAwsIdentities(aas)
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
 		return
 	}
-	parameters := riRds.ReservedInstancesQueryParams{
+	parameters := riRDS.ReservedInstancesQueryParams{
 		AccountList: identities,
 		Date:        date,
 	}
-	logger.Debug("Getting Ri Rds Usage Report for accounts", map[string]interface{}{
+	logger.Debug("Getting Ri RDS Usage Report for accounts", map[string]interface{}{
 		"accounts": aas,
 		"date":     date,
 	})
-	_, reports, err = riRds.GetReservedInstancesData(ctx, parameters, user, tx)
+	_, reports, err = riRDS.GetReservedInstancesData(ctx, parameters, user, tx)
 	if err != nil {
-		logger.Error("An error occurred while generating an Ri Rds Usage Report", map[string]interface{}{
+		logger.Error("An error occurred while generating an Ri RDS Usage Report", map[string]interface{}{
 			"error":    err,
 			"accounts": aas,
 			"date":     date,
@@ -81,9 +81,9 @@ func riRdsReportGetData(ctx context.Context, aas []aws.AwsAccount, date time.Tim
 	return
 }
 
-func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []riRds.ReservationReport) (err error) {
-	file.NewSheet(riRdsReportSheetName)
-	riRdsReportGenerateHeader(file)
+func riRDSReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []riRDS.ReservationReport) (err error) {
+	file.NewSheet(riRDSReportSheetName)
+	riRDSReportGenerateHeader(file)
 	line := 4
 	toLine := 0
 	for _, report := range data {
@@ -98,7 +98,7 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 				newCell(recurringCharge.Amount, "M"+strconv.Itoa(currentLine + line)).addStyles("price"),
 				newCell(recurringCharge.Frequency, "N"+strconv.Itoa(currentLine + line)),
 			}
-			recurringCells.addStyles("borders", "centerText").setValues(file, riRdsReportSheetName)
+			recurringCells.addStyles("borders", "centerText").setValues(file, riRDSReportSheetName)
 			toLine = currentLine + line
 		}
 		cells := cells{
@@ -115,13 +115,13 @@ func riRdsReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 			newCell(instance.StartTime.Format("2006-01-02T15:04:05"), "K"+strconv.Itoa(line)).mergeTo("K"+strconv.Itoa(toLine)),
 			newCell(instance.EndTime.Format("2006-01-02T15:04:05"), "L"+strconv.Itoa(line)).mergeTo("L"+strconv.Itoa(toLine)),
 		}
-		cells.addStyles("borders", "centerText").setValues(file, riRdsReportSheetName)
+		cells.addStyles("borders", "centerText").setValues(file, riRDSReportSheetName)
 		line++
 	}
 	return
 }
 
-func riRdsReportGenerateHeader(file *excelize.File) {
+func riRDSReportGenerateHeader(file *excelize.File) {
 	header := cells{
 		newCell("Account", "A1").mergeTo("A3"),
 		newCell("Reservation", "B1").mergeTo("N1"),
@@ -140,7 +140,7 @@ func riRdsReportGenerateHeader(file *excelize.File) {
 		newCell("Amount", "M3"),
 		newCell("Frequency", "N3"),
 	}
-	header.addStyles("borders", "bold", "centerText").setValues(file, riRdsReportSheetName)
+	header.addStyles("borders", "bold", "centerText").setValues(file, riRDSReportSheetName)
 	columns := columnsWidth{
 		newColumnWidth("A", 30),
 		newColumnWidth("B", 30),
@@ -154,6 +154,6 @@ func riRdsReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("M", 10),
 		newColumnWidth("N", 13),
 	}
-	columns.setValues(file, riRdsReportSheetName)
+	columns.setValues(file, riRDSReportSheetName)
 	return
 }
