@@ -99,10 +99,12 @@ func generateId(snapshot SnapshotReport) (string, error) {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
+		Type       string    `json:"reportType"`
 	}{
 		snapshot.Account,
 		snapshot.ReportDate,
 		snapshot.Snapshot.Id,
+		snapshot.ReportType,
 	})
 	if err != nil {
 		return "", err

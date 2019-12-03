@@ -222,9 +222,15 @@ func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 }
 
 // FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
-func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount) (bool, error) {
+func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	startDate, endDate := GetHistoryDate()
+	var startDate, endDate time.Time
+	if date.IsZero() {
+		startDate, endDate = GetHistoryDate()
+	} else {
+		startDate = date
+		endDate = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location())
+	}
 	logger.Info("Starting history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),

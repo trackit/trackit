@@ -39,6 +39,33 @@ import (
 	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
 )
 
+const invalidAccId = -1
+
+var invalidTime = time.Time{}
+
+func checkArgumentsForProcessAccount(args []string) (int, time.Time, error) {
+	if len(args) < 1 {
+		return invalidAccId, invalidTime, errors.New("process account task requires at least an integer argument as AWS Account UD")
+	}
+	accId, err := strconv.Atoi(args[0])
+	if err != nil {
+		return invalidAccId, invalidTime, err
+	}
+	now := time.Now().UTC()
+	if len(args) == 3 {
+		if month, err := strconv.Atoi(args[1]); err != nil {
+			return invalidAccId, invalidTime, err
+		} else if year, err := strconv.Atoi(args[2]); err != nil {
+			return invalidAccId, invalidTime, err
+		} else {
+			formattedMonth := time.Month(month)
+			date := time.Date(year, formattedMonth, 1, 0, 0, 0, 0, now.Location()).UTC()
+			return accId, date, nil
+		}
+	}
+	return accId, invalidTime, nil
+}
+
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
 func taskProcessAccount(ctx context.Context) error {
 	args := flag.Args()
@@ -46,17 +73,16 @@ func taskProcessAccount(ctx context.Context) error {
 	logger.Debug("Running task 'process-account'.", map[string]interface{}{
 		"args": args,
 	})
-	if len(args) != 1 {
-		return errors.New("taskProcessAccount requires an integer argument")
-	} else if aaId, err := strconv.Atoi(args[0]); err != nil {
+	aaId, date, err := checkArgumentsForProcessAccount(args)
+	if err != nil {
 		return err
 	} else {
-		return ingestDataForAccount(ctx, aaId)
+		return ingestDataForAccount(ctx, aaId, date)
 	}
 }
 
 // ingestDataForAccount ingests the AWS api data for an AwsAccount.
-func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
+func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
 	var updateId int64
@@ -74,16 +100,19 @@ func ingestDataForAccount(ctx context.Context, aaId int) (err error) {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
-		ec2Err := processAccountEC2(ctx, aa)
-		rdsErr := processAccountRDS(ctx, aa)
-		esErr := processAccountES(ctx, aa)
-		elastiCacheErr := processAccountElastiCache(ctx, aa)
-		lambdaErr := processAccountLambda(ctx, aa)
-		riEc2Err := riEc2.FetchDailyReservationsStats(ctx, aa)
-		riRdsErr := riRdS.FetchDailyInstancesStats(ctx, aa)
-		odToRiEc2Err := onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
-		ebsErr := processAccountEbsSnapshot(ctx, aa)
-		historyCreated, historyErr := processAccountHistory(ctx, aa)
+		var ec2Err, rdsErr, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, ebsErr error
+		if date.IsZero() {
+			ec2Err = processAccountEC2(ctx, aa)
+			rdsErr = processAccountRDS(ctx, aa)
+			esErr = processAccountES(ctx, aa)
+			elastiCacheErr = processAccountElastiCache(ctx, aa)
+			lambdaErr = processAccountLambda(ctx, aa)
+			riEc2Err = riEc2.FetchDailyReservationsStats(ctx, aa)
+			riRdsErr = riRdS.FetchDailyInstancesStats(ctx, aa)
+			odToRiEc2Err = onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
+			ebsErr = processAccountEbsSnapshot(ctx, aa)
+		}
+		historyCreated, historyErr := processAccountHistory(ctx, aa, date)
 		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
 	}
 	if err != nil {
@@ -250,8 +279,8 @@ func processAccountLambda(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // processAccountHistory processes EC2, RDS, ES, ElastiCache, Lambda and EC2 Coverage data with billing data for an AwsAccount
-func processAccountHistory(ctx context.Context, aa aws.AwsAccount) (bool, error) {
-	status, err := history.FetchHistoryInfos(ctx, aa)
+func processAccountHistory(ctx context.Context, aa aws.AwsAccount, date time.Time) (bool, error) {
+	status, err := history.FetchHistoryInfos(ctx, aa, date)
 	if err != nil && err != history.ErrBillingDataIncomplete {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest History data.", map[string]interface{}{
