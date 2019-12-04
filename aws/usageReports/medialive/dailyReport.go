@@ -31,7 +31,7 @@ import (
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
-func fetchDailyChannelsList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
+func fetchDailyChannelsList(ctx context.Context, creds *credentials.Credentials, region string, channelChan chan Channel) error {
 	defer close(instanceChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -40,38 +40,22 @@ func fetchDailyChannelsList(ctx context.Context, creds *credentials.Credentials,
 		Region:      aws.String(region),
 	}))
 	svc := ec2.New(sess)
-	instances, err := svc.DescribeInstances(nil)
-	if err != nil {
-		logger.Error("Error when describing instances", err.Error())
-		return err
-	}
-	for _, reservation := range instances.Reservations {
-		for _, instance := range reservation.Instances {
-			stats := getInstanceStats(ctx, instance, sess, start, end)
-			costs := make(map[string]float64, 0)
-			instanceChan <- Instance{
-				InstanceBase: InstanceBase{
-					Id:         aws.StringValue(instance.InstanceId),
-					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
-					State:      aws.StringValue(instance.State.Name),
-					Purchasing: getPurchasingOption(instance),
-					KeyPair:    aws.StringValue(instance.KeyName),
-					Type:       aws.StringValue(instance.InstanceType),
-					Platform:   getPlatformName(aws.StringValue(instance.Platform)),
-				},
-				Tags:  getInstanceTag(instance.Tags),
-				Costs: costs,
-				Stats: stats,
-			}
+	var nextToken *string
+	var err error
+	for nextToken, err = getChannelsFromAWS(channelChan, svc, region, nextToken); nextToken != nil; {
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
+func getChannelsFromAWS(channelChan chan Channel, svc *mediaconvert.)
+
 // FetchDailyInstancesStats fetches the stats of the EC2 instances of an AwsAccount
 // to import them in ElasticSearch. The stats are fetched from the last hour.
 // In this way, FetchInstancesStats should be called every hour.
-func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+func FetchDailyChannelInputStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorChannelStsSessionName)
