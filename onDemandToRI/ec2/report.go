@@ -321,7 +321,6 @@ func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
 	}
 	unreservedIntances := getUnreservedInstances(instancesReport, reservationsReport)
 	report = calculateCosts(ctx, unreservedIntances, ec2Pricings, report)
-	logger.Debug("----> REPORT <-----", report)
 	return IngestOdToRiEc2Result(ctx, aa, report)
 }
 
