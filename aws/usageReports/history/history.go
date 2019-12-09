@@ -191,6 +191,15 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 	return reportsCreated, concatErrors([]error{ec2Err, ebsErr, cloudWatchErr, rdsErr, esErr, elastiCacheErr, ec2CoverageErr, instanceCountErr, medialiveErr})
 }
 
+// getElementalInfo sort products and call history reports
+func getElementalInfos(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
+	var mediaconvertCreated, medialiveCreated bool
+	var mediaconvertErr, medialiveErr error
+	// TODO: add monthly reports reportCreated, reportErr := monthlyReports
+	reportsCreated := mediaconvertCreated || medialiveCreated
+	return reportsCreated, concatErrors([]error{mediaconvertErr, medialiveErr})
+}
+
 // CheckBillingDataCompleted checks if billing data in ES are complete.
 // If they are complete it returns true, otherwise it returns false.
 func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate time.Time, aa aws.AwsAccount) (bool, error) {
@@ -246,4 +255,29 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (
 		return false, ErrBillingDataIncomplete
 	}
 	return getInstancesInfo(ctx, aa, startDate, endDate)
+}
+
+// FetchHistoryInfos fetches billing data and stats of EC2 and RDS instances of the last month
+func FetchHistoryElementalInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (bool, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	var startDate, endDate time.Time
+	if date.IsZero() {
+		startDate, endDate = GetHistoryDate()
+	} else {
+		startDate = date
+		endDate = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location())
+	}
+	logger.Info("Starting history report", map[string]interface{}{
+		"awsAccountId": aa.Id,
+		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
+		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
+	})
+	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
+	if err != nil {
+		return false, err
+	} else if complete == false {
+		logger.Info("Billing data are not completed", nil)
+		return false, ErrBillingDataIncomplete
+	}
+	return getElementalInfos(ctx, aa, startDate, endDate)
 }

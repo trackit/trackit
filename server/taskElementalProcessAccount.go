@@ -71,7 +71,7 @@ func taskElementalProcessAccount(ctx context.Context) error {
 func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
-	//var updateId int64
+	var updateId int64
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -84,16 +84,16 @@ func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if _, err = registerAccountElementalProcessing(db.Db, aa); err != nil { // _, err = updateId
+	} else if updateId, err = registerAccountElementalProcessing(db.Db, aa); err != nil {
 	} else {
 		if date.IsZero() {
 			// TODO: elemental products ingest
 		}
-		_, _ = elementalProcessAccountHistory(ctx, aa, date) // _, _ = historyCreated, historyErr
-		//updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
+		historyCreated, historyErr := elementalProcessAccountHistory(ctx, aa, date)
+		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, historyCreated)
 	}
 	if err != nil {
-		//updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false)
+		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, false)
 		logger.Error("Failed to process account elemental data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
@@ -148,7 +148,7 @@ func registerAccountElementalProcessingCompletion(db *sql.DB, updateId int64, jo
 
 // elementalProcessAccountHistory processes Elemental Products data with billing data for an AwsAccount
 func elementalProcessAccountHistory(ctx context.Context, aa aws.AwsAccount, date time.Time) (bool, error) {
-	status, err := history.FetchHistoryInfos(ctx, aa, date)
+	status, err := history.FetchHistoryElementalInfos(ctx, aa, date)
 	if err != nil && err != history.ErrBillingDataIncomplete {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest History elemental data.", map[string]interface{}{
