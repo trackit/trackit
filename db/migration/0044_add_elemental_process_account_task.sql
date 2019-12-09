@@ -19,7 +19,9 @@ CREATE TABLE aws_account_elemental_update_job (
 	completed              TIMESTAMP    NOT NULL DEFAULT 0,
 	worker_id              VARCHAR(255) NOT NULL,
 	jobError               VARCHAR(255) NOT NULL DEFAULT "",
-	historyError               VARCHAR(255) NOT NULL DEFAULT "",
+	historyError           VARCHAR(255) NOT NULL DEFAULT "",
+	medialiveError         VARCHAR(255) NOT NULL DEFAULT "",
+	mediaconvertError      VARCHAR(255) NOT NULL DEFAULT "",
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 );

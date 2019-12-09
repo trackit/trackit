@@ -163,7 +163,7 @@ func fetchDailyInputStats(ctx context.Context, awsAccount taws.AwsAccount, now t
 	return importInputsToEs(ctx, awsAccount, inputs)
 }
 
-func FetchDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+func PutDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorChannelStsSessionName)
@@ -193,4 +193,5 @@ func FetchDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccou
 	}
 	return nil
 }
+
 

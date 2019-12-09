@@ -19,6 +19,8 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"github.com/trackit/trackit/aws/usageReports/mediaconvert"
+	"github.com/trackit/trackit/aws/usageReports/medialive"
 	"strconv"
 	"time"
 
@@ -86,14 +88,16 @@ func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountElementalProcessing(db.Db, aa); err != nil {
 	} else {
+		var mediaconvertErr, medialiveErr error
 		if date.IsZero() {
-			// TODO: elemental products ingest
+			mediaconvertErr = mediaconvert.PutMediaConvertDailyReport(ctx, aa)
+			medialiveErr = medialive.PutDailyChannelsInputsStats(ctx, aa)
 		}
 		historyCreated, historyErr := elementalProcessAccountHistory(ctx, aa, date)
-		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, historyCreated)
+		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, medialiveErr, mediaconvertErr, historyCreated)
 	}
 	if err != nil {
-		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, false)
+		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, false)
 		logger.Error("Failed to process account elemental data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
@@ -114,9 +118,9 @@ func registerAccountElementalProcessing(db *sql.DB, aa aws.AwsAccount) (int64, e
 	return res.LastInsertId()
 }
 
-func updateAccountElementalProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, historyErr error, historyCreated bool) {
+func updateAccountElementalProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, historyErr, medialiveErr, mediaconvertErr error, historyCreated bool) {
 	updateNextElementalUpdateAccount(db, aaId)
-	rErr := registerAccountElementalProcessingCompletion(db, updateId, jobErr, historyErr, historyCreated)
+	rErr := registerAccountElementalProcessingCompletion(db, updateId, jobErr, historyErr, medialiveErr, mediaconvertErr, historyCreated)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing elemental completion.", map[string]interface{}{
@@ -135,14 +139,16 @@ func updateNextElementalUpdateAccount(db *sql.DB, aaId int) error {
 	return err
 }
 
-func registerAccountElementalProcessingCompletion(db *sql.DB, updateId int64, jobErr, historyErr error, historyCreated bool) error {
+func registerAccountElementalProcessingCompletion(db *sql.DB, updateId int64, jobErr, historyErr, medialiveErr, mediaconvertErr error, historyCreated bool) error {
 	const sqlstr = `UPDATE aws_account_elemental_update_job SET
 		completed=?,
 		jobError=?,
 		historyError=?,
+		medialiveError=?,
+		mediaconvertError=?,
 		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(historyErr), historyCreated, updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(historyErr), medialiveErr, mediaconvertErr, historyCreated, updateId)
 	return err
 }
 

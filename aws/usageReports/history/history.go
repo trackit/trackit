@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/trackit/trackit/aws/usageReports/mediaconvert"
 	"github.com/trackit/trackit/aws/usageReports/medialive"
 	"net/http"
 	"time"
@@ -195,7 +196,8 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 func getElementalInfos(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
 	var mediaconvertCreated, medialiveCreated bool
 	var mediaconvertErr, medialiveErr error
-	// TODO: add monthly reports reportCreated, reportErr := monthlyReports
+	mediaconvertCreated, mediaconvertErr = mediaconvert.PutMediaConvertMonthlyReport(ctx, aa, startDate, endDate)
+	medialiveCreated, medialiveErr = medialive.PutMedialiveMonthlyReport(ctx, aa, startDate, endDate)
 	reportsCreated := mediaconvertCreated || medialiveCreated
 	return reportsCreated, concatErrors([]error{mediaconvertErr, medialiveErr})
 }
