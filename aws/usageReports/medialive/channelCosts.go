@@ -22,8 +22,8 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
-	"gopkg.in/olivere/elastic.v5"
 
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/errors"

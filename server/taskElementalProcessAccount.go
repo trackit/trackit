@@ -73,7 +73,7 @@ func taskElementalProcessAccount(ctx context.Context) error {
 func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
-	var updateId int64
+	var _ int64
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -86,18 +86,17 @@ func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if updateId, err = registerAccountElementalProcessing(db.Db, aa); err != nil {
+//	} else if _, err = registerAccountElementalProcessing(db.Db, aa); err != nil { // updateId =
 	} else {
-		var mediaconvertErr, medialiveErr error
 		if date.IsZero() {
-			mediaconvertErr = mediaconvert.PutMediaConvertDailyReport(ctx, aa)
-			medialiveErr = medialive.PutDailyChannelsInputsStats(ctx, aa)
+			_ = mediaconvert.PutMediaConvertDailyReport(ctx, aa)
+			_ = medialive.PutDailyChannelsInputsStats(ctx, aa)
 		}
-		historyCreated, historyErr := elementalProcessAccountHistory(ctx, aa, date)
-		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, medialiveErr, mediaconvertErr, historyCreated)
+		_, _ = elementalProcessAccountHistory(ctx, aa, date)
+		//updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, medialiveErr, mediaconvertErr, historyCreated)
 	}
 	if err != nil {
-		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, false)
+		//updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, false)
 		logger.Error("Failed to process account elemental data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),

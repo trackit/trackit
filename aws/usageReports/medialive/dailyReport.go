@@ -16,6 +16,7 @@ package medialive
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -91,6 +92,7 @@ func fetchDailyInputsList(_ context.Context, creds *credentials.Credentials, reg
 
 func getInputsFromAWS(inputChan chan Input, svc *medialive.MediaLive, region string, token *string) (*string, error) {
 	listInput, err := svc.ListInputs(&medialive.ListInputsInput{NextToken: token})
+	fmt.Printf("listInput = %v\n", listInput)
 	if err != nil {
 		return nil, err
 	}
@@ -186,9 +188,9 @@ func PutDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccount
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	if err = fetchDailyChannelStats(ctx, awsAccount, now, account, regions, creds); err != nil {
-		return err
-	} else if err = fetchDailyInputStats(ctx, awsAccount, now, account, regions, creds); err != nil {
+	err = fetchDailyChannelStats(ctx, awsAccount, now, account, regions, creds)
+	err = fetchDailyInputStats(ctx, awsAccount, now, account, regions, creds)
+	if err != nil {
 		return err
 	}
 	return nil

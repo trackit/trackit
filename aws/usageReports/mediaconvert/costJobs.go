@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"time"
 
-	"gopkg.in/olivere/elastic.v5"
+	"github.com/olivere/elastic"
 
 	"github.com/trackit/jsonlog"
 	taws "github.com/trackit/trackit/aws"
@@ -70,6 +70,9 @@ func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, use
 		}
 		return nil, errors.GetErrorMessage(ctx, err)
 	}
+	logger.Debug("THE RES IS", map[string]interface{}{
+		"RES": res,
+	})
 	return res, nil
 }
 
