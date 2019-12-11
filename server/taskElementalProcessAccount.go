@@ -19,8 +19,6 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit/aws/usageReports/mediaconvert"
-	"github.com/trackit/trackit/aws/usageReports/medialive"
 	"strconv"
 	"time"
 
@@ -28,6 +26,8 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports/history"
+	"github.com/trackit/trackit/aws/usageReports/mediaconvert"
+	"github.com/trackit/trackit/aws/usageReports/medialive"
 	"github.com/trackit/trackit/db"
 )
 
@@ -73,7 +73,8 @@ func taskElementalProcessAccount(ctx context.Context) error {
 func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time) (err error) {
 	var tx *sql.Tx
 	var aa aws.AwsAccount
-	var _ int64
+	var updateId int64
+	var mediaconvertErr, medialiveErr error
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
@@ -86,17 +87,17 @@ func ingestElementalDataForAccount(ctx context.Context, aaId int, date time.Time
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-//	} else if _, err = registerAccountElementalProcessing(db.Db, aa); err != nil { // updateId =
+	} else if updateId, err = registerAccountElementalProcessing(db.Db, aa); err != nil {
 	} else {
 		if date.IsZero() {
-			_ = mediaconvert.PutMediaConvertDailyReport(ctx, aa)
-			_ = medialive.PutDailyChannelsInputsStats(ctx, aa)
+			mediaconvertErr = mediaconvert.PutMediaConvertDailyReport(ctx, aa)
+			medialiveErr = medialive.PutDailyChannelsInputsStats(ctx, aa)
 		}
-		_, _ = elementalProcessAccountHistory(ctx, aa, date)
-		//updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, medialiveErr, mediaconvertErr, historyCreated)
+		historyCreated, historyErr := elementalProcessAccountHistory(ctx, aa, date)
+		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, nil, historyErr, medialiveErr, mediaconvertErr, historyCreated)
 	}
 	if err != nil {
-		//updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, false)
+		updateAccountElementalProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, false)
 		logger.Error("Failed to process account elemental data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),

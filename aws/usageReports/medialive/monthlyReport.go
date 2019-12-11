@@ -69,10 +69,10 @@ func getChannelInfoFromES(ctx context.Context, channelCosts ChannelInformations,
 	var docType ChannelReport
 	var chann = Channel{
 		ChannelBase: ChannelBase{
-			Arn:       channelCosts.Arn,
-			Id:        channelCosts.Id,
-			Name:      "N/A",
-			Region:    channelCosts.Region,
+			Arn:    channelCosts.Arn,
+			Id:     channelCosts.Id,
+			Name:   "N/A",
+			Region: channelCosts.Region,
 		},
 		Tags: make(map[string]string, 0),
 		Cost: channelCosts.Cost,
@@ -98,10 +98,10 @@ func getInputInfoFromES(ctx context.Context, inputCosts InputInformations, accou
 	var docType InputReport
 	var input = Input{
 		InputBase: InputBase{
-			Arn:       inputCosts.Arn,
-			Id:        inputCosts.Id,
-			Name:      "N/A",
-			Region:    inputCosts.Region,
+			Arn:    inputCosts.Arn,
+			Id:     inputCosts.Id,
+			Name:   "N/A",
+			Region: inputCosts.Region,
 		},
 		Tags: make(map[string]string, 0),
 		Cost: inputCosts.Cost,
@@ -144,12 +144,12 @@ func fetchMonthlyChannelsList(ctx context.Context, creds *credentials.Credential
 			Name:   aws.StringValue(describeChannel.Name),
 			Region: region,
 		},
-		ChannelClass: aws.StringValue(describeChannel.ChannelClass),
-		LogLevel: aws.StringValue(describeChannel.LogLevel),
+		ChannelClass:          aws.StringValue(describeChannel.ChannelClass),
+		LogLevel:              aws.StringValue(describeChannel.LogLevel),
 		PipelinesRunningCount: aws.Int64Value(describeChannel.PipelinesRunningCount),
-		State: aws.StringValue(describeChannel.State),
-		Tags: getChannelTags(describeChannel.Tags),
-		Cost: cost.Cost,
+		State:                 aws.StringValue(describeChannel.State),
+		Tags:                  getChannelTags(describeChannel.Tags),
+		Cost:                  cost.Cost,
 	}
 	return nil
 }
@@ -177,13 +177,13 @@ func fetchMonthlyInput(ctx context.Context, creds *credentials.Credentials, cost
 			Region: region,
 		},
 		AttachedChannels: aws.StringValueSlice(describeInput.AttachedChannels),
-		InputClass: aws.StringValue(describeInput.InputClass),
-		RoleArn: aws.StringValue(describeInput.RoleArn),
-		SecurityGroups: aws.StringValueSlice(describeInput.SecurityGroups),
-		State: aws.StringValue(describeInput.State),
-		Type: aws.StringValue(describeInput.Type),
-		Tags: getInputTags(describeInput.Tags),
-		Cost: cost.Cost,
+		InputClass:       aws.StringValue(describeInput.InputClass),
+		RoleArn:          aws.StringValue(describeInput.RoleArn),
+		SecurityGroups:   aws.StringValueSlice(describeInput.SecurityGroups),
+		State:            aws.StringValue(describeInput.State),
+		Type:             aws.StringValue(describeInput.Type),
+		Tags:             getInputTags(describeInput.Tags),
+		Cost:             cost.Cost,
 	}
 	return nil
 }
@@ -222,14 +222,14 @@ func PutMedialiveMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDat
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
-	})/*
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaLiveReport)
-	if err != nil {
-		return false, err
-	} else if already {
-		logger.Info("There is already an MediaLive monthly report", nil)
-		return false, nil
-	}*/
+	}) /*
+		already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaLiveReport)
+		if err != nil {
+			return false, err
+		} else if already {
+			logger.Info("There is already an MediaLive monthly report", nil)
+			return false, nil
+		}*/
 	channels, inputs, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
 	if err != nil {
 		return false, err

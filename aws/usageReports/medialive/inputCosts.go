@@ -18,10 +18,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
 	"regexp"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
@@ -34,10 +34,10 @@ type (
 	ResponseInputIdCostMonthly struct {
 		Id struct {
 			Buckets []struct {
-				Key string `json:"key"`
+				Key  string `json:"key"`
 				Date struct {
 					Buckets []struct {
-						Key string `json:"key_as_string"`
+						Key  string `json:"key_as_string"`
 						Cost struct {
 							Buckets []struct {
 								Key float64 `json:"key"`
@@ -52,7 +52,7 @@ type (
 		Id     string
 		Arn    string
 		Region string
-		Cost   map[time.Time]float64
+		Cost   float64
 	}
 )
 
@@ -114,11 +114,21 @@ func getMediaLiveInputCosts(ctx context.Context, aa taws.AwsAccount, startDate, 
 		inputInformations = append(inputInformations, InputInformations{
 			Id:     inputId,
 			Region: inputRegion,
-			Cost:   datesCosts,
+			Cost:   getTotalCost(datesCosts),
 			Arn:    id.Key,
 		})
 	}
 	return inputInformations
+}
+
+func getTotalCost(costs map[time.Time]float64) float64 {
+	var totalCost float64
+
+	totalCost = 0
+	for _, cost := range costs {
+		totalCost += cost
+	}
+	return totalCost
 }
 
 func getInputId(resourceId string) string {

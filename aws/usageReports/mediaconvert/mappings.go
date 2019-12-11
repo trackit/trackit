@@ -42,7 +42,7 @@ func init() {
 const TemplateMediaConvertReport = `
 {
 	"template": "*-mediaconvert-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"mediaconvert-report": {
 			"properties": {
@@ -141,16 +141,8 @@ const TemplateMediaConvertReport = `
 								}
 							}
 						},
-						"costs": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "date"
-								},
-								"value": {
-									"type": "double"
-								}
-							}
+						"cost": {
+							"type": "double"
 						}
 					}
 				}

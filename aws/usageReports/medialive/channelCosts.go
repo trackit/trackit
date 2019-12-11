@@ -36,10 +36,10 @@ type (
 	ResponseChannelIdCostMonthly struct {
 		Id struct {
 			Buckets []struct {
-				Key string `json:"key"`
+				Key  string `json:"key"`
 				Date struct {
 					Buckets []struct {
-						Key string `json:"key_as_string"`
+						Key  string `json:"key_as_string"`
 						Cost struct {
 							Buckets []struct {
 								Key float64 `json:"key"`
@@ -53,7 +53,7 @@ type (
 	ChannelInformations struct {
 		Id     string
 		Region string
-		Cost   map[time.Time]float64
+		Cost   float64
 		Arn    string
 	}
 )
@@ -61,7 +61,7 @@ type (
 func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, userId int) (*elastic.SearchResult, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()
-	now := time.Now().UTC() // line to remove
+	now := time.Now().UTC()                                                                 // line to remove
 	startDate = time.Date(now.Year()-1, now.Month()-1, 1, 0, 0, 0, 0, now.Location()).UTC() // line to remove
 	query = query.Filter(elastic.NewRangeQuery("usageEndDate").From(startDate).To(endDate))
 	query = query.Filter(elastic.NewTermQuery("productCode", "AWSElementalMediaLive"))
@@ -118,7 +118,7 @@ func getMediaLiveChannelCosts(ctx context.Context, aa taws.AwsAccount, startDate
 		channelInformations = append(channelInformations, ChannelInformations{
 			Id:     channelId,
 			Region: channelRegion,
-			Cost:   datesCosts,
+			Cost:   getTotalCost(datesCosts),
 			Arn:    id.Key,
 		})
 	}

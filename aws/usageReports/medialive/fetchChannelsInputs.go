@@ -13,7 +13,7 @@ import (
 )
 
 func fetchChannels(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time, regions []string, account string,
-creds *credentials.Credentials) []ChannelReport {
+	creds *credentials.Credentials) []ChannelReport {
 	channelsCosts := getMediaLiveChannelCosts(ctx, aa, startDate, endDate)
 	channelChans := make([]<-chan Channel, 0, len(regions))
 	for _, cost := range channelsCosts {
@@ -40,7 +40,7 @@ creds *credentials.Credentials) []ChannelReport {
 }
 
 func fetchInputs(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time, regions []string, account string,
-creds *credentials.Credentials) []InputReport {
+	creds *credentials.Credentials) []InputReport {
 	inputsCosts := getMediaLiveInputCosts(ctx, aa, startDate, endDate)
 	inputChans := make([]<-chan Input, 0, len(regions))
 	for _, cost := range inputsCosts {

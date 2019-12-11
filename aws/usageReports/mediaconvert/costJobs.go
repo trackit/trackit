@@ -21,10 +21,10 @@ type (
 	ResponseJobIdCostMonthly struct {
 		Id struct {
 			Buckets []struct {
-				Key string `json:"key"`
+				Key  string `json:"key"`
 				Date struct {
 					Buckets []struct {
-						Key string `json:"key_as_string"`
+						Key  string `json:"key_as_string"`
 						Cost struct {
 							Buckets []struct {
 								Key float64 `json:"key"`
@@ -38,7 +38,7 @@ type (
 	JobInformations struct {
 		Id     string
 		Region string
-		Cost   map[time.Time]float64
+		Cost   float64
 		Arn    string
 	}
 )
@@ -88,6 +88,9 @@ func getMediaConvertJobCosts(ctx context.Context, aa taws.AwsAccount, startDate,
 		logger.Error("Unmarshal execution failedd", err)
 		return nil
 	}
+	logger.Debug("response for mediaconvert monthly reports", map[string]interface{}{
+		"response": response.Id,
+	})
 	jobInformations := make([]JobInformations, 0)
 	for _, id := range response.Id.Buckets {
 		jobId := getJobId(id.Key)
@@ -104,11 +107,21 @@ func getMediaConvertJobCosts(ctx context.Context, aa taws.AwsAccount, startDate,
 		jobInformations = append(jobInformations, JobInformations{
 			Id:     jobId,
 			Region: jobRegion,
-			Cost:   datesCosts,
+			Cost:   getTotalCost(datesCosts),
 			Arn:    id.Key,
 		})
 	}
 	return jobInformations
+}
+
+func getTotalCost(costs map[time.Time]float64) float64 {
+	var totalCost float64
+
+	totalCost = 0
+	for _, cost := range costs {
+		totalCost += cost
+	}
+	return totalCost
 }
 
 func getJobId(resourceId string) string {

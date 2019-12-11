@@ -68,10 +68,10 @@ func getElasticSearchMediaConvertJob(ctx context.Context, account, instance stri
 func getJobInfoFromES(ctx context.Context, cost JobInformations, account string, userId int) Job {
 	var docType JobReport
 	var job = Job{
-		Id:         "N/A",
-		Region:     "N/A",
-		Arn:      "N/A",
-		Costs: make(map[time.Time]float64, 0),
+		Id:     "N/A",
+		Region: "N/A",
+		Arn:    "N/A",
+		Cost:   0,
 	}
 	res, err := getElasticSearchMediaConvertJob(ctx, account, cost.Arn,
 		es.Client, es.IndexNameForUserId(userId, IndexPrefixMediaConvertReport))
@@ -81,15 +81,14 @@ func getJobInfoFromES(ctx context.Context, cost JobInformations, account string,
 			job.Region = docType.Job.Region
 			job.Id = docType.Job.Id
 			job.Arn = docType.Job.Arn
-			job.Costs = docType.Job.Costs
+			job.Cost = docType.Job.Cost
 		}
 	}
 	return job
 }
 
-// fetchMonthlyJobsList sends in instanceInfoChan the instances fetched from DescribeJobs
-// and filled by DescribeJobs and getJobStats.
-func fetchMonthlyJobsList(ctx context.Context, creds *credentials.Credentials,
+// getMonthlyJob sends the get Job
+func getMonthlyJob(ctx context.Context, creds *credentials.Credentials,
 	account, region, jobId string, cost JobInformations, instanceChan chan Job, startDate, endDate time.Time, userId int) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -107,38 +106,38 @@ func fetchMonthlyJobsList(ctx context.Context, creds *credentials.Credentials,
 	for _, endpoint := range endpoints.Endpoints {
 		subSvc := mediaconvert.New(sess, &aws.Config{Endpoint: endpoint.Url})
 		job, err = subSvc.GetJob(&mediaconvert.GetJobInput{Id: &jobId})
-		if job != nil {
+		if job != nil && job.Job != nil {
 			break
 		}
 	}
-	if job == nil {
+	if job == nil || job.Job == nil {
 		instanceChan <- getJobInfoFromES(ctx, cost, account, userId)
 		return err
 	}
 	instanceChan <- Job{
-		Id: aws.StringValue(job.Job.Id),
-		Arn: aws.StringValue(job.Job.Arn),
-		Region: cost.Region,
-		BillingTagsSource: aws.StringValue(job.Job.BillingTagsSource),
-		CreatedAt: aws.TimeValue(job.Job.CreatedAt),
-		CurrentPhase: aws.StringValue(job.Job.CurrentPhase),
-		ErrorCode: aws.Int64Value(job.Job.ErrorCode),
-		ErrorMessage: aws.StringValue(job.Job.ErrorMessage),
-		JobPercentComplete: aws.Int64Value(job.Job.JobPercentComplete),
-		JobTemplate: aws.StringValue(job.Job.JobTemplate),
-		OutputGroupDetails: getOutputGroupDetails(job.Job.OutputGroupDetails),
-		Queue: aws.StringValue(job.Job.Queue),
-		RetryCount: aws.Int64Value(job.Job.RetryCount),
-		Role: aws.StringValue(job.Job.Role),
-		Status: aws.StringValue(job.Job.Status),
+		Id:                   aws.StringValue(job.Job.Id),
+		Arn:                  aws.StringValue(job.Job.Arn),
+		Region:               cost.Region,
+		BillingTagsSource:    aws.StringValue(job.Job.BillingTagsSource),
+		CreatedAt:            aws.TimeValue(job.Job.CreatedAt),
+		CurrentPhase:         aws.StringValue(job.Job.CurrentPhase),
+		ErrorCode:            aws.Int64Value(job.Job.ErrorCode),
+		ErrorMessage:         aws.StringValue(job.Job.ErrorMessage),
+		JobPercentComplete:   aws.Int64Value(job.Job.JobPercentComplete),
+		JobTemplate:          aws.StringValue(job.Job.JobTemplate),
+		OutputGroupDetails:   getOutputGroupDetails(job.Job.OutputGroupDetails),
+		Queue:                aws.StringValue(job.Job.Queue),
+		RetryCount:           aws.Int64Value(job.Job.RetryCount),
+		Role:                 aws.StringValue(job.Job.Role),
+		Status:               aws.StringValue(job.Job.Status),
 		StatusUpdateInterval: aws.StringValue(job.Job.StatusUpdateInterval),
 		Timing: Timing{
 			FinishTime: aws.TimeValue(job.Job.Timing.FinishTime),
-			StartTime: aws.TimeValue(job.Job.Timing.StartTime),
+			StartTime:  aws.TimeValue(job.Job.Timing.StartTime),
 			SubmitTime: aws.TimeValue(job.Job.Timing.SubmitTime),
 		},
 		UserMetadata: getUserMetadata(job.Job.UserMetadata),
-		Costs:   cost.Cost,
+		Cost:         cost.Cost,
 	}
 	return nil
 }
@@ -172,7 +171,7 @@ func fetchMonthlyJobsStats(ctx context.Context, aa taws.AwsAccount, costs []JobI
 		for _, region := range regions {
 			if strings.Contains(region, jobRegion) {
 				jobChan := make(chan Job)
-				go fetchMonthlyJobsList(ctx, creds, account, region, jobId, cost, jobChan, startDate, endDate, aa.UserId)
+				go getMonthlyJob(ctx, creds, account, region, jobId, cost, jobChan, startDate, endDate, aa.UserId)
 				jobChans = append(jobChans, jobChan)
 			}
 		}
@@ -200,13 +199,13 @@ func PutMediaConvertMonthlyReport(ctx context.Context, aa taws.AwsAccount, start
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
 	costs := getMediaConvertJobCosts(ctx, aa, startDate, endDate)
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaConvertReport)
+	/*already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaConvertReport)
 	if err != nil {
 		return false, err
 	} else if already {
 		logger.Info("There is already an MediaConvert monthly report", nil)
 		return false, nil
-	}
+	}*/
 	jobs, err := fetchMonthlyJobsStats(ctx, aa, costs, startDate, endDate)
 	if err != nil {
 		return false, err

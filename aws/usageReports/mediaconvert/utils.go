@@ -19,11 +19,11 @@ import (
 	"crypto/md5"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/mediaconvert"
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/mediaconvert"
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
@@ -42,7 +42,7 @@ type (
 
 	VideoDetail struct {
 		HeightInPx int64 `json:"heightInPx"`
-		WidthInPx int64 `json:"widthInPx"`
+		WidthInPx  int64 `json:"widthInPx"`
 	}
 
 	OutputDetail struct {
@@ -56,30 +56,30 @@ type (
 
 	Timing struct {
 		FinishTime time.Time `json:"finishTime"`
-		StartTime time.Time `json:"startTime"`
+		StartTime  time.Time `json:"startTime"`
 		SubmitTime time.Time `json:"submitTime"`
 	}
 
 	Job struct {
-		Arn string `json:"arn"`
-		Id string `json:"id"`
-		Region string `json:"region"`
-		BillingTagsSource string `json:"billingTagsSource"`
-		CreatedAt time.Time `json:"createdAt"`
-		CurrentPhase string `json:"currentPhase"`
-		ErrorCode int64 `json:"errorCode"`
-		ErrorMessage string `json:"errorMessage"`
-		JobPercentComplete int64 `json:"jobPercentComplete"`
-		JobTemplate string `json:"jobTemplate"`
-		OutputGroupDetails []OutputGroupDetail `json:"outputGroupDetails"`
-		Queue string `json:"queue"`
-		RetryCount int64 `json:"retryCount"`
-		Role string `json:"role"`
-		Status string `json:"status"`
-		StatusUpdateInterval string `json:"statusUpdateInterval"`
-		Timing Timing
-		UserMetadata map[string]string `json:"userMetadata"`
-		Costs map[time.Time]float64 `json:"costs"`
+		Arn                  string              `json:"arn"`
+		Id                   string              `json:"id"`
+		Region               string              `json:"region"`
+		BillingTagsSource    string              `json:"billingTagsSource"`
+		CreatedAt            time.Time           `json:"createdAt"`
+		CurrentPhase         string              `json:"currentPhase"`
+		ErrorCode            int64               `json:"errorCode"`
+		ErrorMessage         string              `json:"errorMessage"`
+		JobPercentComplete   int64               `json:"jobPercentComplete"`
+		JobTemplate          string              `json:"jobTemplate"`
+		OutputGroupDetails   []OutputGroupDetail `json:"outputGroupDetails"`
+		Queue                string              `json:"queue"`
+		RetryCount           int64               `json:"retryCount"`
+		Role                 string              `json:"role"`
+		Status               string              `json:"status"`
+		StatusUpdateInterval string              `json:"statusUpdateInterval"`
+		Timing               Timing
+		UserMetadata         map[string]string `json:"userMetadata"`
+		Cost                 float64           `json:"cost"`
 	}
 )
 
@@ -178,7 +178,7 @@ func getOutputGroupDetails(groupDetails []*mediaconvert.OutputGroupDetail) []Out
 	return outputGroupDetail
 }
 
-func getUserMetadata(initialUserMetadata map[string]*string) map[string]string{
+func getUserMetadata(initialUserMetadata map[string]*string) map[string]string {
 	UserMetadata := make(map[string]string, 0)
 	for key, value := range initialUserMetadata {
 		UserMetadata[key] = aws.StringValue(value)

@@ -51,14 +51,15 @@ func fetchDailyChannelsList(_ context.Context, creds *credentials.Credentials, r
 func getChannelsFromAWS(channelChan chan Channel, svc *medialive.MediaLive, region string, token *string) (*string, error) {
 	listChannel, err := svc.ListChannels(&medialive.ListChannelsInput{NextToken: token})
 	if err != nil {
+		fmt.Printf("Error when listing channels for medialive: %v\n", err)
 		return nil, err
 	}
 	for _, channel := range listChannel.Channels {
 		channelChan <- Channel{
-			ChannelBase:           ChannelBase{
-				Arn: aws.StringValue(channel.Arn),
-				Id: aws.StringValue(channel.Id),
-				Name: aws.StringValue(channel.Name),
+			ChannelBase: ChannelBase{
+				Arn:    aws.StringValue(channel.Arn),
+				Id:     aws.StringValue(channel.Id),
+				Name:   aws.StringValue(channel.Name),
 				Region: region,
 			},
 			ChannelClass:          aws.StringValue(channel.ChannelClass),
@@ -66,7 +67,7 @@ func getChannelsFromAWS(channelChan chan Channel, svc *medialive.MediaLive, regi
 			PipelinesRunningCount: aws.Int64Value(channel.PipelinesRunningCount),
 			State:                 aws.StringValue(channel.State),
 			Tags:                  getChannelTags(channel.Tags),
-			Cost:                  nil,
+			Cost:                  0,
 		}
 	}
 	return listChannel.NextToken, nil
@@ -94,24 +95,25 @@ func getInputsFromAWS(inputChan chan Input, svc *medialive.MediaLive, region str
 	listInput, err := svc.ListInputs(&medialive.ListInputsInput{NextToken: token})
 	fmt.Printf("listInput = %v\n", listInput)
 	if err != nil {
+		fmt.Printf("error input medialive = %v\n", err)
 		return nil, err
 	}
 	for _, input := range listInput.Inputs {
 		inputChan <- Input{
-			InputBase:           InputBase{
-				Arn: aws.StringValue(input.Arn),
-				Id: aws.StringValue(input.Id),
-				Name: aws.StringValue(input.Name),
+			InputBase: InputBase{
+				Arn:    aws.StringValue(input.Arn),
+				Id:     aws.StringValue(input.Id),
+				Name:   aws.StringValue(input.Name),
 				Region: region,
 			},
-			AttachedChannels:          aws.StringValueSlice(input.AttachedChannels),
-			InputClass:              aws.StringValue(input.InputClass),
-			RoleArn: aws.StringValue(input.RoleArn),
-			SecurityGroups: aws.StringValueSlice(input.SecurityGroups),
-			State:                 aws.StringValue(input.State),
-			Type: aws.StringValue(input.Type),
-			Tags:                  getChannelTags(input.Tags),
-			Cost:                  nil,
+			AttachedChannels: aws.StringValueSlice(input.AttachedChannels),
+			InputClass:       aws.StringValue(input.InputClass),
+			RoleArn:          aws.StringValue(input.RoleArn),
+			SecurityGroups:   aws.StringValueSlice(input.SecurityGroups),
+			State:            aws.StringValue(input.State),
+			Type:             aws.StringValue(input.Type),
+			Tags:             getChannelTags(input.Tags),
+			Cost:             0,
 		}
 	}
 	return listInput.NextToken, nil
@@ -195,5 +197,3 @@ func PutDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccount
 	}
 	return nil
 }
-
-

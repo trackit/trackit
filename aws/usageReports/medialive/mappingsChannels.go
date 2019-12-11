@@ -42,7 +42,7 @@ func init() {
 const TemplateMediaLiveChannelReport = `
 {
 	"template": "*-medialive-channel-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"medialive-channel-report": {
 			"properties": {
@@ -93,15 +93,7 @@ const TemplateMediaLiveChannelReport = `
 							}
 						},						
 						"cost": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "date"
-								},
-								"value": {
-									"type": "double"
-								}
-							}
+							"type": "double"
 						}
 					}
 				}
