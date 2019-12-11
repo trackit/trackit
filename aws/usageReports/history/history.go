@@ -19,8 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/trackit/trackit/aws/usageReports/mediaconvert"
-	"github.com/trackit/trackit/aws/usageReports/medialive"
 	"net/http"
 	"time"
 
@@ -35,6 +33,8 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	tes "github.com/trackit/trackit/aws/usageReports/es"
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
+	"github.com/trackit/trackit/aws/usageReports/mediaconvert"
+	"github.com/trackit/trackit/aws/usageReports/medialive"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/es"
 )
