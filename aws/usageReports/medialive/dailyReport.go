@@ -30,7 +30,7 @@ import (
 	"github.com/trackit/trackit/config"
 )
 
-// fetchDailyChannelList sends in channelInfoChan the instances fetched from ListChannels
+// fetchDailyChannelList get the channels fetched from ListChannels
 func fetchDailyChannelsList(_ context.Context, creds *credentials.Credentials, region string, channelChan chan Channel) error {
 	defer close(channelChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -73,7 +73,7 @@ func getChannelsFromAWS(channelChan chan Channel, svc *medialive.MediaLive, regi
 	return listChannel.NextToken, nil
 }
 
-// fetchDailyInputList sends in inputInfoChan the inputs fetched from ListInputs
+// fetchDailyInputList get the inputs fetched from ListInputs
 func fetchDailyInputsList(_ context.Context, creds *credentials.Credentials, region string, channelChan chan Input) error {
 	defer close(channelChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -120,8 +120,7 @@ func getInputsFromAWS(inputChan chan Input, svc *medialive.MediaLive, region str
 }
 
 // FetchDailyChannelStats fetches the stats of the Medialive Channels of an AwsAccount
-// to import them in ElasticSearch. The stats are fetched from the last hour.
-// In this way, FetchChannelStats should be called every hour.
+// to import them in ElasticSearch.
 func fetchDailyChannelStats(ctx context.Context, awsAccount taws.AwsAccount, now time.Time, account string, regions []string, creds *credentials.Credentials) error {
 	channelsChan := make([]<-chan Channel, 0, len(regions))
 	for _, region := range regions {
@@ -167,7 +166,37 @@ func fetchDailyInputStats(ctx context.Context, awsAccount taws.AwsAccount, now t
 	return importInputsToEs(ctx, awsAccount, inputs)
 }
 
-func PutDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+func PutDailyInputsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
+	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorChannelStsSessionName)
+	if err != nil {
+		logger.Error("Error when getting temporary credentials", err.Error())
+		return err
+	}
+	defaultSession := session.Must(session.NewSession(&aws.Config{
+		Credentials: creds,
+		Region:      aws.String(config.AwsRegion),
+	}))
+	now := time.Now().UTC()
+	account, err := utils.GetAccountId(ctx, defaultSession)
+	if err != nil {
+		logger.Error("Error when getting account id", err.Error())
+		return err
+	}
+	regions, err := utils.FetchRegionsList(ctx, defaultSession)
+	if err != nil {
+		logger.Error("Error when fetching regions list", err.Error())
+		return err
+	}
+	err = fetchDailyInputStats(ctx, awsAccount, now, account, regions, creds)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func PutDailyChannelsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching EC2 instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})
 	creds, err := taws.GetTemporaryCredentials(awsAccount, MonitorChannelStsSessionName)
@@ -191,7 +220,6 @@ func PutDailyChannelsInputsStats(ctx context.Context, awsAccount taws.AwsAccount
 		return err
 	}
 	err = fetchDailyChannelStats(ctx, awsAccount, now, account, regions, creds)
-	err = fetchDailyInputStats(ctx, awsAccount, now, account, regions, creds)
 	if err != nil {
 		return err
 	}

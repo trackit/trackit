@@ -43,6 +43,7 @@ type (
 	}
 )
 
+//getElasticSearchCost return a result from a request to the ES about Elemental MediaConvert billing in lineitems
 func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, userId int) (*elastic.SearchResult, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()

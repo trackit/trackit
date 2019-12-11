@@ -35,7 +35,7 @@ import (
 	"github.com/trackit/trackit/errors"
 )
 
-// getElasticSearchMediaConvertJob prepares and run the request to retrieve the a report of an instance
+// getElasticSearchMediaConvertJob prepares and run the request to retrieve the a report of a job
 // It will return the data and an error.
 func getElasticSearchMediaConvertJob(ctx context.Context, account, instance string, client *elastic.Client, index string) (*elastic.SearchResult, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -64,7 +64,7 @@ func getElasticSearchMediaConvertJob(ctx context.Context, account, instance stri
 	return res, nil
 }
 
-// getJobInfoFromEs gets information about an instance from previous report to put it in the new report
+// getJobInfoFromEs gets information about an job from previous report to put it in the new report
 func getJobInfoFromES(ctx context.Context, cost JobInformations, account string, userId int) Job {
 	var docType JobReport
 	var job = Job{

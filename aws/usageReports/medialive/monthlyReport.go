@@ -188,13 +188,13 @@ func fetchMonthlyInput(ctx context.Context, creds *credentials.Credentials, cost
 	return nil
 }
 
-// fetchMonthlyChannelsInputsStats fetch MediaLive channels stats
-func fetchMonthlyChannelsInputsStats(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]ChannelReport, []InputReport, error) {
+// fetchMonthlyChannelsInputsStats fetch MediaLive inputs stats
+func fetchMonthlyInputsStats(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]InputReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorChannelStsSessionName)
 	if err != nil {
 		logger.Error("Error when getting temporary credentials", err.Error())
-		return nil, nil, err
+		return nil, err
 	}
 	defaultSession := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -203,42 +203,89 @@ func fetchMonthlyChannelsInputsStats(ctx context.Context, aa taws.AwsAccount, st
 	account, err := utils.GetAccountId(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when getting account id", err.Error())
-		return nil, nil, err
+		return nil, err
 	}
 	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
-		return nil, nil, err
+		return nil, err
+	}
+	inputsList := fetchInputs(ctx, aa, startDate, endDate, regions, account, creds)
+	return inputsList, nil
+}
+
+// fetchMonthlyChannelsInputsStats fetch MediaLive channels stats
+func fetchMonthlyChannelsStats(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]ChannelReport, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	creds, err := taws.GetTemporaryCredentials(aa, MonitorChannelStsSessionName)
+	if err != nil {
+		logger.Error("Error when getting temporary credentials", err.Error())
+		return nil, err
+	}
+	defaultSession := session.Must(session.NewSession(&aws.Config{
+		Credentials: creds,
+		Region:      aws.String(config.AwsRegion),
+	}))
+	account, err := utils.GetAccountId(ctx, defaultSession)
+	if err != nil {
+		logger.Error("Error when getting account id", err.Error())
+		return nil, err
+	}
+	regions, err := utils.FetchRegionsList(ctx, defaultSession)
+	if err != nil {
+		logger.Error("Error when fetching regions list", err.Error())
+		return nil, err
 	}
 	channelsList := fetchChannels(ctx, aa, startDate, endDate, regions, account, creds)
-	inputsList := fetchInputs(ctx, aa, startDate, endDate, regions, account, creds)
-	return channelsList, inputsList, nil
+	return channelsList, nil
 }
 
 // PutMedialiveMonthlyReport puts a monthly report of MediaLive channel in ES
-func PutMedialiveMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+func PutMedialiveInputsMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting MediaLive monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
-	}) /*
-		already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaLiveReport)
-		if err != nil {
-			return false, err
-		} else if already {
-			logger.Info("There is already an MediaLive monthly report", nil)
-			return false, nil
-		}*/
-	channels, inputs, err := fetchMonthlyChannelsInputsStats(ctx, aa, startDate, endDate)
+	})
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaLiveInputReport)
 	if err != nil {
 		return false, err
+	} else if already {
+		logger.Info("There is already an MediaLive monthly report", nil)
+		return false, nil
 	}
-	err = importChannelsToEs(ctx, aa, channels)
+	inputs, err := fetchMonthlyInputsStats(ctx, aa, startDate, endDate)
 	if err != nil {
 		return false, err
 	}
 	err = importInputsToEs(ctx, aa, inputs)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// PutMedialiveChannelsMonthlyReport puts a monthly report of MediaLive channels in ES
+func PutMedialiveChannelsMonthlyReport(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Starting MediaLive monthly report", map[string]interface{}{
+		"awsAccountId": aa.Id,
+		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
+		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
+	})
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaLiveReport)
+	if err != nil {
+		return false, err
+	} else if already {
+		logger.Info("There is already an MediaLive monthly report", nil)
+		return false, nil
+	}
+	channels, err := fetchMonthlyChannelsStats(ctx, aa, startDate, endDate)
+	if err != nil {
+		return false, err
+	}
+	err = importChannelsToEs(ctx, aa, channels)
 	if err != nil {
 		return false, err
 	}

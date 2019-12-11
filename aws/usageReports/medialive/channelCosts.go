@@ -58,6 +58,7 @@ type (
 	}
 )
 
+//getElasticSearchCost get Elemental MediaLive resources from lineitems in ES to get jobs costs
 func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, userId int) (*elastic.SearchResult, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := elastic.NewBoolQuery()

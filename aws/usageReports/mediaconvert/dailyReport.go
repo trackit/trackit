@@ -28,9 +28,8 @@ import (
 	"github.com/trackit/trackit/config"
 )
 
-// fetchDailyJobsList sends in instanceInfoChan the instances fetched from DescribeJobs
-// and filled by DescribeJobs and getJobStats.
-func fetchDailyJobsList(ctx context.Context, creds *credentials.Credentials,
+// fetchDailyJobsList get the daily jobs list for a region
+func fetchDailyJobsList(_ context.Context, creds *credentials.Credentials,
 	region string, jobsChan chan Job) error {
 	defer close(jobsChan)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -92,7 +91,7 @@ func getJobsFromAWS(jobsChan chan Job, svc *mediaconvert.MediaConvert, region st
 	return listJob.NextToken, nil
 }
 
-// getMediaConvertMetrics gets credentials, accounts and region to fetch MediaConvert instances stats
+// fetchDailyJobsStats gets credentials, accounts and region to fetch Daily MediaConvert Jobs stats
 func fetchDailyJobsStats(ctx context.Context, aa taws.AwsAccount) ([]JobReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorJobStsSessionName)
@@ -135,7 +134,7 @@ func fetchDailyJobsStats(ctx context.Context, aa taws.AwsAccount) ([]JobReport, 
 	return jobsList, nil
 }
 
-// PutMediaConvertDailyReport puts a monthly report of MediaConvert instance in ES
+// PutMediaConvertDailyReport puts a monthly report of MediaConvert Jobs in ES
 func PutMediaConvertDailyReport(ctx context.Context, aa taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting MediaConvert daily report", map[string]interface{}{

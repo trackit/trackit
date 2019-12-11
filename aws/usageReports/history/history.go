@@ -193,12 +193,13 @@ func getInstancesInfo(ctx context.Context, aa aws.AwsAccount, startDate time.Tim
 
 // getElementalInfo sort products and call history reports
 func getElementalInfos(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time) (bool, error) {
-	var mediaconvertCreated, medialiveCreated bool
-	var mediaconvertErr, medialiveErr error
+	var mediaconvertCreated, medialiveChannelsCreated, medialiveInputsCreated bool
+	var mediaconvertErr, medialiveChannelsErr, medialiveInputsErr error
 	mediaconvertCreated, mediaconvertErr = mediaconvert.PutMediaConvertMonthlyReport(ctx, aa, startDate, endDate)
-	medialiveCreated, medialiveErr = medialive.PutMedialiveMonthlyReport(ctx, aa, startDate, endDate)
-	reportsCreated := mediaconvertCreated || medialiveCreated
-	return reportsCreated, concatErrors([]error{mediaconvertErr, medialiveErr})
+	medialiveChannelsCreated, medialiveChannelsErr = medialive.PutMedialiveChannelsMonthlyReport(ctx, aa, startDate, endDate)
+	medialiveInputsCreated, medialiveInputsErr = medialive.PutMedialiveInputsMonthlyReport(ctx, aa, startDate, endDate)
+	reportsCreated := mediaconvertCreated || medialiveChannelsCreated || medialiveInputsCreated
+	return reportsCreated, concatErrors([]error{mediaconvertErr, medialiveChannelsErr, medialiveInputsErr})
 }
 
 // CheckBillingDataCompleted checks if billing data in ES are complete.
