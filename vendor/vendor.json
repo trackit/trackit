@@ -517,20 +517,6 @@
 			"revisionTime": "2017-09-29T03:49:55Z"
 		},
 		{
-			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
-			"path": "github.com/olivere/elastic",
-			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
-			"revisionTime": "2018-09-20T17:30:04Z"
-		},
-		{
-			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
-			"path": "github.com/olivere/elastic",
-			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
-			"revisionTime": "2019-06-30T15:32:01Z",
-			"version": "v6.2.21",
-			"versionExact": "v6.2.21"
-		},
-		{
 			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
 			"path": "github.com/olivere/elastic",
 			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
@@ -543,6 +529,20 @@
 			"path": "github.com/olivere/elastic",
 			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
 			"revisionTime": "2018-09-20T17:30:04Z"
+		},
+		{
+			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
+			"path": "github.com/olivere/elastic",
+			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
+			"revisionTime": "2018-09-20T17:30:04Z"
+		},
+		{
+			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
+			"path": "github.com/olivere/elastic",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6.2.21",
+			"versionExact": "v6.2.21"
 		},
 		{
 			"path": "github.com/olivere/elastic.v6",
