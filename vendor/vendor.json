@@ -49,10 +49,10 @@
 			"revisionTime": "2019-12-04T01:59:20Z"
 		},
 		{
-			"checksumSHA1": "uEJU4I6dTKaraQKvrljlYKUZwoc=",
+			"checksumSHA1": "3w8kEXpxp3dpt6sEZ+DMWMTb2/M=",
 			"path": "github.com/aws/aws-sdk-go/aws/client/metadata",
-			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
-			"revisionTime": "2018-07-25T21:42:05Z"
+			"revision": "30425a4e22d18408cd6c1a54d0dbf62c64f39af2",
+			"revisionTime": "2019-12-04T01:59:20Z"
 		},
 		{
 			"checksumSHA1": "vVSUnICaD9IaBQisCfw0n8zLwig=",
@@ -177,18 +177,12 @@
 		{
 			"checksumSHA1": "CTsp/h3FbFg9QizH4bH1abLwljg=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
-			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
-			"revisionTime": "2018-08-09T22:26:03Z"
+			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
+			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
 			"checksumSHA1": "CTsp/h3FbFg9QizH4bH1abLwljg=",
 			"path": "github.com/aws/aws-sdk-go/private/protocol/json/jsonutil",
-			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
-			"revisionTime": "2018-07-25T21:42:05Z"
-		},
-		{
-			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
-			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
 			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
 			"revisionTime": "2018-08-09T22:26:03Z"
 		},
@@ -197,6 +191,12 @@
 			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
 			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
 			"revisionTime": "2018-07-25T21:42:05Z"
+		},
+		{
+			"checksumSHA1": "R00RL5jJXRYq1iiK1+PGvMfvXyM=",
+			"path": "github.com/aws/aws-sdk-go/private/protocol/jsonrpc",
+			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
+			"revisionTime": "2018-08-09T22:26:03Z"
 		},
 		{
 			"checksumSHA1": "SBBVYdLcocjdPzMWgDuR8vcOfDQ=",
@@ -279,14 +279,14 @@
 		{
 			"checksumSHA1": "8QSH1/L45ne6v+XThe0w3queTQY=",
 			"path": "github.com/aws/aws-sdk-go/service/marketplacemetering",
-			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
-			"revisionTime": "2018-08-09T22:26:03Z"
+			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
+			"revisionTime": "2018-07-25T21:42:05Z"
 		},
 		{
 			"checksumSHA1": "8QSH1/L45ne6v+XThe0w3queTQY=",
 			"path": "github.com/aws/aws-sdk-go/service/marketplacemetering",
-			"revision": "ddfc3ca419279cf2f67b12719e51fe8500d0029d",
-			"revisionTime": "2018-07-25T21:42:05Z"
+			"revision": "650063a3f68273cbd4861d4512ba3cc4d2898175",
+			"revisionTime": "2018-08-09T22:26:03Z"
 		},
 		{
 			"checksumSHA1": "O3IWWnlvIT3jdHWk8/9ZfOVR/cw=",
@@ -523,26 +523,26 @@
 			"revisionTime": "2018-09-20T17:30:04Z"
 		},
 		{
+			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
+			"path": "github.com/olivere/elastic",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6.2.21",
+			"versionExact": "v6.2.21"
+		},
+		{
+			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
+			"path": "github.com/olivere/elastic",
+			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
+			"revisionTime": "2019-06-30T15:32:01Z",
+			"version": "v6.2.21",
+			"versionExact": "v6.2.21"
+		},
+		{
 			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
 			"path": "github.com/olivere/elastic",
 			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
 			"revisionTime": "2018-09-20T17:30:04Z"
-		},
-		{
-			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
-			"path": "github.com/olivere/elastic",
-			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
-			"revisionTime": "2019-06-30T15:32:01Z",
-			"version": "v6.2.21",
-			"versionExact": "v6.2.21"
-		},
-		{
-			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
-			"path": "github.com/olivere/elastic",
-			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
-			"revisionTime": "2019-06-30T15:32:01Z",
-			"version": "v6.2.21",
-			"versionExact": "v6.2.21"
 		},
 		{
 			"path": "github.com/olivere/elastic.v6",
