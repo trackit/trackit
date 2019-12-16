@@ -1,4 +1,4 @@
-//   Copyright 2018 MSolution.IO
+//   Copyright 2019 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/olivere/elastic"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 )
@@ -80,7 +80,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams RiEc2QueryParams
 				"error": err.Error(),
 			})
 			return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
-		} else if cast, ok := err.(*elastic.Error); ok && cast.Details.Type == "search_phase_execution_exception" {
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details != nil && cast.Details.Type == "search_phase_execution_exception" {
 			l.Error("Error while getting data from ES", map[string]interface{}{
 				"type":  fmt.Sprintf("%T", err),
 				"error": err,
