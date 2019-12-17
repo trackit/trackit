@@ -150,7 +150,7 @@ func registerAccountElementalProcessingCompletion(db *sql.DB, updateId int64, jo
 		mediaconvertError=?,
 		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(historyErr), medialiveChannelsErr, medialiveInputsErr, mediaconvertErr, historyCreated, updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(historyErr), errToStr(medialiveChannelsErr), errToStr(medialiveInputsErr), errToStr(mediaconvertErr), historyCreated, updateId)
 	return err
 }
 

@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/trackit/trackit/es"
 	"strings"
 	"time"
 
@@ -33,6 +32,7 @@ import (
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es"
 )
 
 // getElasticSearchMediaConvertJob prepares and run the request to retrieve the a report of a job
@@ -199,13 +199,13 @@ func PutMediaConvertMonthlyReport(ctx context.Context, aa taws.AwsAccount, start
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
 	costs := getMediaConvertJobCosts(ctx, aa, startDate, endDate)
-	/*already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaConvertReport)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixMediaConvertReport)
 	if err != nil {
 		return false, err
 	} else if already {
-		logger.Info("There is already an MediaConvert monthly report", nil)
+		logger.Info("There is already a MediaConvert monthly report", nil)
 		return false, nil
-	}*/
+	}
 	jobs, err := fetchMonthlyJobsStats(ctx, aa, costs, startDate, endDate)
 	if err != nil {
 		return false, err

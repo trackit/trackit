@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
-
 	"github.com/trackit/jsonlog"
+
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
@@ -71,9 +71,6 @@ func getElasticSearchCost(ctx context.Context, startDate, endDate time.Time, use
 		}
 		return nil, errors.GetErrorMessage(ctx, err)
 	}
-	logger.Debug("THE RES IS", map[string]interface{}{
-		"RES": res,
-	})
 	return res, nil
 }
 
@@ -89,9 +86,6 @@ func getMediaConvertJobCosts(ctx context.Context, aa taws.AwsAccount, startDate,
 		logger.Error("Unmarshal execution failedd", err)
 		return nil
 	}
-	logger.Debug("response for mediaconvert monthly reports", map[string]interface{}{
-		"response": response.Id,
-	})
 	jobInformations := make([]JobInformations, 0)
 	for _, id := range response.Id.Buckets {
 		jobId := getJobId(id.Key)

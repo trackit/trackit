@@ -78,8 +78,8 @@ type (
 		Status               string              `json:"status"`
 		StatusUpdateInterval string              `json:"statusUpdateInterval"`
 		Timing               Timing
-		UserMetadata         map[string]string `json:"userMetadata"`
-		Cost                 float64           `json:"cost"`
+		UserMetadata         map[string]string   `json:"userMetadata"`
+		Cost                 float64             `json:"cost"`
 	}
 )
 

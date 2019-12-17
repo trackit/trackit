@@ -269,7 +269,7 @@ func FetchHistoryElementalInfos(ctx context.Context, aa aws.AwsAccount, date tim
 		startDate = date
 		endDate = time.Date(date.Year(), date.Month()+1, 0, 23, 59, 59, 999999999, date.Location())
 	}
-	logger.Info("Starting history report", map[string]interface{}{
+	logger.Info("Starting Elemental history report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),

@@ -16,7 +16,6 @@ package medialive
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -51,7 +50,6 @@ func fetchDailyChannelsList(_ context.Context, creds *credentials.Credentials, r
 func getChannelsFromAWS(channelChan chan Channel, svc *medialive.MediaLive, region string, token *string) (*string, error) {
 	listChannel, err := svc.ListChannels(&medialive.ListChannelsInput{NextToken: token})
 	if err != nil {
-		fmt.Printf("Error when listing channels for medialive: %v\n", err)
 		return nil, err
 	}
 	for _, channel := range listChannel.Channels {
@@ -93,9 +91,7 @@ func fetchDailyInputsList(_ context.Context, creds *credentials.Credentials, reg
 
 func getInputsFromAWS(inputChan chan Input, svc *medialive.MediaLive, region string, token *string) (*string, error) {
 	listInput, err := svc.ListInputs(&medialive.ListInputsInput{NextToken: token})
-	fmt.Printf("listInput = %v\n", listInput)
 	if err != nil {
-		fmt.Printf("error input medialive = %v\n", err)
 		return nil, err
 	}
 	for _, input := range listInput.Inputs {

@@ -154,8 +154,7 @@ func fetchMonthlyChannelsList(ctx context.Context, creds *credentials.Credential
 	return nil
 }
 
-// fetchMonthlyInput sends in channelInfoChan the channels fetched from DescribeChannels
-// and filled by DescribeChannels and getChannelStats.
+// fetchMonthlyInput send in the channel inputChan the data get from DescribeInput with the Resources Id
 func fetchMonthlyInput(ctx context.Context, creds *credentials.Credentials, cost InputInformations,
 	account, region string, inputChan chan Input, userId int) error {
 	defer close(inputChan)

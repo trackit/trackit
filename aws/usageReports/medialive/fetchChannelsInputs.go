@@ -2,7 +2,6 @@ package medialive
 
 import (
 	"context"
-	"log"
 	"strings"
 	"time"
 
@@ -45,7 +44,6 @@ func fetchInputs(ctx context.Context, aa taws.AwsAccount, startDate, endDate tim
 	inputChans := make([]<-chan Input, 0, len(regions))
 	for _, cost := range inputsCosts {
 		for _, region := range regions {
-			log.Printf("REGION = %v\n", region)
 			if strings.Contains(cost.Region, region) && cost.Id != "" {
 				inputChan := make(chan Input)
 				go fetchMonthlyInput(ctx, creds, cost, account, region, inputChan, aa.UserId)
