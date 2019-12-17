@@ -18,16 +18,102 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"time"
-
+	"fmt"
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/trackit/jsonlog"
-
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports/history"
-	ec2 "github.com/trackit/trackit/onDemandToRI/ec2"
+	odRi "github.com/trackit/trackit/onDemandToRI/ec2"
 	"github.com/trackit/trackit/users"
+	"time"
 )
 
+const odToRiEc2UsageReportSheetName = "Od To RI EC2 Usage Report"
+
+var odToRiEc2UsageReportModule = module{
+	Name:          "Od To Ri EC2 Usage Report",
+	SheetName:     odToRiEc2UsageReportSheetName,
+	ErrorName:     "odToRiEc2UsageReportError",
+	GenerateSheet: generateOdToRiEc2UsageReportSheet,
+}
+
+// generateOdToRiEc2UsageReportSheet will generate a sheet with Od To Ri EC2 usage report
+// It will get data for given AWS account and for a given date
+func generateOdToRiEc2UsageReportSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
+	if date.IsZero() {
+		date, _ = history.GetHistoryDate()
+	}
+	fmt.Printf("launching generate sheet for od to ri ec2 usage report\n")
+	return OdToRiEc2UsageReportGenerateSheet(ctx, aas, date, tx, file)
+}
+
+func OdToRiEc2UsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
+	data, err := getOdToRiEc2UsageReport(ctx, aas, date, tx)
+	if err == nil {
+		return odToRiEc2UsageReportInsertDataInSheet(aas, file, data)
+	}
+	fmt.Printf("error when getting data\n")
+	return
+}
+
+func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (reports []odRi.OdToRiEc2Report, err error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	var dateBegin, dateEnd time.Time
+	if date.IsZero() {
+		dateBegin, dateEnd = history.GetHistoryDate()
+	} else {
+		dateBegin = date
+		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
+	}
+
+	if len(aas) < 1 {
+		fmt.Printf("error: missing aws account, aas = %v\n", aas)
+		err = errors.New("missing AWS Account for Od to Ri EC2 Usage Reports")
+		return nil, err
+	}
+
+	identities := getAwsIdentities(aas)
+	user, err := users.GetUserWithId(tx, aas[0].UserId)
+	if err != nil {
+		fmt.Printf("error: getting user\n")
+		return nil, err
+	}
+
+	parameters := odRi.RiEc2QueryParams{
+		AccountList: identities,
+		DateBegin:   dateBegin,
+		DateEnd:     dateEnd,
+	}
+
+	logger.Debug("Getting odToRiEc2 Usage Report for accounts", map[string]interface{}{
+		"accounts": aas,
+	})
+	_, reports, err = odRi.GetRiEc2Report(ctx, parameters, user, tx)
+	if err != nil {
+		fmt.Printf("error: getting data\n")
+		return nil, err
+	}
+	fmt.Printf("reports = %v\n", reports)
+	/*if reports != nil && len(reports) > 0 {
+		for _, report := range reports {
+			for _, instance := range report.Instances {
+				row := formatOdToRiEc2Instance(report.Account, instance)
+				data = append(data, row)
+			}
+		}
+	}*/
+	return reports, nil
+}
+
+func odToRiEc2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []odRi.OdToRiEc2Report) (err error) {
+	for _, report := range data {
+		fmt.Printf("report = %v", report)
+	}
+	return
+}
+
+/*
 var odToRiEc2InstanceFormat = [][]cell{{
 	newCell("", 5).addStyle(textCenter, backgroundGrey),
 	newCell("", 6).addStyle(textCenter, textBold, backgroundGrey),
@@ -112,60 +198,5 @@ func formatOdToRiEc2Instance(account string, instance ec2.InstancesSpecs) []cell
 
 	return cells
 }
+*/
 
-func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx) (data [][]cell, err error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
-	var dateBegin, dateEnd time.Time
-	if date.IsZero() {
-		dateBegin, dateEnd = history.GetHistoryDate()
-	} else {
-		dateBegin = date
-		dateEnd = time.Date(dateBegin.Year(), dateBegin.Month()+1, 0, 23, 59, 59, 999999999, dateBegin.Location()).UTC()
-	}
-
-	data = make([][]cell, 0, len(odToRiEc2InstanceFormat))
-	for _, headerRow := range odToRiEc2InstanceFormat {
-		data = append(data, headerRow)
-	}
-
-	if len(aas) < 1 {
-		err = errors.New("Missing AWS Account for odToRiEc2 Usage Report")
-		return
-	}
-
-	identities := getIdentities(aas)
-
-	user, err := users.GetUserWithId(tx, aas[0].UserId)
-	if err != nil {
-		return
-	}
-
-	parameters := ec2.RiEc2QueryParams{
-		AccountList: identities,
-		DateBegin:   dateBegin,
-		DateEnd:     dateEnd,
-	}
-
-	logger.Debug("Getting odToRiEc2 Usage Report for accounts", map[string]interface{}{
-		"accounts": aas,
-	})
-	_, reports, err := ec2.GetRiEc2Report(ctx, parameters, user, tx)
-	if err != nil {
-		return
-	}
-
-	logger.Debug("Report data", map[string]interface{}{
-		"data": reports,
-	})
-
-	if reports != nil && len(reports) > 0 {
-		for _, report := range reports {
-			for _, instance := range report.Instances {
-				row := formatOdToRiEc2Instance(report.Account, instance)
-				data = append(data, row)
-			}
-		}
-	}
-	return
-}
