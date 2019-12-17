@@ -91,7 +91,7 @@ const TemplateMediaLiveChannelReport = `
 									"type": "keyword"
 								}
 							}
-						},						
+						},
 						"cost": {
 							"type": "double"
 						}

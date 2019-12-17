@@ -97,7 +97,7 @@ const TemplateMediaLiveInputReport = `
 									"type": "keyword"
 								}
 							}
-						},						
+						},
 						"cost": {
 							"type": "double"
 						}
