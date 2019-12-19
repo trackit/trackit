@@ -18,13 +18,13 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports/history"
 	odRi "github.com/trackit/trackit/onDemandToRI/ec2"
 	"github.com/trackit/trackit/users"
+	"strconv"
 	"time"
 )
 
@@ -43,16 +43,14 @@ func generateOdToRiEc2UsageReportSheet(ctx context.Context, aas []aws.AwsAccount
 	if date.IsZero() {
 		date, _ = history.GetHistoryDate()
 	}
-	fmt.Printf("launching generate sheet for od to ri ec2 usage report\n")
 	return OdToRiEc2UsageReportGenerateSheet(ctx, aas, date, tx, file)
 }
 
 func OdToRiEc2UsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := getOdToRiEc2UsageReport(ctx, aas, date, tx)
 	if err == nil {
-		return odToRiEc2UsageReportInsertDataInSheet(aas, file, data)
+		return odToRiEc2UsageReportInsertDataInSheet(file, data)
 	}
-	fmt.Printf("error when getting data\n")
 	return
 }
 
@@ -68,7 +66,6 @@ func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date tim
 	}
 
 	if len(aas) < 1 {
-		fmt.Printf("error: missing aws account, aas = %v\n", aas)
 		err = errors.New("missing AWS Account for Od to Ri EC2 Usage Reports")
 		return nil, err
 	}
@@ -76,7 +73,6 @@ func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date tim
 	identities := getAwsIdentities(aas)
 	user, err := users.GetUserWithId(tx, aas[0].UserId)
 	if err != nil {
-		fmt.Printf("error: getting user\n")
 		return nil, err
 	}
 
@@ -90,113 +86,115 @@ func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date tim
 		"accounts": aas,
 	})
 	_, reports, err = odRi.GetRiEc2Report(ctx, parameters, user, tx)
-	if err != nil {
-		fmt.Printf("error: getting data\n")
+	if err != nil || reports == nil {
 		return nil, err
 	}
-	fmt.Printf("reports = %v\n", reports)
-	/*if reports != nil && len(reports) > 0 {
-		for _, report := range reports {
-			for _, instance := range report.Instances {
-				row := formatOdToRiEc2Instance(report.Account, instance)
-				data = append(data, row)
-			}
-		}
-	}*/
 	return reports, nil
 }
 
-func odToRiEc2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []odRi.OdToRiEc2Report) (err error) {
+func odToRiEc2UsageReportInsertDataInSheet(file *excelize.File, data []odRi.OdToRiEc2Report) (err error) {
+	file.NewSheet(odToRiEc2UsageReportSheetName)
+	odToRiEc2UsageReportInsertHeaderInSheet(file)
+	line := 5
+	accountLine := 0
 	for _, report := range data {
-		fmt.Printf("report = %v", report)
+		accountLine = line
+		for _, instance := range report.Instances {
+
+			instanceCells := cells{
+				newCell(instance.Region, "K" + strconv.Itoa(line)),
+				newCell(instance.Region, "L" + strconv.Itoa(line)),
+				newCell(instance.Region, "M" + strconv.Itoa(line)),
+				newCell(instance.Region, "N" + strconv.Itoa(line)),
+				newCell(instance.OnDemand.Monthly.PerUnit, "O" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.OnDemand.Monthly.Total, "P" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.OnDemand.OneYear.PerUnit, "Q" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.OnDemand.OneYear.Total, "R" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.OnDemand.ThreeYears.PerUnit, "S" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.OnDemand.ThreeYears.Total, "T" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.OneYear.Monthly.PerUnit, "U" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.OneYear.Monthly.Total, "V" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.OneYear.Global.PerUnit, "W" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.OneYear.Global.Total, "X" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.OneYear.Saving.PerUnit, "Y" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.OneYear.Saving.Total, "Z" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.ThreeYear.Monthly.PerUnit, "AA" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.ThreeYear.Monthly.Total, "AB" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.ThreeYear.Global.PerUnit, "AC" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.ThreeYear.Global.Total, "AD" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.ThreeYear.Saving.PerUnit, "AE" + strconv.Itoa(line)).addStyles("price"),
+				newCell(instance.Reservation.ThreeYear.Saving.Total, "AF" + strconv.Itoa(line)).addStyles("price"),
+			}
+			instanceCells.addStyles("borders", "centerText").setValues(file, odToRiEc2UsageReportSheetName)
+			line++
+		}
+		accountCells := cells{
+			newCell(report.Account, "A" + strconv.Itoa(accountLine)).mergeTo("A" + strconv.Itoa(line - 1)),
+			newCell(report.OnDemand.MonthlyTotal, "B" + strconv.Itoa(accountLine)).mergeTo("B" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.OnDemand.OneYearTotal, "C" + strconv.Itoa(accountLine)).mergeTo("C" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.OnDemand.ThreeYearsTotal, "D" + strconv.Itoa(accountLine)).mergeTo("D" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.Reservation.OneYear.MonthlyTotal, "E" + strconv.Itoa(accountLine)).mergeTo("E" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.Reservation.OneYear.GlobalTotal, "F" + strconv.Itoa(accountLine)).mergeTo("F" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.Reservation.OneYear.SavingTotal, "G" + strconv.Itoa(accountLine)).mergeTo("G" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.Reservation.ThreeYear.MonthlyTotal, "H" + strconv.Itoa(accountLine)).mergeTo("H" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.Reservation.ThreeYear.GlobalTotal, "I" + strconv.Itoa(accountLine)).mergeTo("I" + strconv.Itoa(line - 1)).addStyles("price"),
+			newCell(report.Reservation.ThreeYear.SavingTotal, "J" + strconv.Itoa(accountLine)).mergeTo("J" + strconv.Itoa(line - 1)).addStyles("price"),
+		}
+		accountCells.addStyles("borders", "centerText").setValues(file, odToRiEc2UsageReportSheetName)
 	}
 	return
 }
 
-/*
-var odToRiEc2InstanceFormat = [][]cell{{
-	newCell("", 5).addStyle(textCenter, backgroundGrey),
-	newCell("", 6).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Reservation", 13).addStyle(textCenter, textBold, backgroundGrey),
-}, {
-	newCell("", 5).addStyle(textCenter, backgroundGrey),
-
-	newCell("On Demand", 6).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("One Year", 6).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Three Years", 6).addStyle(textCenter, textBold, backgroundGrey),
-}, {
-	newCell("", 5).addStyle(textCenter, backgroundGrey),
-	newCell("Monthly", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("One Year", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Three Years", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Monthly", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Global", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Saving", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Monthly", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Global", 2).addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Saving", 2).addStyle(textCenter, textBold, backgroundGrey),
-}, {
-	newCell("Account").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Region").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Platform").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Count").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Type").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Per Unit").addStyle(textCenter, textBold, backgroundGrey),
-	newCell("Total").addStyle(textCenter, textBold, backgroundGrey),
-}}
-
-func formatOdToRiEc2Cost(cost ec2.Cost) []cell {
-	return []cell{
-		newCell(cost.PerUnit),
-		newCell(cost.Total),
+func odToRiEc2UsageReportInsertHeaderInSheet(file *excelize.File) {
+	header := cells{
+		newCell("Account", "A1").mergeTo("A4"),
+		newCell("On Demand Total Cost", "B1").mergeTo("D1"),
+		newCell("Monthly", "B2").mergeTo("B4"),
+		newCell("One Year", "C2").mergeTo("C4"),
+		newCell("Three Years", "D2").mergeTo("D4"),
+		newCell("Reservation", "E1").mergeTo("J1"),
+		newCell("One Year", "E2").mergeTo("G2"),
+		newCell("Monthly", "E3").mergeTo("E4"),
+		newCell("Global", "F3").mergeTo("F4"),
+		newCell("Monthly", "G3").mergeTo("G4"),
+		newCell("Three Years", "H2").mergeTo("J2"),
+		newCell("Monthly", "H3").mergeTo("H4"),
+		newCell("Global", "I3").mergeTo("I4"),
+		newCell("Monthly", "J3").mergeTo("J4"),
+		newCell("Region", "K1").mergeTo("K4"),
+		newCell("Type", "L1").mergeTo("L4"),
+		newCell("Instance Count", "M1").mergeTo("M4"),
+		newCell("Platform", "N1").mergeTo("N4"),
+		newCell("On Demand Cost", "O1").mergeTo("T1"),
+		newCell("Monthly", "O2").mergeTo("P2"),
+		newCell("Per Unit", "O3").mergeTo("O4"),
+		newCell("Total", "P3").mergeTo("P4"),
+		newCell("One Year", "Q2").mergeTo("R2"),
+		newCell("Per Unit", "Q3").mergeTo("Q4"),
+		newCell("Total", "R3").mergeTo("R4"),
+		newCell("Three Years", "S2").mergeTo("T2"),
+		newCell("Per Unit", "S3").mergeTo("S4"),
+		newCell("Total", "T3").mergeTo("T4"),
+		newCell("Reservation One Year Cost", "U1").mergeTo("Z1"),
+		newCell("Monthly", "U2").mergeTo("V2"),
+		newCell("Per Unit", "U3").mergeTo("U4"),
+		newCell("Total", "V3").mergeTo("V4"),
+		newCell("One Year", "W2").mergeTo("X2"),
+		newCell("Per Unit", "W3").mergeTo("W4"),
+		newCell("Total", "X3").mergeTo("X4"),
+		newCell("Three Years", "Y2").mergeTo("Z2"),
+		newCell("Per Unit", "Y3").mergeTo("Y4"),
+		newCell("Total", "Z3").mergeTo("Z4"),
+		newCell("Reservation One Year Cost", "AA1").mergeTo("AF1"),
+		newCell("Monthly", "AA2").mergeTo("AB2"),
+		newCell("Per Unit", "AA3").mergeTo("AA4"),
+		newCell("Total", "AB3").mergeTo("AB4"),
+		newCell("One Year", "AC2").mergeTo("AD2"),
+		newCell("Per Unit", "AC3").mergeTo("AC4"),
+		newCell("Total", "AD3").mergeTo("AD4"),
+		newCell("Three Years", "AE2").mergeTo("AF2"),
+		newCell("Per Unit", "AE3").mergeTo("AE4"),
+		newCell("Total", "AF3").mergeTo("AF4"),
 	}
+	header.addStyles("borders", "bold", "centerText").setValues(file, odToRiEc2UsageReportSheetName)
 }
-
-func formatOdToRiEc2Instance(account string, instance ec2.InstancesSpecs) []cell {
-	cells := []cell{
-		newCell(account),
-		newCell(instance.Type),
-		newCell(instance.Region),
-		newCell(instance.Platform),
-		newCell(instance.InstanceCount),
-	}
-	onDemand := make([]cell, 0, 6)
-	onDemand = append(onDemand, formatOdToRiEc2Cost(instance.OnDemand.Monthly)...)
-	onDemand = append(onDemand, formatOdToRiEc2Cost(instance.OnDemand.OneYear)...)
-	onDemand = append(onDemand, formatOdToRiEc2Cost(instance.OnDemand.ThreeYears)...)
-
-	cells = append(cells, onDemand...)
-
-	reservation := make([]cell, 1, 13)
-	reservation[0] = newCell(instance.Reservation.Type)
-	reservation = append(reservation, formatOdToRiEc2Cost(instance.Reservation.OneYear.Monthly)...)
-	reservation = append(reservation, formatOdToRiEc2Cost(instance.Reservation.OneYear.Global)...)
-	reservation = append(reservation, formatOdToRiEc2Cost(instance.Reservation.OneYear.Saving)...)
-	reservation = append(reservation, formatOdToRiEc2Cost(instance.Reservation.ThreeYear.Monthly)...)
-	reservation = append(reservation, formatOdToRiEc2Cost(instance.Reservation.ThreeYear.Global)...)
-	reservation = append(reservation, formatOdToRiEc2Cost(instance.Reservation.ThreeYear.Saving)...)
-	cells = append(cells, reservation...)
-
-	return cells
-}
-*/
-
