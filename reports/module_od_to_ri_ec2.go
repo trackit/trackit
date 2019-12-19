@@ -49,7 +49,7 @@ func generateOdToRiEc2UsageReportSheet(ctx context.Context, aas []aws.AwsAccount
 func OdToRiEc2UsageReportGenerateSheet(ctx context.Context, aas []aws.AwsAccount, date time.Time, tx *sql.Tx, file *excelize.File) (err error) {
 	data, err := getOdToRiEc2UsageReport(ctx, aas, date, tx)
 	if err == nil {
-		return odToRiEc2UsageReportInsertDataInSheet(file, data)
+		return odToRiEc2UsageReportInsertDataInSheet(aas, file, data)
 	}
 	return
 }
@@ -92,7 +92,7 @@ func getOdToRiEc2UsageReport(ctx context.Context, aas []aws.AwsAccount, date tim
 	return reports, nil
 }
 
-func odToRiEc2UsageReportInsertDataInSheet(file *excelize.File, data []odRi.OdToRiEc2Report) (err error) {
+func odToRiEc2UsageReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, data []odRi.OdToRiEc2Report) (err error) {
 	file.NewSheet(odToRiEc2UsageReportSheetName)
 	odToRiEc2UsageReportInsertHeaderInSheet(file)
 	line := 5
@@ -100,7 +100,6 @@ func odToRiEc2UsageReportInsertDataInSheet(file *excelize.File, data []odRi.OdTo
 	for _, report := range data {
 		accountLine = line
 		for _, instance := range report.Instances {
-
 			instanceCells := cells{
 				newCell(instance.Region, "K" + strconv.Itoa(line)),
 				newCell(instance.Region, "L" + strconv.Itoa(line)),
@@ -128,8 +127,13 @@ func odToRiEc2UsageReportInsertDataInSheet(file *excelize.File, data []odRi.OdTo
 			instanceCells.addStyles("borders", "centerText").setValues(file, odToRiEc2UsageReportSheetName)
 			line++
 		}
+		account := getAwsAccount(report.Account, aas)
+		formattedAccount := report.Account
+		if account != nil {
+			formattedAccount = formatAwsAccount(*account)
+		}
 		accountCells := cells{
-			newCell(report.Account, "A" + strconv.Itoa(accountLine)).mergeTo("A" + strconv.Itoa(line - 1)),
+			newCell(formattedAccount, "A" + strconv.Itoa(accountLine)).mergeTo("A" + strconv.Itoa(line - 1)),
 			newCell(report.OnDemand.MonthlyTotal, "B" + strconv.Itoa(accountLine)).mergeTo("B" + strconv.Itoa(line - 1)).addStyles("price"),
 			newCell(report.OnDemand.OneYearTotal, "C" + strconv.Itoa(accountLine)).mergeTo("C" + strconv.Itoa(line - 1)).addStyles("price"),
 			newCell(report.OnDemand.ThreeYearsTotal, "D" + strconv.Itoa(accountLine)).mergeTo("D" + strconv.Itoa(line - 1)).addStyles("price"),
@@ -185,7 +189,7 @@ func odToRiEc2UsageReportInsertHeaderInSheet(file *excelize.File) {
 		newCell("Three Years", "Y2").mergeTo("Z2"),
 		newCell("Per Unit", "Y3").mergeTo("Y4"),
 		newCell("Total", "Z3").mergeTo("Z4"),
-		newCell("Reservation One Year Cost", "AA1").mergeTo("AF1"),
+		newCell("Reservation Three Years Cost", "AA1").mergeTo("AF1"),
 		newCell("Monthly", "AA2").mergeTo("AB2"),
 		newCell("Per Unit", "AA3").mergeTo("AA4"),
 		newCell("Total", "AB3").mergeTo("AB4"),
@@ -197,4 +201,11 @@ func odToRiEc2UsageReportInsertHeaderInSheet(file *excelize.File) {
 		newCell("Total", "AF3").mergeTo("AF4"),
 	}
 	header.addStyles("borders", "bold", "centerText").setValues(file, odToRiEc2UsageReportSheetName)
+	columns := columnsWidth{
+		newColumnWidth("A", 30),
+		newColumnWidth("B", 15).toColumn("J"),
+		newColumnWidth("K", 10).toColumn("L"),
+		newColumnWidth("N", 10),
+	}
+	columns.setValues(file, odToRiEc2UsageReportSheetName)
 }
