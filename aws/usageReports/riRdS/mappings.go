@@ -42,7 +42,7 @@ func init() {
 const TemplateReservedRdsReport = `
 {
 	"template": "*-rds-ri-reports",
-	"version": 9,
+	"version": 10,
 	"mappings": {
 		"rds-ri-report": {
 			"properties": {
