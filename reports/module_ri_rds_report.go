@@ -85,7 +85,7 @@ func riRDSReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 	file.NewSheet(riRDSReportSheetName)
 	riRDSReportGenerateHeader(file)
 	line := 4
-	toLine := 0
+	toLine := 4
 	for _, report := range data {
 		account := getAwsAccount(report.Account, aas)
 		formattedAccount := report.Account
@@ -93,10 +93,15 @@ func riRDSReportInsertDataInSheet(aas []aws.AwsAccount, file *excelize.File, dat
 			formattedAccount = formatAwsAccount(*account)
 		}
 		instance := report.Reservation
+		recurringCells := cells{
+			newCell(0, "M"+strconv.Itoa(line)).addStyles("price"),
+			newCell(0, "N"+strconv.Itoa(line)),
+		}
+		recurringCells.addStyles("borders", "centerText").setValues(file, riRDSReportSheetName)
 		for currentLine, recurringCharge := range instance.RecurringCharges {
 			recurringCells := cells{
-				newCell(recurringCharge.Amount, "M"+strconv.Itoa(currentLine + line)).addStyles("price"),
-				newCell(recurringCharge.Frequency, "N"+strconv.Itoa(currentLine + line)),
+				newCell(recurringCharge.Amount, "M"+strconv.Itoa(currentLine+line)).addStyles("price"),
+				newCell(recurringCharge.Frequency, "N"+strconv.Itoa(currentLine+line)),
 			}
 			recurringCells.addStyles("borders", "centerText").setValues(file, riRDSReportSheetName)
 			toLine = currentLine + line

@@ -11,14 +11,6 @@ services:
       - app
     ports:
       - '127.0.0.1:3306:3306'
-  es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
-    environment:
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
-    networks:
-      - app
-    ports:
-      - '127.0.0.1:9200:9200'
   redis:
     image: redis:latest
     command: ["redis-server", "--requirepass changeme"]
@@ -33,7 +25,7 @@ services:
       - redis
     command:
       - -sql-address=${TRACKIT_SQL_USER:-trackit}:${TRACKIT_SQL_PASSWORD:-trackitpassword}@tcp(sql:3306)/${TRACKIT_SQL_DATABASE:-trackit}?parseTime=true
-      - -es-address=${TRACKIT_ES_ADDRESS:-http://es:9200}
+      - -es-address=${TRACKIT_ES_ADDRESS:-http://10.20.0.10:9200}
       - -redis-address=${TRACKIT_REDIS_ADDRESS:-redis:6379}
       - -http-address=[::]:80
     environment:
@@ -45,6 +37,8 @@ services:
       - '127.0.0.1:8080:80'
     networks:
       - app
+    volumes:
+      - ../reports/output:/reports
 networks:
   app:
     driver: bridge
