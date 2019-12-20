@@ -214,10 +214,33 @@ button {
 
 .white-box {
     background: #fdfdfd;
+    /*background: #ff3355;*/
     padding: 15px;
     margin-bottom: 30px;
     border-radius: 5px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    /*width: 500px; height: 100px; margin-top: 50px; margin-left: auto; margin-right: auto;*/
+}
+
+.white-box.forgot {
+    margin-bottom: 30px;
+    margin-left: 10%;
+    margin-top: 27vh;
+    margin-right: 10%;
+}
+
+/*.white-box .centered {
+    display: block;
+    margin-left: 37vh;
+    margin-right: 30vh;
+}*/
+
+.white-box .vertCentered {
+    margin: 0 auto !important;
+    width: 100px;
+    height: 100px;
+    background-color: #ccc;
+    border-radius: 3px;
 }
 
 .white-box .white-box-title {

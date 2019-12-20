@@ -87,35 +87,27 @@ export class ForgotPasswordComponent extends Component {
     return (
       <div className="login">
         <div className="row">
-          <div
-            className="col-lg-4 col-lg-offset-4 col-md-4 col-md-offset-4 col-sm-6 col-sm-offset-3 parent"
-          >
-            <div className="white-box vertCentered">
+              <div className="centered">
+                  <div className="white-box forgot">
+                      <img src={logo} id="logo" alt="TrackIt logo" />
+                      <hr />
 
-              <img src={logo} id="logo" alt="TrackIt logo" />
+                      {error}
 
-              <hr />
+                      <Form
+                        ref={
+                          /* istanbul ignore next */
+                          (form) => {this.form = form;}
+                        }
+                        onSubmit={this.submit}>
 
-              {error}
+                        {success || form}
 
+                        {buttons}
 
-              <Form
-                ref={
-                  /* istanbul ignore next */
-                  (form) => {this.form = form;}
-                }
-                onSubmit={this.submit}>
-
-                {success || form}
-
-                {buttons}
-
-              </Form>
-
-            </div>
-
-          </div>
-
+                      </Form>
+                  </div>
+              </div>
         </div>
       </div>
     );
