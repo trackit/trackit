@@ -49,6 +49,9 @@ func GetErrorMessage(ctx context.Context, err error) error {
 func getElasticSearchErrorMessage(ctx context.Context, err *elastic.Error) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var formattedErr error
+	if err.Details == nil {
+		return errors.New("Error while getting data. Please check again in few hours.")
+	}
 	switch err.Details.Type {
 	case "search_phase_execution_exception", "index_not_found_exception":
 		formattedErr = errors.New("Data not available yet. Please check again in few hours.")
