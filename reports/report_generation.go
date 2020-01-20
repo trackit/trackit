@@ -37,7 +37,11 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 	var reportType spreadsheetType
 	var reportDate string
 	if date.IsZero() {
-		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+		if now.Month() != time.January {
+			reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+		} else {
+			reportDate = fmt.Sprintf("%s%s", time.December.String(), strconv.Itoa(now.Year() - 1))
+		}
 	} else {
 		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
 	}
@@ -83,7 +87,11 @@ func GenerateTagsReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAcc
 	now := time.Now()
 	var reportDate string
 	if date.IsZero() {
-		reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+		if now.Month() != time.January {
+			reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
+		} else {
+			reportDate = fmt.Sprintf("%s%s", time.December.String(), strconv.Itoa(now.Year() - 1))
+		}
 	} else {
 		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
 	}
