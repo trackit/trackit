@@ -124,10 +124,12 @@ func generateId(domain DomainReport) (string, error) {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
 		Id         string    `json:"id"`
+		Type       string    `json:"reportType"`
 	}{
 		domain.Account,
 		domain.ReportDate,
 		domain.Domain.DomainID,
+		domain.ReportType,
 	})
 	if err != nil {
 		return "", err

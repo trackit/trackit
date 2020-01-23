@@ -167,7 +167,7 @@ func putProductDataInSheet(file *excelize.File, sheetName string, tag tags.TagsV
 				}
 				usageTypeCells.addStyles("borders", "centerText").setValues(file, sheetName)
 				maxColumn++
-				productCostCells = append(productCostCells, "D"+strconv.Itoa(maxColumn))
+				productCostCells = append(productCostCells, "D"+strconv.Itoa(maxColumn-1))
 				valueTypeExist = true
 			}
 		}
