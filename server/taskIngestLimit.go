@@ -48,6 +48,10 @@ func taskIngestLimit(ctx context.Context) error {
 	} else if br, err := strconv.Atoi(args[1]); err != nil {
 		return err
 	} else if dateUpperLimit, err := time.Parse(iso8601DateFormat, args[2]); err != nil {
+		logger.Debug("Error while decoding date", map[string]interface{}{
+			"date": dateUpperLimit,
+			"err":  err,
+		})
 		return err
 	} else {
 		logger.Debug("Launching ingest billing", map[string]interface{}{
