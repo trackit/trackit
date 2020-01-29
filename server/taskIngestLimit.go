@@ -38,7 +38,7 @@ const iso8601DateFormat = "2006-01-02"
 func taskIngestLimit(ctx context.Context) error {
 	args := flag.Args()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("Running task 'ingest'.", map[string]interface{}{
+	logger.Debug("Running task 'ingest-limit'.", map[string]interface{}{
 		"args": args,
 	})
 	if len(args) != 3 {
@@ -50,6 +50,9 @@ func taskIngestLimit(ctx context.Context) error {
 	} else if dateUpperLimit, err := time.Parse(iso8601DateFormat, args[2]); err != nil {
 		return err
 	} else {
+		logger.Debug("Launching ingest billing", map[string]interface{}{
+			"date": dateUpperLimit,
+		})
 		return ingestBillingDataForBillRepositoryLimit(ctx, aa, br, dateUpperLimit)
 	}
 }
@@ -63,6 +66,7 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 	var updateId int64
 	var latestManifest time.Time
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("In ingest billing 1", nil)
 	defer func() {
 		if tx != nil {
 			if err != nil {
@@ -89,6 +93,7 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 			s3.UpdateBillRepositoryWithoutContext(br, db.Db)
 		}
 	} else {
+		logger.Info("In ingest billing else error", nil)
 		br.Error = ""
 		err = updateBillRepositoryForNextUpdate(ctx, tx, br, latestManifest)
 	}
