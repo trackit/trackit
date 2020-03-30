@@ -1,3 +1,4 @@
 **
 !main
 !ca-certificates.crt
+!cost_type_patterns.json

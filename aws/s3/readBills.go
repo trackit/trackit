@@ -115,6 +115,7 @@ type LineItem struct {
 	CurrencyCode       string            `csv:"lineItem/CurrencyCode"        json:"currencyCode"`
 	UnblendedCost      string            `csv:"lineItem/UnblendedCost"       json:"unblendedCost"`
 	TaxType            string            `csv:"lineItem/TaxType"             json:"taxType"`
+	CostGroup          string            `csv:"-"                            json:"costGroup"`
 	Any                map[string]string `csv:",any"                         json:"-"`
 	Tags               []LineItemTags    `csv:"-"                            json:"tags,omitempty"`
 }

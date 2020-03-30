@@ -1,0 +1,31 @@
+{
+  "network": [
+    "AWSDataTransfer",
+    "Bytes",
+    "Requests-Tier",
+    "LoadBalancerUsage",
+    "NatGateway-Hours",
+    "GB-Second",
+    "Request",
+    "ElasticIP:IdleAddress",
+    "EBS:VolumeIOUsage",
+    "LCUUsage",
+    "ElasticIP:AdditionalAddress"
+  ],
+  "storage": [
+    "Storage",
+    "VolumeUsage",
+    "Multi-AZUsage:db",
+    "InstanceUsage:db",
+    "NodeUsage:cache",
+    "Snapshot",
+    "EBS:VolumeP-IOPS.piops"
+  ],
+  "compute": [
+    "BoxUsage",
+    "ESInstance",
+    "HeavyUsage",
+    "EBSOptimized",
+    "SpotUsage"
+  ]
+}

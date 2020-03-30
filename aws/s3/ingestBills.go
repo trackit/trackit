@@ -17,6 +17,8 @@ package s3
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+	"io/ioutil"
 	"strings"
 	"sync"
 	"time"
@@ -26,6 +28,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/es"
 )
 
@@ -42,6 +45,12 @@ const (
 
 	tagPrefix = `resourceTags/user:`
 )
+
+type PatternConfig struct {
+	Network []string `json:"network"`
+	Storage []string `json:"storage"`
+	Compute []string `json:"compute"`
+}
 
 // ReportUpdateConclusion represents the results of a bill ingestion job.
 type ReportUpdateConclusion struct {
@@ -120,6 +129,24 @@ func contextWithIngestionId(ctx context.Context) context.Context {
 	return jsonlog.ContextWithLogger(ctx, logger)
 }
 
+func loadPatternConfig(cfg *PatternConfig) (err error) {
+	var bytes []byte
+	var readError error
+	bytes, readError = ioutil.ReadFile(config.CostPatternsTypesConfigPath)
+
+	if readError != nil {
+		jsonlog.Error("Pattern config is null", nil)
+		return readError
+	} else {
+		readError = json.Unmarshal([]byte(string(bytes)), cfg)
+		if readError != nil {
+			jsonlog.Error("Pattern config is badly formatted", nil)
+			return readError
+		}
+	}
+	return nil
+}
+
 // UpdateReport updates the elasticsearch database with new data from usage and
 // cost reports.
 func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (latestManifest time.Time, err error) {
@@ -129,6 +156,13 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 		"awsAccount":     aa,
 		"billRepository": br,
 	})
+
+	var cfg PatternConfig
+
+	if err := loadPatternConfig(&cfg); err != nil {
+		return latestManifest, err
+	}
+
 	if bp, err := getBulkProcessor(ctx); err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return latestManifest, err
@@ -138,7 +172,7 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 			ctx,
 			aa,
 			br,
-			ingestLineItems(ctx, bp, index, br),
+			ingestLineItems(ctx, bp, index, br, cfg),
 			manifestsModifiedAfter(br.LastImportedManifest),
 		)
 		logger.Info("Done ingesting data.", nil)
@@ -156,6 +190,13 @@ func UpdateReportLimit(ctx context.Context, aa aws.AwsAccount, br BillRepository
 		"billRepository": br,
 		"upperDate":      dateUpperLimit,
 	})
+
+	var cfg PatternConfig
+
+	if err := loadPatternConfig(&cfg); err == nil {
+		return latestManifest, err
+	}
+
 	if bp, err := getBulkProcessor(ctx); err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return latestManifest, err
@@ -165,7 +206,7 @@ func UpdateReportLimit(ctx context.Context, aa aws.AwsAccount, br BillRepository
 			ctx,
 			aa,
 			br,
-			ingestLineItems(ctx, bp, index, br),
+			ingestLineItems(ctx, bp, index, br, cfg),
 			manifestModifedAfterAndBefore(br.LastImportedManifest, dateUpperLimit),
 		)
 		logger.Info("Done ingesting data.", nil)
@@ -186,7 +227,7 @@ func getBulkProcessor(ctx context.Context) (*elastic.BulkProcessor, error) {
 
 // ingestLineItems returns an OnLineItem handler which ingests LineItems in an
 // ElasticSearch index.
-func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index string, br BillRepository) OnLineItem {
+func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index string, br BillRepository, cfg PatternConfig) OnLineItem {
 	return func(li LineItem, ok bool) {
 		if ok {
 			if li.LineItemType == "Tax" {
@@ -195,6 +236,7 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 			}
 			li.BillRepositoryId = br.Id
 			li = extractTags(li)
+			li = deduceLineItemType(ctx, cfg, li)
 			rq := elastic.NewBulkIndexRequest()
 			rq = rq.Index(index)
 			rq = rq.OpType(opTypeCreate)
@@ -245,7 +287,6 @@ func manifestModifedAfterAndBefore(after time.Time, before time.Time) ManifestPr
 			}
 		}
 	}
-
 }
 
 // extractTags extracts tags from a LineItem's Any field. It retrieves user
@@ -259,6 +300,33 @@ func extractTags(li LineItem) LineItem {
 	}
 	li.Tags = tags
 	li.Any = nil
+	return li
+}
+
+func deduceLineItemType(ctx context.Context, cfg PatternConfig, li LineItem) LineItem {
+	var key string = li.ServiceCode + "/" + li.UsageType
+
+	for _, v := range cfg.Network {
+		if strings.Contains(key, v) {
+			li.CostGroup = "network"
+			return li
+		}
+	}
+
+	for _, v := range cfg.Storage {
+		if strings.Contains(key, v) {
+			li.CostGroup = "storage"
+			return li
+		}
+	}
+
+	for _, v := range cfg.Compute {
+		if strings.Contains(key, v) {
+			li.CostGroup = "compute"
+			return li
+		}
+	}
+	li.CostGroup = "undefined"
 	return li
 }
 

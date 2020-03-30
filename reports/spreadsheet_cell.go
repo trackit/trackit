@@ -39,9 +39,15 @@ type columnWidth struct {
 	width float64
 }
 
-type columnsWidth []columnWidth
+type rowHeight struct {
+	value  int
+	height float64
+}
 
-func newCell(value interface {}, location string) cell {
+type columnsWidth []columnWidth
+type rowsHeight []rowHeight
+
+func newCell(value interface{}, location string) cell {
 	return cell{value, "", location, "", []string{}, conditionalFormats{}}
 }
 
@@ -116,7 +122,7 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 		} else {
 			jsonlog.DefaultLogger.Warning("Error while applying style to a cell", map[string]interface{}{
 				"error": err,
-				"cell": c,
+				"cell":  c,
 			})
 		}
 	}
@@ -127,13 +133,13 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 			if err != nil {
 				jsonlog.DefaultLogger.Warning("Error while applying conditional formatting to a cell", map[string]interface{}{
 					"error": err,
-					"cell": c,
+					"cell":  c,
 				})
 			}
 		} else {
 			jsonlog.DefaultLogger.Warning("Error while getting conditional formatting", map[string]interface{}{
 				"error": err,
-				"cell": c,
+				"cell":  c,
 			})
 		}
 	}
@@ -155,5 +161,19 @@ func (c columnWidth) setValue(file *excelize.File, sheet string) {
 func (cs columnsWidth) setValues(file *excelize.File, sheet string) {
 	for _, col := range cs {
 		col.setValue(file, sheet)
+	}
+}
+
+func newRowHeight(row int, width float64) rowHeight {
+	return rowHeight{row, width}
+}
+
+func (r rowHeight) setValue(file *excelize.File, sheet string) {
+	file.SetRowHeight(sheet, r.value, r.height)
+}
+
+func (rs rowsHeight) setValues(file *excelize.File, sheet string) {
+	for _, row := range rs {
+		row.setValue(file, sheet)
 	}
 }
