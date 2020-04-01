@@ -27,6 +27,9 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
+// Total number of partitions to split the ElasticSearch query
+const numPartition = 5
+
 type (
 	esUntaggedValueResults struct {
 		Buckets []struct {
@@ -65,42 +68,44 @@ type (
 	UntaggedResourcesResponse map[string][]UntaggedAccountID
 )
 
-// getUntaggedResourcesWithParsedParams will parse the data from teh ElasticSearch and return it
+// getUntaggedResourcesWithParsedParams will parse the data from the ElasticSearch and return it
 func getUntaggedResourcesWithParsedParams(ctx context.Context, params untaggedQueryParams) (int, interface{}) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esUntaggedValueResults
 	response := UntaggedResourcesResponse{}
-	res, returnCode, err := makeElasticSearchRequestForUntaggedResources(ctx, params, es.Client)
-	if err != nil {
-		if returnCode == http.StatusOK {
-			return returnCode, nil
-		}
-		return returnCode, errors.GetErrorMessage(ctx, err)
-	}
-	err = json.Unmarshal(*res.Aggregations["accountId"], &typedDocument)
-	if err != nil {
-		l.Error("Error while unmarshalling", err)
-		return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
-	}
 	var resultAccountID []UntaggedAccountID
-	for _, accountID := range typedDocument.Buckets {
-		var resultResourceType []UntaggedResourceType
-		for _, resourceType := range accountID.ResourceType.Buckets {
-			var resultResourceID []UntaggedResourceID
-			for _, resourceID := range resourceType.ResourceID.Buckets {
-				resultResourceID = append(resultResourceID, UntaggedResourceID{
-					ResourceID: resourceID.ResourceID,
+	for partition := 0; partition < numPartition; partition++ {
+		res, returnCode, err := makeElasticSearchRequestForUntaggedResources(ctx, params, es.Client, partition)
+		if err != nil {
+			if returnCode == http.StatusOK {
+				return returnCode, nil
+			}
+			return returnCode, errors.GetErrorMessage(ctx, err)
+		}
+		err = json.Unmarshal(*res.Aggregations["accountId"], &typedDocument)
+		if err != nil {
+			l.Error("Error while unmarshalling", err)
+			return http.StatusInternalServerError, errors.GetErrorMessage(ctx, err)
+		}
+		for _, accountID := range typedDocument.Buckets {
+			var resultResourceType []UntaggedResourceType
+			for _, resourceType := range accountID.ResourceType.Buckets {
+				var resultResourceID []UntaggedResourceID
+				for _, resourceID := range resourceType.ResourceID.Buckets {
+					resultResourceID = append(resultResourceID, UntaggedResourceID{
+						ResourceID: resourceID.ResourceID,
+					})
+				}
+				resultResourceType = append(resultResourceType, UntaggedResourceType{
+					ResourceType: resourceType.ResourceType,
+					ResourceID:   resultResourceID,
 				})
 			}
-			resultResourceType = append(resultResourceType, UntaggedResourceType{
-				ResourceType: resourceType.ResourceType,
-				ResourceID:   resultResourceID,
+			resultAccountID = append(resultAccountID, UntaggedAccountID{
+				AccountID:    accountID.AccountID,
+				ResourceType: resultResourceType,
 			})
 		}
-		resultAccountID = append(resultAccountID, UntaggedAccountID{
-			AccountID:    accountID.AccountID,
-			ResourceType: resultResourceType,
-		})
 	}
 	response[params.TagKey] = resultAccountID
 	return http.StatusOK, response
@@ -112,11 +117,11 @@ func getUntaggedResourcesWithParsedParams(ctx context.Context, params untaggedQu
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequestForUntaggedResources(ctx context.Context, params untaggedQueryParams, client *elastic.Client) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequestForUntaggedResources(ctx context.Context, params untaggedQueryParams, client *elastic.Client, partition int) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	query := getUntaggedQuery(params)
 	index := strings.Join(params.IndexList, ",")
-	aggregation := getUntaggedAggregation()
+	aggregation := getUntaggedAggregation(partition)
 	search := client.Search().Index(index).Size(0).Query(query).Pretty(true)
 	search.Aggregation("accountId", aggregation)
 	res, err := search.Do(ctx)
@@ -143,10 +148,10 @@ func makeElasticSearchRequestForUntaggedResources(ctx context.Context, params un
 }
 
 // getUntaggedAggregation will generate the Aggregation for the query
-func getUntaggedAggregation() *elastic.TermsAggregation {
-	aggregation := elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).SubAggregation("resourceType",
-		elastic.NewTermsAggregation().Field("productCode").Size(maxAggregationSize).SubAggregation("resourceId",
-			elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize)))
+func getUntaggedAggregation(partition int) *elastic.TermsAggregation {
+	aggregation := elastic.NewTermsAggregation().Field("usageAccountId").Size(maxAggregationSize).Partition(partition).NumPartitions(numPartition).
+		SubAggregation("resourceType", elastic.NewTermsAggregation().Field("productCode").Size(maxAggregationSize).
+			SubAggregation("resourceId", elastic.NewTermsAggregation().Field("resourceId").Size(maxAggregationSize)))
 	return aggregation
 }
 
