@@ -146,6 +146,33 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 	}
 }
 
+// UpdateReportLimit updates the elasticsearch database with new data from usage and
+// cost reports, with an upper limit on imported manifest.
+func UpdateReportLimit(ctx context.Context, aa aws.AwsAccount, br BillRepository, dateUpperLimit time.Time) (latestManifest time.Time, err error) {
+	ctx = contextWithIngestionId(ctx)
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	logger.Info("Updating reports for AWS account.", map[string]interface{}{
+		"awsAccount":     aa,
+		"billRepository": br,
+		"upperDate":      dateUpperLimit,
+	})
+	if bp, err := getBulkProcessor(ctx); err != nil {
+		logger.Error("Failed to get bulk processor.", err.Error())
+		return latestManifest, err
+	} else {
+		index := es.IndexNameForUserId(aa.UserId, IndexPrefixLineItem)
+		latestManifest, err = ReadBills(
+			ctx,
+			aa,
+			br,
+			ingestLineItems(ctx, bp, index, br),
+			manifestModifedAfterAndBefore(br.LastImportedManifest, dateUpperLimit),
+		)
+		logger.Info("Done ingesting data.", nil)
+		return latestManifest, err
+	}
+}
+
 // getBulkProcessor builds a bulk processor for ElasticSearch.
 func getBulkProcessor(ctx context.Context) (*elastic.BulkProcessor, error) {
 	bps := elastic.NewBulkProcessorService(es.Client)
@@ -200,6 +227,25 @@ func manifestsModifiedAfter(t time.Time) ManifestPredicate {
 			}
 		}
 	}
+}
+
+func manifestModifedAfterAndBefore(after time.Time, before time.Time) ManifestPredicate {
+	return func(m manifest, oneMonthBefore bool) bool {
+		if oneMonthBefore {
+			if time.Time(m.LastModified).AddDate(0, 1, 0).After(after) && time.Time(m.BillingPeriod.End).Before(before) {
+				return true
+			} else {
+				return false
+			}
+		} else {
+			if time.Time(m.LastModified).After(after) && time.Time(m.BillingPeriod.End).Before(before) {
+				return true
+			} else {
+				return false
+			}
+		}
+	}
+
 }
 
 // extractTags extracts tags from a LineItem's Any field. It retrieves user
