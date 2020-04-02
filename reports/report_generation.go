@@ -66,7 +66,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 			}
 		}
 		file.File.DeleteSheet(file.File.GetSheetName(1))
-		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, reportType)
+		errs["speadsheetError"] = saveSpreadsheet(ctx, file, reportType)
 	} else {
 		errs["speadsheetError"] = err
 	}
@@ -108,7 +108,7 @@ func GenerateTagsReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAcc
 			errs["tagsError"] = err
 		}
 		file.File.DeleteSheet(file.File.GetSheetName(1))
-		errs["speadsheetError"] = saveSpreadsheetLocally(ctx, file, TagsReport)
+		errs["speadsheetError"] = saveSpreadsheet(ctx, file, TagsReport)
 	} else {
 		errs["speadsheetError"] = err
 	}
