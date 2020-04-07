@@ -138,7 +138,7 @@ func riRDSReportGenerateHeader(file *excelize.File) {
 		newCell("Count", "G2").mergeTo("G3"),
 		newCell("MultiAZ", "H2").mergeTo("H3"),
 		newCell("State", "I2").mergeTo("I3"),
-		newCell("Duration ( Year )", "J2").mergeTo("J3"),
+		newCell("Duration (Year)", "J2").mergeTo("J3"),
 		newCell("Start Date", "K2").mergeTo("K3"),
 		newCell("End Date", "L2").mergeTo("L3"),
 		newCell("Recurring Charges", "M2").mergeTo("N2"),
