@@ -22,7 +22,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 
 	_ "github.com/trackit/trackit/aws"
@@ -72,6 +72,7 @@ var tasks = map[string]func(context.Context) error{
 	"check-cost":                  taskCheckCost,
 	"fetch-pricings":              taskFetchPricings,
 	"ingest-limit":                taskIngestLimit,
+	"update-tags":                 taskUpdateTags,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
