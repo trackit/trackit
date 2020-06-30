@@ -27,6 +27,7 @@ import (
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/tagging"
 )
 
 const invalidAccID = -1
@@ -60,7 +61,7 @@ func checkUpdateTagsArguments(args []string) (int, error) {
 	return amazonAccountID, nil
 }
 
-func updateTagsForAccount(ctx context.Context, amazonAccountID int) error {
+func updateTagsForAccount(ctx context.Context, accountID int) error {
 	tx, err := db.Db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -75,17 +76,19 @@ func updateTagsForAccount(ctx context.Context, amazonAccountID int) error {
 		}
 	}()
 
-	_, err = aws.GetAwsAccountWithId(amazonAccountID, tx)
+	awsAccount, err := aws.GetAwsAccountWithId(accountID, tx)
 	if err != nil {
 		return nil
 	}
 
-	job, err := registerUpdateTagsTask(db.Db, amazonAccountID)
+	job, err := registerUpdateTagsTask(db.Db, accountID)
 	if err != nil {
 		return err
 	}
 
-	return updateUpdateTagsTask(db.Db, job, nil)
+	err = tagging.UpdateTagsForAccount(ctx, accountID, awsAccount.AwsIdentity)
+
+	return updateUpdateTagsTask(db.Db, job, err)
 }
 
 func registerUpdateTagsTask(db *sql.DB, accountID int) (models.AwsAccountUpdateTagsJob, error) {
