@@ -7,6 +7,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
+	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
 	ec2 "github.com/trackit/trackit/tagging/ec2"
 	"github.com/trackit/trackit/tagging/utils"
@@ -20,10 +21,10 @@ type processor struct {
 }
 
 const destIndexName = "tagging"
+const destTypeName = "tagging"
 
 // UpdateTagsForAccount updates tags in ES for the specified AWS account
 func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) error {
-	client := es.Client
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var documents []utils.TaggingReportDocument
 
@@ -43,16 +44,31 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 		}
 	}
 
+	logger.Info("Pushing generated tagging reports to ES.", nil)
 	reportDate := time.Now().UTC()
-
 	destIndexName := es.IndexNameForUserId(account, destIndexName)
+	bulkProcessor, err := bulk.GetBulkProcessor(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, document := range documents {
 		document.ReportDate = reportDate
 
-		_, err := client.Index().Index(destIndexName).Type("tagging").BodyJson(document).Do(ctx)
+		documentID, err := utils.GenerateBulkID(document)
 		if err != nil {
-			logger.Error("Could not insert a document.", err)
+			logger.Error("Could not add a tagging report to bulk processor.", err.Error())
+			continue
 		}
+
+		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, destTypeName, destIndexName, documentID)
+	}
+
+	bulkProcessor.Flush()
+	err = bulkProcessor.Close()
+	if err != nil {
+		logger.Error("Failed to put tagging reports in ES", err.Error())
+		return err
 	}
 
 	return nil
