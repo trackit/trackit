@@ -58,7 +58,6 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string) 
 	}
 
 	regionForURL := utils.GetRegionForURL(source.Function.Region)
-	fmt.Printf("https://%s.console.aws.amazon.com/lambda/home?region=%s#/functions/%s\n", regionForURL, regionForURL, source.Function.Name)
 
 	document := utils.TaggingReportDocument{
 		Account:      awsAccount,
