@@ -9,6 +9,7 @@ import (
 
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	ebs "github.com/trackit/trackit/tagging/ebs"
 	ec2 "github.com/trackit/trackit/tagging/ec2"
 	"github.com/trackit/trackit/tagging/utils"
 )
@@ -32,6 +33,10 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 		processor{
 			Name: "ec2",
 			Run:  ec2.ProcessEc2,
+		},
+		processor{
+			Name: "ebs",
+			Run:  ebs.ProcessEbs,
 		},
 	}
 
