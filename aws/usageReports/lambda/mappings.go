@@ -69,6 +69,9 @@ const TemplateLineItem = `
 						"memory": {
 							"type": "integer"
 						},
+						"region": {
+							"type": "keyword"
+						},
 						"tags": {
 							"type": "nested",
 							"properties": {
