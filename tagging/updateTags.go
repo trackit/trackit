@@ -9,7 +9,10 @@ import (
 
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	ebs "github.com/trackit/trackit/tagging/ebs"
+	ec2 "github.com/trackit/trackit/tagging/ec2"
 	lambda "github.com/trackit/trackit/tagging/lambda"
+	rds "github.com/trackit/trackit/tagging/rds"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
@@ -29,17 +32,21 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 	var documents []utils.TaggingReportDocument
 
 	processors := []processor{
-		/*processor{
+		processor{
 			Name: "ec2",
 			Run:  ec2.Process,
 		},
 		processor{
 			Name: "ebs",
 			Run:  ebs.Process,
-		},*/
+		},
 		processor{
-			Name: "processor",
+			Name: "lambda",
 			Run:  lambda.Process,
+		},
+		processor{
+			Name: "rds",
+			Run:  rds.Process,
 		},
 	}
 
