@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 
 	"github.com/olivere/elastic"
 
@@ -58,11 +57,7 @@ func processEc2Hit(ctx context.Context, hit *elastic.SearchHit, awsAccount strin
 		return utils.TaggingReportDocument{}, false
 	}
 
-	regionForURL := source.Instance.Region
-	_, err = strconv.ParseInt(regionForURL[len(regionForURL)-1:], 10, 32)
-	if err != nil {
-		regionForURL = regionForURL[:len(regionForURL)-1]
-	}
+	regionForURL := utils.GetRegionForURL(source.Instance.Region)
 
 	document := utils.TaggingReportDocument{
 		Account:      awsAccount,
