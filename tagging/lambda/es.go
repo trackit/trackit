@@ -1,4 +1,4 @@
-package taggingebs
+package tagginglambda
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func fetchReports(ctx context.Context, account int) ([]*elastic.SearchHit, error
 	}
 
 	index := client.Search().Index(indexName)
-	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("snapshot.id", "snapshot.region", "snapshot.tags"))
+	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("function.name", "function.tags"))
 	reportDateAggregation := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).SubAggregation("data", topHitsAggregation)
 	res, err := index.Size(0).Query(elastic.NewTermQuery("reportType", "daily")).Aggregation("reportDate", reportDateAggregation).Do(ctx)
 	if err != nil {

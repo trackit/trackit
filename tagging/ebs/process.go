@@ -24,19 +24,19 @@ type source struct {
 const sourceIndexName = "ebs-reports"
 const urlFormat = "https://%s.console.aws.amazon.com/ec2/v2/home?region=%s#Snapshots:all;search=%s"
 
-// ProcessEbs generates tagging reports from EBS reports
-func ProcessEbs(ctx context.Context, account int, awsAccount string) ([]utils.TaggingReportDocument, error) {
+// Process generates tagging reports from EBS reports
+func Process(ctx context.Context, account int, awsAccount string) ([]utils.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Processing EBS reports.", nil)
 
-	hits, err := fetchEbsReports(ctx, account)
+	hits, err := fetchReports(ctx, account)
 	if err != nil {
 		return nil, err
 	}
 
 	var documents []utils.TaggingReportDocument
 	for _, hit := range hits {
-		document, success := processEbsHit(ctx, hit, awsAccount)
+		document, success := processHit(ctx, hit, awsAccount)
 		if success {
 			documents = append(documents, document)
 		}
@@ -46,9 +46,9 @@ func ProcessEbs(ctx context.Context, account int, awsAccount string) ([]utils.Ta
 	return documents, nil
 }
 
-// processEbsHit converts an elasticSearch hit into a TaggingReportDocument
+// processHit converts an elasticSearch hit into a TaggingReportDocument
 // Second argument is true if operation is a success
-func processEbsHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string) (utils.TaggingReportDocument, bool) {
+func processHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string) (utils.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var source source
 	err := json.Unmarshal(*hit.Source, &source)

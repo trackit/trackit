@@ -1,4 +1,4 @@
-package taggingec2
+package tagginglambda
 
 import (
 	"context"
@@ -11,23 +11,22 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type instance struct {
-	ID     string              `json:"id"`
-	Region string              `json:"region"`
-	Tags   []utils.TagDocument `json:"tags"`
+type function struct {
+	Name string              `json:"name"`
+	Tags []utils.TagDocument `json:"tags"`
 }
 
 type source struct {
-	Instance instance `json:"instance"`
+	Function function `json:"function"`
 }
 
-const sourceIndexName = "ec2-reports"
-const urlFormat = "https://%s.console.aws.amazon.com/ec2/v2/home?region=%s#Instances:instanceId=%s"
+const sourceIndexName = "lambda-reports"
+const urlFormat = "TODO"
 
-// Process generates tagging reports from EC2 reports
+// Process generates tagging reports from Lambda reports
 func Process(ctx context.Context, account int, awsAccount string) ([]utils.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info("Processing EC2 reports.", nil)
+	logger.Info("Processing Lambda reports.", nil)
 
 	hits, err := fetchReports(ctx, account)
 	if err != nil {
@@ -42,7 +41,7 @@ func Process(ctx context.Context, account int, awsAccount string) ([]utils.Taggi
 		}
 	}
 
-	logger.Info(fmt.Sprintf("%d EC2 reports processed.", len(documents)), nil)
+	logger.Info(fmt.Sprintf("%d Lambda reports processed.", len(documents)), nil)
 	return documents, nil
 }
 
@@ -53,19 +52,17 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string) 
 	var source source
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
-		logger.Error("Could not process a EC2 report.", nil)
+		logger.Error("Could not process a Lambda report.", nil)
 		return utils.TaggingReportDocument{}, false
 	}
 
-	regionForURL := utils.GetRegionForURL(source.Instance.Region)
-
 	document := utils.TaggingReportDocument{
 		Account:      awsAccount,
-		ResourceID:   source.Instance.ID,
-		ResourceType: "ec2",
-		Region:       source.Instance.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Instance.ID),
-		Tags:         source.Instance.Tags,
+		ResourceID:   source.Function.Name,
+		ResourceType: "lambda",
+		Region:       "TODO",
+		URL:          fmt.Sprintf(urlFormat),
+		Tags:         source.Function.Tags,
 	}
 	return document, true
 }

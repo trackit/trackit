@@ -9,7 +9,7 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-func fetchEc2Reports(ctx context.Context, account int) ([]*elastic.SearchHit, error) {
+func fetchReports(ctx context.Context, account int) ([]*elastic.SearchHit, error) {
 	client := es.Client
 	indexName := es.IndexNameForUserId(account, sourceIndexName)
 
