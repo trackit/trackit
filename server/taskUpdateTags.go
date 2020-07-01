@@ -45,7 +45,12 @@ func taskUpdateTags(ctx context.Context) error {
 		return err
 	}
 
-	return updateTagsForAccount(ctx, amazonAccountID)
+	err = updateTagsForAccount(ctx, amazonAccountID)
+	logger.Info("Task 'update-tags' done.", map[string]interface{}{
+		"args": args,
+	})
+
+	return err
 }
 
 func checkUpdateTagsArguments(args []string) (int, error) {
