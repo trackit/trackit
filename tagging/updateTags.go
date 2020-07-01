@@ -18,7 +18,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type process func(ctx context.Context, account int, awsAccount string) ([]utils.TaggingReportDocument, error)
+type process func(ctx context.Context, account int, awsAccount string, resourceTypeString string) ([]utils.TaggingReportDocument, error)
 
 type processor struct {
 	Name string
@@ -28,44 +28,44 @@ type processor struct {
 const destIndexName = "tagging"
 const destTypeName = "tagging"
 
+var processors = []processor{
+	processor{
+		Name: "ec2",
+		Run:  ec2.Process,
+	},
+	processor{
+		Name: "ebs",
+		Run:  ebs.Process,
+	},
+	processor{
+		Name: "lambda",
+		Run:  lambda.Process,
+	},
+	processor{
+		Name: "rds",
+		Run:  rds.Process,
+	},
+	processor{
+		Name: "rds-ri",
+		Run:  rdsRi.Process,
+	},
+	processor{
+		Name: "ec2-ri",
+		Run:  ec2Ri.Process,
+	},
+}
+
 // UpdateTagsForAccount updates tags in ES for the specified AWS account
 func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var documents []utils.TaggingReportDocument
 
-	processors := []processor{
-		processor{
-			Name: "ec2",
-			Run:  ec2.Process,
-		},
-		processor{
-			Name: "ebs",
-			Run:  ebs.Process,
-		},
-		processor{
-			Name: "lambda",
-			Run:  lambda.Process,
-		},
-		processor{
-			Name: "rds",
-			Run:  rds.Process,
-		},
-		processor{
-			Name: "rds-ri",
-			Run:  rdsRi.Process,
-		},
-		processor{
-			Name: "ec2-ri",
-			Run:  ec2Ri.Process,
-		},
-	}
-
 	for _, processor := range processors {
-		newDocuments, err := processor.Run(ctx, account, awsAccount)
+		newDocuments, err := processor.Run(ctx, account, awsAccount, processor.Name)
 		if err == nil {
 			documents = append(documents, newDocuments...)
 		} else {
-			logger.Error(fmt.Sprintf("Processor '%s' failed: %s", processor.Name, err.Error()), nil)
+			logger.Error(fmt.Sprintf("Generation of tagging reports for resources of type '%s' failed: %s", processor.Name, err.Error()), nil)
 		}
 	}
 
