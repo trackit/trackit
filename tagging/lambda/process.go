@@ -6,14 +6,15 @@ import (
 	"fmt"
 
 	"github.com/olivere/elastic"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/tagging/utils"
 )
 
 type function struct {
-	Name string              `json:"name"`
-	Tags []utils.TagDocument `json:"tags"`
+	Name   string              `json:"name"`
+	Region string              `json:"region"`
+	Tags   []utils.TagDocument `json:"tags"`
 }
 
 type source struct {
@@ -21,7 +22,7 @@ type source struct {
 }
 
 const sourceIndexName = "lambda-reports"
-const urlFormat = "TODO"
+const urlFormat = "https://%s.console.aws.amazon.com/lambda/home?region=%s#/functions/%s"
 
 // Process generates tagging reports from Lambda reports
 func Process(ctx context.Context, account int, awsAccount string) ([]utils.TaggingReportDocument, error) {
@@ -56,12 +57,15 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string) 
 		return utils.TaggingReportDocument{}, false
 	}
 
+	regionForURL := utils.GetRegionForURL(source.Function.Region)
+	fmt.Printf("https://%s.console.aws.amazon.com/lambda/home?region=%s#/functions/%s\n", regionForURL, regionForURL, source.Function.Name)
+
 	document := utils.TaggingReportDocument{
 		Account:      awsAccount,
 		ResourceID:   source.Function.Name,
 		ResourceType: "lambda",
-		Region:       "TODO",
-		URL:          fmt.Sprintf(urlFormat),
+		Region:       source.Function.Region,
+		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Function.Name),
 		Tags:         source.Function.Tags,
 	}
 	return document, true
