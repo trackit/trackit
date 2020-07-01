@@ -13,6 +13,7 @@ import (
 	ec2 "github.com/trackit/trackit/tagging/ec2"
 	lambda "github.com/trackit/trackit/tagging/lambda"
 	rds "github.com/trackit/trackit/tagging/rds"
+	rdsRi "github.com/trackit/trackit/tagging/rdsRi"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
@@ -47,6 +48,10 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 		processor{
 			Name: "rds",
 			Run:  rds.Process,
+		},
+		processor{
+			Name: "rds-ri",
+			Run:  rdsRi.Process,
 		},
 	}
 
