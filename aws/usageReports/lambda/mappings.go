@@ -63,6 +63,15 @@ const TemplateLineItem = `
 						"description": {
 							"type": "keyword"
 						},
+						"version": {
+							"type": "keyword"
+						},
+						"lastModified": {
+							"type": "keyword"
+						},
+						"runtime": {
+							"type": "keyword"
+						},
 						"size": {
 							"type": "integer"
 						},
