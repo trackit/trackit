@@ -25,7 +25,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
 )
 
@@ -56,6 +56,7 @@ func fetchDailyFunctionsList(ctx context.Context, creds *credentials.Credentials
 				Runtime:      aws.StringValue(function.Runtime),
 				Size:         aws.Int64Value(function.CodeSize),
 				Memory:       aws.Int64Value(function.MemorySize),
+				Region:       region,
 			},
 			Tags:  getFunctionTags(ctx, function, svc),
 			Stats: stats,

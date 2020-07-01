@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lambda-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"lambda-report": {
 			"properties": {
@@ -63,11 +63,23 @@ const TemplateLineItem = `
 						"description": {
 							"type": "keyword"
 						},
+						"version": {
+							"type": "keyword"
+						},
+						"lastModified": {
+							"type": "keyword"
+						},
+						"runtime": {
+							"type": "keyword"
+						},
 						"size": {
 							"type": "integer"
 						},
 						"memory": {
 							"type": "integer"
+						},
+						"region": {
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",
