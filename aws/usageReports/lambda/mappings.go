@@ -42,7 +42,7 @@ func init() {
 const TemplateLineItem = `
 {
 	"template": "*-lambda-reports",
-	"version": 1,
+	"version": 2,
 	"mappings": {
 		"lambda-report": {
 			"properties": {
