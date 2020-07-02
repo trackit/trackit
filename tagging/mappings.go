@@ -42,7 +42,7 @@ func init() {
 const templateTaggingReport = `
 {
     "template":"*-tagging-reports",
-    "version":2,
+    "version":1,
     "mappings":{
         "tagging-reports":{
             "properties":{
