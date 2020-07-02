@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/es"
 )
 
