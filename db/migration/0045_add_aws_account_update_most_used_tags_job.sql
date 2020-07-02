@@ -27,11 +27,7 @@ CREATE TABLE most_used_tags (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	report_date            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	aws_account_id         INTEGER      NOT NULL,
-	tag_one                VARCHAR(255) NOT NULL,
-	tag_two                VARCHAR(255) NOT NULL,
-	tag_three              VARCHAR(255) NOT NULL,
-	tag_four               VARCHAR(255) NOT NULL,
-	tag_five               VARCHAR(255) NOT NULL,
+	tags                   VARCHAR(255) NOT NULL,
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 );

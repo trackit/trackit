@@ -13,11 +13,7 @@ type MostUsedTag struct {
 	ID           int       `json:"id"`             // id
 	ReportDate   time.Time `json:"report_date"`    // report_date
 	AwsAccountID int       `json:"aws_account_id"` // aws_account_id
-	TagOne       string    `json:"tag_one"`        // tag_one
-	TagTwo       string    `json:"tag_two"`        // tag_two
-	TagThree     string    `json:"tag_three"`      // tag_three
-	TagFour      string    `json:"tag_four"`       // tag_four
-	TagFive      string    `json:"tag_five"`       // tag_five
+	Tags         string    `json:"tags"`           // tags
 
 	// xo fields
 	_exists, _deleted bool
@@ -44,14 +40,14 @@ func (mut *MostUsedTag) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.most_used_tags (` +
-		`report_date, aws_account_id, tag_one, tag_two, tag_three, tag_four, tag_five` +
+		`report_date, aws_account_id, tags` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.TagOne, mut.TagTwo, mut.TagThree, mut.TagFour, mut.TagFive)
-	res, err := db.Exec(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.TagOne, mut.TagTwo, mut.TagThree, mut.TagFour, mut.TagFive)
+	XOLog(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags)
+	res, err := db.Exec(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags)
 	if err != nil {
 		return err
 	}
@@ -85,12 +81,12 @@ func (mut *MostUsedTag) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.most_used_tags SET ` +
-		`report_date = ?, aws_account_id = ?, tag_one = ?, tag_two = ?, tag_three = ?, tag_four = ?, tag_five = ?` +
+		`report_date = ?, aws_account_id = ?, tags = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.TagOne, mut.TagTwo, mut.TagThree, mut.TagFour, mut.TagFive, mut.ID)
-	_, err = db.Exec(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.TagOne, mut.TagTwo, mut.TagThree, mut.TagFour, mut.TagFive, mut.ID)
+	XOLog(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags, mut.ID)
+	_, err = db.Exec(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags, mut.ID)
 	return err
 }
 
@@ -148,7 +144,7 @@ func MostUsedTagsByAwsAccountID(db XODB, awsAccountID int) ([]*MostUsedTag, erro
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, report_date, aws_account_id, tag_one, tag_two, tag_three, tag_four, tag_five ` +
+		`id, report_date, aws_account_id, tags ` +
 		`FROM trackit.most_used_tags ` +
 		`WHERE aws_account_id = ?`
 
@@ -168,7 +164,7 @@ func MostUsedTagsByAwsAccountID(db XODB, awsAccountID int) ([]*MostUsedTag, erro
 		}
 
 		// scan
-		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.TagOne, &mut.TagTwo, &mut.TagThree, &mut.TagFour, &mut.TagFive)
+		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.Tags)
 		if err != nil {
 			return nil, err
 		}
@@ -187,7 +183,7 @@ func MostUsedTagByID(db XODB, id int) (*MostUsedTag, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, report_date, aws_account_id, tag_one, tag_two, tag_three, tag_four, tag_five ` +
+		`id, report_date, aws_account_id, tags ` +
 		`FROM trackit.most_used_tags ` +
 		`WHERE id = ?`
 
@@ -197,7 +193,7 @@ func MostUsedTagByID(db XODB, id int) (*MostUsedTag, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.TagOne, &mut.TagTwo, &mut.TagThree, &mut.TagFour, &mut.TagFive)
+	err = db.QueryRow(sqlstr, id).Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.Tags)
 	if err != nil {
 		return nil, err
 	}
