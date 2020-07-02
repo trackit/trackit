@@ -82,7 +82,6 @@ var processors = []processor{
 // UpdateTagsForAccount updates tags in ES for the specified AWS account
 func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	initIndexTemplate()
 	var documents []utils.TaggingReportDocument
 
 	for _, processor := range processors {

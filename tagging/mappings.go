@@ -27,7 +27,7 @@ const indexPrefixTaggingReport = "tagging-reports"
 const templateNameTaggingReport = "tagging-reports"
 
 // put the ElasticSearch index for *-tagging-reports indices at startup.
-func initIndexTemplate() {
+func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	res, err := es.Client.IndexPutTemplate(templateNameTaggingReport).BodyString(templateTaggingReport).Do(ctx)
 	if err != nil {
