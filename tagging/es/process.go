@@ -36,7 +36,7 @@ type source struct {
 }
 
 const sourceIndexName = "es-reports"
-const urlFormat = "TODO"
+const urlFormat = "https://%s.console.aws.amazon.com/es/home?region=%s#domain:resource=%s;action=dashboard"
 
 // Process generates tagging reports from ES reports
 func Process(ctx context.Context, account int, awsAccount string, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -71,14 +71,14 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string, 
 		return utils.TaggingReportDocument{}, false
 	}
 
-	// regionForURL := utils.GetRegionForURL(source.Snapshot.Region)
+	regionForURL := utils.GetRegionForURL(source.Domain.Region)
 
 	document := utils.TaggingReportDocument{
 		Account:      awsAccount,
 		ResourceID:   source.Domain.ID,
 		ResourceType: resourceTypeString,
 		Region:       source.Domain.Region,
-		URL:          fmt.Sprintf(urlFormat),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Domain.ID),
 		Tags:         source.Domain.Tags,
 	}
 	return document, true
