@@ -94,6 +94,12 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 		}
 	}
 
+	return pushToEs(ctx, documents, account)
+}
+
+func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, account int) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
 	logger.Info("Pushing generated tagging reports to ES.", nil)
 	reportDate := time.Now().UTC()
 	destIndexName := es.IndexNameForUserId(account, destIndexName)
