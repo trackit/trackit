@@ -25,8 +25,8 @@ type processor struct {
 	Run  process
 }
 
-const destIndexName = "tagging"
-const destTypeName = "tagging"
+const destIndexName = "tagging-reports"
+const destTypeName = "tagging-reports"
 
 var processors = []processor{
 	processor{
