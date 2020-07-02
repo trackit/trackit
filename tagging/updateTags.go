@@ -12,6 +12,7 @@ import (
 	ebs "github.com/trackit/trackit/tagging/ebs"
 	ec2 "github.com/trackit/trackit/tagging/ec2"
 	ec2Ri "github.com/trackit/trackit/tagging/ec2Ri"
+	elasticache "github.com/trackit/trackit/tagging/elasticache"
 	esProc "github.com/trackit/trackit/tagging/es"
 	lambda "github.com/trackit/trackit/tagging/lambda"
 	rds "github.com/trackit/trackit/tagging/rds"
@@ -57,6 +58,10 @@ var processors = []processor{
 	processor{
 		Name: "es",
 		Run:  esProc.Process,
+	},
+	processor{
+		Name: "elasticache",
+		Run:  elasticache.Process,
 	},
 }
 
