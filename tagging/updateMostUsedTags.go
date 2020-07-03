@@ -14,21 +14,17 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
-var ignoredTags = []string{
-	"aws:cloudformation:stack-id",
-	"aws:cloudformation:logical-id",
-	"aws:cloudformation:stack-name",
-	"aws:autoscaling:groupName",
+var ignoredTagsRegexp = []string{
+	"aws:cloudformation:.*",
+	"aws:autoscaling:.*",
+	"lambda:.*",
+	".*k8s\\.io.*",
 	"KubernetesCluster",
-	"k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/instancegroup",
-	"kops.k8s.io/instancegroup",
-	"k8s.io/role/node",
-	"lambda:createdBy",
 }
 
 // UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified AWS account
 func UpdateMostUsedTagsForAccount(ctx context.Context, account int, awsAccount string) error {
-	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, ignoredTags)
+	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, ignoredTagsRegexp)
 	if err != nil {
 		return err
 	}
@@ -46,7 +42,7 @@ func UpdateMostUsedTagsForAccount(ctx context.Context, account int, awsAccount s
 	return model.Insert(db.Db)
 }
 
-func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTags []string) ([]string, error) {
+func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTagsRegexp []string) ([]string, error) {
 	client := es.Client
 	indexName := es.IndexNameForUserId(account, destIndexName)
 
@@ -58,7 +54,7 @@ func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTags []s
 		return []string{}, nil
 	}
 
-	filterQueries := getFilterQueriesFromIgnoredTags(ignoredTags)
+	filterQueries := getFilterQueriesFromIgnoredTags(ignoredTagsRegexp)
 
 	index := client.Search().Index(indexName)
 	termsAgg := elastic.NewTermsAggregation().Field("tags.key").Size(5)
@@ -73,11 +69,11 @@ func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTags []s
 	return processMostUsedTagsResult(res)
 }
 
-func getFilterQueriesFromIgnoredTags(ignoredTags []string) []elastic.Query {
+func getFilterQueriesFromIgnoredTags(ignoredTagsRegexp []string) []elastic.Query {
 	queries := []elastic.Query{}
 
-	for _, ignoredTag := range ignoredTags {
-		queries = append(queries, elastic.NewTermQuery("tags.key", ignoredTag))
+	for _, ignoredTag := range ignoredTagsRegexp {
+		queries = append(queries, elastic.NewRegexpQuery("tags.key", ignoredTag))
 	}
 
 	return queries
