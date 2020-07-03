@@ -18,6 +18,12 @@ var ignoredTags = []string{
 	"aws:cloudformation:stack-id",
 	"aws:cloudformation:logical-id",
 	"aws:cloudformation:stack-name",
+	"aws:autoscaling:groupName",
+	"KubernetesCluster",
+	"k8s.io/cluster-autoscaler/node-template/label/kops.k8s.io/instancegroup",
+	"kops.k8s.io/instancegroup",
+	"k8s.io/role/node",
+	"lambda:createdBy",
 }
 
 // UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified AWS account
