@@ -21,8 +21,8 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(mostUsedTagsQueryArgs),
 			routes.Documentation{
-				Summary:     "summary",
-				Description: "description",
+				Summary:     "get most used tags",
+				Description: "Responds with most used tags for an AWS account and time range.",
 			},
 		),
 	}.H().Register("/tagging/mostusedtags")
