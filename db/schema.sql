@@ -993,7 +993,7 @@ CREATE TABLE aws_account_update_tags_job (
 	aws_account_id         INTEGER      NOT NULL,
 	completed              TIMESTAMP    NOT NULL DEFAULT 0,
 	worker_id              VARCHAR(255) NOT NULL,
-	job_error               VARCHAR(255) NOT NULL DEFAULT "",
+	job_error              VARCHAR(255) NOT NULL DEFAULT "",
 	CONSTRAINT PRIMARY KEY (id),
 	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 );

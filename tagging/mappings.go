@@ -76,12 +76,12 @@ const templateTaggingReport = `
                 "url":{
                     "type":"keyword"
                 }
-			},
-			"_all": {
-				"enabled": false
-			},
-			"date_detection": false,
-			"numeric_detection": false
+            },
+            "_all": {
+                "enabled": false
+            },
+            "date_detection": false,
+            "numeric_detection": false
         }
     }
 }
