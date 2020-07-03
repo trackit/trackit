@@ -146,8 +146,7 @@ func MostUsedTagsByAwsAccountID(db XODB, awsAccountID int) ([]*MostUsedTag, erro
 	const sqlstr = `SELECT ` +
 		`id, report_date, aws_account_id, tags ` +
 		`FROM trackit.most_used_tags ` +
-		`WHERE aws_account_id = ? ` +
-		`ORDER BY report_date DESC LIMIT 1`
+		`WHERE aws_account_id = ?`
 
 	// run query
 	XOLog(sqlstr, awsAccountID)
