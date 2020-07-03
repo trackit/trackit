@@ -72,7 +72,9 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, awsAccount string, 
 	var source source
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Could not process a %s report.", resourceTypeString), nil)
+		logger.Error("Could not process report.", map[string]interface{}{
+			"type": resourceTypeString,
+		})
 		return utils.TaggingReportDocument{}, false
 	}
 
