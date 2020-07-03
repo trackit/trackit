@@ -41,7 +41,9 @@ const urlFormat = "https://%s.console.aws.amazon.com/es/home?region=%s#domain:re
 // Process generates tagging reports from ES reports
 func Process(ctx context.Context, account int, awsAccount string, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Info(fmt.Sprintf("Processing %s reports.", resourceTypeString), nil)
+	logger.Info("Processing reports.", map[string]interface{}{
+		"type": resourceTypeString,
+	})
 
 	hits, err := fetchReports(ctx, account)
 	if err != nil {
@@ -56,7 +58,10 @@ func Process(ctx context.Context, account int, awsAccount string, resourceTypeSt
 		}
 	}
 
-	logger.Info(fmt.Sprintf("%d %s reports processed.", len(documents), resourceTypeString), nil)
+	logger.Info("Reports processed.", map[string]interface{}{
+		"type":  resourceTypeString,
+		"count": len(documents),
+	})
 	return documents, nil
 }
 

@@ -35,14 +35,24 @@ func fetchReports(ctx context.Context, account int) ([]*elastic.SearchHit, error
 		return []*elastic.SearchHit{}, nil
 	}
 
-	index := client.Search().Index(indexName)
-	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("snapshot.id", "snapshot.region", "snapshot.tags"))
-	reportDateAggregation := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).SubAggregation("data", topHitsAggregation)
-	res, err := index.Size(0).Query(elastic.NewTermQuery("reportType", "daily")).Aggregation("reportDate", reportDateAggregation).Do(ctx)
+	res, err := queryEs(ctx, indexName)
 	if err != nil {
 		return nil, err
 	}
 
+	return processSearchResult(res)
+}
+
+func queryEs(ctx context.Context, indexName string) (*elastic.SearchResult, error) {
+	client := es.Client
+
+	index := client.Search().Index(indexName)
+	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("snapshot.id", "snapshot.region", "snapshot.tags"))
+	reportDateAggregation := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).SubAggregation("data", topHitsAggregation)
+	return index.Size(0).Query(elastic.NewTermQuery("reportType", "daily")).Aggregation("reportDate", reportDateAggregation).Do(ctx)
+}
+
+func processSearchResult(res *elastic.SearchResult) ([]*elastic.SearchHit, error) {
 	reportDateAggregationRes, found := res.Aggregations.Terms("reportDate")
 	if !found || len(reportDateAggregationRes.Buckets) <= 0 {
 		return nil, errors.New("could not query elastic search")
