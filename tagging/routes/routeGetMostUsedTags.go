@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -9,15 +10,6 @@ import (
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
 )
-
-type response struct {
-	Results []result `json:"results"`
-}
-
-type result struct {
-	ReportDate string `json:"reportDate"`
-	Tags       string `json:"tags"`
-}
 
 func routeGetMostUsedTags(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
@@ -30,12 +22,15 @@ func routeGetMostUsedTags(r *http.Request, a routes.Arguments) (int, interface{}
 		return 500, nil
 	}
 
-	res := response{}
+	res := map[string]interface{}{}
 	for _, entry := range dbRes {
-		res.Results = append(res.Results, result{
-			ReportDate: entry.ReportDate.String(),
-			Tags:       entry.Tags,
-		})
+		tagsList := []string{}
+		err = json.Unmarshal([]byte(entry.Tags), &tagsList)
+		if err != nil {
+			continue
+		}
+
+		res[entry.ReportDate.String()] = tagsList
 	}
 
 	return 200, res
