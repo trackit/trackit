@@ -14,13 +14,15 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
+var ignoredTags = []string{
+	"aws:cloudformation:stack-id",
+	"aws:cloudformation:logical-id",
+	"aws:cloudformation:stack-name",
+}
+
 // UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified AWS account
 func UpdateMostUsedTagsForAccount(ctx context.Context, account int, awsAccount string) error {
-	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, []string{
-		"aws:cloudformation:stack-id",
-		"aws:cloudformation:logical-id",
-		"aws:cloudformation:stack-name",
-	})
+	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, ignoredTags)
 	if err != nil {
 		return err
 	}
