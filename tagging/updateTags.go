@@ -99,8 +99,10 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, account int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	logger.Info("Pushing generated tagging reports to ES.", nil)
 	reportDate := time.Now().UTC()
+	logger.Info("Pushing generated tagging reports to ES.", map[string]interface{}{
+		"reportDate": reportDate.String(),
+	})
 	destIndexName := es.IndexNameForUserId(account, destIndexName)
 	bulkProcessor, err := bulk.GetBulkProcessor(ctx)
 	if err != nil {

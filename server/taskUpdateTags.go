@@ -42,15 +42,24 @@ func taskUpdateTags(ctx context.Context) error {
 
 	amazonAccountID, err := checkUpdateTagsArguments(args)
 	if err != nil {
+		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
+			"err": err.Error(),
+		})
 		return err
 	}
 
 	err = updateTagsForAccount(ctx, amazonAccountID)
+	if err != nil {
+		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
+			"err": err.Error(),
+		})
+		return err
+	}
+
 	logger.Info("Task 'update-tags' done.", map[string]interface{}{
 		"args": args,
 	})
-
-	return err
+	return nil
 }
 
 func checkUpdateTagsArguments(args []string) (int, error) {
@@ -83,7 +92,7 @@ func updateTagsForAccount(ctx context.Context, accountID int) error {
 
 	awsAccount, err := aws.GetAwsAccountWithId(accountID, tx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	job, err := registerUpdateTagsTask(db.Db, accountID)
