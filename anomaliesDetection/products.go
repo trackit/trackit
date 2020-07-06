@@ -230,6 +230,7 @@ func productGetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams) (
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sr, err := makeElasticSearchRequest(ctx, getProductElasticSearchParams, params)
 	if err != nil {
+		logger.Error("Failed to make elasticsearch request.", err.Error())
 		return nil, err
 	}
 	var typedDocument esProductTypedResult
