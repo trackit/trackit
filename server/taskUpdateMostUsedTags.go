@@ -44,11 +44,17 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 	}
 
 	err = updateMostUsedTagsForAccount(ctx, amazonAccountID)
+	if err != nil {
+		logger.Error("Failed to execute task 'update-most-used-tags'.", map[string]interface{}{
+			"err": err.Error(),
+		})
+		return err
+	}
+
 	logger.Info("Task 'update-most-used-tags' done.", map[string]interface{}{
 		"args": args,
 	})
-
-	return err
+	return nil
 }
 
 func checkUpdateMostUsedTagsArguments(args []string) (int, error) {
@@ -81,7 +87,7 @@ func updateMostUsedTagsForAccount(ctx context.Context, accountID int) error {
 
 	awsAccount, err := aws.GetAwsAccountWithId(accountID, tx)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	job, err := registerUpdateMostUsedTagsTask(db.Db, accountID)

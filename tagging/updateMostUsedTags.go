@@ -9,6 +9,7 @@ import (
 
 	"github.com/olivere/elastic"
 
+	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/models"
@@ -24,6 +25,7 @@ var ignoredTagsRegexp = []string{
 
 // UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified AWS account
 func UpdateMostUsedTagsForAccount(ctx context.Context, account int, awsAccount string) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, ignoredTagsRegexp)
 	if err != nil {
 		return err
@@ -34,12 +36,21 @@ func UpdateMostUsedTagsForAccount(ctx context.Context, account int, awsAccount s
 		return err
 	}
 
+	reportDate := time.Now()
 	model := models.MostUsedTag{
 		AwsAccountID: account,
-		ReportDate:   time.Now(),
+		ReportDate:   reportDate,
 		Tags:         string(mostUsedTagsStr),
 	}
-	return model.Insert(db.Db)
+
+	err = model.Insert(db.Db)
+	if err == nil {
+		logger.Info("Most used tags pushed to database.", map[string]interface{}{
+			"reportDate": reportDate.String(),
+		})
+	}
+
+	return err
 }
 
 func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTagsRegexp []string) ([]string, error) {
