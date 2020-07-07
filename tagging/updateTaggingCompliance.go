@@ -30,12 +30,12 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error
 		return err
 	}
 
-	totallyTagged, err := getTotallyTagged(ctx, accountID, mostUsedTags)
+	totallyTagged, err := getTotallyTaggedReportsCount(ctx, accountID, mostUsedTags)
 	if err != nil {
 		return err
 	}
 
-	untagged, err := getUntagged(ctx, accountID, mostUsedTags)
+	untagged, err := getNotTaggedReportsCount(ctx, accountID, mostUsedTags)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func getReportsCount(ctx context.Context, accountID int) (int64, error) {
 	return handleComplianceEsReponse(res, err)
 }
 
-func getTotallyTagged(ctx context.Context, accountID int, mostUsedTags []string) (int64, error) {
+func getTotallyTaggedReportsCount(ctx context.Context, accountID int, mostUsedTags []string) (int64, error) {
 	client := es.Client
 	indexName := es.IndexNameForUserId(accountID, "tagging-reports")
 	index := client.Search().Index(indexName)
@@ -108,7 +108,7 @@ func getTotallyTagged(ctx context.Context, accountID int, mostUsedTags []string)
 	return handleComplianceEsReponse(res, err)
 }
 
-func getUntagged(ctx context.Context, accountID int, mostUsedTags []string) (int64, error) {
+func getNotTaggedReportsCount(ctx context.Context, accountID int, mostUsedTags []string) (int64, error) {
 	client := es.Client
 	indexName := es.IndexNameForUserId(accountID, "tagging-reports")
 	index := client.Search().Index(indexName)
