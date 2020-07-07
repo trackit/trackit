@@ -10,7 +10,7 @@ The logger exposes multiple functions for logging with different logging levels:
 
 Each of these functions takes two parameters: a string message, and an interface{} object to log additional data.
 
-Example:
+### Example:
 ```go
 logger := jsonlog.LoggerFromContextOrDefault(ctx)	
 logger.Info("An example message.", map[string] interface{} {
