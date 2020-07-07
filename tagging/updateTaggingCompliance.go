@@ -3,6 +3,7 @@ package tagging
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	"github.com/olivere/elastic"
 
@@ -12,10 +13,11 @@ import (
 )
 
 type compliance struct {
-	Total           int64 `json:"total"`
-	TotallyTagged   int64 `json:"totallyTagged"`
-	PartiallyTagged int64 `json:"partiallyTagged"`
-	NotTagged       int64 `json:"notTagged"`
+	ReportDate      time.Time `json:"reportDate"`
+	Total           int64     `json:"total"`
+	TotallyTagged   int64     `json:"totallyTagged"`
+	PartiallyTagged int64     `json:"partiallyTagged"`
+	NotTagged       int64     `json:"notTagged"`
 }
 
 // UpdateTaggingComplianceForAccount updates tagging compliance based on latest tagging reports and latest most used tags reports
@@ -47,6 +49,7 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error
 		TotallyTagged:   totallyTagged,
 		PartiallyTagged: partiallyTagged,
 		NotTagged:       untagged,
+		ReportDate:      time.Now().UTC(),
 	})
 }
 

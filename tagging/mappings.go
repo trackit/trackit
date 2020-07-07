@@ -111,9 +111,6 @@ const templateTaggingCompliance = `
     "mappings":{
         "tagging-compliance":{
             "properties":{
-                "account":{
-                    "type":"keyword"
-                },
                 "reportDate":{
                     "type":"date"
                 },
