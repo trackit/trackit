@@ -4,7 +4,7 @@ You can easily add routes to the REST API.
 A route is defined it's HTTP method, the function it calls, the decorators it will use and it's path.
 
 You can register a route in an `init` function.
-You have to import the package somewhere for this function to be called. For example: 
+You have to import the package somewhere for this function to be called. For example, in the `server/server.go` file:  
 ```go
 import _ "github.com/trackit/trackit/aws/routes"
 ```
