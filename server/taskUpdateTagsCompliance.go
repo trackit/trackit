@@ -16,11 +16,15 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"flag"
 	"strconv"
+	"time"
 
 	"github.com/trackit/jsonlog"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/tagging"
 )
 
@@ -68,5 +72,49 @@ func checkUpdateTaggingComplianceArguments(args []string) (int, error) {
 }
 
 func updateTaggingComplianceForAccount(ctx context.Context, accountID int) error {
-	return tagging.UpdateTaggingComplianceForAccount(ctx, accountID)
+	tx, err := db.Db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if tx != nil {
+			if err != nil {
+				tx.Rollback()
+			} else {
+				tx.Commit()
+			}
+		}
+	}()
+
+	job, err := registerUpdateTaggingComplianceTask(db.Db, accountID)
+	if err != nil {
+		return err
+	}
+
+	err = tagging.UpdateTaggingComplianceForAccount(ctx, accountID)
+
+	return updateUpdateTaggingComplianceTask(db.Db, job, err)
+}
+
+func registerUpdateTaggingComplianceTask(db *sql.DB, accountID int) (models.AwsAccountUpdateTaggingComplianceJob, error) {
+	job := models.AwsAccountUpdateTaggingComplianceJob{
+		AwsAccountID: accountID,
+		WorkerID:     backendId,
+		Created:      time.Now(),
+	}
+
+	err := job.Insert(db)
+
+	return job, err
+}
+
+func updateUpdateTaggingComplianceTask(db *sql.DB, job models.AwsAccountUpdateTaggingComplianceJob, jobError error) error {
+
+	job.Completed = time.Now()
+
+	if jobError != nil {
+		job.JobError = jobError.Error()
+	}
+
+	return job.Update(db)
 }
