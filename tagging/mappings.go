@@ -32,7 +32,7 @@ func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	res, err := es.Client.IndexPutTemplate(templateNameTaggingReport).BodyString(templateTaggingReport).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES indext tagging-reports.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index tagging-reports.", err)
 		ctxCancel()
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index tagging-reports.", res)
@@ -109,7 +109,7 @@ const templateTaggingCompliance = `
     "template":"*-tagging-compliance",
     "version":1,
     "mappings":{
-        "tagging-reports":{
+        "tagging-compliance":{
             "properties":{
                 "account":{
                     "type":"keyword"
