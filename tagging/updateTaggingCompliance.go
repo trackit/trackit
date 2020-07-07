@@ -3,7 +3,6 @@ package tagging
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/olivere/elastic"
 
@@ -11,6 +10,13 @@ import (
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/models"
 )
+
+type compliance struct {
+	Total           int64 `json:"total"`
+	TotallyTagged   int64 `json:"totallyTagged"`
+	PartiallyTagged int64 `json:"partiallyTagged"`
+	NotTagged       int64 `json:"notTagged"`
+}
 
 // UpdateTaggingComplianceForAccount updates tagging compliance based on latest tagging reports and latest most used tags reports
 func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error {
@@ -36,9 +42,12 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error
 
 	partiallyTagged := count - totallyTagged - untagged
 
-	fmt.Printf("RESULT: %d %d %d (%d)\n", totallyTagged, partiallyTagged, untagged, count)
-
-	return nil
+	return pushComplianceToEs(ctx, accountID, compliance{
+		Total:           count,
+		TotallyTagged:   totallyTagged,
+		PartiallyTagged: partiallyTagged,
+		NotTagged:       untagged,
+	})
 }
 
 func getMostUsedTagsFromDb(accountID int) ([]string, error) {
@@ -110,4 +119,11 @@ func getUntagged(ctx context.Context, accountID int, mostUsedTags []string) (int
 	reportDateAgg := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)
 	res, err := index.Size(0).Query(query).Aggregation("reportDate", reportDateAgg).Do(ctx)
 	return handleComplianceEsReponse(res, err)
+}
+
+func pushComplianceToEs(ctx context.Context, accountID int, compliance compliance) error {
+	client := es.Client
+	indexName := es.IndexNameForUserId(accountID, "tagging-compliance")
+	_, err := client.Index().Index(indexName).Type("tagging-compliance").BodyJson(compliance).Do(ctx)
+	return err
 }

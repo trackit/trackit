@@ -86,3 +86,56 @@ const templateTaggingReport = `
     }
 }
 `
+
+const typeTaggingCompliance = "tagging-compliance"
+const indexPrefixTaggingCompliance = "tagging-compliance"
+const templateNameTaggingCompliance = "tagging-compliance"
+
+// put the ElasticSearch index for *-tagging-compliance indices at startup.
+func init() {
+	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	res, err := es.Client.IndexPutTemplate(templateNameTaggingCompliance).BodyString(templateTaggingCompliance).Do(ctx)
+	if err != nil {
+		jsonlog.DefaultLogger.Error("Failed to put ES index tagging-compliance.", err)
+		ctxCancel()
+	} else {
+		jsonlog.DefaultLogger.Info("Put ES index tagging-compliance.", res)
+		ctxCancel()
+	}
+}
+
+const templateTaggingCompliance = `
+{
+    "template":"*-tagging-compliance",
+    "version":1,
+    "mappings":{
+        "tagging-reports":{
+            "properties":{
+                "account":{
+                    "type":"keyword"
+                },
+                "reportDate":{
+                    "type":"date"
+                },
+                "total":{
+                    "type":"long"
+                },
+                "totallyTagged":{
+                    "type":"long"
+                },
+                "partiallyTagged":{
+                    "type":"long"
+                },
+                "notTagged":{
+                    "type":"long"
+                }
+            },
+            "_all": {
+                "enabled": false
+            },
+            "date_detection": false,
+            "numeric_detection": false
+        }
+    }
+}
+`

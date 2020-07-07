@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/tagging"
