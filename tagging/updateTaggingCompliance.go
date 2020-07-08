@@ -54,7 +54,7 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error
 }
 
 func getMostUsedTagsFromDb(accountID int) ([]string, error) {
-	mostUsedTags, err := models.LatestMostUsedTagsByAwsAccountID(db.Db, accountID)
+	mostUsedTags, err := models.MostUsedTagsInUseByAwsAccountID(db.Db, accountID)
 	if err != nil {
 		return nil, err
 	}
