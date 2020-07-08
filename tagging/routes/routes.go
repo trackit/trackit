@@ -22,6 +22,15 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
+<<<<<<< HEAD
+=======
+// taggingComplianceQueryArgs allows to get required queryArgs params
+var taggingComplianceQueryArgs = []routes.QueryArg{
+	routes.DateBeginQueryArg,
+	routes.DateEndQueryArg,
+}
+
+>>>>>>> Added route to get tagging compliance data
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetMostUsedTags).With(
@@ -33,4 +42,18 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/mostusedtags")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(routeGetTaggingCompliance).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(taggingComplianceQueryArgs),
+			routes.Documentation{
+				Summary:     "get tagging compliance",
+				Description: "Responds with tagging compliance data in a specified range",
+			},
+		),
+	}.H().Register("/tagging/compliance")
 }
