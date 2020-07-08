@@ -9,10 +9,7 @@ import (
 )
 
 // mostUsedTagsQueryArgs allows to get required queryArgs params
-var mostUsedTagsQueryArgs = []routes.QueryArg{
-	routes.DateBeginQueryArg,
-	routes.DateEndQueryArg,
-}
+var mostUsedTagsQueryArgs = []routes.QueryArg{}
 
 func init() {
 	routes.MethodMuxer{
@@ -22,7 +19,7 @@ func init() {
 			routes.QueryArgs(mostUsedTagsQueryArgs),
 			routes.Documentation{
 				Summary:     "get most used tags",
-				Description: "Responds with most used tags for an AWS account and time range.",
+				Description: "Responds with most used tags for an AWS account.",
 			},
 		),
 	}.H().Register("/tagging/mostusedtags")

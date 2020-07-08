@@ -43,8 +43,8 @@ func MostUsedTagsByAwsAccountIDInRange(db XODB, awsAccountID int, begin time.Tim
 	return res, nil
 }
 
-// LatestMostUsedTagsByAwsAccountID returns the latest most used tags of an AWS account.
-func LatestMostUsedTagsByAwsAccountID(db XODB, awsAccountID int, begin time.Time, end time.Time) (*MostUsedTag, error) {
+// MostUsedTagsInUseByAwsAccountID returns the currently used most used tags of an AWS account.
+func MostUsedTagsInUseByAwsAccountID(db XODB, awsAccountID int) (*MostUsedTag, error) {
 	var err error
 
 	// sql query
@@ -52,7 +52,7 @@ func LatestMostUsedTagsByAwsAccountID(db XODB, awsAccountID int, begin time.Time
 		`id, report_date, aws_account_id, tags ` +
 		`FROM trackit.most_used_tags ` +
 		`WHERE aws_account_id = ? ` +
-		`ORDER BY report_date DESC LIMIT 1`
+		`ORDER BY report_date ASC LIMIT 1`
 
 	// run query
 	XOLog(sqlstr, awsAccountID)
