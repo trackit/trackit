@@ -44,7 +44,7 @@ const TemplateReservedRdsReport = `
 	"index_patterns": ["*-rds-ri-reports"],
 	"version": 3,
 	"mappings": {
-		"_doc": {
+		"rds-ri-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

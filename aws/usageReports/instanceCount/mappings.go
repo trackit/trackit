@@ -44,7 +44,7 @@ const TemplateInstanceCountReport = `
 	"index_patterns": ["*-instancecount-reports"],
 	"version": 2,
 	"mappings": {
-		"_doc": {
+		"instancecount-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

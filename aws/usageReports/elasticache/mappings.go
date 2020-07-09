@@ -44,7 +44,7 @@ const TemplateElastiCacheReport = `
 	"index_patterns": ["*-elasticache-reports"],
 	"version": 2,
 	"mappings": {
-		"_doc": {
+		"elasticache-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

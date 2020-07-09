@@ -44,7 +44,7 @@ const TemplateLineItem = `
 	"index_patterns": ["*-lambda-reports"],
 	"version": 3,
 	"mappings": {
-		"_doc": {
+		"lambda-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

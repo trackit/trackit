@@ -44,7 +44,7 @@ const TemplateEsReport = `
 	"index_patterns": ["*-es-reports"],
 	"version": 2,
 	"mappings": {
-		"_doc": {
+		"es-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

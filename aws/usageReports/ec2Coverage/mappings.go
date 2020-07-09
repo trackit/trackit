@@ -44,7 +44,7 @@ const TemplateEc2CoverageReport = `
 	"index_patterns": ["*-ec2-coverage-reports"],
 	"version": 2,
 	"mappings": {
-		"_doc": {
+		"ec2-coverage-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

@@ -44,7 +44,7 @@ const TemplateEbsReport = `
 	"index_patterns": ["*-ebs-reports"],
 	"version": 3,
 	"mappings": {
-		"_doc": {
+		"ebs-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

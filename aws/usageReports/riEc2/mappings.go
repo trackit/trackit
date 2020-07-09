@@ -44,7 +44,7 @@ const TemplateLineItem = `
 	"index_patterns": ["*-ri-ec2-reports"],
 	"version": 4,
 	"mappings": {
-		"_doc": {
+		"ri-ec2-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"

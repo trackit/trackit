@@ -44,7 +44,7 @@ const TemplateEc2Report = `
 	"index_patterns": ["*-ec2-reports"],
 	"version": 12,
 	"mappings": {
-		"_doc": {
+		"ec2-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
