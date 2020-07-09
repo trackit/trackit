@@ -41,10 +41,10 @@ func init() {
 
 const TemplateInstanceCountReport = `
 {
-	"template": "*-instancecount-reports",
-	"version": 1,
+	"index-patterns": ["*-instancecount-reports"],
+	"version": 2,
 	"mappings": {
-		"instancecount-report": {
+		"_doc": {
 			"properties": {
 				"account": {
 					"type": "keyword"

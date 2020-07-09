@@ -41,8 +41,8 @@ func init() {
 
 const TemplateEbsReport = `
 {
-	"template": "*-ebs-reports",
-	"version": 2,
+	"index-patterns": ["*-ebs-reports"],
+	"version": 3,
 	"mappings": {
 		"ebs-report": {
 			"properties": {

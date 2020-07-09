@@ -41,10 +41,10 @@ func init() {
 
 const TemplateEsReport = `
 {
-	"template": "*-es-reports",
-	"version": 1,
+	"index-patterns": ["*-es-reports"],
+	"version": 2,
 	"mappings": {
-		"es-report": {
+		"_doc": {
 			"properties": {
 				"account": {
 					"type": "keyword"

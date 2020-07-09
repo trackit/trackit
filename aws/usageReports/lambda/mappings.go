@@ -41,10 +41,10 @@ func init() {
 
 const TemplateLineItem = `
 {
-	"template": "*-lambda-reports",
-	"version": 2,
+	"index-patterns": ["*-lambda-reports"],
+	"version": 3,
 	"mappings": {
-		"lambda-report": {
+		"_doc": {
 			"properties": {
 				"account": {
 					"type": "keyword"

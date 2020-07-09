@@ -41,10 +41,10 @@ func init() {
 
 const TemplateElastiCacheReport = `
 {
-	"template": "*-elasticache-reports",
-	"version": 1,
+	"index-patterns": ["*-elasticache-reports"],
+	"version": 2,
 	"mappings": {
-		"elasticache-report": {
+		"_doc": {
 			"properties": {
 				"account": {
 					"type": "keyword"

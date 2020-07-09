@@ -41,10 +41,10 @@ func init() {
 
 const TemplateEc2Report = `
 {
-	"template": "*-ec2-reports",
-	"version": 11,
+	"index-patterns": ["*-ec2-reports"],
+	"version": 12,
 	"mappings": {
-		"ec2-report": {
+		"_doc": {
 			"properties": {
 				"account": {
 					"type": "keyword"

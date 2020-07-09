@@ -41,10 +41,10 @@ func init() {
 
 const TemplateLineItem = `
 {
-	"template": "*-ri-ec2-reports",
-	"version": 3,
+	"index-patterns": ["*-ri-ec2-reports"],
+	"version": 4,
 	"mappings": {
-		"ri-ec2-report": {
+		"_doc": {
 			"properties": {
 				"account": {
 					"type": "keyword"
