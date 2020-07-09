@@ -41,7 +41,7 @@ func init() {
 
 const TemplateLineItem = `
 {
-	"index-patterns": ["*-ri-ec2-reports"],
+	"index_patterns": ["*-ri-ec2-reports"],
 	"version": 4,
 	"mappings": {
 		"_doc": {

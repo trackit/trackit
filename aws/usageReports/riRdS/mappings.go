@@ -41,7 +41,7 @@ func init() {
 
 const TemplateReservedRdsReport = `
 {
-	"index-patterns": ["*-rds-ri-reports"],
+	"index_patterns": ["*-rds-ri-reports"],
 	"version": 3,
 	"mappings": {
 		"_doc": {

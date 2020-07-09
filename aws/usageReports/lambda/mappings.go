@@ -41,7 +41,7 @@ func init() {
 
 const TemplateLineItem = `
 {
-	"index-patterns": ["*-lambda-reports"],
+	"index_patterns": ["*-lambda-reports"],
 	"version": 3,
 	"mappings": {
 		"_doc": {

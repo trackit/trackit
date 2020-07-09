@@ -41,7 +41,7 @@ func init() {
 
 const TemplateEc2Report = `
 {
-	"index-patterns": ["*-ec2-reports"],
+	"index_patterns": ["*-ec2-reports"],
 	"version": 12,
 	"mappings": {
 		"_doc": {

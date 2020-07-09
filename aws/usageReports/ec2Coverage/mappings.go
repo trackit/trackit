@@ -41,7 +41,7 @@ func init() {
 
 const TemplateEc2CoverageReport = `
 {
-	"index-patterns": ["*-ec2-coverage-reports"],
+	"index_patterns": ["*-ec2-coverage-reports"],
 	"version": 2,
 	"mappings": {
 		"_doc": {

@@ -41,7 +41,7 @@ func init() {
 
 const TemplateInstanceCountReport = `
 {
-	"index-patterns": ["*-instancecount-reports"],
+	"index_patterns": ["*-instancecount-reports"],
 	"version": 2,
 	"mappings": {
 		"_doc": {

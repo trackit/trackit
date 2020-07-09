@@ -41,7 +41,7 @@ func init() {
 
 const TemplateElastiCacheReport = `
 {
-	"index-patterns": ["*-elasticache-reports"],
+	"index_patterns": ["*-elasticache-reports"],
 	"version": 2,
 	"mappings": {
 		"_doc": {
