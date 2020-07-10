@@ -13,3 +13,12 @@
 --   limitations under the License.
 
 ALTER TABLE user ADD last_seen DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+
+CREATE TABLE check_unused_accounts_job (
+	id                     INTEGER      NOT NULL AUTO_INCREMENT,
+	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	completed              TIMESTAMP    NOT NULL DEFAULT 0,
+	worker_id              VARCHAR(255) NOT NULL,
+	job_error              VARCHAR(255) NOT NULL DEFAULT "",
+	CONSTRAINT PRIMARY KEY (id)
+);

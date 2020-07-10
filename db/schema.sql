@@ -1136,8 +1136,12 @@ CREATE TABLE user_onboard_tagbot_job (
 --   limitations under the License.
 
 ALTER TABLE user ADD last_seen DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+<<<<<<< HEAD
 ALTER TABLE user ADD last_unused_reminder DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 ALTER TABLE user ADD last_unused_slack DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+=======
+
+>>>>>>> Added not implemented task check-unused-accounts
 
 CREATE TABLE check_unused_accounts_job (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
@@ -1146,4 +1150,8 @@ CREATE TABLE check_unused_accounts_job (
 	worker_id              VARCHAR(255) NOT NULL,
 	job_error              VARCHAR(255) NOT NULL DEFAULT "",
 	CONSTRAINT PRIMARY KEY (id)
+<<<<<<< HEAD
 );
+=======
+);
+>>>>>>> Added not implemented task check-unused-accounts
