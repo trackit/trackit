@@ -7,10 +7,13 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
-const unusedThreshold = time.Second * 15
-const deleteThreshold = unusedThreshold + time.Second*45
+const day = time.Hour * 24
+const month = day * 30
 
-var remaindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + time.Second*15, unusedThreshold + time.Second*30}
+const unusedThreshold = month
+const deleteThreshold = unusedThreshold + month
+
+var remaindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + (month - day*7), unusedThreshold + (month - day*3), unusedThreshold + (month - day*1)}
 
 // CheckUnusedAccounts checks for unused accounts, sends reminders and delete unused data
 func CheckUnusedAccounts() error {
