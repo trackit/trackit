@@ -13,7 +13,7 @@ const month = day * 30
 const unusedThreshold = month
 const deleteThreshold = unusedThreshold + month
 
-var remaindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + (month - day*7), unusedThreshold + (month - day*3), unusedThreshold + (month - day*1)}
+var remaindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + deleteThreshold - day*7, unusedThreshold + deleteThreshold - day*3, unusedThreshold + deleteThreshold - day*1}
 
 // CheckUnusedAccounts checks for unused accounts, sends reminders and delete unused data
 func CheckUnusedAccounts() error {
