@@ -56,11 +56,3 @@ func checkUnusedAccount(user models.User) error {
 
 	return err
 }
-
-func deleteData(user models.User) error {
-	return nil
-}
-
-func sendRemainder(user models.User) error {
-	return nil
-}
