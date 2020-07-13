@@ -13,6 +13,7 @@
 --   limitations under the License.
 
 ALTER TABLE user ADD last_seen DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE user ADD last_unused_reminder DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
 
 CREATE TABLE check_unused_accounts_job (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
