@@ -23,21 +23,10 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	indexSource "github.com/trackit/trackit/aws/usageReports/es"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type domain struct {
-	ID     string              `json:"domainId"`
-	Region string              `json:"region"`
-	Tags   []utils.TagDocument `json:"tags"`
-}
-
-type source struct {
-	Domain  domain `json:"domain"`
-	Account string `json:"account"`
-}
-
-const sourceIndexName = "es-reports"
 const urlFormat = "https://%s.console.aws.amazon.com/es/home?region=%s#domain:resource=%s;action=dashboard"
 
 // Process generates tagging reports from ES reports
@@ -71,7 +60,7 @@ func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString 
 // Second argument is true if operation is a success
 func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (utils.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var source source
+	var source indexSource.DomainReport
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
 		logger.Error("Could not process report.", map[string]interface{}{
@@ -84,10 +73,10 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 
 	document := utils.TaggingReportDocument{
 		Account:      source.Account,
-		ResourceID:   source.Domain.ID,
+		ResourceID:   source.Domain.DomainID,
 		ResourceType: resourceTypeString,
 		Region:       source.Domain.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Domain.ID),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Domain.DomainID),
 		Tags:         source.Domain.Tags,
 	}
 	return document, true

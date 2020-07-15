@@ -14,21 +14,19 @@
 
 package utils
 
-import "time"
+import (
+	"time"
 
-// TagDocument is a key/value pair which represents a tag and it's value
-type TagDocument struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
-}
+	utils "github.com/trackit/trackit/aws/usageReports"
+)
 
 // TaggingReportDocument is an entry in ES' tagging index
 type TaggingReportDocument struct {
-	Account      string        `json:"account"`
-	ReportDate   time.Time     `json:"reportDate"`
-	ResourceID   string        `json:"resourceId"`
-	ResourceType string        `json:"resourceType"`
-	Region       string        `json:"region"`
-	URL          string        `json:"url"`
-	Tags         []TagDocument `json:"tags"`
+	Account      string      `json:"account"`
+	ReportDate   time.Time   `json:"reportDate"`
+	ResourceID   string      `json:"resourceId"`
+	ResourceType string      `json:"resourceType"`
+	Region       string      `json:"region"`
+	URL          string      `json:"url"`
+	Tags         []utils.Tag `json:"tags"`
 }

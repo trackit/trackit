@@ -21,12 +21,13 @@ import (
 	"github.com/olivere/elastic"
 
 	"github.com/trackit/trackit/aws"
+	indexSource "github.com/trackit/trackit/aws/usageReports/lambda"
 	"github.com/trackit/trackit/es"
 )
 
 func fetchReports(ctx context.Context, awsAccount aws.AwsAccount) ([]*elastic.SearchHit, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(awsAccount.UserId, sourceIndexName)
+	indexName := es.IndexNameForUserId(awsAccount.UserId, indexSource.IndexPrefixLambdaReport)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {

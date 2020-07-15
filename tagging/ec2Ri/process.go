@@ -23,21 +23,10 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	indexSource "github.com/trackit/trackit/aws/usageReports/riEc2"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type reservation struct {
-	ID     string              `json:"id"`
-	Region string              `json:"region"`
-	Tags   []utils.TagDocument `json:"tags"`
-}
-
-type source struct {
-	Reservation reservation `json:"reservation"`
-	Account     string      `json:"account"`
-}
-
-const sourceIndexName = "ri-ec2-reports"
 const urlFormat = "https://%s.console.aws.amazon.com/ec2/v2/home?region=%s#ReservedInstances:reservedInstancesId=%s"
 
 // Process generates tagging reports from EC2 reserved instances reports
@@ -71,7 +60,7 @@ func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString 
 // Second argument is true if operation is a success
 func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (utils.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var source source
+	var source indexSource.ReservationReport
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
 		logger.Error("Could not process report.", map[string]interface{}{
@@ -84,10 +73,10 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 
 	document := utils.TaggingReportDocument{
 		Account:      source.Account,
-		ResourceID:   source.Reservation.ID,
+		ResourceID:   source.Reservation.Id,
 		ResourceType: resourceTypeString,
 		Region:       source.Reservation.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Reservation.ID),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Reservation.Id),
 		Tags:         source.Reservation.Tags,
 	}
 

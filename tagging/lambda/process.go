@@ -23,21 +23,10 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	indexSource "github.com/trackit/trackit/aws/usageReports/lambda"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type function struct {
-	Name   string              `json:"name"`
-	Region string              `json:"region"`
-	Tags   []utils.TagDocument `json:"tags"`
-}
-
-type source struct {
-	Function function `json:"function"`
-	Account  string   `json:"account"`
-}
-
-const sourceIndexName = "lambda-reports"
 const urlFormat = "https://%s.console.aws.amazon.com/lambda/home?region=%s#/functions/%s"
 
 // Process generates tagging reports from Lambda reports
@@ -71,7 +60,7 @@ func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString 
 // Second argument is true if operation is a success
 func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (utils.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var source source
+	var source indexSource.FunctionReport
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
 		logger.Error("Could not process report.", map[string]interface{}{

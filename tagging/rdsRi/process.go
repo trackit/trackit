@@ -23,21 +23,10 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	indexSource "github.com/trackit/trackit/aws/usageReports/riRdS"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type instance struct {
-	ID     string              `json:"id"`
-	Region string              `json:"availabilityZone"`
-	Tags   []utils.TagDocument `json:"tags"`
-}
-
-type source struct {
-	Instance instance `json:"instance"`
-	Account  string   `json:"account"`
-}
-
-const sourceIndexName = "rds-ri-reports"
 const urlFormat = "https://%s.console.aws.amazon.com/rds/home?region=%s#reserved-db-instance:ids=%s"
 
 // Process generates tagging reports from RDS reserved instances reports
@@ -71,7 +60,7 @@ func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString 
 // Second argument is true if operation is a success
 func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (utils.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var source source
+	var source indexSource.InstanceReport
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
 		logger.Error("Could not process report.", map[string]interface{}{
@@ -80,14 +69,14 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		return utils.TaggingReportDocument{}, false
 	}
 
-	regionForURL := utils.GetRegionForURL(source.Instance.Region)
+	regionForURL := utils.GetRegionForURL(source.Instance.AvailabilityZone)
 
 	document := utils.TaggingReportDocument{
 		Account:      source.Account,
-		ResourceID:   source.Instance.ID,
+		ResourceID:   source.Instance.DBInstanceIdentifier,
 		ResourceType: resourceTypeString,
-		Region:       source.Instance.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Instance.ID),
+		Region:       source.Instance.AvailabilityZone,
+		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Instance.DBInstanceIdentifier),
 		Tags:         source.Instance.Tags,
 	}
 
