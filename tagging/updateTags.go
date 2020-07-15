@@ -21,6 +21,7 @@ import (
 
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit/aws"
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
 	ebs "github.com/trackit/trackit/tagging/ebs"
@@ -34,7 +35,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type process func(ctx context.Context, account int, awsAccount string, resourceTypeString string) ([]utils.TaggingReportDocument, error)
+type process func(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error)
 
 type processor struct {
 	Name string
@@ -46,12 +47,24 @@ const destTypeName = "tagging-reports"
 
 var processors = []processor{
 	processor{
+		Name: "ebs",
+		Run:  ebs.Process,
+	},
+	processor{
 		Name: "ec2",
 		Run:  ec2.Process,
 	},
 	processor{
-		Name: "ebs",
-		Run:  ebs.Process,
+		Name: "ec2-ri",
+		Run:  ec2Ri.Process,
+	},
+	processor{
+		Name: "elasticache",
+		Run:  elasticache.Process,
+	},
+	processor{
+		Name: "es",
+		Run:  esProc.Process,
 	},
 	processor{
 		Name: "lambda",
@@ -65,27 +78,15 @@ var processors = []processor{
 		Name: "rds-ri",
 		Run:  rdsRi.Process,
 	},
-	processor{
-		Name: "ec2-ri",
-		Run:  ec2Ri.Process,
-	},
-	processor{
-		Name: "es",
-		Run:  esProc.Process,
-	},
-	processor{
-		Name: "elasticache",
-		Run:  elasticache.Process,
-	},
 }
 
 // UpdateTagsForAccount updates tags in ES for the specified AWS account
-func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) error {
+func UpdateTagsForAccount(ctx context.Context, awsAccount aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var documents []utils.TaggingReportDocument
 
 	for _, processor := range processors {
-		newDocuments, err := processor.Run(ctx, account, awsAccount, processor.Name)
+		newDocuments, err := processor.Run(ctx, awsAccount, processor.Name)
 		if err == nil {
 			documents = append(documents, newDocuments...)
 		} else {
@@ -93,7 +94,7 @@ func UpdateTagsForAccount(ctx context.Context, account int, awsAccount string) e
 		}
 	}
 
-	return pushToEs(ctx, documents, account)
+	return pushToEs(ctx, documents, awsAccount.UserId)
 }
 
 func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, account int) error {

@@ -20,12 +20,13 @@ import (
 
 	"github.com/olivere/elastic"
 
+	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/es"
 )
 
-func fetchReports(ctx context.Context, account int) ([]*elastic.SearchHit, error) {
+func fetchReports(ctx context.Context, awsAccount aws.AwsAccount) ([]*elastic.SearchHit, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(account, sourceIndexName)
+	indexName := es.IndexNameForUserId(awsAccount.UserId, sourceIndexName)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {
@@ -35,7 +36,7 @@ func fetchReports(ctx context.Context, account int) ([]*elastic.SearchHit, error
 		return []*elastic.SearchHit{}, nil
 	}
 
-	res, err := queryEs(ctx, indexName)
+	res, err := queryEs(ctx, indexName, awsAccount)
 	if err != nil {
 		return nil, err
 	}
@@ -43,13 +44,14 @@ func fetchReports(ctx context.Context, account int) ([]*elastic.SearchHit, error
 	return processSearchResult(res)
 }
 
-func queryEs(ctx context.Context, indexName string) (*elastic.SearchResult, error) {
+func queryEs(ctx context.Context, indexName string, awsAccount aws.AwsAccount) (*elastic.SearchResult, error) {
 	client := es.Client
 
 	index := client.Search().Index(indexName)
-	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("instance.id", "instance.availabilityZone", "instance.tags"))
+	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("account", "instance.id", "instance.availabilityZone", "instance.tags"))
 	reportDateAggregation := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).SubAggregation("data", topHitsAggregation)
-	return index.Size(0).Query(elastic.NewTermQuery("reportType", "daily")).Aggregation("reportDate", reportDateAggregation).Do(ctx)
+	boolQuery := elastic.NewBoolQuery().Must(elastic.NewTermQuery("reportType", "daily"), elastic.NewTermQuery("account", awsAccount.AwsIdentity))
+	return index.Size(0).Query(boolQuery).Aggregation("reportDate", reportDateAggregation).Do(ctx)
 }
 
 func processSearchResult(res *elastic.SearchResult) ([]*elastic.SearchHit, error) {

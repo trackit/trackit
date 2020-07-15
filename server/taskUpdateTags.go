@@ -75,7 +75,7 @@ func checkUpdateTagsArguments(args []string) (int, error) {
 	return amazonAccountID, nil
 }
 
-func updateTagsForAccount(ctx context.Context, accountID int) error {
+func updateTagsForAccount(ctx context.Context, amazonAccountID int) error {
 	tx, err := db.Db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -90,17 +90,17 @@ func updateTagsForAccount(ctx context.Context, accountID int) error {
 		}
 	}()
 
-	awsAccount, err := aws.GetAwsAccountWithId(accountID, tx)
+	awsAccount, err := aws.GetAwsAccountWithId(amazonAccountID, tx)
 	if err != nil {
 		return err
 	}
 
-	job, err := registerUpdateTagsTask(db.Db, accountID)
+	job, err := registerUpdateTagsTask(db.Db, amazonAccountID)
 	if err != nil {
 		return err
 	}
 
-	err = tagging.UpdateTagsForAccount(ctx, accountID, awsAccount.AwsIdentity)
+	err = tagging.UpdateTagsForAccount(ctx, awsAccount)
 
 	return updateUpdateTagsTask(db.Db, job, err)
 }
