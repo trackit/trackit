@@ -40,7 +40,7 @@ func taskUpdateTags(ctx context.Context) error {
 		"args": args,
 	})
 
-	amazonAccountID, err := checkUpdateTagsArguments(args)
+	aaId, err := checkUpdateTagsArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
 			"err": err.Error(),
@@ -48,7 +48,7 @@ func taskUpdateTags(ctx context.Context) error {
 		return err
 	}
 
-	err = updateTagsForAccount(ctx, amazonAccountID)
+	err = updateTagsForAccount(ctx, aaId)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
 			"err": err.Error(),
@@ -67,15 +67,15 @@ func checkUpdateTagsArguments(args []string) (int, error) {
 		return invalidAccID, errors.New("Task 'update-tags' requires at least an integer argument as AWS Account ID")
 	}
 
-	amazonAccountID, err := strconv.Atoi(args[0])
+	aaId, err := strconv.Atoi(args[0])
 	if err != nil {
 		return invalidAccID, err
 	}
 
-	return amazonAccountID, nil
+	return aaId, nil
 }
 
-func updateTagsForAccount(ctx context.Context, amazonAccountID int) error {
+func updateTagsForAccount(ctx context.Context, aaId int) error {
 	tx, err := db.Db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -90,12 +90,12 @@ func updateTagsForAccount(ctx context.Context, amazonAccountID int) error {
 		}
 	}()
 
-	awsAccount, err := aws.GetAwsAccountWithId(amazonAccountID, tx)
+	awsAccount, err := aws.GetAwsAccountWithId(aaId, tx)
 	if err != nil {
 		return err
 	}
 
-	job, err := registerUpdateTagsTask(db.Db, amazonAccountID)
+	job, err := registerUpdateTagsTask(db.Db, aaId)
 	if err != nil {
 		return err
 	}
@@ -105,9 +105,9 @@ func updateTagsForAccount(ctx context.Context, amazonAccountID int) error {
 	return updateUpdateTagsTask(db.Db, job, err)
 }
 
-func registerUpdateTagsTask(db *sql.DB, accountID int) (models.AwsAccountUpdateTagsJob, error) {
+func registerUpdateTagsTask(db *sql.DB, aaId int) (models.AwsAccountUpdateTagsJob, error) {
 	job := models.AwsAccountUpdateTagsJob{
-		AwsAccountID: accountID,
+		AwsAccountID: aaId,
 		WorkerID:     backendId,
 		Created:      time.Now(),
 	}
