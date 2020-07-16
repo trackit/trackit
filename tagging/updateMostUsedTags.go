@@ -68,11 +68,11 @@ func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTagsRege
 	filterQueries := getFilterQueriesFromIgnoredTags(ignoredTagsRegexp)
 
 	index := client.Search().Index(indexName)
-	termsAgg := elastic.NewTermsAggregation().Field("tags.key").Size(5)
-	filterAgg := elastic.NewFilterAggregation().Filter(elastic.NewBoolQuery().MustNot(filterQueries...)).SubAggregation("terms", termsAgg)
-	nestedAgg := elastic.NewNestedAggregation().Path("tags").SubAggregation("filter", filterAgg)
-	reportDateAgg := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).SubAggregation("nested", nestedAgg)
-	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).Aggregation("reportDate", reportDateAgg).Do(ctx)
+	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).
+		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
+			SubAggregation("nested", elastic.NewNestedAggregation().Path("tags").
+				SubAggregation("filter", elastic.NewFilterAggregation().Filter(elastic.NewBoolQuery().MustNot(filterQueries...)).
+					SubAggregation("terms", elastic.NewTermsAggregation().Field("tags.key").Size(5))))).Do(ctx)
 	if err != nil {
 		return nil, err
 	}
