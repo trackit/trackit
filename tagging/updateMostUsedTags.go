@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
-
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/models"
