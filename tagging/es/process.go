@@ -27,7 +27,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://%s.console.aws.amazon.com/es/home?region=%s#domain:resource=%s;action=dashboard"
+const urlFormat = "https://console.aws.amazon.com/es/home?region=%s#domain:resource=%s;action=dashboard"
 
 // Process generates tagging reports from ES reports
 func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -76,7 +76,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Domain.DomainID,
 		ResourceType: resourceTypeString,
 		Region:       source.Domain.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Domain.DomainID),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, source.Domain.DomainID),
 		Tags:         source.Domain.Tags,
 	}
 	return document, true

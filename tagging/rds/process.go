@@ -27,7 +27,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://%s.console.aws.amazon.com/rds/home?region=%s#database:id=%s;is-cluster=false"
+const urlFormat = "https://console.aws.amazon.com/rds/home?region=%s#database:id=%s;is-cluster=false"
 
 // Process generates tagging reports from RDS reports
 func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -76,7 +76,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Instance.DBInstanceIdentifier,
 		ResourceType: resourceTypeString,
 		Region:       source.Instance.AvailabilityZone,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Instance.DBInstanceIdentifier),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, source.Instance.DBInstanceIdentifier),
 		Tags:         source.Instance.Tags,
 	}
 

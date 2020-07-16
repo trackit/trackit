@@ -27,7 +27,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://%s.console.aws.amazon.com/lambda/home?region=%s#/functions/%s"
+const urlFormat = "https://console.aws.amazon.com/lambda/home?region=%s#/functions/%s"
 
 // Process generates tagging reports from Lambda reports
 func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -76,7 +76,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Function.Name,
 		ResourceType: resourceTypeString,
 		Region:       source.Function.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Function.Name),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, source.Function.Name),
 		Tags:         source.Function.Tags,
 	}
 	return document, true

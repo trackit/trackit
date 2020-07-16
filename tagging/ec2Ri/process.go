@@ -27,7 +27,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://%s.console.aws.amazon.com/ec2/v2/home?region=%s#ReservedInstances:reservedInstancesId=%s"
+const urlFormat = "https://console.aws.amazon.com/ec2/v2/home?region=%s#ReservedInstances:reservedInstancesId=%s"
 
 // Process generates tagging reports from EC2 reserved instances reports
 func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -76,7 +76,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Reservation.Id,
 		ResourceType: resourceTypeString,
 		Region:       source.Reservation.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Reservation.Id),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, source.Reservation.Id),
 		Tags:         source.Reservation.Tags,
 	}
 

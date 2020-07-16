@@ -27,7 +27,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://%s.console.aws.amazon.com/ec2/v2/home?region=%s#Snapshots:all;search=%s"
+const urlFormat = "https://console.aws.amazon.com/ec2/v2/home?region=%s#Snapshots:all;search=%s"
 
 // Process generates tagging reports from EBS reports
 func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -76,7 +76,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Snapshot.Id,
 		ResourceType: resourceTypeString,
 		Region:       source.Snapshot.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Snapshot.Id),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, source.Snapshot.Id),
 		Tags:         source.Snapshot.Tags,
 	}
 	return document, true
