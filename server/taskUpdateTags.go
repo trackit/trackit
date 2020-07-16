@@ -49,16 +49,12 @@ func taskUpdateTags(ctx context.Context) error {
 	}
 
 	err = updateTagsForAccount(ctx, aaId)
-	if err != nil {
-		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
-			"err": err.Error(),
-		})
-		return err
-	}
 
-	logger.Info("Task 'update-tags' done.", map[string]interface{}{
-		"args": args,
-	})
+	if err == nil {
+		logger.Info("Task 'update-tags' done.", map[string]interface{}{
+			"args": args,
+		})
+	}
 	return nil
 }
 
@@ -75,11 +71,12 @@ func checkUpdateTagsArguments(args []string) (int, error) {
 	return aaId, nil
 }
 
-func updateTagsForAccount(ctx context.Context, aaId int) error {
-	tx, err := db.Db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
+func updateTagsForAccount(ctx context.Context, aaId int) (err error) {
+	var tx *sql.Tx
+	var awsAccount aws.AwsAccount
+	var job models.AwsAccountUpdateTagsJob
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
 	defer func() {
 		if tx != nil {
 			if err != nil {
@@ -90,19 +87,20 @@ func updateTagsForAccount(ctx context.Context, aaId int) error {
 		}
 	}()
 
-	awsAccount, err := aws.GetAwsAccountWithId(aaId, tx)
-	if err != nil {
-		return err
+	if tx, err := db.Db.BeginTx(ctx, nil); err != nil {
+	} else if awsAccount, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if job, err = registerUpdateTagsTask(db.Db, aaId); err != nil {
+	} else {
+		err = tagging.UpdateTagsForAccount(ctx, awsAccount)
+		updateUpdateTagsTask(db.Db, job, err)
 	}
-
-	job, err := registerUpdateTagsTask(db.Db, aaId)
 	if err != nil {
-		return err
+		logger.Error("Failed to process account data.", map[string]interface{}{
+			"awsAccountId": aaId,
+			"error":        err.Error(),
+		})
 	}
-
-	err = tagging.UpdateTagsForAccount(ctx, awsAccount)
-
-	return updateUpdateTagsTask(db.Db, job, err)
+	return
 }
 
 func registerUpdateTagsTask(db *sql.DB, aaId int) (models.AwsAccountUpdateTagsJob, error) {
