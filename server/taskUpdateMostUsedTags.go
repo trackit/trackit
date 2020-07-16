@@ -74,7 +74,7 @@ func updateMostUsedTagsForAccount(ctx context.Context, accountID int) (err error
 
 	if job, err = registerUpdateMostUsedTagsTask(db.Db, accountID); err != nil {
 	} else {
-		err = tagging.UpdateMostUsedTagsForAccount(ctx, accountID, "")
+		err = tagging.UpdateMostUsedTagsForAccount(ctx, accountID)
 		updateUpdateMostUsedTagsTask(db.Db, job, err)
 	}
 	if err != nil {
