@@ -9,7 +9,17 @@ Examples of tasks are:
 * ingest: processes AWS bills from S3
 * process-account: fetches resources status from AWS API
 
-In order to create a task, you must add a function which takes a context.Context as parameter in the map named `task` in the file [`server/server.go`](https://github.com/trackit/trackit/blob/master/server/server.go#L60).
+## How to run a task locally
+You can use the `task.sh` script to run a task.
+For example: `./task.sh process-account 1` will run the task process-account on the local environment for the AWS account with ID 1.
+
+Tasks to run in order to get an account ready:
+- `ingest {AWS ID} {BILL REPOSITORY ID}`
+- `process-account {AWS ID}`
+- `process-account-plugins {AWS ID}`
+
+## How to create a new task
+In order to create a task, you must add a function which takes a context. Context as parameter in the map named `task` in the file [`server/server.go`](https://github.com/trackit/trackit/blob/master/server/server.go#L60).
 
 A task should log when it starts, ends or encounters and error. See [Logging](./logging.md).
 
