@@ -25,9 +25,10 @@ import (
 type (
 	// ResourcesQueryParams will store the parsed query params
 	ResourcesQueryParams struct {
-		AccountList []string
-		IndexList   []string
-		Region      []string
+		AccountList  []string
+		IndexList    []string
+		Region       []string
+		ResourceType []string
 	}
 )
 
@@ -38,7 +39,13 @@ var (
 		routes.QueryArg{
 			Name:        "region",
 			Type:        routes.QueryArgStringSlice{},
-			Description: "Region of the resources",
+			Description: "The region of the resource",
+			Optional:    true,
+		},
+		routes.QueryArg{
+			Name:        "resourceType",
+			Type:        routes.QueryArgStringSlice{},
+			Description: "The type of the resource",
 			Optional:    true,
 		},
 	}
@@ -51,7 +58,7 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.QueryArgs(resourcesQueryArgs),
 			routes.Documentation{
-				Summary:     "get resources",
+				Summary:     "get list of resources",
 				Description: "Responds with the list of resources based on the queryparams passed to it",
 			},
 		),
@@ -63,14 +70,18 @@ func routeGetResources(request *http.Request, a routes.Arguments) (int, interfac
 	user := a[users.AuthenticatedUser].(users.User)
 	tx := a[db.Transaction].(*sql.Tx)
 	parsedParams := ResourcesQueryParams{
-		AccountList: []string{},
-		Region:      []string{},
+		AccountList:  []string{},
+		Region:       []string{},
+		ResourceType: []string{},
 	}
 	if a[routes.AwsAccountsOptionalQueryArg] != nil {
 		parsedParams.AccountList = a[routes.AwsAccountsOptionalQueryArg].([]string)
 	}
 	if a[resourcesQueryArgs[1]] != nil {
 		parsedParams.Region = a[resourcesQueryArgs[1]].([]string)
+	}
+	if a[resourcesQueryArgs[2]] != nil {
+		parsedParams.ResourceType = a[resourcesQueryArgs[2]].([]string)
 	}
 	returnCode, report, err := GetResourcesData(request.Context(), parsedParams, user, tx)
 	if err != nil {
