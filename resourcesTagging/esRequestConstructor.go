@@ -39,6 +39,9 @@ func getElasticSeachResourcesParams(params ResourcesQueryParams, client *elastic
 	if len(params.Region) > 0 {
 		query = query.Filter(createQueryRegionFilterResources(params.Region))
 	}
+	if len(params.ResourceType) > 0 {
+		query = query.Filter(createQueryTypeFilterResources(params.ResourceType))
+	}
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
 		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
@@ -64,5 +67,13 @@ func createQueryRegionFilterResources(regionList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("region", regionListFormatted...)
 }
 
+//createQueryTypeFilterResources creates and return a nex *elastic.TermsQuery on the typeList array
+func createQueryTypeFilterResources(typeList []string) *elastic.TermsQuery {
+	typeListFormatted := make([]interface{}, len(typeList))
+	for i, v := range typeList {
+		typeListFormatted[i] = v
+	}
+	return elastic.NewTermsQuery("resourceType", typeListFormatted...)
+}
 
 
