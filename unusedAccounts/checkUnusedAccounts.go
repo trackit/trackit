@@ -1,6 +1,7 @@
 package unusedaccounts
 
 import (
+	"context"
 	"time"
 
 	"github.com/trackit/trackit/db"
@@ -16,7 +17,7 @@ const deleteThreshold = unusedThreshold + month
 var remaindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + deleteThreshold - day*7, unusedThreshold + deleteThreshold - day*3, unusedThreshold + deleteThreshold - day*1}
 
 // CheckUnusedAccounts checks for unused accounts, sends reminders and delete unused data
-func CheckUnusedAccounts() error {
+func CheckUnusedAccounts(ctx context.Context) error {
 	users, err := models.GetUnusedAccounts(db.Db, unusedThreshold)
 
 	if err != nil {
@@ -25,14 +26,14 @@ func CheckUnusedAccounts() error {
 
 	for _, user := range users {
 		if user != nil {
-			checkUnusedAccount(*user)
+			checkUnusedAccount(ctx, *user)
 		}
 	}
 
 	return nil
 }
 
-func checkUnusedAccount(user models.User) error {
+func checkUnusedAccount(ctx context.Context, user models.User) error {
 	unusedTime := time.Now().Sub(user.LastSeen)
 
 	if unusedTime > deleteThreshold {
@@ -51,7 +52,8 @@ func checkUnusedAccount(user models.User) error {
 	var err error = nil
 
 	if user.LastUnusedReminder.Sub(user.LastSeen) < remaindersThresholds[thresholdStage] {
-		err = sendRemainder(user)
+		timeBeforeDeletion := user.LastSeen.Add(deleteThreshold).Sub(time.Now())
+		err = sendRemainder(ctx, user, timeBeforeDeletion)
 
 		user.LastUnusedReminder = time.Now()
 		user.Update(db.Db)

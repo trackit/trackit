@@ -50,7 +50,7 @@ func checkUnusedAccounts(ctx context.Context) error {
 		return err
 	}
 
-	err = unusedaccounts.CheckUnusedAccounts()
+	err = unusedaccounts.CheckUnusedAccounts(ctx)
 	if err != nil {
 		logger.Error("Failed to execute task 'check-unused-accounts'.", map[string]interface{}{
 			"err": err.Error(),
