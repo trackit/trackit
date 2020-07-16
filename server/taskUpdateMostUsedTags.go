@@ -52,7 +52,7 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 			"args": args,
 		})
 	}
-	return nil
+	return err
 }
 
 func checkUpdateMostUsedTagsArguments(args []string) (int, error) {
