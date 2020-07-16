@@ -24,7 +24,6 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/tagging"
@@ -38,12 +37,7 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 		"args": args,
 	})
 
-	amazonAccountID, err := checkUpdateMostUsedTagsArguments(args)
-	if err != nil {
-		return err
-	}
-
-	err = updateMostUsedTagsForAccount(ctx, amazonAccountID)
+	accountId, err := checkUpdateMostUsedTagsArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-most-used-tags'.", map[string]interface{}{
 			"err": err.Error(),
@@ -51,53 +45,45 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 		return err
 	}
 
-	logger.Info("Task 'update-most-used-tags' done.", map[string]interface{}{
-		"args": args,
-	})
+	err = updateMostUsedTagsForAccount(ctx, accountId)
+
+	if err != nil {
+		logger.Info("Task 'update-most-used-tags' done.", map[string]interface{}{
+			"args": args,
+		})
+	}
 	return nil
 }
 
 func checkUpdateMostUsedTagsArguments(args []string) (int, error) {
 	if len(args) < 1 {
-		return invalidAccID, errors.New("Task 'update-most-used-tags' requires at least an integer argument as AWS Account ID")
+		return invalidAccID, errors.New("Task 'update-most-used-tags' requires at least an integer argument as Account ID")
 	}
 
-	amazonAccountID, err := strconv.Atoi(args[0])
+	accountId, err := strconv.Atoi(args[0])
 	if err != nil {
 		return invalidAccID, err
 	}
 
-	return amazonAccountID, nil
+	return accountId, nil
 }
 
-func updateMostUsedTagsForAccount(ctx context.Context, accountID int) error {
-	tx, err := db.Db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
+func updateMostUsedTagsForAccount(ctx context.Context, accountID int) (err error) {
+	var job models.AwsAccountUpdateMostUsedTagsJob
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	if job, err = registerUpdateMostUsedTagsTask(db.Db, accountID); err != nil {
+	} else {
+		err = tagging.UpdateMostUsedTagsForAccount(ctx, accountID, "")
+		updateUpdateMostUsedTagsTask(db.Db, job, err)
 	}
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
-
-	awsAccount, err := aws.GetAwsAccountWithId(accountID, tx)
 	if err != nil {
-		return err
+		logger.Error("Failed to process account data.", map[string]interface{}{
+			"accountId": accountID,
+			"error":     err.Error(),
+		})
 	}
-
-	job, err := registerUpdateMostUsedTagsTask(db.Db, accountID)
-	if err != nil {
-		return err
-	}
-
-	err = tagging.UpdateMostUsedTagsForAccount(ctx, accountID, awsAccount.AwsIdentity)
-
-	return updateUpdateMostUsedTagsTask(db.Db, job, err)
+	return
 }
 
 func registerUpdateMostUsedTagsTask(db *sql.DB, accountID int) (models.AwsAccountUpdateMostUsedTagsJob, error) {

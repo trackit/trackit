@@ -23,8 +23,8 @@ var ignoredTagsRegexp = []string{
 	"KubernetesCluster",
 }
 
-// UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified AWS account
-func UpdateMostUsedTagsForAccount(ctx context.Context, account int, awsAccount string) error {
+// UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified account
+func UpdateMostUsedTagsForAccount(ctx context.Context, account int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, ignoredTagsRegexp)
 	if err != nil {
