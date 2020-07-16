@@ -49,10 +49,11 @@ func queryEs(ctx context.Context, indexName string, awsAccount aws.AwsAccount) (
 	client := es.Client
 
 	index := client.Search().Index(indexName)
-	topHitsAggregation := elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).Include("account", "reservation.id", "reservation.region", "reservation.tags"))
-	reportDateAggregation := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).SubAggregation("data", topHitsAggregation)
-	boolQuery := elastic.NewBoolQuery().Must(elastic.NewTermQuery("reportType", "daily"), elastic.NewTermQuery("account", awsAccount.AwsIdentity))
-	return index.Size(0).Query(boolQuery).Aggregation("reportDate", reportDateAggregation).Do(ctx)
+	filter := elastic.NewBoolQuery().Must(elastic.NewTermQuery("reportType", "daily"), elastic.NewTermQuery("account", awsAccount.AwsIdentity))
+	return index.Size(0).Query(filter).
+		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
+			SubAggregation("data", elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).
+				Include("account", "reservation.id", "reservation.region", "reservation.tags")))).Do(ctx)
 }
 
 func processSearchResult(res *elastic.SearchResult) ([]*elastic.SearchHit, error) {
