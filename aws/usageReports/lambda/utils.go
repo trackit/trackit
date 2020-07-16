@@ -25,7 +25,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
 )
 
@@ -47,6 +47,7 @@ type (
 		Runtime      string `json:"runtime"`
 		Size         int64  `json:"size"`
 		Memory       int64  `json:"memory"`
+		Region       string `json:"region"`
 	}
 
 	// Function contains all the information of an Lambda function
