@@ -35,30 +35,30 @@ type compliance struct {
 }
 
 // UpdateTaggingComplianceForAccount updates tagging compliance based on latest tagging reports and latest most used tags reports
-func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error {
-	mostUsedTags, err := getMostUsedTagsFromDb(accountID)
+func UpdateTaggingComplianceForAccount(ctx context.Context, userId int) error {
+	mostUsedTags, err := getMostUsedTagsFromDb(userId)
 	if err != nil {
 		return err
 	}
 
-	count, err := getReportsCount(ctx, accountID)
+	count, err := getReportsCount(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	totallyTagged, err := getTotallyTaggedReportsCount(ctx, accountID, mostUsedTags)
+	totallyTagged, err := getTotallyTaggedReportsCount(ctx, userId, mostUsedTags)
 	if err != nil {
 		return err
 	}
 
-	untagged, err := getNotTaggedReportsCount(ctx, accountID, mostUsedTags)
+	untagged, err := getNotTaggedReportsCount(ctx, userId, mostUsedTags)
 	if err != nil {
 		return err
 	}
 
 	partiallyTagged := count - totallyTagged - untagged
 
-	return pushComplianceToEs(ctx, accountID, compliance{
+	return pushComplianceToEs(ctx, v, compliance{
 		Total:           count,
 		TotallyTagged:   totallyTagged,
 		PartiallyTagged: partiallyTagged,
@@ -67,8 +67,8 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, accountID int) error
 	})
 }
 
-func getMostUsedTagsFromDb(accountID int) ([]string, error) {
-	mostUsedTags, err := models.MostUsedTagsInUseByAwsAccountID(db.Db, accountID)
+func getMostUsedTagsFromDb(userId int) ([]string, error) {
+	mostUsedTags, err := models.MostUsedTagsInUseByAwsAccountID(db.Db, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -102,9 +102,9 @@ func handleComplianceEsReponse(res *elastic.SearchResult, err error) (int64, err
 	return reportDateRes.Buckets[0].DocCount, nil
 }
 
-func getReportsCount(ctx context.Context, accountID int) (int64, error) {
+func getReportsCount(ctx context.Context, userId int) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(accountID, "tagging-reports")
+	indexName := es.IndexNameForUserId(userId, "tagging-reports")
 	index := client.Search().Index(indexName)
 
 	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).
@@ -112,9 +112,9 @@ func getReportsCount(ctx context.Context, accountID int) (int64, error) {
 	return handleComplianceEsReponse(res, err)
 }
 
-func getTotallyTaggedReportsCount(ctx context.Context, accountID int, mostUsedTags []string) (int64, error) {
+func getTotallyTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []string) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(accountID, "tagging-reports")
+	indexName := es.IndexNameForUserId(userId, "tagging-reports")
 	index := client.Search().Index(indexName)
 
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
@@ -125,9 +125,9 @@ func getTotallyTaggedReportsCount(ctx context.Context, accountID int, mostUsedTa
 	return handleComplianceEsReponse(res, err)
 }
 
-func getNotTaggedReportsCount(ctx context.Context, accountID int, mostUsedTags []string) (int64, error) {
+func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []string) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(accountID, "tagging-reports")
+	indexName := es.IndexNameForUserId(userId, "tagging-reports")
 	index := client.Search().Index(indexName)
 
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
@@ -138,9 +138,9 @@ func getNotTaggedReportsCount(ctx context.Context, accountID int, mostUsedTags [
 	return handleComplianceEsReponse(res, err)
 }
 
-func pushComplianceToEs(ctx context.Context, accountID int, compliance compliance) error {
+func pushComplianceToEs(ctx context.Context, userId int, compliance compliance) error {
 	client := es.Client
-	indexName := es.IndexNameForUserId(accountID, "tagging-compliance")
+	indexName := es.IndexNameForUserId(userId, "tagging-compliance")
 	_, err := client.Index().Index(indexName).Type("tagging-compliance").BodyJson(compliance).Do(ctx)
 	return err
 }

@@ -37,7 +37,7 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 		"args": args,
 	})
 
-	accountId, err := checkUpdateTaggingComplianceArguments(args)
+	userId, err := checkUpdateTaggingComplianceArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
 			"err": err.Error(),
@@ -45,7 +45,7 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 		return err
 	}
 
-	err = updateTaggingComplianceForAccount(ctx, accountId)
+	err = updateTaggingComplianceForAccount(ctx, userId)
 
 	if err == nil {
 		logger.Info("Task 'update-tagging-compliance' done.", map[string]interface{}{
@@ -57,40 +57,40 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 
 func checkUpdateTaggingComplianceArguments(args []string) (int, error) {
 	if len(args) < 1 {
-		return invalidAccID, errors.New("Task 'update-tagging-compliance' requires at least an integer argument as AWS Account ID")
+		return invalidAccID, errors.New("Task 'update-tagging-compliance' requires at least an integer argument as Account ID")
 	}
 
-	accountId, err := strconv.Atoi(args[0])
+	userId, err := strconv.Atoi(args[0])
 	if err != nil {
 		return invalidAccID, err
 	}
 
-	return accountId, nil
+	return userId, nil
 }
 
-func updateTaggingComplianceForAccount(ctx context.Context, accountID int) (err error) {
+func updateTaggingComplianceForAccount(ctx context.Context, userId int) (err error) {
 	var job models.AwsAccountUpdateTaggingComplianceJob
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	if job, err = registerUpdateTaggingComplianceTask(db.Db, accountID); err != nil {
+	if job, err = registerUpdateTaggingComplianceTask(db.Db, userId); err != nil {
 	} else {
-		err = tagging.UpdateTaggingComplianceForAccount(ctx, accountID)
+		err = tagging.UpdateTaggingComplianceForAccount(ctx, userId)
 		updateUpdateTaggingComplianceTask(db.Db, job, err)
 	}
 
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
-			"accountId": accountID,
-			"error":     err.Error(),
+			"userId": userId,
+			"error":  err.Error(),
 		})
 	}
 
 	return
 }
 
-func registerUpdateTaggingComplianceTask(db *sql.DB, accountID int) (models.AwsAccountUpdateTaggingComplianceJob, error) {
+func registerUpdateTaggingComplianceTask(db *sql.DB, userId int) (models.AwsAccountUpdateTaggingComplianceJob, error) {
 	job := models.AwsAccountUpdateTaggingComplianceJob{
-		AwsAccountID: accountID,
+		AwsAccountID: userId,
 		WorkerID:     backendId,
 		Created:      time.Now(),
 	}
