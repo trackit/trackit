@@ -60,6 +60,9 @@ const templateTaggingCompliance = `
                 },
                 "notTagged":{
                     "type":"long"
+                },
+                "mostUsedTagsId":{
+                    "type":"keyword"
                 }
             },
             "_all": {

@@ -26,16 +26,9 @@ import (
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/tagging"
 	"github.com/trackit/trackit/users"
 )
-
-type taggingComplianceSource struct {
-	ReportDate      time.Time `json:"reportDate"`
-	Total           int64     `json:"total"`
-	TotallyTagged   int64     `json:"totallyTagged"`
-	PartiallyTagged int64     `json:"partiallyTagged"`
-	NotTagged       int64     `json:"notTagged"`
-}
 
 func routeGetTaggingCompliance(r *http.Request, a routes.Arguments) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
@@ -86,7 +79,7 @@ func processTaggingComplianceInRangeResults(res *elastic.AggregationTopHitsMetri
 	output := map[string]interface{}{}
 
 	for _, hit := range res.Hits.Hits {
-		source := taggingComplianceSource{}
+		source := tagging.ComplianceReport{}
 		err := json.Unmarshal(*hit.Source, &source)
 		if err != nil {
 			return map[string]interface{}{}, err

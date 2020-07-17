@@ -18,6 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/olivere/elastic"
@@ -27,17 +28,20 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
-type compliance struct {
+type ComplianceReport struct {
 	ReportDate      time.Time `json:"reportDate"`
 	Total           int64     `json:"total"`
 	TotallyTagged   int64     `json:"totallyTagged"`
 	PartiallyTagged int64     `json:"partiallyTagged"`
 	NotTagged       int64     `json:"notTagged"`
+	MostUsedTagsId  string    `json:"mostUsedTagsId"`
 }
+
+const invalidMostUsedTagsId = "-1"
 
 // UpdateTaggingComplianceForUser updates tagging compliance based on latest tagging reports and latest most used tags reports
 func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
-	mostUsedTags, err := getMostUsedTagsFromDb(userId)
+	mostUsedTags, mostUsedTagsId, err := getMostUsedTagsFromDb(userId)
 	if err != nil {
 		return err
 	}
@@ -51,11 +55,12 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 	}
 
 	if len(mostUsedTags) == 0 {
-		return pushComplianceToEs(ctx, userId, compliance{
+		return pushComplianceToEs(ctx, userId, ComplianceReport{
 			Total:           count,
 			TotallyTagged:   0,
 			PartiallyTagged: 0,
 			NotTagged:       count,
+			MostUsedTagsId:  mostUsedTagsId,
 			ReportDate:      time.Now().UTC(),
 		})
 	}
@@ -72,30 +77,31 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 
 	partiallyTagged := count - totallyTagged - untagged
 
-	return pushComplianceToEs(ctx, userId, compliance{
+	return pushComplianceToEs(ctx, userId, ComplianceReport{
 		Total:           count,
 		TotallyTagged:   totallyTagged,
 		PartiallyTagged: partiallyTagged,
 		NotTagged:       untagged,
+		MostUsedTagsId:  mostUsedTagsId,
 		ReportDate:      time.Now().UTC(),
 	})
 }
 
-func getMostUsedTagsFromDb(userId int) ([]string, error) {
+func getMostUsedTagsFromDb(userId int) ([]string, string, error) {
 	mostUsedTags, err := models.MostUsedTagsInUseByUser(db.Db, userId)
 	if err != nil {
-		return nil, err
+		return nil, invalidMostUsedTagsId, err
 	}
 	if mostUsedTags == nil {
-		return nil, nil
+		return nil, invalidMostUsedTagsId, nil
 	}
 
 	res := []string{}
 	err = json.Unmarshal([]byte(mostUsedTags.Tags), &res)
 	if err != nil {
-		return nil, err
+		return nil, invalidMostUsedTagsId, err
 	}
-	return res, nil
+	return res, strconv.Itoa(mostUsedTags.ID), nil
 }
 
 func mostUsedTagsToTermQueries(mostUsedTags []string) []elastic.Query {
@@ -155,7 +161,7 @@ func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []st
 	return handleComplianceEsReponse(res, err)
 }
 
-func pushComplianceToEs(ctx context.Context, userId int, compliance compliance) error {
+func pushComplianceToEs(ctx context.Context, userId int, compliance ComplianceReport) error {
 	client := es.Client
 	indexName := es.IndexNameForUserId(userId, "tagging-compliance")
 	_, err := client.Index().Index(indexName).Type("tagging-compliance").BodyJson(compliance).Do(ctx)
