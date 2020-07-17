@@ -40,10 +40,23 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 	if err != nil {
 		return err
 	}
+	if mostUsedTags == nil {
+		return nil
+	}
 
 	count, err := getReportsCount(ctx, userId)
 	if err != nil {
 		return err
+	}
+
+	if len(mostUsedTags) == 0 {
+		return pushComplianceToEs(ctx, userId, compliance{
+			Total:           count,
+			TotallyTagged:   0,
+			PartiallyTagged: 0,
+			NotTagged:       count,
+			ReportDate:      time.Now().UTC(),
+		})
 	}
 
 	totallyTagged, err := getTotallyTaggedReportsCount(ctx, userId, mostUsedTags)
@@ -71,6 +84,9 @@ func getMostUsedTagsFromDb(userId int) ([]string, error) {
 	mostUsedTags, err := models.MostUsedTagsInUseByUser(db.Db, userId)
 	if err != nil {
 		return nil, err
+	}
+	if mostUsedTags == nil {
+		return nil, nil
 	}
 
 	res := []string{}

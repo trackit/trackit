@@ -61,7 +61,7 @@ func getTaggingComplianceInRange(ctx context.Context, accountID int, begin time.
 
 	res, err := client.Search().Index(es.IndexNameForUserId(accountID, "tagging-compliance")).Query(elastic.NewMatchAllQuery()).
 		Aggregation("range", elastic.NewDateRangeAggregation().Field("reportDate").AddRange(begin, end).
-			SubAggregation("topHits", elastic.NewTopHitsAggregation())).Do(ctx)
+			SubAggregation("topHits", elastic.NewTopHitsAggregation().Size(2147483647))).Do(ctx)
 	if err != nil {
 		return map[string]interface{}{}, err
 	}
