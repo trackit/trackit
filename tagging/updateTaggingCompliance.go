@@ -17,6 +17,7 @@ package tagging
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/olivere/elastic"
@@ -41,7 +42,7 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 		return err
 	}
 	if mostUsedTags == nil {
-		return nil
+		return errors.New("No most used tags data available.")
 	}
 
 	count, err := getReportsCount(ctx, userId)
