@@ -29,35 +29,35 @@ import (
 	"github.com/trackit/trackit/tagging"
 )
 
-func taskUpdateMostUsedTags(ctx context.Context) error {
+func taskUpdateTaggingCompliance(ctx context.Context) error {
 	args := flag.Args()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	logger.Info("Running task 'update-most-used-tags'.", map[string]interface{}{
+	logger.Info("Running task 'update-tagging-compliance'.", map[string]interface{}{
 		"args": args,
 	})
 
-	userId, err := checkUpdateMostUsedTagsArguments(args)
+	userId, err := checkUpdateTaggingComplianceArguments(args)
 	if err != nil {
-		logger.Error("Failed to execute task 'update-most-used-tags'.", map[string]interface{}{
+		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
 			"err": err.Error(),
 		})
 		return err
 	}
 
-	err = updateMostUsedTagsForUser(ctx, userId)
+	err = updateTaggingComplianceForUser(ctx, userId)
 
-	if err != nil {
-		logger.Info("Task 'update-most-used-tags' done.", map[string]interface{}{
+	if err == nil {
+		logger.Info("Task 'update-tagging-compliance' done.", map[string]interface{}{
 			"args": args,
 		})
 	}
 	return err
 }
 
-func checkUpdateMostUsedTagsArguments(args []string) (int, error) {
+func checkUpdateTaggingComplianceArguments(args []string) (int, error) {
 	if len(args) < 1 {
-		return invalidUserID, errors.New("Task 'update-most-used-tags' requires at least an integer argument as User ID")
+		return invalidUserID, errors.New("Task 'update-tagging-compliance' requires at least an integer argument as User ID")
 	}
 
 	userId, err := strconv.Atoi(args[0])
@@ -68,26 +68,28 @@ func checkUpdateMostUsedTagsArguments(args []string) (int, error) {
 	return userId, nil
 }
 
-func updateMostUsedTagsForUser(ctx context.Context, userId int) (err error) {
-	var job models.UserUpdateMostUsedTagsJob
+func updateTaggingComplianceForUser(ctx context.Context, userId int) (err error) {
+	var job models.UserUpdateTaggingComplianceJob
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	if job, err = registerUpdateMostUsedTagsTask(db.Db, userId); err != nil {
+	if job, err = registerUpdateTaggingComplianceTask(db.Db, userId); err != nil {
 	} else {
-		err = tagging.UpdateMostUsedTagsForUser(ctx, userId)
-		updateUpdateMostUsedTagsTask(db.Db, job, err)
+		err = tagging.UpdateTaggingComplianceForUser(ctx, userId)
+		updateUpdateTaggingComplianceTask(db.Db, job, err)
 	}
+
 	if err != nil {
-		logger.Error("Failed to execute task 'update-most-used-tags'.", map[string]interface{}{
+		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
 			"userId": userId,
 			"error":  err.Error(),
 		})
 	}
+
 	return
 }
 
-func registerUpdateMostUsedTagsTask(db *sql.DB, userId int) (models.UserUpdateMostUsedTagsJob, error) {
-	job := models.UserUpdateMostUsedTagsJob{
+func registerUpdateTaggingComplianceTask(db *sql.DB, userId int) (models.UserUpdateTaggingComplianceJob, error) {
+	job := models.UserUpdateTaggingComplianceJob{
 		UserID:   userId,
 		WorkerID: backendId,
 		Created:  time.Now(),
@@ -98,7 +100,7 @@ func registerUpdateMostUsedTagsTask(db *sql.DB, userId int) (models.UserUpdateMo
 	return job, err
 }
 
-func updateUpdateMostUsedTagsTask(db *sql.DB, job models.UserUpdateMostUsedTagsJob, jobError error) error {
+func updateUpdateTaggingComplianceTask(db *sql.DB, job models.UserUpdateTaggingComplianceJob, jobError error) error {
 	job.Completed = time.Now()
 
 	if jobError != nil {

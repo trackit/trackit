@@ -37,10 +37,10 @@ var ignoredTagsRegexp = []string{
 	"KubernetesCluster",
 }
 
-// UpdateMostUsedTagsForAccount updates most used tags in MySQL for the specified account
-func UpdateMostUsedTagsForAccount(ctx context.Context, account int) error {
+// UpdateMostUsedTagsForUser updates most used tags in MySQL for the specified user
+func UpdateMostUsedTagsForUser(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	mostUsedTags, err := getMostUsedTagsForAccount(ctx, account, ignoredTagsRegexp)
+	mostUsedTags, err := getMostUsedTagsForUser(ctx, userId, ignoredTagsRegexp)
 	if err != nil {
 		return err
 	}
@@ -52,9 +52,9 @@ func UpdateMostUsedTagsForAccount(ctx context.Context, account int) error {
 
 	reportDate := time.Now()
 	model := models.MostUsedTag{
-		AwsAccountID: account,
-		ReportDate:   reportDate,
-		Tags:         string(mostUsedTagsStr),
+		UserID:     userId,
+		ReportDate: reportDate,
+		Tags:       string(mostUsedTagsStr),
 	}
 
 	err = model.Insert(db.Db)
@@ -67,9 +67,9 @@ func UpdateMostUsedTagsForAccount(ctx context.Context, account int) error {
 	return err
 }
 
-func getMostUsedTagsForAccount(ctx context.Context, account int, ignoredTagsRegexp []string) ([]string, error) {
+func getMostUsedTagsForUser(ctx context.Context, userId int, ignoredTagsRegexp []string) ([]string, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(account, destIndexName)
+	indexName := es.IndexNameForUserId(userId, destIndexName)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {

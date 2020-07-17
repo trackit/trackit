@@ -23,57 +23,46 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const typeTaggingReport = "tagging-reports"
-const indexPrefixTaggingReport = "tagging-reports"
-const templateNameTaggingReport = "tagging-reports"
+const typeTaggingCompliance = "tagging-compliance"
+const indexPrefixTaggingCompliance = "tagging-compliance"
+const templateNameTaggingCompliance = "tagging-compliance"
 
-// put the ElasticSearch index for *-tagging-reports indices at startup.
+// put the ElasticSearch index for *-tagging-compliance indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(templateNameTaggingReport).BodyString(templateTaggingReport).Do(ctx)
+	res, err := es.Client.IndexPutTemplate(templateNameTaggingCompliance).BodyString(templateTaggingCompliance).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES indext tagging-reports.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index tagging-compliance.", err)
 		ctxCancel()
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index tagging-reports.", res)
+		jsonlog.DefaultLogger.Info("Put ES index tagging-compliance.", res)
 		ctxCancel()
 	}
 }
 
-const templateTaggingReport = `
+const templateTaggingCompliance = `
 {
-    "template":"*-tagging-reports",
+    "template":"*-tagging-compliance",
     "version":1,
     "mappings":{
-        "tagging-reports":{
+        "tagging-compliance":{
             "properties":{
-                "account":{
-                    "type":"keyword"
-                },
-                "region":{
-                    "type":"keyword"
-                },
                 "reportDate":{
                     "type":"date"
                 },
-                "resourceId":{
-                    "type":"keyword"
+                "total":{
+                    "type":"long"
                 },
-                "resourceType":{
-                    "type":"keyword"
+                "totallyTagged":{
+                    "type":"long"
                 },
-                "tags":{
-                    "type":"nested",
-                    "properties":{
-                        "key":{
-                            "type":"keyword"
-                        },
-                        "value":{
-                            "type":"keyword"
-                        }
-                    }
+                "partiallyTagged":{
+                    "type":"long"
                 },
-                "url":{
+                "notTagged":{
+                    "type":"long"
+                },
+                "mostUsedTagsId":{
                     "type":"keyword"
                 }
             },

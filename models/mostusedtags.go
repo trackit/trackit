@@ -1,24 +1,22 @@
 package models
 
-import (
-	"time"
-)
+import "time"
 
-// MostUsedTagsByAwsAccountIDInRange returns most used tags of an AWS account in a specified range.
-func MostUsedTagsByAwsAccountIDInRange(db XODB, awsAccountID int, begin time.Time, end time.Time) ([]*MostUsedTag, error) {
+// MostUsedTagsByUserInRange returns most used tags of a user in a specified range.
+func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Time) ([]*MostUsedTag, error) {
 	var err error
 
 	// sql query
 	sqlstr := `SELECT ` +
-		`id, report_date, aws_account_id, tags ` +
+		`id, report_date, user_id, tags ` +
 		`FROM trackit.most_used_tags ` +
-		`WHERE aws_account_id = ? ` +
+		`WHERE user_id = ? ` +
 		`AND report_date >= '` + begin.String() + `' ` +
 		`AND report_date < '` + end.String() + `'`
 
 	// run query
-	XOLog(sqlstr, awsAccountID)
-	q, err := db.Query(sqlstr, awsAccountID)
+	XOLog(sqlstr, userId)
+	q, err := db.Query(sqlstr, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +30,7 @@ func MostUsedTagsByAwsAccountIDInRange(db XODB, awsAccountID int, begin time.Tim
 		}
 
 		// scan
-		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.Tags)
+		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.UserID, &mut.Tags)
 		if err != nil {
 			return nil, err
 		}
@@ -43,15 +41,15 @@ func MostUsedTagsByAwsAccountIDInRange(db XODB, awsAccountID int, begin time.Tim
 	return res, nil
 }
 
-// MostUsedTagsInUseByAwsAccountID returns the currently used most used tags of an AWS account.
-func MostUsedTagsInUseByAwsAccountID(db XODB, awsAccountID int) (*MostUsedTag, error) {
+// MostUsedTagsInUseByUser returns the currently used most used tags of a user
+func MostUsedTagsInUseByUser(db XODB, awsAccountID int) (*MostUsedTag, error) {
 	var err error
 
 	// sql query
 	sqlstr := `SELECT ` +
-		`id, report_date, aws_account_id, tags ` +
+		`id, report_date, user_id, tags ` +
 		`FROM trackit.most_used_tags ` +
-		`WHERE aws_account_id = ? ` +
+		`WHERE user_id = ? ` +
 		`ORDER BY report_date ASC LIMIT 1`
 
 	// run query
@@ -70,7 +68,7 @@ func MostUsedTagsInUseByAwsAccountID(db XODB, awsAccountID int) (*MostUsedTag, e
 		}
 
 		// scan
-		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.Tags)
+		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.UserID, &mut.Tags)
 		if err != nil {
 			return nil, err
 		}
