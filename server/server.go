@@ -38,6 +38,7 @@ import (
 	_ "github.com/trackit/trackit/reports"
 	"github.com/trackit/trackit/routes"
 	_ "github.com/trackit/trackit/s3/costs"
+	_ "github.com/trackit/trackit/tagging/routes"
 	_ "github.com/trackit/trackit/usageReports/ec2"
 	_ "github.com/trackit/trackit/usageReports/ec2Coverage"
 	_ "github.com/trackit/trackit/usageReports/elasticache"
@@ -73,6 +74,7 @@ var tasks = map[string]func(context.Context) error{
 	"fetch-pricings":              taskFetchPricings,
 	"ingest-limit":                taskIngestLimit,
 	"update-tags":                 taskUpdateTags,
+	"update-most-used-tags":       taskUpdateMostUsedTags,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
