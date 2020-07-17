@@ -42,7 +42,7 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 		return err
 	}
 	if mostUsedTags == nil {
-		return errors.New("No most used tags data available.")
+		return errors.New("no most used tags data available")
 	}
 
 	count, err := getReportsCount(ctx, userId)
