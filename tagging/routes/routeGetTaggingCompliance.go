@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/olivere/elastic"
@@ -45,7 +44,7 @@ func routeGetTaggingCompliance(r *http.Request, a routes.Arguments) (int, interf
 	dateEnd := a[taggingComplianceQueryArgs[1]].(time.Time).Add(time.Hour*time.Duration(23) + time.Minute*time.Duration(59) + time.Second*time.Duration(59))
 
 	res, err := getTaggingComplianceInRange(r.Context(), u.Id, dateBegin, dateEnd)
-	if err != nil && strings.Contains(err.Error(), "404") {
+	if elastic.IsNotFound(err) {
 		return 200, map[string]interface{}{}
 	}
 	if err != nil {
