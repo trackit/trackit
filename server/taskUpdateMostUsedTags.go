@@ -37,7 +37,7 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 		"args": args,
 	})
 
-	accountId, err := checkUpdateMostUsedTagsArguments(args)
+	userId, err := checkUpdateMostUsedTagsArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-most-used-tags'.", map[string]interface{}{
 			"err": err.Error(),
@@ -45,7 +45,7 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 		return err
 	}
 
-	err = updateMostUsedTagsForAccount(ctx, accountId)
+	err = updateMostUsedTagsForUser(ctx, userId)
 
 	if err != nil {
 		logger.Info("Task 'update-most-used-tags' done.", map[string]interface{}{
@@ -57,40 +57,40 @@ func taskUpdateMostUsedTags(ctx context.Context) error {
 
 func checkUpdateMostUsedTagsArguments(args []string) (int, error) {
 	if len(args) < 1 {
-		return invalidAccID, errors.New("Task 'update-most-used-tags' requires at least an integer argument as Account ID")
+		return invalidUserID, errors.New("Task 'update-most-used-tags' requires at least an integer argument as User ID")
 	}
 
-	accountId, err := strconv.Atoi(args[0])
+	userId, err := strconv.Atoi(args[0])
 	if err != nil {
-		return invalidAccID, err
+		return invalidUserID, err
 	}
 
-	return accountId, nil
+	return userId, nil
 }
 
-func updateMostUsedTagsForAccount(ctx context.Context, accountID int) (err error) {
-	var job models.AwsAccountUpdateMostUsedTagsJob
+func updateMostUsedTagsForUser(ctx context.Context, userId int) (err error) {
+	var job models.UserUpdateMostUsedTagsJob
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	if job, err = registerUpdateMostUsedTagsTask(db.Db, accountID); err != nil {
+	if job, err = registerUpdateMostUsedTagsTask(db.Db, userId); err != nil {
 	} else {
-		err = tagging.UpdateMostUsedTagsForAccount(ctx, accountID)
+		err = tagging.UpdateMostUsedTagsForUser(ctx, userId)
 		updateUpdateMostUsedTagsTask(db.Db, job, err)
 	}
 	if err != nil {
-		logger.Error("Failed to process account data.", map[string]interface{}{
-			"accountId": accountID,
-			"error":     err.Error(),
+		logger.Error("Failed to execute task 'update-most-used-tags'.", map[string]interface{}{
+			"userId": userId,
+			"error":  err.Error(),
 		})
 	}
 	return
 }
 
-func registerUpdateMostUsedTagsTask(db *sql.DB, accountID int) (models.AwsAccountUpdateMostUsedTagsJob, error) {
-	job := models.AwsAccountUpdateMostUsedTagsJob{
-		AwsAccountID: accountID,
-		WorkerID:     backendId,
-		Created:      time.Now(),
+func registerUpdateMostUsedTagsTask(db *sql.DB, userId int) (models.UserUpdateMostUsedTagsJob, error) {
+	job := models.UserUpdateMostUsedTagsJob{
+		UserID:   userId,
+		WorkerID: backendId,
+		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)
@@ -98,8 +98,7 @@ func registerUpdateMostUsedTagsTask(db *sql.DB, accountID int) (models.AwsAccoun
 	return job, err
 }
 
-func updateUpdateMostUsedTagsTask(db *sql.DB, job models.AwsAccountUpdateMostUsedTagsJob, jobError error) error {
-
+func updateUpdateMostUsedTagsTask(db *sql.DB, job models.UserUpdateMostUsedTagsJob, jobError error) error {
 	job.Completed = time.Now()
 
 	if jobError != nil {

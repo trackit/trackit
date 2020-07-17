@@ -34,8 +34,8 @@ type compliance struct {
 	NotTagged       int64     `json:"notTagged"`
 }
 
-// UpdateTaggingComplianceForAccount updates tagging compliance based on latest tagging reports and latest most used tags reports
-func UpdateTaggingComplianceForAccount(ctx context.Context, userId int) error {
+// UpdateTaggingComplianceForUser updates tagging compliance based on latest tagging reports and latest most used tags reports
+func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 	mostUsedTags, err := getMostUsedTagsFromDb(userId)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, userId int) error {
 
 	partiallyTagged := count - totallyTagged - untagged
 
-	return pushComplianceToEs(ctx, v, compliance{
+	return pushComplianceToEs(ctx, userId, compliance{
 		Total:           count,
 		TotallyTagged:   totallyTagged,
 		PartiallyTagged: partiallyTagged,
@@ -68,7 +68,7 @@ func UpdateTaggingComplianceForAccount(ctx context.Context, userId int) error {
 }
 
 func getMostUsedTagsFromDb(userId int) ([]string, error) {
-	mostUsedTags, err := models.MostUsedTagsInUseByAwsAccountID(db.Db, userId)
+	mostUsedTags, err := models.MostUsedTagsInUseByUser(db.Db, userId)
 	if err != nil {
 		return nil, err
 	}

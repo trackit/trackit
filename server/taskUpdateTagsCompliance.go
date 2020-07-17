@@ -45,7 +45,7 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 		return err
 	}
 
-	err = updateTaggingComplianceForAccount(ctx, userId)
+	err = updateTaggingComplianceForUser(ctx, userId)
 
 	if err == nil {
 		logger.Info("Task 'update-tagging-compliance' done.", map[string]interface{}{
@@ -57,24 +57,24 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 
 func checkUpdateTaggingComplianceArguments(args []string) (int, error) {
 	if len(args) < 1 {
-		return invalidAccID, errors.New("Task 'update-tagging-compliance' requires at least an integer argument as Account ID")
+		return invalidUserID, errors.New("Task 'update-tagging-compliance' requires at least an integer argument as User ID")
 	}
 
 	userId, err := strconv.Atoi(args[0])
 	if err != nil {
-		return invalidAccID, err
+		return invalidUserID, err
 	}
 
 	return userId, nil
 }
 
-func updateTaggingComplianceForAccount(ctx context.Context, userId int) (err error) {
-	var job models.AwsAccountUpdateTaggingComplianceJob
+func updateTaggingComplianceForUser(ctx context.Context, userId int) (err error) {
+	var job models.UserUpdateTaggingComplianceJob
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	if job, err = registerUpdateTaggingComplianceTask(db.Db, userId); err != nil {
 	} else {
-		err = tagging.UpdateTaggingComplianceForAccount(ctx, userId)
+		err = tagging.UpdateTaggingComplianceForUser(ctx, userId)
 		updateUpdateTaggingComplianceTask(db.Db, job, err)
 	}
 
@@ -88,11 +88,11 @@ func updateTaggingComplianceForAccount(ctx context.Context, userId int) (err err
 	return
 }
 
-func registerUpdateTaggingComplianceTask(db *sql.DB, userId int) (models.AwsAccountUpdateTaggingComplianceJob, error) {
-	job := models.AwsAccountUpdateTaggingComplianceJob{
-		AwsAccountID: userId,
-		WorkerID:     backendId,
-		Created:      time.Now(),
+func registerUpdateTaggingComplianceTask(db *sql.DB, userId int) (models.UserUpdateTaggingComplianceJob, error) {
+	job := models.UserUpdateTaggingComplianceJob{
+		UserID:   userId,
+		WorkerID: backendId,
+		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)
@@ -100,7 +100,7 @@ func registerUpdateTaggingComplianceTask(db *sql.DB, userId int) (models.AwsAcco
 	return job, err
 }
 
-func updateUpdateTaggingComplianceTask(db *sql.DB, job models.AwsAccountUpdateTaggingComplianceJob, jobError error) error {
+func updateUpdateTaggingComplianceTask(db *sql.DB, job models.UserUpdateTaggingComplianceJob, jobError error) error {
 	job.Completed = time.Now()
 
 	if jobError != nil {

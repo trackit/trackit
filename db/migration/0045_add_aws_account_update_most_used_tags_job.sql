@@ -12,22 +12,22 @@
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-CREATE TABLE aws_account_update_most_used_tags_job (
+CREATE TABLE user_update_most_used_tags_job (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	aws_account_id         INTEGER      NOT NULL,
+	user_id                INTEGER      NOT NULL,
 	completed              TIMESTAMP    NOT NULL DEFAULT 0,
 	worker_id              VARCHAR(255) NOT NULL,
 	job_error              VARCHAR(255) NOT NULL DEFAULT "",
 	CONSTRAINT PRIMARY KEY (id),
-	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE most_used_tags (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	report_date            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	aws_account_id         INTEGER      NOT NULL,
+	user_id                INTEGER      NOT NULL,
 	tags                   VARCHAR(255) NOT NULL,
 	CONSTRAINT PRIMARY KEY (id),
-	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
 );

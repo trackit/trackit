@@ -31,6 +31,7 @@ import (
 )
 
 const invalidAccID = -1
+const invalidUserID = -1
 
 func taskUpdateTags(ctx context.Context) error {
 	args := flag.Args()

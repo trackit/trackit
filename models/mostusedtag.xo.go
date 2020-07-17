@@ -10,10 +10,10 @@ import (
 
 // MostUsedTag represents a row from 'trackit.most_used_tags'.
 type MostUsedTag struct {
-	ID           int       `json:"id"`             // id
-	ReportDate   time.Time `json:"report_date"`    // report_date
-	AwsAccountID int       `json:"aws_account_id"` // aws_account_id
-	Tags         string    `json:"tags"`           // tags
+	ID         int       `json:"id"`          // id
+	ReportDate time.Time `json:"report_date"` // report_date
+	UserID     int       `json:"user_id"`     // user_id
+	Tags       string    `json:"tags"`        // tags
 
 	// xo fields
 	_exists, _deleted bool
@@ -40,14 +40,14 @@ func (mut *MostUsedTag) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.most_used_tags (` +
-		`report_date, aws_account_id, tags` +
+		`report_date, user_id, tags` +
 		`) VALUES (` +
 		`?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags)
-	res, err := db.Exec(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags)
+	XOLog(sqlstr, mut.ReportDate, mut.UserID, mut.Tags)
+	res, err := db.Exec(sqlstr, mut.ReportDate, mut.UserID, mut.Tags)
 	if err != nil {
 		return err
 	}
@@ -81,12 +81,12 @@ func (mut *MostUsedTag) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.most_used_tags SET ` +
-		`report_date = ?, aws_account_id = ?, tags = ?` +
+		`report_date = ?, user_id = ?, tags = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags, mut.ID)
-	_, err = db.Exec(sqlstr, mut.ReportDate, mut.AwsAccountID, mut.Tags, mut.ID)
+	XOLog(sqlstr, mut.ReportDate, mut.UserID, mut.Tags, mut.ID)
+	_, err = db.Exec(sqlstr, mut.ReportDate, mut.UserID, mut.Tags, mut.ID)
 	return err
 }
 
@@ -129,28 +129,28 @@ func (mut *MostUsedTag) Delete(db XODB) error {
 	return nil
 }
 
-// AwsAccount returns the AwsAccount associated with the MostUsedTag's AwsAccountID (aws_account_id).
+// User returns the User associated with the MostUsedTag's UserID (user_id).
 //
 // Generated from foreign key 'most_used_tags_ibfk_1'.
-func (mut *MostUsedTag) AwsAccount(db XODB) (*AwsAccount, error) {
-	return AwsAccountByID(db, mut.AwsAccountID)
+func (mut *MostUsedTag) User(db XODB) (*User, error) {
+	return UserByID(db, mut.UserID)
 }
 
-// MostUsedTagsByAwsAccountID retrieves a row from 'trackit.most_used_tags' as a MostUsedTag.
+// MostUsedTagsByUserID retrieves a row from 'trackit.most_used_tags' as a MostUsedTag.
 //
-// Generated from index 'foreign_aws_account'.
-func MostUsedTagsByAwsAccountID(db XODB, awsAccountID int) ([]*MostUsedTag, error) {
+// Generated from index 'foreign_user'.
+func MostUsedTagsByUserID(db XODB, userID int) ([]*MostUsedTag, error) {
 	var err error
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, report_date, aws_account_id, tags ` +
+		`id, report_date, user_id, tags ` +
 		`FROM trackit.most_used_tags ` +
-		`WHERE aws_account_id = ?`
+		`WHERE user_id = ?`
 
 	// run query
-	XOLog(sqlstr, awsAccountID)
-	q, err := db.Query(sqlstr, awsAccountID)
+	XOLog(sqlstr, userID)
+	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +164,7 @@ func MostUsedTagsByAwsAccountID(db XODB, awsAccountID int) ([]*MostUsedTag, erro
 		}
 
 		// scan
-		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.Tags)
+		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.UserID, &mut.Tags)
 		if err != nil {
 			return nil, err
 		}
@@ -183,7 +183,7 @@ func MostUsedTagByID(db XODB, id int) (*MostUsedTag, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, report_date, aws_account_id, tags ` +
+		`id, report_date, user_id, tags ` +
 		`FROM trackit.most_used_tags ` +
 		`WHERE id = ?`
 
@@ -193,7 +193,7 @@ func MostUsedTagByID(db XODB, id int) (*MostUsedTag, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&mut.ID, &mut.ReportDate, &mut.AwsAccountID, &mut.Tags)
+	err = db.QueryRow(sqlstr, id).Scan(&mut.ID, &mut.ReportDate, &mut.UserID, &mut.Tags)
 	if err != nil {
 		return nil, err
 	}

@@ -30,7 +30,7 @@ func routeGetMostUsedTags(r *http.Request, a routes.Arguments) (int, interface{}
 	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 	u := a[users.AuthenticatedUser].(users.User)
 
-	dbRes, err := models.MostUsedTagsInUseByAwsAccountID(db.Db, u.Id)
+	dbRes, err := models.MostUsedTagsInUseByUser(db.Db, u.Id)
 	if err != nil {
 		logger.Error("Could not fetch most used tags.", err.Error())
 		return 500, nil
