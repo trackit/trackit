@@ -93,7 +93,7 @@ func processTaggingComplianceInRangeResults(res *elastic.AggregationTopHitsMetri
 			return map[string]interface{}{}, err
 		}
 
-		output[source.ReportDate.String()] = source
+		output[source.ReportDate.Format(time.RFC3339)] = source
 	}
 
 	return output, nil
