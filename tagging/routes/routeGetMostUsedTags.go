@@ -36,6 +36,12 @@ func routeGetMostUsedTags(r *http.Request, a routes.Arguments) (int, interface{}
 		return 500, nil
 	}
 
+	if dbRes == nil {
+		return 500, map[string]interface{}{
+			"error": "No reports available.",
+		}
+	}
+
 	tagsList := []string{}
 	err = json.Unmarshal([]byte(dbRes.Tags), &tagsList)
 	if err != nil {
