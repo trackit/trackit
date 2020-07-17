@@ -45,14 +45,14 @@ func routeGetTaggingCompliance(r *http.Request, a routes.Arguments) (int, interf
 
 	res, err := getTaggingComplianceInRange(r.Context(), u.Id, dateBegin, dateEnd)
 	if elastic.IsNotFound(err) {
-		return 200, map[string]interface{}{}
+		return http.StatusOK, map[string]interface{}{}
 	}
 	if err != nil {
 		logger.Error("Could not get tagging compliance data.", map[string]interface{}{"error": err.Error()})
-		return 500, nil
+		return http.StatusInternalServerError, nil
 	}
 
-	return 200, res
+	return http.StatusOK, res
 }
 
 func getTaggingComplianceInRange(ctx context.Context, accountID int, begin time.Time, end time.Time) (map[string]interface{}, error) {

@@ -33,11 +33,11 @@ func routeGetMostUsedTags(r *http.Request, a routes.Arguments) (int, interface{}
 	dbRes, err := models.MostUsedTagsInUseByUser(db.Db, u.Id)
 	if err != nil {
 		logger.Error("Could not fetch most used tags.", err.Error())
-		return 500, nil
+		return http.StatusInternalServerError, nil
 	}
 
 	if dbRes == nil {
-		return 500, map[string]interface{}{
+		return http.StatusInternalServerError, map[string]interface{}{
 			"error": "No reports available.",
 		}
 	}
@@ -46,10 +46,10 @@ func routeGetMostUsedTags(r *http.Request, a routes.Arguments) (int, interface{}
 	err = json.Unmarshal([]byte(dbRes.Tags), &tagsList)
 	if err != nil {
 		logger.Error("Could not unmarshal most used tags.", err.Error())
-		return 500, err
+		return http.StatusInternalServerError, err
 	}
 
-	return 200, map[string]interface{}{
+	return http.StatusOK, map[string]interface{}{
 		"reportDate":   dbRes.ReportDate.String(),
 		"mostUsedTags": tagsList,
 	}
