@@ -37,7 +37,7 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 		"args": args,
 	})
 
-	amazonAccountID, err := checkUpdateTaggingComplianceArguments(args)
+	accountId, err := checkUpdateTaggingComplianceArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
 			"err": err.Error(),
@@ -45,18 +45,14 @@ func taskUpdateTaggingCompliance(ctx context.Context) error {
 		return err
 	}
 
-	err = updateTaggingComplianceForAccount(ctx, amazonAccountID)
-	if err != nil {
-		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
-			"err": err.Error(),
-		})
-		return err
-	}
+	err = updateTaggingComplianceForAccount(ctx, accountId)
 
-	logger.Info("Task 'update-tagging-compliance' done.", map[string]interface{}{
-		"args": args,
-	})
-	return nil
+	if err == nil {
+		logger.Info("Task 'update-tagging-compliance' done.", map[string]interface{}{
+			"args": args,
+		})
+	}
+	return err
 }
 
 func checkUpdateTaggingComplianceArguments(args []string) (int, error) {
@@ -64,37 +60,32 @@ func checkUpdateTaggingComplianceArguments(args []string) (int, error) {
 		return invalidAccID, errors.New("Task 'update-tagging-compliance' requires at least an integer argument as AWS Account ID")
 	}
 
-	amazonAccountID, err := strconv.Atoi(args[0])
+	accountId, err := strconv.Atoi(args[0])
 	if err != nil {
 		return invalidAccID, err
 	}
 
-	return amazonAccountID, nil
+	return accountId, nil
 }
 
-func updateTaggingComplianceForAccount(ctx context.Context, accountID int) error {
-	tx, err := db.Db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+func updateTaggingComplianceForAccount(ctx context.Context, accountID int) (err error) {
+	var job models.AwsAccountUpdateTaggingComplianceJob
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	job, err := registerUpdateTaggingComplianceTask(db.Db, accountID)
-	if err != nil {
-		return err
+	if job, err = registerUpdateTaggingComplianceTask(db.Db, accountID); err != nil {
+	} else {
+		err = tagging.UpdateTaggingComplianceForAccount(ctx, accountID)
+		updateUpdateTaggingComplianceTask(db.Db, job, err)
 	}
 
-	err = tagging.UpdateTaggingComplianceForAccount(ctx, accountID)
+	if err != nil {
+		logger.Error("Failed to execute task 'update-tagging-compliance'.", map[string]interface{}{
+			"accountId": accountID,
+			"error":     err.Error(),
+		})
+	}
 
-	return updateUpdateTaggingComplianceTask(db.Db, job, err)
+	return
 }
 
 func registerUpdateTaggingComplianceTask(db *sql.DB, accountID int) (models.AwsAccountUpdateTaggingComplianceJob, error) {
@@ -110,7 +101,6 @@ func registerUpdateTaggingComplianceTask(db *sql.DB, accountID int) (models.AwsA
 }
 
 func updateUpdateTaggingComplianceTask(db *sql.DB, job models.AwsAccountUpdateTaggingComplianceJob, jobError error) error {
-
 	job.Completed = time.Now()
 
 	if jobError != nil {

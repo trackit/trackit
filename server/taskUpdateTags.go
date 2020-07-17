@@ -55,7 +55,7 @@ func taskUpdateTags(ctx context.Context) error {
 			"args": args,
 		})
 	}
-	return nil
+	return err
 }
 
 func checkUpdateTagsArguments(args []string) (int, error) {
@@ -95,7 +95,7 @@ func updateTagsForAccount(ctx context.Context, aaId int) (err error) {
 		updateUpdateTagsTask(db.Db, job, err)
 	}
 	if err != nil {
-		logger.Error("Failed to process account data.", map[string]interface{}{
+		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
 		})
