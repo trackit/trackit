@@ -1,3 +1,17 @@
+//   Copyright 2020 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
 package tagging
 
 import (
@@ -93,8 +107,8 @@ func getReportsCount(ctx context.Context, accountID int) (int64, error) {
 	indexName := es.IndexNameForUserId(accountID, "tagging-reports")
 	index := client.Search().Index(indexName)
 
-	reportDateAgg := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)
-	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).Aggregation("reportDate", reportDateAgg).Do(ctx)
+	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).
+		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)).Do(ctx)
 	return handleComplianceEsReponse(res, err)
 }
 
@@ -106,8 +120,8 @@ func getTotallyTaggedReportsCount(ctx context.Context, accountID int, mostUsedTa
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
 	query := elastic.NewBoolQuery().Must(termQueries...)
 
-	reportDateAgg := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)
-	res, err := index.Size(0).Query(query).Aggregation("reportDate", reportDateAgg).Do(ctx)
+	res, err := index.Size(0).Query(query).
+		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)).Do(ctx)
 	return handleComplianceEsReponse(res, err)
 }
 
@@ -119,8 +133,8 @@ func getNotTaggedReportsCount(ctx context.Context, accountID int, mostUsedTags [
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
 	query := elastic.NewBoolQuery().MustNot(termQueries...)
 
-	reportDateAgg := elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)
-	res, err := index.Size(0).Query(query).Aggregation("reportDate", reportDateAgg).Do(ctx)
+	res, err := index.Size(0).Query(query).
+		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1)).Do(ctx)
 	return handleComplianceEsReponse(res, err)
 }
 
