@@ -21,7 +21,6 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws"
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
 	ebs "github.com/trackit/trackit/tagging/ebs"
@@ -35,7 +34,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type process func(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error)
+type process func(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error)
 
 type processor struct {
 	Name string
@@ -80,13 +79,13 @@ var processors = []processor{
 	},
 }
 
-// UpdateTagsForAccount updates tags in ES for the specified AWS account
-func UpdateTagsForAccount(ctx context.Context, awsAccount aws.AwsAccount) error {
+// UpdateTagsForAccount updates tags in ES for the specified user
+func UpdateTagsForAccount(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var documents []utils.TaggingReportDocument
 
 	for _, processor := range processors {
-		newDocuments, err := processor.Run(ctx, awsAccount, processor.Name)
+		newDocuments, err := processor.Run(ctx, userId, processor.Name)
 		if err == nil {
 			documents = append(documents, newDocuments...)
 		} else {
@@ -94,7 +93,7 @@ func UpdateTagsForAccount(ctx context.Context, awsAccount aws.AwsAccount) error 
 		}
 	}
 
-	return pushToEs(ctx, documents, awsAccount.UserId)
+	return pushToEs(ctx, documents, userId)
 }
 
 func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, account int) error {

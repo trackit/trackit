@@ -22,7 +22,6 @@ import (
 	"github.com/olivere/elastic"
 
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit/aws"
 	indexSource "github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/tagging/utils"
 )
@@ -30,13 +29,13 @@ import (
 const urlFormat = "https://console.aws.amazon.com/ec2/v2/home?region=%s#Instances:instanceId=%s"
 
 // Process generates tagging reports from EC2 reports
-func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
+func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Processing reports.", map[string]interface{}{
 		"type": resourceTypeString,
 	})
 
-	hits, err := fetchReports(ctx, awsAccount)
+	hits, err := fetchReports(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

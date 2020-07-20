@@ -39,6 +39,11 @@ var ignoredTagsRegexp = []string{
 // UpdateMostUsedTagsForUser updates most used tags in MySQL for the specified user
 func UpdateMostUsedTagsForUser(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	logger.Info("Updating most used tags.", map[string]interface{}{
+		"userId": userId,
+	})
+
 	mostUsedTags, err := getMostUsedTagsForUser(ctx, userId, ignoredTagsRegexp)
 	if err != nil {
 		return err

@@ -24,13 +24,11 @@ import (
 
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/tagging"
 )
 
-const invalidAccID = -1
 const invalidUserID = -1
 
 func taskUpdateTags(ctx context.Context) error {
@@ -41,7 +39,7 @@ func taskUpdateTags(ctx context.Context) error {
 		"args": args,
 	})
 
-	aaId, err := checkUpdateTagsArguments(args)
+	userId, err := checkUpdateTagsArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
 			"err": err.Error(),
@@ -49,7 +47,7 @@ func taskUpdateTags(ctx context.Context) error {
 		return err
 	}
 
-	err = updateTagsForAccount(ctx, aaId)
+	err = updateTagsForAccount(ctx, userId)
 
 	if err == nil {
 		logger.Info("Task 'update-tags' done.", map[string]interface{}{
@@ -61,54 +59,41 @@ func taskUpdateTags(ctx context.Context) error {
 
 func checkUpdateTagsArguments(args []string) (int, error) {
 	if len(args) < 1 {
-		return invalidAccID, errors.New("Task 'update-tags' requires at least an integer argument as AWS Account ID")
+		return invalidUserID, errors.New("Task 'update-tags' requires at least an integer argument as User ID")
 	}
 
-	aaId, err := strconv.Atoi(args[0])
+	userId, err := strconv.Atoi(args[0])
 	if err != nil {
-		return invalidAccID, err
+		return userId, err
 	}
 
-	return aaId, nil
+	return userId, nil
 }
 
-func updateTagsForAccount(ctx context.Context, aaId int) (err error) {
-	var tx *sql.Tx
-	var awsAccount aws.AwsAccount
-	var job models.AwsAccountUpdateTagsJob
+func updateTagsForAccount(ctx context.Context, userId int) (err error) {
+	var job models.UserUpdateTagsJob
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
-
-	if tx, err := db.Db.BeginTx(ctx, nil); err != nil {
-	} else if awsAccount, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if job, err = registerUpdateTagsTask(db.Db, aaId); err != nil {
-	} else {
-		err = tagging.UpdateTagsForAccount(ctx, awsAccount)
-		updateUpdateTagsTask(db.Db, job, err)
+	if job, err = registerUpdateTagsTask(db.Db, userId); err != nil {
+	} else if err = tagging.UpdateTagsForAccount(ctx, userId); err != nil {
+	} else if err = tagging.UpdateMostUsedTagsForUser(ctx, userId); err != nil {
+	} else if err = tagging.UpdateTaggingComplianceForUser(ctx, userId); err != nil {
 	}
+	updateUpdateTagsTask(db.Db, job, err)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
-			"awsAccountId": aaId,
-			"error":        err.Error(),
+			"userId": userId,
+			"error":  err.Error(),
 		})
 	}
 	return
 }
 
-func registerUpdateTagsTask(db *sql.DB, aaId int) (models.AwsAccountUpdateTagsJob, error) {
-	job := models.AwsAccountUpdateTagsJob{
-		AwsAccountID: aaId,
-		WorkerID:     backendId,
-		Created:      time.Now(),
+func registerUpdateTagsTask(db *sql.DB, userId int) (models.UserUpdateTagsJob, error) {
+	job := models.UserUpdateTagsJob{
+		UserID:   userId,
+		WorkerID: backendId,
+		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)
@@ -116,8 +101,7 @@ func registerUpdateTagsTask(db *sql.DB, aaId int) (models.AwsAccountUpdateTagsJo
 	return job, err
 }
 
-func updateUpdateTagsTask(db *sql.DB, job models.AwsAccountUpdateTagsJob, jobError error) error {
-
+func updateUpdateTagsTask(db *sql.DB, job models.UserUpdateTagsJob, jobError error) error {
 	job.Completed = time.Now()
 
 	if jobError != nil {
