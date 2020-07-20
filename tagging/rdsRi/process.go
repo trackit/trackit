@@ -22,7 +22,6 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws"
 	indexSource "github.com/trackit/trackit/aws/usageReports/riRdS"
 	"github.com/trackit/trackit/tagging/utils"
 )
@@ -30,13 +29,13 @@ import (
 const urlFormat = "https://console.aws.amazon.com/rds/home?region=%s#reserved-db-instance:ids=%s"
 
 // Process generates tagging reports from RDS reserved instances reports
-func Process(ctx context.Context, awsAccount aws.AwsAccount, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
+func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Processing reports.", map[string]interface{}{
 		"type": resourceTypeString,
 	})
 
-	hits, err := fetchReports(ctx, awsAccount)
+	hits, err := fetchReports(ctx, userId)
 	if err != nil {
 		return nil, err
 	}

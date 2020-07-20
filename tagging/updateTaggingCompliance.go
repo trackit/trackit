@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
@@ -41,6 +42,7 @@ const invalidMostUsedTagsId = "-1"
 
 // UpdateTaggingComplianceForUser updates tagging compliance based on latest tagging reports and latest most used tags reports
 func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	mostUsedTags, mostUsedTagsId, err := getMostUsedTagsFromDb(userId)
 	if err != nil {
 		return err
@@ -55,6 +57,10 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 	}
 
 	if len(mostUsedTags) == 0 {
+		logger.Info("No most used tags for tagging compliance.", map[string]interface{}{
+			"userId": userId,
+		})
+
 		return pushComplianceToEs(ctx, userId, ComplianceReport{
 			Total:           count,
 			TotallyTagged:   0,
@@ -162,8 +168,16 @@ func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []st
 }
 
 func pushComplianceToEs(ctx context.Context, userId int, compliance ComplianceReport) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	client := es.Client
 	indexName := es.IndexNameForUserId(userId, "tagging-compliance")
 	_, err := client.Index().Index(indexName).Type("tagging-compliance").BodyJson(compliance).Do(ctx)
+
+	if err == nil {
+		logger.Info("Tagging compliance pushed to ES.", map[string]interface{}{
+			"userId": userId,
+		})
+	}
+
 	return err
 }

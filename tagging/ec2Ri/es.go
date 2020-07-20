@@ -20,14 +20,13 @@ import (
 
 	"github.com/olivere/elastic"
 
-	"github.com/trackit/trackit/aws"
 	indexSource "github.com/trackit/trackit/aws/usageReports/riEc2"
 	"github.com/trackit/trackit/es"
 )
 
-func fetchReports(ctx context.Context, awsAccount aws.AwsAccount) ([]*elastic.SearchHit, error) {
+func fetchReports(ctx context.Context, userId int) ([]*elastic.SearchHit, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(awsAccount.UserId, indexSource.IndexPrefixReservedInstancesReport)
+	indexName := es.IndexNameForUserId(userId, indexSource.IndexPrefixReservedInstancesReport)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {
@@ -37,7 +36,7 @@ func fetchReports(ctx context.Context, awsAccount aws.AwsAccount) ([]*elastic.Se
 		return []*elastic.SearchHit{}, nil
 	}
 
-	res, err := queryEs(ctx, indexName, awsAccount)
+	res, err := queryEs(ctx, indexName)
 	if err != nil {
 		return nil, err
 	}
@@ -45,11 +44,11 @@ func fetchReports(ctx context.Context, awsAccount aws.AwsAccount) ([]*elastic.Se
 	return processSearchResult(res)
 }
 
-func queryEs(ctx context.Context, indexName string, awsAccount aws.AwsAccount) (*elastic.SearchResult, error) {
+func queryEs(ctx context.Context, indexName string) (*elastic.SearchResult, error) {
 	client := es.Client
 
 	index := client.Search().Index(indexName)
-	filter := elastic.NewBoolQuery().Must(elastic.NewTermQuery("reportType", "daily"), elastic.NewTermQuery("account", awsAccount.AwsIdentity))
+	filter := elastic.NewBoolQuery().Must(elastic.NewTermQuery("reportType", "daily"))
 	return index.Size(0).Query(filter).
 		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
 			SubAggregation("data", elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).
