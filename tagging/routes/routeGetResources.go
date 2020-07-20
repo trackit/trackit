@@ -136,4 +136,3 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams ResourcesQueryPa
 	}
 	return res, http.StatusOK, nil
 }
-
