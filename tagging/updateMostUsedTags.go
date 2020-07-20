@@ -44,6 +44,10 @@ func UpdateMostUsedTagsForUser(ctx context.Context, userId int) error {
 		"userId": userId,
 	})
 
+	// This sleep is required because ES only updates his indexes every second
+	// https://stackoverflow.com/questions/18078561/elasticsearch-get-just-after-post
+	time.Sleep(time.Second * 2)
+
 	mostUsedTags, err := getMostUsedTagsForUser(ctx, userId, ignoredTagsRegexp)
 	if err != nil {
 		return err
