@@ -36,6 +36,7 @@ import (
 	"github.com/trackit/trackit/periodic"
 	_ "github.com/trackit/trackit/plugins"
 	_ "github.com/trackit/trackit/reports"
+	_ "github.com/trackit/trackit/resourcesTagging"
 	"github.com/trackit/trackit/routes"
 	_ "github.com/trackit/trackit/s3/costs"
 	_ "github.com/trackit/trackit/usageReports/ec2"
