@@ -79,8 +79,8 @@ var processors = []processor{
 	},
 }
 
-// UpdateTagsForAccount updates tags in ES for the specified user
-func UpdateTagsForAccount(ctx context.Context, userId int) error {
+// UpdateTagsForUser updates tags in ES for the specified user
+func UpdateTagsForUser(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var documents []utils.TaggingReportDocument
 
@@ -96,14 +96,14 @@ func UpdateTagsForAccount(ctx context.Context, userId int) error {
 	return pushToEs(ctx, documents, userId)
 }
 
-func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, account int) error {
+func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	reportDate := time.Now().UTC()
 	logger.Info("Pushing generated tagging reports to ES.", map[string]interface{}{
 		"reportDate": reportDate.String(),
 	})
-	destIndexName := es.IndexNameForUserId(account, destIndexName)
+	destIndexName := es.IndexNameForUserId(userId, destIndexName)
 	bulkProcessor, err := bulk.GetBulkProcessor(ctx)
 	if err != nil {
 		return err

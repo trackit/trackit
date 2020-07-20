@@ -47,7 +47,7 @@ func taskUpdateTags(ctx context.Context) error {
 		return err
 	}
 
-	err = updateTagsForAccount(ctx, userId)
+	err = updateTagsForUser(ctx, userId)
 
 	if err == nil {
 		logger.Info("Task 'update-tags' done.", map[string]interface{}{
@@ -70,12 +70,12 @@ func checkUpdateTagsArguments(args []string) (int, error) {
 	return userId, nil
 }
 
-func updateTagsForAccount(ctx context.Context, userId int) (err error) {
+func updateTagsForUser(ctx context.Context, userId int) (err error) {
 	var job models.UserUpdateTagsJob
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	if job, err = registerUpdateTagsTask(db.Db, userId); err != nil {
-	} else if err = tagging.UpdateTagsForAccount(ctx, userId); err != nil {
+	} else if err = tagging.UpdateTagsForUser(ctx, userId); err != nil {
 	} else if err = tagging.UpdateMostUsedTagsForUser(ctx, userId); err != nil {
 	} else if err = tagging.UpdateTaggingComplianceForUser(ctx, userId); err != nil {
 	}
