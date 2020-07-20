@@ -28,6 +28,23 @@ var taggingComplianceQueryArgs = []routes.QueryArg{
 	routes.DateEndQueryArg,
 }
 
+// resourcesQueryArgs allows to get required queryArgs params
+var resourcesQueryArgs = []routes.QueryArg{
+	routes.AwsAccountsOptionalQueryArg,
+	routes.QueryArg{
+		Name:        "region",
+		Type:        routes.QueryArgStringSlice{},
+		Description: "The region of the resource",
+		Optional:    true,
+	},
+	routes.QueryArg{
+		Name:        "resourceType",
+		Type:        routes.QueryArgStringSlice{},
+		Description: "The type of the resource",
+		Optional:    true,
+	},
+}
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetMostUsedTags).With(
@@ -53,4 +70,18 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/compliance")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(routeGetResources).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(resourcesQueryArgs),
+			routes.Documentation{
+				Summary:     "get list of resources",
+				Description: "Responds with the list of resources based on the queryparams passed to it",
+			},
+		),
+	}.H().Register("/tagging/resources")
 }
