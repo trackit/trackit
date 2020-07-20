@@ -28,3 +28,9 @@ CREATE TABLE user_update_tags_job (
 DROP TABLE user_update_most_used_tags_job;
 
 DROP TABLE user_update_tagging_compliance_job;
+
+ALTER TABLE user ADD next_update_tags DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00';
+
+CREATE VIEW user_update_tags_due_update AS
+SELECT * FROM user WHERE next_update_tags <= NOW()
+;

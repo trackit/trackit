@@ -1087,3 +1087,7 @@ CREATE TABLE user_update_tags_job (
 DROP TABLE user_update_most_used_tags_job;
 
 DROP TABLE user_update_tagging_compliance_job;
+
+CREATE VIEW user_update_tags_due_update AS
+SELECT * FROM user WHERE next_update_tags <= NOW()
+;
