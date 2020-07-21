@@ -50,21 +50,33 @@ func queryEs(ctx context.Context, indexName string) (*elastic.SearchResult, erro
 	index := client.Search().Index(indexName)
 	filter := elastic.NewBoolQuery().Must(elastic.NewTermQuery("reportType", "daily"))
 	return index.Size(0).Query(filter).
-		Aggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
-			SubAggregation("data", elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).
-				Include("account", "reservation.id", "reservation.region", "reservation.tags")))).Do(ctx)
+		Aggregation("accounts", elastic.NewTermsAggregation().Field("account").Size(2147483647).
+			SubAggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
+				SubAggregation("data", elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).
+					Include("account", "reservation.id", "reservation.region", "reservation.tags"))))).Do(ctx)
 }
 
 func processSearchResult(res *elastic.SearchResult) ([]*elastic.SearchHit, error) {
-	reportDateAggregationRes, found := res.Aggregations.Terms("reportDate")
-	if !found || len(reportDateAggregationRes.Buckets) <= 0 {
-		return nil, errors.New("could not query elastic search")
-	}
-
-	topHitsAggregationRes, found := reportDateAggregationRes.Buckets[0].Aggregations.TopHits("data")
+	accountAggregationRes, found := res.Aggregations.Terms("accounts")
 	if !found {
 		return nil, errors.New("could not query elastic search")
 	}
 
-	return topHitsAggregationRes.Hits.Hits, nil
+	results := []*elastic.SearchHit{}
+
+	for _, accountBucket := range accountAggregationRes.Buckets {
+		reportDateAggregationRes, found := accountBucket.Aggregations.Terms("reportDate")
+		if !found || len(reportDateAggregationRes.Buckets) <= 0 {
+			continue
+		}
+
+		topHitsAggregationRes, found := reportDateAggregationRes.Buckets[0].Aggregations.TopHits("data")
+		if !found {
+			continue
+		}
+
+		results = append(results, topHitsAggregationRes.Hits.Hits...)
+	}
+
+	return results, nil
 }
