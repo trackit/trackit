@@ -32,15 +32,15 @@ var taggingComplianceQueryArgs = []routes.QueryArg{
 var resourcesQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.QueryArg{
-		Name:        "region",
+		Name:        "regions",
 		Type:        routes.QueryArgStringSlice{},
-		Description: "The region of the resource",
+		Description: "Regions of the resources",
 		Optional:    true,
 	},
 	routes.QueryArg{
-		Name:        "resourceType",
+		Name:        "resourceTypes",
 		Type:        routes.QueryArgStringSlice{},
-		Description: "The type of the resource",
+		Description: "Types of the resources",
 		Optional:    true,
 	},
 }
