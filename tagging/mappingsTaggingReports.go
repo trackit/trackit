@@ -24,7 +24,7 @@ import (
 )
 
 const typeTaggingReport = "tagging-reports"
-const indexPrefixTaggingReport = "tagging-reports"
+const IndexPrefixTaggingReport = "tagging-reports"
 const templateNameTaggingReport = "tagging-reports"
 
 // put the ElasticSearch index for *-tagging-reports indices at startup.
