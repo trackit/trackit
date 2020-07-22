@@ -30,7 +30,7 @@ import (
 )
 
 var ignoredTagsRegexp = []string{
-	"aws:*",
+	"aws:.*",
 	"lambda:.*",
 	".*k8s\\.io.*",
 	"KubernetesCluster",
