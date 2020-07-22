@@ -972,3 +972,124 @@ ALTER TABLE aws_account ADD next_tags_spreadsheet_report_generation DATETIME NOT
 CREATE OR REPLACE VIEW aws_account_tags_spreadsheets_reports_due_update AS
 SELECT * FROM aws_account WHERE next_tags_spreadsheet_report_generation <= NOW()
 ;
+
+--   Copyright 2020 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+CREATE TABLE aws_account_update_tags_job (
+	id                     INTEGER      NOT NULL AUTO_INCREMENT,
+	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	aws_account_id         INTEGER      NOT NULL,
+	completed              TIMESTAMP    NOT NULL DEFAULT 0,
+	worker_id              VARCHAR(255) NOT NULL,
+	job_error              VARCHAR(255) NOT NULL DEFAULT "",
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+);
+
+--   Copyright 2020 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+CREATE TABLE user_update_most_used_tags_job (
+	id                     INTEGER      NOT NULL AUTO_INCREMENT,
+	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	user_id                INTEGER      NOT NULL,
+	completed              TIMESTAMP    NOT NULL DEFAULT 0,
+	worker_id              VARCHAR(255) NOT NULL,
+	job_error              VARCHAR(255) NOT NULL DEFAULT "",
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE most_used_tags (
+	id                     INTEGER      NOT NULL AUTO_INCREMENT,
+	report_date            TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	user_id                INTEGER      NOT NULL,
+	tags                   VARCHAR(255) NOT NULL,
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+--   Copyright 2020 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+CREATE TABLE user_update_tagging_compliance_job (
+	id                     INTEGER      NOT NULL AUTO_INCREMENT,
+	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	user_id                INTEGER      NOT NULL,
+	completed              TIMESTAMP    NOT NULL DEFAULT 0,
+	worker_id              VARCHAR(255) NOT NULL,
+	job_error              VARCHAR(255) NOT NULL DEFAULT "",
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+--   Copyright 2020 MSolution.IO
+--
+--   Licensed under the Apache License, Version 2.0 (the "License");
+--   you may not use this file except in compliance with the License.
+--   You may obtain a copy of the License at
+--
+--       http://www.apache.org/licenses/LICENSE-2.0
+--
+--   Unless required by applicable law or agreed to in writing, software
+--   distributed under the License is distributed on an "AS IS" BASIS,
+--   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+--   See the License for the specific language governing permissions and
+--   limitations under the License.
+
+DROP TABLE aws_account_update_tags_job;
+
+CREATE TABLE user_update_tags_job (
+	id                     INTEGER      NOT NULL AUTO_INCREMENT,
+	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	user_id                INTEGER      NOT NULL,
+	completed              TIMESTAMP    NOT NULL DEFAULT 0,
+	worker_id              VARCHAR(255) NOT NULL,
+	job_error              VARCHAR(255) NOT NULL DEFAULT "",
+	CONSTRAINT PRIMARY KEY (id),
+	CONSTRAINT foreign_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+DROP TABLE user_update_most_used_tags_job;
+
+DROP TABLE user_update_tagging_compliance_job;
+
+ALTER TABLE user ADD next_update_tags DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00';
+
+CREATE VIEW user_update_tags_due_update AS
+	SELECT * FROM user WHERE next_update_tags <= NOW()
+;
