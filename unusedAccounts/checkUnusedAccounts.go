@@ -25,9 +25,13 @@ func CheckUnusedAccounts(ctx context.Context) error {
 	}
 
 	for _, user := range users {
-		if user != nil {
-			checkUnusedAccount(ctx, *user)
+		if user == nil {
+			continue
 		}
+		if len((*user).AwsCustomerIdentifier) > 0 {
+			continue
+		}
+		checkUnusedAccount(ctx, *user)
 	}
 
 	return nil
