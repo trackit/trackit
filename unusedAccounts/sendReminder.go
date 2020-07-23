@@ -9,7 +9,7 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
-func sendRemainder(ctx context.Context, user models.User, timeBeforeDeletion time.Duration) error {
+func sendReminder(ctx context.Context, user models.User, timeBeforeDeletion time.Duration) error {
 	daysBeforeDeletion := timeBeforeDeletion / (time.Hour * 24)
 	if daysBeforeDeletion < 1 {
 		daysBeforeDeletion = 1

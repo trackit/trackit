@@ -14,7 +14,7 @@ const month = day * 30
 const unusedThreshold = month
 const deleteThreshold = unusedThreshold + month
 
-var remaindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + deleteThreshold - day*7, unusedThreshold + deleteThreshold - day*3, unusedThreshold + deleteThreshold - day*1}
+var remindersThresholds = []time.Duration{unusedThreshold, unusedThreshold + deleteThreshold - day*7, unusedThreshold + deleteThreshold - day*3, unusedThreshold + deleteThreshold - day*1}
 
 // CheckUnusedAccounts checks for unused accounts, sends reminders and delete unused data
 func CheckUnusedAccounts(ctx context.Context) error {
@@ -41,8 +41,8 @@ func checkUnusedAccount(ctx context.Context, user models.User) error {
 	unusedTime := time.Now().Sub(user.LastSeen)
 
 	thresholdStage := 0
-	for i, remainderThreshold := range remaindersThresholds {
-		if unusedTime > remainderThreshold {
+	for i, reminderThreshold := range remindersThresholds {
+		if unusedTime > reminderThreshold {
 			thresholdStage = i
 		} else {
 			break
@@ -51,9 +51,9 @@ func checkUnusedAccount(ctx context.Context, user models.User) error {
 
 	var err error = nil
 
-	if user.LastUnusedReminder.Sub(user.LastSeen) < remaindersThresholds[thresholdStage] {
+	if user.LastUnusedReminder.Sub(user.LastSeen) < remindersThresholds[thresholdStage] {
 		timeBeforeDeletion := user.LastSeen.Add(deleteThreshold).Sub(time.Now())
-		err = sendRemainder(ctx, user, timeBeforeDeletion)
+		err = sendReminder(ctx, user, timeBeforeDeletion)
 
 		user.LastUnusedReminder = time.Now()
 		user.Update(db.Db)
