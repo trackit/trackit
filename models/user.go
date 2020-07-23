@@ -10,7 +10,7 @@ func GetUnusedAccounts(db XODB, unseenFor time.Duration) ([]*User, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, created, modified, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, last_seen, last_unused_reminder ` +
+		`id, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, last_seen, last_unused_reminder ` +
 		`FROM trackit.user ` +
 		`WHERE last_seen < ?`
 
@@ -30,7 +30,7 @@ func GetUnusedAccounts(db XODB, unseenFor time.Duration) ([]*User, error) {
 		}
 
 		// scan
-		err = q.Scan(&u.ID, &u.Created, &u.Modified, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.LastSeen, &u.LastUnusedReminder)
+		err = q.Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.LastSeen, &u.LastUnusedReminder)
 		if err != nil {
 			return nil, err
 		}
