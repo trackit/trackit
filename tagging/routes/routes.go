@@ -45,6 +45,16 @@ var resourcesQueryArgs = []routes.QueryArg{
 	},
 }
 
+// suggestionsQueryArgs allows to get required queryArgs params
+var suggestionsQueryArgs = []routes.QueryArg{
+	routes.QueryArg{
+		Name:        "tagName",
+		Type:        routes.QueryArgString{},
+		Description: "Tag name for suggestions",
+		Optional:    false,
+	},
+}
+
 func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetMostUsedTags).With(
@@ -52,7 +62,7 @@ func init() {
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
 				Summary:     "get most used tags",
-				Description: "Responds with most used tags for an AWS account.",
+				Description: "Responds with most used tags for a user.",
 			},
 		),
 	}.H().Register("/tagging/mostusedtags")
@@ -84,4 +94,18 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/resources")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(routeGetTaggingSuggestions).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.QueryArgs(suggestionsQueryArgs),
+			routes.Documentation{
+				Summary:     "get suggestions for a tag's value",
+				Description: "Responds with suggestions for a tag's value for a user.",
+			},
+		),
+	}.H().Register("/tagging/suggestions")
 }
