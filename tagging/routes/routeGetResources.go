@@ -81,30 +81,30 @@ func GetResources(ctx context.Context, params ResourcesRequestBody, user users.U
 // with empty data
 func makeElasticSearchRequest(ctx context.Context, params ResourcesRequestBody, user users.User,
 	esSearchParams func(ResourcesRequestBody, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
-		l := jsonlog.LoggerFromContextOrDefault(ctx)
-		index := es.IndexNameForUser(user, tagging.IndexPrefixTaggingReport)
-		searchService := esSearchParams(
-			params,
-			es.Client,
-			index,
-		)
-		res, err := searchService.Do(ctx)
-		if err != nil {
-			if elastic.IsNotFound(err) {
-				l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
-					"index": index,
-					"error": err.Error(),
-				})
-				return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
-			} else if cast, ok := err.(*elastic.Error); ok && cast.Details != nil && cast.Details.Type == "search_phase_execution_exception" {
-				l.Error("Error while getting data from ES", map[string]interface{}{
-					"type":  fmt.Sprintf("%T", err),
-					"error": err,
-				})
-			} else {
-				l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
-			}
-			return nil, http.StatusInternalServerError, terrors.GetErrorMessage(ctx, err)
+	l := jsonlog.LoggerFromContextOrDefault(ctx)
+	index := es.IndexNameForUser(user, tagging.IndexPrefixTaggingReport)
+	searchService := esSearchParams(
+		params,
+		es.Client,
+		index,
+	)
+	res, err := searchService.Do(ctx)
+	if err != nil {
+		if elastic.IsNotFound(err) {
+			l.Warning("Query execution failed, ES index does not exists", map[string]interface{}{
+				"index": index,
+				"error": err.Error(),
+			})
+			return nil, http.StatusOK, terrors.GetErrorMessage(ctx, err)
+		} else if cast, ok := err.(*elastic.Error); ok && cast.Details != nil && cast.Details.Type == "search_phase_execution_exception" {
+			l.Error("Error while getting data from ES", map[string]interface{}{
+				"type":  fmt.Sprintf("%T", err),
+				"error": err,
+			})
+		} else {
+			l.Error("Query execution failed", map[string]interface{}{"error": err.Error()})
 		}
-		return res, http.StatusOK, nil
+		return nil, http.StatusInternalServerError, terrors.GetErrorMessage(ctx, err)
+	}
+	return res, http.StatusOK, nil
 }
