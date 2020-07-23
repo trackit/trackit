@@ -40,10 +40,6 @@ func CheckUnusedAccounts(ctx context.Context) error {
 func checkUnusedAccount(ctx context.Context, user models.User) error {
 	unusedTime := time.Now().Sub(user.LastSeen)
 
-	if unusedTime > deleteThreshold {
-		return deleteData(user)
-	}
-
 	thresholdStage := 0
 	for i, remainderThreshold := range remaindersThresholds {
 		if unusedTime > remainderThreshold {
