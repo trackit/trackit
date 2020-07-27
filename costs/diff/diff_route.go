@@ -26,11 +26,11 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
 )
@@ -166,7 +166,7 @@ func TaskDiffData(ctx context.Context, aa aws.AwsAccount, dateRange DateRange, a
 	if err != nil {
 		return
 	}
-	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, lineItems.IndexSuffix)
 	if err != nil {
 		return costDiff{}, err
 	}
@@ -191,7 +191,7 @@ func prepareGetDiffData(request *http.Request, a routes.Arguments) (int, interfa
 		return http.StatusBadRequest, fmt.Errorf("invalid aggregation period : %s", parsedParams.aggregationPeriod)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, lineItems.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}

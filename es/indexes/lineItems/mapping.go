@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,34 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package s3
+package lineItems
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeLineItem = "lineitem"
-const IndexPrefixLineItem = "lineitems"
-const TemplateNameLineItem = "lineitems"
-
-// put the ElasticSearch index for *-lineitems indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameLineItem).BodyString(TemplateLineItem).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index lineitems.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index lineitems.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateLineItem = `
+const Template = `
 {
 	"template": "*-lineitems",
 	"version": 8,

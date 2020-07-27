@@ -20,10 +20,6 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-const (
-	IndexPrefixLineItems = "lineitems"
-)
-
 func IndexNameForUser(u users.User, p string) string {
 	return IndexNameForUserId(u.Id, p)
 }

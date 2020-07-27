@@ -22,11 +22,12 @@ import (
 	"time"
 
 	"github.com/olivere/elastic"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
 const (
@@ -133,7 +134,7 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return latestManifest, err
 	} else {
-		index := es.IndexNameForUserId(aa.UserId, IndexPrefixLineItem)
+		index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
 		latestManifest, err = ReadBills(
 			ctx,
 			aa,
@@ -160,7 +161,7 @@ func UpdateReportLimit(ctx context.Context, aa aws.AwsAccount, br BillRepository
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return latestManifest, err
 	} else {
-		index := es.IndexNameForUserId(aa.UserId, IndexPrefixLineItem)
+		index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
 		latestManifest, err = ReadBills(
 			ctx,
 			aa,
@@ -187,7 +188,7 @@ func getBulkProcessor(ctx context.Context) (*elastic.BulkProcessor, error) {
 // ingestLineItems returns an OnLineItem handler which ingests LineItems in an
 // ElasticSearch index.
 func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index string, br BillRepository) OnLineItem {
-	return func(li LineItem, ok bool) {
+	return func(li lineItems.LineItem, ok bool) {
 		if ok {
 			if li.LineItemType == "Tax" {
 				li.AvailabilityZone = "taxes"
@@ -198,7 +199,7 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 			rq := elastic.NewBulkIndexRequest()
 			rq = rq.Index(index)
 			rq = rq.OpType(opTypeCreate)
-			rq = rq.Type(TypeLineItem)
+			rq = rq.Type(lineItems.Type)
 			rq = rq.Id(li.EsId())
 			rq = rq.Doc(li)
 			bp.Add(rq)
@@ -250,11 +251,11 @@ func manifestModifedAfterAndBefore(after time.Time, before time.Time) ManifestPr
 
 // extractTags extracts tags from a LineItem's Any field. It retrieves user
 // tags only and stores them in the Tags map with a clean key.
-func extractTags(li LineItem) LineItem {
-	var tags []LineItemTags
+func extractTags(li lineItems.LineItem) lineItems.LineItem {
+	var tags []lineItems.LineItemTags
 	for k, v := range li.Any {
 		if strings.HasPrefix(k, tagPrefix) {
-			tags = append(tags, LineItemTags{strings.TrimPrefix(k, tagPrefix), v})
+			tags = append(tags, lineItems.LineItemTags{strings.TrimPrefix(k, tagPrefix), v})
 		}
 	}
 	li.Tags = tags

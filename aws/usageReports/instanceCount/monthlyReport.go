@@ -23,9 +23,9 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/s3"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
 type (
@@ -112,7 +112,7 @@ func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, a
 // getInstanceCountMetrics gets credentials, accounts and region to fetch InstanceCount report stats
 func fetchMonthlyInstanceCountReports(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]InstanceCountReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUserId(aa.UserId, s3.IndexPrefixLineItem)
+	index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
 	parsedParams := EsQueryParams{
 		AccountList: []string{aa.AwsIdentity},
 		IndexList:   []string{index},

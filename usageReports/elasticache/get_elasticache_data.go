@@ -28,6 +28,7 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/users"
 )
 
@@ -91,7 +92,7 @@ func GetElastiCacheDailyInstances(ctx context.Context, params ElastiCacheQueryPa
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, es.IndexPrefixLineItems)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

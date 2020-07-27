@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"time"
 
-	ts3 "github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	core "github.com/trackit/trackit/plugins/account/core"
 	utils "github.com/trackit/trackit/plugins/utils"
 )
@@ -64,7 +64,7 @@ func getBucketsWithNoTraffic(pluginRes *core.PluginResult, storage, bandwidth bu
 func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResult) {
 	beginDate := time.Now().AddDate(0, -1, 0).UTC()
 	endDate := time.Now().UTC()
-	esIndex := es.IndexNameForUserId(pluginParams.User.Id, ts3.IndexPrefixLineItem)
+	esIndex := es.IndexNameForUserId(pluginParams.User.Id, lineItems.IndexSuffix)
 
 	searchService := GetS3StorageUsage(beginDate, endDate, pluginParams.ESClient, pluginParams.AccountId, esIndex)
 	res, err := searchService.Do(pluginParams.Context)

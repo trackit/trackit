@@ -25,11 +25,11 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
 )
@@ -162,7 +162,7 @@ func getCostData(request *http.Request, a routes.Arguments) (int, interface{}) {
 		return http.StatusBadRequest, err
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}

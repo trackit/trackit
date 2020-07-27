@@ -20,10 +20,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
 )
@@ -108,7 +108,7 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 		parsedParams.AccountList = a[tagsValuesQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}
@@ -158,7 +158,7 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 		parsedParams.AccountList = a[tagsKeysQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}
