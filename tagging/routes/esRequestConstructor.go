@@ -50,7 +50,7 @@ func getElasticSeachResourcesParams(params ResourcesRequestBody, client *elastic
 	}
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
+		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
 			SubAggregation("resources", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
 	return search
 }
