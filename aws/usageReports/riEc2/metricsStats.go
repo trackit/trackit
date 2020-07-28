@@ -17,14 +17,14 @@ package riEc2
 import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
-
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
 )
 
-func getRecurringCharges(reservation *ec2.ReservedInstances) []RecurringCharges {
-	charges := make([]RecurringCharges, len(reservation.RecurringCharges))
+func getRecurringCharges(reservation *ec2.ReservedInstances) []riEc2Reports.RecurringCharges {
+	charges := make([]riEc2Reports.RecurringCharges, len(reservation.RecurringCharges))
 	for i, key := range reservation.RecurringCharges {
-		charges[i] = RecurringCharges{
+		charges[i] = riEc2Reports.RecurringCharges{
 			Amount:    aws.Float64Value(key.Amount),
 			Frequency: aws.StringValue(key.Frequency),
 		}
@@ -33,10 +33,10 @@ func getRecurringCharges(reservation *ec2.ReservedInstances) []RecurringCharges 
 }
 
 // getReservationTag formats []*ec2.Tag to map[string]string
-func getReservationTag(tags []*ec2.Tag) []utils.Tag {
-	res := make([]utils.Tag, 0)
+func getReservationTag(tags []*ec2.Tag) []common.Tag {
+	res := make([]common.Tag, 0)
 	for _, tag := range tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

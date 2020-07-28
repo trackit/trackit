@@ -25,9 +25,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/ec2"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/users"
 )
@@ -108,7 +108,7 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 
 // GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2.IndexPrefixEC2Report)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2Reports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

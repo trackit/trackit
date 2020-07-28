@@ -25,56 +25,21 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/rdsRiReports"
 )
 
 const RDSStsSessionName = "fetch-rds"
 
-type (
-	// InstanceReport is saved in ES to have all the information of an RDS reserved instance
-	InstanceReport struct {
-		utils.ReportBase
-		Instance Instance `json:"instance"`
-	}
-
-	// InstanceBase contains basics information of an RDS reserved instance
-	InstanceBase struct {
-		DBInstanceIdentifier string             `json:"id"`
-		DBInstanceOfferingId string             `json:"offeringId"`
-		AvailabilityZone     string             `json:"availabilityZone"`
-		DBInstanceClass      string             `json:"type"`
-		DBInstanceCount      int64              `json:"dbInstanceCount"`
-		Duration             int64              `json:"duration"`
-		MultiAZ              bool               `json:"multiAZ"`
-		ProductDescription   string             `json:"productDescription"`
-		OfferingType         string             `json:"offeringType"`
-		State                string             `json:"state"`
-		StartTime            time.Time          `json:"startTime"`
-		RecurringCharges     []RecurringCharges `json:"recurringCharges"`
-	}
-
-	// Instance contains the information of an RDS reserved instance
-	Instance struct {
-		InstanceBase
-		Tags []utils.Tag `json:"tags"`
-	}
-
-	//RecurringCharges contains recurring charges informations of a reservation
-	RecurringCharges struct {
-		Amount    float64
-		Frequency string
-	}
-)
-
 // importInstancesToEs imports RDS reserved instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
+func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []rdsRiReports.InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating RDS reserved instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixReservedRDSReport)
+	index := es.IndexNameForUserId(aa.UserId, rdsRiReports.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -86,7 +51,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeReservedRDSReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, rdsRiReports.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -98,7 +63,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 	return nil
 }
 
-func generateId(instance InstanceReport) (string, error) {
+func generateId(instance rdsRiReports.InstanceReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -120,13 +85,13 @@ func generateId(instance InstanceReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Instance) <-chan Instance {
+func merge(cs ...<-chan rdsRiReports.Instance) <-chan rdsRiReports.Instance {
 	var wg sync.WaitGroup
-	out := make(chan Instance)
+	out := make(chan rdsRiReports.Instance)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Instance) {
+	output := func(c <-chan rdsRiReports.Instance) {
 		for n := range c {
 			out <- n
 		}

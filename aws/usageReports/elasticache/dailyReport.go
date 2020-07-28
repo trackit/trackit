@@ -25,13 +25,15 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
 )
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, account, region string, instanceChan chan Instance) error {
+func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, account, region string, instanceChan chan elasticacheReports.Instance) error {
 	defer close(instanceChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -50,8 +52,8 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		stats := getInstanceStats(ctx, cluster, sess, start, end)
 		costs := make(map[string]float64, 0)
 		tags := getClusterTags(ctx, cluster, svc, account, region)
-		instanceChan <- Instance{
-			InstanceBase: InstanceBase{
+		instanceChan <- elasticacheReports.Instance{
+			InstanceBase: elasticacheReports.InstanceBase{
 				Id:            aws.StringValue(cluster.CacheClusterId),
 				Status:        aws.StringValue(cluster.CacheClusterStatus),
 				Region:        aws.StringValue(cluster.PreferredAvailabilityZone),
@@ -94,16 +96,16 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	instanceChans := make([]<-chan elasticacheReports.Instance, 0, len(regions))
 	for _, region := range regions {
-		instanceChan := make(chan Instance)
+		instanceChan := make(chan elasticacheReports.Instance)
 		go fetchDailyInstancesList(ctx, creds, account, region, instanceChan)
 		instanceChans = append(instanceChans, instanceChan)
 	}
-	instances := make([]InstanceReport, 0)
+	instances := make([]elasticacheReports.InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
-		instances = append(instances, InstanceReport{
-			ReportBase: utils.ReportBase{
+		instances = append(instances, elasticacheReports.InstanceReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

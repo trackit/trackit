@@ -22,9 +22,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/instanceCountReports"
 )
 
 type (
@@ -53,7 +53,7 @@ type (
 				InstanceCount struct {
 					Hits struct {
 						Hits []struct {
-							InstanceCount instanceCount.InstanceCountReport `json:"_source"`
+							InstanceCount instanceCountReports.InstanceCountReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"reports"`
@@ -71,7 +71,7 @@ type (
 						In   struct {
 							Hits struct {
 								Hits []struct {
-									InstanceCount instanceCount.InstanceCountReport `json:"_source"`
+									InstanceCount instanceCountReports.InstanceCountReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"instanceCount"`
@@ -83,7 +83,7 @@ type (
 
 	// InstanceCount is saved in ES to have all the information of an InstanceCount
 	InstanceCountReport struct {
-		utils.ReportBase
+		common.ReportBase
 		InstanceCount InstanceCount `json:"instanceCount"`
 	}
 
@@ -100,7 +100,7 @@ type (
 	}
 )
 
-func getInstanceCountSnapshotReportResponse(oldInstanceCount instanceCount.InstanceCountReport) InstanceCountReport {
+func getInstanceCountSnapshotReportResponse(oldInstanceCount instanceCountReports.InstanceCountReport) InstanceCountReport {
 	hours := make([]InstanceCountHours, 0)
 	for _, value := range oldInstanceCount.InstanceCount.Hours {
 		hours = append(hours, InstanceCountHours{

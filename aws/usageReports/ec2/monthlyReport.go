@@ -29,10 +29,12 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 )
 
 // getElasticSearchEc2Instance prepares and run the request to retrieve the a report of an instance
@@ -65,10 +67,10 @@ func getElasticSearchEc2Instance(ctx context.Context, account, instance string, 
 }
 
 // getInstanceInfoFromEs gets information about an instance from previous report to put it in the new report
-func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, account string, userId int) Instance {
-	var docType InstanceReport
-	var inst = Instance{
-		InstanceBase: InstanceBase{
+func getInstanceInfoFromES(ctx context.Context, instance common.CostPerResource, account string, userId int) ec2Reports.Instance {
+	var docType ec2Reports.InstanceReport
+	var inst = ec2Reports.Instance{
+		InstanceBase: ec2Reports.InstanceBase{
 			Id:         instance.Resource,
 			Region:     "N/A",
 			State:      "N/A",
@@ -77,23 +79,23 @@ func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, 
 			Type:       "N/A",
 			Platform:   "Linux/UNIX",
 		},
-		Tags:  make([]utils.Tag, 0),
+		Tags:  make([]common.Tag, 0),
 		Costs: make(map[string]float64, 0),
-		Stats: Stats{
-			Cpu: Cpu{
+		Stats: ec2Reports.Stats{
+			Cpu: ec2Reports.Cpu{
 				Average: -1,
 				Peak:    -1,
 			},
-			Network: Network{
+			Network: ec2Reports.Network{
 				In:  -1,
 				Out: -1,
 			},
-			Volumes: make([]Volume, 0),
+			Volumes: make([]ec2Reports.Volume, 0),
 		},
 	}
 	inst.Costs["instance"] = instance.Cost
 	res, err := getElasticSearchEc2Instance(ctx, account, instance.Resource,
-		es.Client, es.IndexNameForUserId(userId, IndexPrefixEC2Report))
+		es.Client, es.IndexNameForUserId(userId, ec2Reports.IndexSuffix))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
@@ -110,8 +112,8 @@ func getInstanceInfoFromES(ctx context.Context, instance utils.CostPerResource, 
 
 // fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
-func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst utils.CostPerResource,
-	account, region string, instanceChan chan Instance, startDate, endDate time.Time, userId int) error {
+func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst common.CostPerResource,
+	account, region string, instanceChan chan ec2Reports.Instance, startDate, endDate time.Time, userId int) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -129,8 +131,8 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 			stats := getInstanceStats(ctx, instance, sess, startDate, endDate)
 			costs := make(map[string]float64, 0)
 			costs["instance"] = inst.Cost
-			instanceChan <- Instance{
-				InstanceBase: InstanceBase{
+			instanceChan <- ec2Reports.Instance{
+				InstanceBase: ec2Reports.InstanceBase{
 					Id:         aws.StringValue(instance.InstanceId),
 					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
 					State:      aws.StringValue(instance.State.Name),
@@ -149,7 +151,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 }
 
 // getEc2Metrics gets credentials, accounts and region to fetch EC2 instances stats
-func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]InstanceReport, error) {
+func fetchMonthlyInstancesStats(ctx context.Context, instances []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]ec2Reports.InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorInstanceStsSessionName)
 	if err != nil {
@@ -170,20 +172,20 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	instanceChans := make([]<-chan ec2Reports.Instance, 0, len(regions))
 	for _, instance := range instances {
 		for _, region := range regions {
 			if strings.Contains(instance.Region, region) {
-				instanceChan := make(chan Instance)
+				instanceChan := make(chan ec2Reports.Instance)
 				go fetchMonthlyInstancesList(ctx, creds, instance, account, region, instanceChan, startDate, endDate, aa.UserId)
 				instanceChans = append(instanceChans, instanceChan)
 			}
 		}
 	}
-	instancesList := make([]InstanceReport, 0)
+	instancesList := make([]ec2Reports.InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
-		instancesList = append(instancesList, InstanceReport{
-			ReportBase: utils.ReportBase{
+		instancesList = append(instancesList, ec2Reports.InstanceReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
@@ -195,10 +197,10 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 }
 
 // filterInstancesCosts filters instances, cloudwatch and volumes of EC2 instances costs
-func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerResource) ([]utils.CostPerResource, []utils.CostPerResource, []utils.CostPerResource) {
-	newInstance := make([]utils.CostPerResource, 0)
-	newVolume := make([]utils.CostPerResource, 0)
-	newCloudWatch := make([]utils.CostPerResource, 0)
+func filterInstancesCosts(ec2Cost, cloudwatchCost []common.CostPerResource) ([]common.CostPerResource, []common.CostPerResource, []common.CostPerResource) {
+	newInstance := make([]common.CostPerResource, 0)
+	newVolume := make([]common.CostPerResource, 0)
+	newCloudWatch := make([]common.CostPerResource, 0)
 	for _, instance := range ec2Cost {
 		if len(instance.Resource) == 19 && strings.HasPrefix(instance.Resource, "i-") {
 			newInstance = append(newInstance, instance)
@@ -217,7 +219,7 @@ func filterInstancesCosts(ec2Cost, cloudwatchCost []utils.CostPerResource) ([]ut
 	return newInstance, newVolume, newCloudWatch
 }
 
-func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch []utils.CostPerResource) []InstanceReport {
+func addCostToInstances(instances []ec2Reports.InstanceReport, costVolume, costCloudWatch []common.CostPerResource) []ec2Reports.InstanceReport {
 	for i, instance := range instances {
 		for _, volume := range instance.Instance.Stats.Volumes {
 			for _, costPerVolume := range costVolume {
@@ -235,7 +237,7 @@ func addCostToInstances(instances []InstanceReport, costVolume, costCloudWatch [
 	return instances
 }
 
-func getEc2Recommendations(instances []InstanceReport) []InstanceReport {
+func getEc2Recommendations(instances []ec2Reports.InstanceReport) []ec2Reports.InstanceReport {
 	for idx, report := range instances {
 		instances[idx].Instance.Recommendation = getEC2RecommendationTypeReason(report.Instance)
 	}
@@ -243,7 +245,7 @@ func getEc2Recommendations(instances []InstanceReport) []InstanceReport {
 }
 
 // PutEc2MonthlyReport puts a monthly report of EC2 instance in ES
-func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting EC2 monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -255,7 +257,7 @@ func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []utils.Co
 		logger.Info("No EC2 instances found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEC2Report)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, ec2Reports.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

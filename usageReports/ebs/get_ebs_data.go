@@ -25,9 +25,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/ebs"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ebsReports"
 	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/users"
 )
@@ -108,7 +108,7 @@ func GetEbsDailySnapshots(ctx context.Context, params EbsQueryParams, user users
 
 // GetEbsData gets EBS monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEbsData(ctx context.Context, parsedParams EbsQueryParams, user users.User, tx *sql.Tx) (int, []SnapshotReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ebs.IndexPrefixEBSReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ebsReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

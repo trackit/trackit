@@ -20,6 +20,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -27,8 +29,9 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es/indexes/common"
 	"github.com/trackit/trackit/usageReports/ec2"
 	"github.com/trackit/trackit/users"
 )
@@ -71,7 +74,7 @@ func getEc2CoverageReport(creds *credentials.Credentials, start time.Time) (*cos
 }
 
 // getInstancesNames return an array of the names of the instances which are linked to a reservation
-func getInstancesNames(report Reservation, instances []ec2.InstanceReport) []string {
+func getInstancesNames(report ec2CoverageReports.Reservation, instances []ec2.InstanceReport) []string {
 	names := make([]string, 0)
 	for _, instance := range instances {
 		if name, ok := instance.Instance.Tags["Name"]; ok && instance.Instance.Type == report.Type &&
@@ -83,10 +86,10 @@ func getInstancesNames(report Reservation, instances []ec2.InstanceReport) []str
 }
 
 func generateEc2ReservationReport(ctx context.Context, aa taws.AwsAccount, start time.Time, instances []ec2.InstanceReport, reservations *costexplorer.GetReservationCoverageOutput) (bool, error) {
-	reports := make([]ReservationReport, 0)
+	reports := make([]ec2CoverageReports.ReservationReport, 0)
 	for _, covByTime := range reservations.CoveragesByTime {
 		for _, group := range covByTime.Groups {
-			report := Reservation{
+			report := ec2CoverageReports.Reservation{
 				Type:     aws.StringValue(group.Attributes["instanceType"]),
 				Platform: aws.StringValue(group.Attributes["platform"]),
 				Tenancy:  aws.StringValue(group.Attributes["tenancy"]),
@@ -106,8 +109,8 @@ func generateEc2ReservationReport(ctx context.Context, aa taws.AwsAccount, start
 				report.TotalRunningHours = value
 			}
 			report.InstancesNames = getInstancesNames(report, instances)
-			reports = append(reports, ReservationReport{
-				ReportBase: utils.ReportBase{
+			reports = append(reports, ec2CoverageReports.ReservationReport{
+				ReportBase: common.ReportBase{
 					Account:    aa.AwsIdentity,
 					ReportType: "monthly",
 					ReportDate: start,
@@ -127,7 +130,7 @@ func PutEc2MonthlyCoverageReport(ctx context.Context, aa taws.AwsAccount, start,
 		"startDate":    start.Format("2006-01-02T15:04:05Z"),
 		"endDate":      end.Format("2006-01-02T15:04:05Z"),
 	})
-	if already, err := utils.CheckMonthlyReportExists(ctx, start, aa, IndexPrefixEC2CoverageReport); err != nil {
+	if already, err := utils.CheckMonthlyReportExists(ctx, start, aa, ec2CoverageReports.IndexSuffix); err != nil {
 		return false, err
 	} else if already {
 		logger.Info("There is already an EC2 Coverage monthly report", nil)

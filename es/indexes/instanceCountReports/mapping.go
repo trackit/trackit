@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,34 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package instanceCount
+package instanceCountReports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeInstanceCountReport = "instancecount-report"
-const IndexPrefixInstanceCountReport = "instancecount-reports"
-const TemplateNameInstanceCountReport = "instancecount-reports"
-
-// put the ElasticSearch index for *-instanceCount-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameInstanceCountReport).BodyString(TemplateInstanceCountReport).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index InstanceCountReport.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index InstanceCountReport.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateInstanceCountReport = `
+const Template = `
 {
 	"template": "*-instancecount-reports",
 	"version": 1,

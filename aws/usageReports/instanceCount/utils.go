@@ -21,41 +21,23 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/trackit/trackit/es/indexes/instanceCountReports"
+
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
-)
-
-type (
-	// InstanceCount is saved in ES to have all the information of an InstanceCount
-	InstanceCountReport struct {
-		utils.ReportBase
-		InstanceCount InstanceCount `json:"instanceCount"`
-	}
-
-	// InstanceCount contains all the information of an InstanceCount
-	InstanceCount struct {
-		Type   string               `json:"instanceType"`
-		Region string               `json:"region"`
-		Hours  []InstanceCountHours `json:"hours"`
-	}
-
-	InstanceCountHours struct {
-		Hour  time.Time `json:"hour"`
-		Count float64   `json:"count"`
-	}
 )
 
 // importInstanceCountsToEs imports Instance Count in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []InstanceCountReport) error {
+func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []instanceCountReports.InstanceCountReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating InstanceCount for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixInstanceCountReport)
+	index := es.IndexNameForUserId(aa.UserId, instanceCountReports.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -67,7 +49,7 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 			logger.Error("Error when marshaling instanceCount var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, report, TypeInstanceCountReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, report, instanceCountReports.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -79,7 +61,7 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 	return nil
 }
 
-func generateId(report InstanceCountReport) (string, error) {
+func generateId(report instanceCountReports.InstanceCountReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`

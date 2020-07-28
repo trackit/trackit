@@ -22,8 +22,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatch"
 	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/esReports"
 )
 
 // getDomainCPUStats gets the CPU average and the CPU peak from CloudWatch
@@ -87,13 +87,13 @@ func getDomainJVMMemoryPressure(svc *cloudwatch.CloudWatch, dimensions []*cloudw
 }
 
 // getDomainStats gets the domains stats from CloudWatch
-func getDomainStats(ctx context.Context, domain string, sess *session.Session, start, end time.Time) Stats {
+func getDomainStats(ctx context.Context, domain string, sess *session.Session, start, end time.Time) esReports.Stats {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
 	accountId, err := utils.GetAccountId(ctx, sess)
 	if err != nil {
 		logger.Error("Error while getting the account id", err.Error())
-		return Stats{Cpu{-1, -1}, -1, JVMMemoryPressure{-1, -1}}
+		return esReports.Stats{esReports.Cpu{-1, -1}, -1, esReports.JVMMemoryPressure{-1, -1}}
 	}
 	dimensions := []*cloudwatch.Dimension{
 		{
@@ -105,7 +105,7 @@ func getDomainStats(ctx context.Context, domain string, sess *session.Session, s
 			Value: aws.String(accountId),
 		},
 	}
-	var stats Stats
+	var stats esReports.Stats
 	stats.Cpu.Average, stats.Cpu.Peak, err = getDomainCPUStats(svc, dimensions, start, end)
 	if err != nil {
 		logger.Error("Error when fetching CPU stats from CloudWatch", err.Error())

@@ -22,10 +22,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/trackit/es/indexes/rdsReports"
+
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/rds"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/lineItems"
@@ -108,7 +109,7 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 
 // GetRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyInstances
 func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rds.IndexPrefixRDSReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rdsReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

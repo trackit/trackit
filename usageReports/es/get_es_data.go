@@ -22,10 +22,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/trackit/es/indexes/esReports"
+
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	tes "github.com/trackit/trackit/aws/usageReports/es"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/lineItems"
@@ -108,7 +109,7 @@ func GetEsDailyDomains(ctx context.Context, params EsQueryParams, user users.Use
 
 // GetEsData gets ES monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User, tx *sql.Tx) (int, []DomainReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, tes.IndexPrefixESReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, esReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

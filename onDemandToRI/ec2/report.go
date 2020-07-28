@@ -22,12 +22,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
+
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
+
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/pricings"
-	awsEc2 "github.com/trackit/trackit/aws/usageReports/ec2"
-	awsriEc2 "github.com/trackit/trackit/aws/usageReports/riEc2"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/models"
@@ -118,7 +120,7 @@ func getRIReport(ctx context.Context, aa aws.AwsAccount) ([]riEc2.ReservationRep
 	currentMonthBeginning := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	riReportParams := riEc2.ReservedInstancesQueryParams{
 		AccountList: []string{aa.AwsIdentity},
-		IndexList:   []string{es.IndexNameForUserId(aa.UserId, awsriEc2.IndexPrefixReservedInstancesReport)},
+		IndexList:   []string{es.IndexNameForUserId(aa.UserId, riEc2Reports.IndexSuffix)},
 		Date:        currentMonthBeginning,
 	}
 	_, res, err := riEc2.GetReservedInstancesDaily(ctx, riReportParams)
@@ -139,7 +141,7 @@ func getEC2Report(ctx context.Context, aa aws.AwsAccount) ([]ec2.InstanceReport,
 	currentMonthBeginning := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	ec2ReportParams := ec2.Ec2QueryParams{
 		AccountList: []string{aa.AwsIdentity},
-		IndexList:   []string{es.IndexNameForUserId(aa.UserId, awsEc2.IndexPrefixEC2Report)},
+		IndexList:   []string{es.IndexNameForUserId(aa.UserId, ec2Reports.IndexSuffix)},
 		Date:        currentMonthBeginning,
 	}
 	_, res, err := ec2.GetEc2DailyInstances(ctx, ec2ReportParams, user, tx)

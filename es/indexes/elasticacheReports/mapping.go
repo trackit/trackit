@@ -1,4 +1,4 @@
-//   Copyright 2017 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package es
+package elasticacheReports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeESReport = "es-report"
-const IndexPrefixESReport = "es-reports"
-const TemplateNameESReport = "es-reports"
-
-// put the ElasticSearch index for *-es-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameESReport).BodyString(TemplateEsReport).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index ESReport.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index ESReport.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateEsReport = `
+const Template = `
 {
-	"template": "*-es-reports",
+	"template": "*-elasticache-reports",
 	"version": 1,
 	"mappings": {
-		"es-report": {
+		"elasticache-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,25 +30,39 @@ const TemplateEsReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"domain": {
+				"instance": {
 					"properties": {
-						"arn": {
+						"id": {
+							"type": "keyword"
+						},
+						"status": {
 							"type": "keyword"
 						},
 						"region": {
 							"type": "keyword"
 						},
-						"domainId": {
+						"nodeType": {
 							"type": "keyword"
 						},
-						"instanceType": {
+						"nodes": {
+							"type": "nested",
+							"properties": {
+								"id": {
+									"type": "keyword"
+								},
+								"status": {
+									"type": "keyword"
+								},
+								"region": {
+									"type": "keyword"
+								}
+							}
+						},
+						"engine": {
 							"type": "keyword"
 						},
-						"instanceCount": {
-							"type": "integer"
-						},
-						"totalStorageSpace": {
-							"type": "integer"
+						"engineVersion": {
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",
@@ -103,10 +92,7 @@ const TemplateEsReport = `
 											}
 									}
 								},
-								"freeSpace": {
-									"type": "double"
-								},
-								"JVMMemoryPressure": {
+								"network": {
 									"type": "object",
 									"properties": {
 											"in": {

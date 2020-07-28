@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ec2
+package rdsReports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeEC2Report = "ec2-report"
-const IndexPrefixEC2Report = "ec2-reports"
-const TemplateNameEC2Report = "ec2-reports"
-
-// put the ElasticSearch index for *-ec2-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameEC2Report).BodyString(TemplateEc2Report).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index EC2Report.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index EC2Report.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateEc2Report = `
+const Template = `
 {
-	"template": "*-ec2-reports",
-	"version": 11,
+	"template": "*-rds-reports",
+	"version": 5,
 	"mappings": {
-		"ec2-report": {
+		"rds-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -56,27 +31,25 @@ const TemplateEc2Report = `
 					"type": "keyword"
 				},
 				"instance": {
+					"type": "object",
 					"properties": {
 						"id": {
 							"type": "keyword"
 						},
-						"region": {
-							"type": "keyword"
-						},
-						"state": {
-							"type": "keyword"
-						},
-						"purchasing": {
-							"type": "keyword"
-						},
-						"keyPair": {
+						"availabilityZone": {
 							"type": "keyword"
 						},
 						"type": {
 							"type": "keyword"
 						},
-						"platform": {
+						"engine": {
 							"type": "keyword"
+						},
+						"allocatedStorage": {
+							"type": "integer"
+						},
+						"multiAZ": {
+							"type": "boolean"
 						},
 						"tags": {
 							"type": "nested",
@@ -106,44 +79,19 @@ const TemplateEc2Report = `
 											}
 									}
 								},
-								"network": {
+								"freeSpace": {
 									"type": "object",
 									"properties": {
-											"in": {
+											"minimum": {
 												"type": "double"
 											},
-											"out": {
+											"maximum": {
+												"type": "double"
+											},
+											"average": {
 												"type": "double"
 											}
 									}
-								},
-								"volumes": {
-									"type": "nested",
-									"properties": {
-										"id": {
-											"type": "keyword"
-										},
-										"read": {
-											"type": "double"
-										},
-										"write": {
-											"type": "double"
-										}
-									}
-								}
-							}
-						},
-						"recommendation": {
-							"type": "object",
-							"properties": {
-								"instancetype": {
-									"type": "keyword"
-								},
-								"reason": {
-									"type": "keyword"
-								},
-								"newgeneration": {
-									"type": "keyword"
 								}
 							}
 						}

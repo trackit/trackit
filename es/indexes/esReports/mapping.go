@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package ebs
+package esReports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeEBSReport = "ebs-report"
-const IndexPrefixEBSReport = "ebs-reports"
-const TemplateNameEBSReport = "ebs-reports"
-
-// put the ElasticSearch index for *-ebs-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameEBSReport).BodyString(TemplateEbsReport).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index EBSReport.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index EBSReport.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateEbsReport = `
+const Template = `
 {
-	"template": "*-ebs-reports",
-	"version": 2,
+	"template": "*-es-reports",
+	"version": 1,
 	"mappings": {
-		"ebs-report": {
+		"es-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,25 +30,25 @@ const TemplateEbsReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"snapshot": {
+				"domain": {
 					"properties": {
-						"id": {
+						"arn": {
 							"type": "keyword"
-						},
-						"description": {
-							"type": "keyword"
-						},
-						"state": {
-							"type": "keyword"
-						},
-						"encrypted": {
-							"type": "boolean"
-						},
-						"startTime": {
-							"type": "date"
 						},
 						"region": {
 							"type": "keyword"
+						},
+						"domainId": {
+							"type": "keyword"
+						},
+						"instanceType": {
+							"type": "keyword"
+						},
+						"instanceCount": {
+							"type": "integer"
+						},
+						"totalStorageSpace": {
+							"type": "integer"
 						},
 						"tags": {
 							"type": "nested",
@@ -86,19 +61,38 @@ const TemplateEbsReport = `
 								}
 							}
 						},
-						"volume": {
+						"costs": {
+							"type": "object"
+						},
+						"stats": {
 							"type": "object",
 							"properties": {
-								"id": {
-									"type": "keyword"
+								"cpu": {
+									"type": "object",
+									"properties": {
+											"average": {
+												"type": "double"
+											},
+											"peak": {
+												"type": "double"
+											}
+									}
 								},
-								"size": {
-									"type": "integer"
+								"freeSpace": {
+									"type": "double"
+								},
+								"JVMMemoryPressure": {
+									"type": "object",
+									"properties": {
+											"in": {
+												"type": "double"
+											},
+											"out": {
+												"type": "double"
+											}
+									}
 								}
 							}
-						},
-						"cost": {
-							"type": "double"
 						}
 					}
 				}

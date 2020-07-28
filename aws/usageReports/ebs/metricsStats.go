@@ -18,14 +18,14 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // getSnapshotTag formats []*ec2.Tag to map[string]string
-func getSnapshotTag(tags []*ec2.Tag) []utils.Tag {
-	res := make([]utils.Tag, 0)
+func getSnapshotTag(tags []*ec2.Tag) []common.Tag {
+	res := make([]common.Tag, 0)
 	for _, tag := range tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

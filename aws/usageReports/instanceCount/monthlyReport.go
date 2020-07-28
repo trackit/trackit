@@ -25,6 +25,8 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/instanceCountReports"
 	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
@@ -61,9 +63,9 @@ type (
 	}
 )
 
-func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly, idxRegion, idxType int) []InstanceCountHours {
+func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly, idxRegion, idxType int) []instanceCountReports.InstanceCountHours {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	hours := make([]InstanceCountHours, 0)
+	hours := make([]instanceCountReports.InstanceCountHours, 0)
 	for _, date := range res.Region.Buckets[idxRegion].Type.Buckets[idxType].Date.Buckets {
 		hour, err := time.Parse("2006-01-02T15:04:05.000Z", date.Key)
 		if err != nil {
@@ -73,7 +75,7 @@ func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly
 		for _, amount := range date.Amount.Buckets {
 			totalAmount += amount.Key
 		}
-		hours = append(hours, InstanceCountHours{
+		hours = append(hours, instanceCountReports.InstanceCountHours{
 			Hour:  hour,
 			Count: totalAmount,
 		})
@@ -81,24 +83,24 @@ func getInstanceCountHours(ctx context.Context, res ResponseInstanceCountMonthly
 	return hours
 }
 
-func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, aa taws.AwsAccount, startDate time.Time) []InstanceCountReport {
+func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, aa taws.AwsAccount, startDate time.Time) []instanceCountReports.InstanceCountReport {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseInstanceCountMonthly
 	err := json.Unmarshal(*res.Aggregations["region"], &response.Region)
 	if err != nil {
 		logger.Error("Failed to parse JSON Instance Count document.", err.Error())
 	}
-	reports := make([]InstanceCountReport, 0)
+	reports := make([]instanceCountReports.InstanceCountReport, 0)
 	for regionIdx, region := range response.Region.Buckets {
 		for typeIdx, usageType := range region.Type.Buckets {
 			hours := getInstanceCountHours(ctx, response, regionIdx, typeIdx)
-			reports = append(reports, InstanceCountReport{
-				ReportBase: utils.ReportBase{
+			reports = append(reports, instanceCountReports.InstanceCountReport{
+				ReportBase: common.ReportBase{
 					Account:    aa.AwsIdentity,
 					ReportDate: startDate,
 					ReportType: "monthly",
 				},
-				InstanceCount: InstanceCount{
+				InstanceCount: instanceCountReports.InstanceCount{
 					Type:   usageType.Key,
 					Region: region.Key,
 					Hours:  hours,
@@ -110,7 +112,7 @@ func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, a
 }
 
 // getInstanceCountMetrics gets credentials, accounts and region to fetch InstanceCount report stats
-func fetchMonthlyInstanceCountReports(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]InstanceCountReport, error) {
+func fetchMonthlyInstanceCountReports(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]instanceCountReports.InstanceCountReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
 	parsedParams := EsQueryParams{
@@ -136,7 +138,7 @@ func PutInstanceCountMonthlyReport(ctx context.Context, aa taws.AwsAccount, star
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixInstanceCountReport)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, instanceCountReports.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

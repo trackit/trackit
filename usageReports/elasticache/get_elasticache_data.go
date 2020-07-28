@@ -22,10 +22,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
+
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/lineItems"
@@ -108,7 +109,7 @@ func GetElastiCacheDailyInstances(ctx context.Context, params ElastiCacheQueryPa
 
 // GetElastiCacheData gets ElastiCache monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetElastiCacheData(ctx context.Context, parsedParams ElastiCacheQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, elasticache.IndexPrefixElastiCacheReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, elasticacheReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

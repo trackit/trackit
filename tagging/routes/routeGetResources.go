@@ -26,21 +26,20 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/db"
-	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/users"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
-	"github.com/trackit/trackit/tagging/utils"
-	"github.com/trackit/trackit/tagging"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type (
 	// ResourcesQueryParams will store the parsed query params
 	ResourcesQueryParams struct {
-		AccountsList   []string
-		IndexesList    []string
-		Regions        []string
-		ResourceTypes  []string
+		AccountsList  []string
+		IndexesList   []string
+		Regions       []string
+		ResourceTypes []string
 	}
 )
 
@@ -71,8 +70,8 @@ func routeGetResources(request *http.Request, a routes.Arguments) (int, interfac
 }
 
 // GetResourcesData gets resources report based on query params
-func GetResourcesData(ctx context.Context, parsedParams ResourcesQueryParams, user users.User, tx *sql.Tx) (int, []utils.TaggingReportDocument, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountsList, user, tx, tagging.IndexPrefixTaggingReport)
+func GetResourcesData(ctx context.Context, parsedParams ResourcesQueryParams, user users.User, tx *sql.Tx) (int, []taggingReports.TaggingReportDocument, error) {
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountsList, user, tx, taggingReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -86,7 +85,7 @@ func GetResourcesData(ctx context.Context, parsedParams ResourcesQueryParams, us
 }
 
 // GetResources does an elastic request and returns an array of resources report based on query params
-func GetResources(ctx context.Context, params ResourcesQueryParams) (int, []utils.TaggingReportDocument, error) {
+func GetResources(ctx context.Context, params ResourcesQueryParams) (int, []taggingReports.TaggingReportDocument, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSeachResourcesParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -95,7 +94,7 @@ func GetResources(ctx context.Context, params ResourcesQueryParams) (int, []util
 	}
 	resources, err := prepareResponseResources(ctx, res)
 	if err != nil {
-		return  http.StatusInternalServerError, nil, err
+		return http.StatusInternalServerError, nil, err
 	}
 	return http.StatusOK, resources, nil
 }

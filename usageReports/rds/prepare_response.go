@@ -24,9 +24,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/rdsReports"
 )
 
 type (
@@ -55,7 +55,7 @@ type (
 				Instances struct {
 					Hits struct {
 						Hits []struct {
-							Instance rds.InstanceReport `json:"_source"`
+							Instance rdsReports.InstanceReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"instances"`
@@ -73,7 +73,7 @@ type (
 						Instances struct {
 							Hits struct {
 								Hits []struct {
-									Instance rds.InstanceReport `json:"_source"`
+									Instance rdsReports.InstanceReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"instances"`
@@ -85,20 +85,20 @@ type (
 
 	// InstanceReport has all the information of an RDS instance report
 	InstanceReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Instance Instance `json:"instance"`
 	}
 
 	// Instance contains the information of an RDS instance
 	Instance struct {
-		rds.InstanceBase
+		rdsReports.InstanceBase
 		Tags  map[string]string  `json:"tags"`
 		Costs map[string]float64 `json:"costs"`
-		Stats rds.Stats          `json:"stats"`
+		Stats rdsReports.Stats   `json:"stats"`
 	}
 )
 
-func getRdsInstanceReportResponse(oldInstance rds.InstanceReport) InstanceReport {
+func getRdsInstanceReportResponse(oldInstance rdsReports.InstanceReport) InstanceReport {
 	tags := make(map[string]string, len(oldInstance.Instance.Tags))
 	for _, tag := range oldInstance.Instance.Tags {
 		tags[tag.Key] = tag.Value
@@ -116,7 +116,7 @@ func getRdsInstanceReportResponse(oldInstance rds.InstanceReport) InstanceReport
 }
 
 // addCostToInstance adds cost for an instance based on billing data
-func addCostToInstance(instance rds.InstanceReport, costs ResponseCost) rds.InstanceReport {
+func addCostToInstance(instance rdsReports.InstanceReport, costs ResponseCost) rdsReports.InstanceReport {
 	if instance.Instance.Costs == nil {
 		instance.Instance.Costs = make(map[string]float64, 0)
 	}

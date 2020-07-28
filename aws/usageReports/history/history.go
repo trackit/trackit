@@ -35,6 +35,7 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
 	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
@@ -111,9 +112,9 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 // getCostPerResource returns the parsed result of ES
 // This response contains the list of the resources of the specified product with the cost and region associated
 func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time,
-	product string) ([]utils.CostPerResource, error) {
+	product string) ([]common.CostPerResource, error) {
 	var parsedResult EsRegionPerResourceResult
-	response := make([]utils.CostPerResource, 0)
+	response := make([]common.CostPerResource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for i := 0; i < numPartition; i++ {
 		result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate, product, i)
@@ -130,7 +131,7 @@ func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.T
 			return response, errors.New("Internal server error")
 		}
 		for _, resource := range parsedResult.Resources.Buckets {
-			element := utils.CostPerResource{resource.Resource, 0, ""}
+			element := common.CostPerResource{resource.Resource, 0, ""}
 			for _, region := range resource.Regions.Buckets {
 				if region.Region != "" {
 					element.Region = region.Region

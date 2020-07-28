@@ -20,13 +20,13 @@ import (
 
 	"github.com/olivere/elastic"
 
-	indexSource "github.com/trackit/trackit/aws/usageReports/riEc2"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
 )
 
 func fetchReports(ctx context.Context, userId int) ([]*elastic.SearchHit, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, indexSource.IndexPrefixReservedInstancesReport)
+	indexName := es.IndexNameForUserId(userId, riEc2Reports.IndexSuffix)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {

@@ -12,21 +12,19 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package utils
+package taggingCompliance
 
-import (
-	"time"
+import "time"
 
-	utils "github.com/trackit/trackit/aws/usageReports"
-)
+const IndexSuffix = "tagging-compliance"
+const Type = "tagging-compliance"
+const TemplateName = "tagging-compliance"
 
-// TaggingReportDocument is an entry in ES' tagging index
-type TaggingReportDocument struct {
-	Account      string      `json:"account"`
-	ReportDate   time.Time   `json:"reportDate"`
-	ResourceID   string      `json:"resourceId"`
-	ResourceType string      `json:"resourceType"`
-	Region       string      `json:"region"`
-	URL          string      `json:"url"`
-	Tags         []utils.Tag `json:"tags"`
+type ComplianceReport struct {
+	ReportDate      time.Time `json:"reportDate"`
+	Total           int64     `json:"total"`
+	TotallyTagged   int64     `json:"totallyTagged"`
+	PartiallyTagged int64     `json:"partiallyTagged"`
+	NotTagged       int64     `json:"notTagged"`
+	MostUsedTagsId  string    `json:"mostUsedTagsId"`
 }

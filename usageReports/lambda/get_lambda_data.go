@@ -25,9 +25,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/lambda"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lambdaReports"
 	"github.com/trackit/trackit/users"
 )
 
@@ -85,7 +85,7 @@ func GetLambdaDailyFunctions(ctx context.Context, params LambdaQueryParams, user
 
 // GetLambdaData gets Lambda monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetLambdaData(ctx context.Context, parsedParams LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lambda.IndexPrefixLambdaReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lambdaReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

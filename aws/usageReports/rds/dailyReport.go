@@ -25,12 +25,14 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/rdsReports"
 )
 
 // fetchDailyInstancesList fetches the list of instances for a specific region
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, InstanceChan chan Instance) error {
+func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, InstanceChan chan rdsReports.Instance) error {
 	defer close(InstanceChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -48,8 +50,8 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	for _, DBInstance := range instances.DBInstances {
 		tags := getInstanceTags(ctx, DBInstance, svc)
 		stats := getInstanceStats(ctx, DBInstance, sess, start, end)
-		InstanceChan <- Instance{
-			InstanceBase: InstanceBase{
+		InstanceChan <- rdsReports.Instance{
+			InstanceBase: rdsReports.InstanceBase{
 				DBInstanceIdentifier: aws.StringValue(DBInstance.DBInstanceIdentifier),
 				AvailabilityZone:     aws.StringValue(DBInstance.AvailabilityZone),
 				DBInstanceClass:      aws.StringValue(DBInstance.DBInstanceClass),
@@ -89,16 +91,16 @@ func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount) error {
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	InstanceChans := make([]<-chan Instance, 0, len(regions))
+	InstanceChans := make([]<-chan rdsReports.Instance, 0, len(regions))
 	for _, region := range regions {
-		InstanceChan := make(chan Instance)
+		InstanceChan := make(chan rdsReports.Instance)
 		go fetchDailyInstancesList(ctx, creds, region, InstanceChan)
 		InstanceChans = append(InstanceChans, InstanceChan)
 	}
-	instances := make([]InstanceReport, 0)
+	instances := make([]rdsReports.InstanceReport, 0)
 	for instance := range merge(InstanceChans...) {
-		instances = append(instances, InstanceReport{
-			ReportBase: utils.ReportBase{
+		instances = append(instances, rdsReports.InstanceReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

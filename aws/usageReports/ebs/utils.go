@@ -25,52 +25,21 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ebsReports"
 )
 
 const MonitorSnapshotStsSessionName = "monitor-snapshot"
 
-type (
-	// SnapshotReport is saved in ES to have all the information of an EBS snapshot
-	SnapshotReport struct {
-		utils.ReportBase
-		Snapshot Snapshot `json:"snapshot"`
-	}
-
-	// SnapshotBase contains basics information of an EBS snapshot
-	SnapshotBase struct {
-		Id          string    `json:"id"`
-		Description string    `json:"description"`
-		State       string    `json:"state"`
-		Encrypted   bool      `json:"encrypted"`
-		StartTime   time.Time `json:"startTime"`
-		Region      string    `json:"region"`
-	}
-
-	// Snapshot contains all the information of an EBS snapshot
-	Snapshot struct {
-		SnapshotBase
-		Tags   []utils.Tag `json:"tags"`
-		Volume Volume      `json:"volume"`
-		Cost   float64     `json:"cost"`
-	}
-
-	// Volume contains information about an EBS volume
-	Volume struct {
-		Id   string `json:"id"`
-		Size int64  `json:"size"`
-	}
-)
-
 // importSnapshotsToEs imports EBS snapshots in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []SnapshotReport) error {
+func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []ebsReports.SnapshotReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EBS snapshots for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEBSReport)
+	index := es.IndexNameForUserId(aa.UserId, ebsReports.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -82,7 +51,7 @@ func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []Sn
 			logger.Error("Error when marshaling snapshot var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, snapshot, TypeEBSReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, snapshot, ebsReports.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -94,7 +63,7 @@ func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []Sn
 	return nil
 }
 
-func generateId(snapshot SnapshotReport) (string, error) {
+func generateId(snapshot ebsReports.SnapshotReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -116,13 +85,13 @@ func generateId(snapshot SnapshotReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Snapshot) <-chan Snapshot {
+func merge(cs ...<-chan ebsReports.Snapshot) <-chan ebsReports.Snapshot {
 	var wg sync.WaitGroup
-	out := make(chan Snapshot)
+	out := make(chan ebsReports.Snapshot)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Snapshot) {
+	output := func(c <-chan ebsReports.Snapshot) {
 		for n := range c {
 			out <- n
 		}

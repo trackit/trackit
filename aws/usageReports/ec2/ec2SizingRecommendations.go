@@ -18,6 +18,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 )
 
 type InstanceSize struct {
@@ -40,7 +42,7 @@ var (
 		{288, "9xlarge", []string{"c5"}},
 		{320, "10xlarge", []string{"m4"}},
 		{384, "12xlarge", []string{"m5", "m5d", "m5a", "m5ad"}},
-		{512, "16xlarge", []string{"m4",  "m5", "m5d", "m5a", "p2", "p3", "g3", "x1", "x1e", "r4", "i3", "h1"}},
+		{512, "16xlarge", []string{"m4", "m5", "m5d", "m5a", "p2", "p3", "g3", "x1", "x1e", "r4", "i3", "h1"}},
 		{576, "18xlarge", []string{"c5"}},
 		{768, "24xlarge", []string{"m5", "m5d", "m5a", "m5ad"}},
 		{1024, "32xlarge", []string{"x1", "x1e"}},
@@ -49,12 +51,12 @@ var (
 	rgx = regexp.MustCompile(`([a-zA-Z]+)([0-9])+`)
 )
 
-func getEC2RecommendationTypeReason(instance Instance) Recommendation {
+func getEC2RecommendationTypeReason(instance ec2Reports.Instance) ec2Reports.Recommendation {
 	size, family := getInstanceSizeFamily(instance.Type)
 	cpuDelta := instance.Stats.Cpu.Average / 100 / 0.80
 	targetNormFactor := cpuDelta * getNormFactorFromSize(size)
 	if instance.Stats.Cpu.Average <= 0 || targetNormFactor == 0 {
-		return Recommendation{"", "", getNewGeneration(size, family)}
+		return ec2Reports.Recommendation{"", "", getNewGeneration(size, family)}
 	}
 	recommendedInstance := ""
 	finalSize := ""
@@ -69,18 +71,18 @@ func getEC2RecommendationTypeReason(instance Instance) Recommendation {
 		recommendedTemp = instanceSize.size
 	}
 	if recommendedInstance == instance.Type {
-		return Recommendation{"", "", getNewGeneration(size, family)}
+		return ec2Reports.Recommendation{"", "", getNewGeneration(size, family)}
 	} else if recommendedInstance == "" {
 		if recommendedTemp == "" {
-			return Recommendation{"", "", getNewGeneration(size, family)}
+			return ec2Reports.Recommendation{"", "", getNewGeneration(size, family)}
 		}
-		return Recommendation{
+		return ec2Reports.Recommendation{
 			InstanceType:  family + "." + recommendedTemp,
 			Reason:        getEC2RecommendationReason(getNormFactorFromSize(size), getNormFactorFromSize(recommendedTemp)),
 			NewGeneration: getNewGeneration(size, family)}
 	}
 	reason := getEC2RecommendationReason(getNormFactorFromSize(size), getNormFactorFromSize(finalSize))
-	return Recommendation{
+	return ec2Reports.Recommendation{
 		InstanceType:  recommendedInstance,
 		Reason:        reason,
 		NewGeneration: getNewGeneration(size, family)}

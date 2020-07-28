@@ -24,13 +24,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/lambdaReports"
 )
 
 // getFunctionTag formats []*lambda.Tag to map[string]string
-func getFunctionTags(ctx context.Context, function *lambda.FunctionConfiguration, svc *lambda.Lambda) []utils.Tag {
+func getFunctionTags(ctx context.Context, function *lambda.FunctionConfiguration, svc *lambda.Lambda) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make([]utils.Tag, 0)
+	res := make([]common.Tag, 0)
 	tags, err := svc.ListTags(&lambda.ListTagsInput{
 		Resource: function.FunctionArn,
 	})
@@ -39,7 +40,7 @@ func getFunctionTags(ctx context.Context, function *lambda.FunctionConfiguration
 		return res
 	}
 	for key, value := range tags.Tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   key,
 			Value: aws.StringValue(value),
 		})
@@ -48,7 +49,7 @@ func getFunctionTags(ctx context.Context, function *lambda.FunctionConfiguration
 }
 
 // getFunctionInvocationsStats gets the Invocations stats of a Lambda function from CloudWatch
-func getFunctionInvocationsStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (Invocations, error) {
+func getFunctionInvocationsStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (lambdaReports.Invocations, error) {
 	statsTotal, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/Lambda"),
 		MetricName: aws.String("Invocations"),
@@ -59,7 +60,7 @@ func getFunctionInvocationsStats(svc *cloudwatch.CloudWatch, dimensions []*cloud
 		Dimensions: dimensions,
 	})
 	if err != nil {
-		return Invocations{-1, -1}, err
+		return lambdaReports.Invocations{-1, -1}, err
 	}
 	statsError, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/Lambda"),
@@ -71,18 +72,18 @@ func getFunctionInvocationsStats(svc *cloudwatch.CloudWatch, dimensions []*cloud
 		Dimensions: dimensions,
 	})
 	if err != nil {
-		return Invocations{-1, -1}, err
+		return lambdaReports.Invocations{-1, -1}, err
 	} else if len(statsTotal.Datapoints) > 0 && len(statsError.Datapoints) > 0 {
-		return Invocations{
+		return lambdaReports.Invocations{
 			aws.Float64Value(statsTotal.Datapoints[0].Sum),
 			aws.Float64Value(statsError.Datapoints[0].Sum)}, nil
 	} else {
-		return Invocations{-1, -1}, nil
+		return lambdaReports.Invocations{-1, -1}, nil
 	}
 }
 
 // getFunctionDurationStats gets the Duration stats of a Lambda function from CloudWatch
-func getFunctionDurationStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (Duration, error) {
+func getFunctionDurationStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatch.Dimension, start, end time.Time) (lambdaReports.Duration, error) {
 	stats, err := svc.GetMetricStatistics(&cloudwatch.GetMetricStatisticsInput{
 		Namespace:  aws.String("AWS/Lambda"),
 		MetricName: aws.String("Duration"),
@@ -93,18 +94,18 @@ func getFunctionDurationStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwat
 		Dimensions: dimensions,
 	})
 	if err != nil {
-		return Duration{-1, -1}, err
+		return lambdaReports.Duration{-1, -1}, err
 	} else if len(stats.Datapoints) > 0 {
-		return Duration{
+		return lambdaReports.Duration{
 			aws.Float64Value(stats.Datapoints[0].Average),
 			aws.Float64Value(stats.Datapoints[0].Maximum)}, nil
 	} else {
-		return Duration{-1, -1}, nil
+		return lambdaReports.Duration{-1, -1}, nil
 	}
 }
 
 // getInstanceStats gets the instance stats from CloudWatch
-func getFunctionStats(ctx context.Context, instance *lambda.FunctionConfiguration, sess *session.Session, start, end time.Time) (stats Stats) {
+func getFunctionStats(ctx context.Context, instance *lambda.FunctionConfiguration, sess *session.Session, start, end time.Time) (stats lambdaReports.Stats) {
 	var err error
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)

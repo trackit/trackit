@@ -26,17 +26,10 @@ import (
 
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/taggingCompliance"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 	"github.com/trackit/trackit/models"
 )
-
-type ComplianceReport struct {
-	ReportDate      time.Time `json:"reportDate"`
-	Total           int64     `json:"total"`
-	TotallyTagged   int64     `json:"totallyTagged"`
-	PartiallyTagged int64     `json:"partiallyTagged"`
-	NotTagged       int64     `json:"notTagged"`
-	MostUsedTagsId  string    `json:"mostUsedTagsId"`
-}
 
 const invalidMostUsedTagsId = "-1"
 
@@ -61,7 +54,7 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 			"userId": userId,
 		})
 
-		return pushComplianceToEs(ctx, userId, ComplianceReport{
+		return pushComplianceToEs(ctx, userId, taggingCompliance.ComplianceReport{
 			Total:           count,
 			TotallyTagged:   0,
 			PartiallyTagged: 0,
@@ -83,7 +76,7 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 
 	partiallyTagged := count - totallyTagged - untagged
 
-	return pushComplianceToEs(ctx, userId, ComplianceReport{
+	return pushComplianceToEs(ctx, userId, taggingCompliance.ComplianceReport{
 		Total:           count,
 		TotallyTagged:   totallyTagged,
 		PartiallyTagged: partiallyTagged,
@@ -133,7 +126,7 @@ func handleComplianceEsReponse(res *elastic.SearchResult, err error) (int64, err
 
 func getReportsCount(ctx context.Context, userId int) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, "tagging-reports")
+	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
 	index := client.Search().Index(indexName)
 
 	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).
@@ -143,7 +136,7 @@ func getReportsCount(ctx context.Context, userId int) (int64, error) {
 
 func getTotallyTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []string) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, "tagging-reports")
+	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
 	index := client.Search().Index(indexName)
 
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
@@ -156,7 +149,7 @@ func getTotallyTaggedReportsCount(ctx context.Context, userId int, mostUsedTags 
 
 func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []string) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, "tagging-reports")
+	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
 	index := client.Search().Index(indexName)
 
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
@@ -167,11 +160,11 @@ func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []st
 	return handleComplianceEsReponse(res, err)
 }
 
-func pushComplianceToEs(ctx context.Context, userId int, compliance ComplianceReport) error {
+func pushComplianceToEs(ctx context.Context, userId int, compliance taggingCompliance.ComplianceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, "tagging-compliance")
-	_, err := client.Index().Index(indexName).Type("tagging-compliance").BodyJson(compliance).Do(ctx)
+	indexName := es.IndexNameForUserId(userId, taggingCompliance.IndexSuffix)
+	_, err := client.Index().Index(indexName).Type(taggingCompliance.Type).BodyJson(compliance).Do(ctx)
 
 	if err == nil {
 		logger.Info("Tagging compliance pushed to ES.", map[string]interface{}{

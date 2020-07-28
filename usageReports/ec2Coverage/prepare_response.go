@@ -21,9 +21,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
 )
 
 type (
@@ -34,7 +34,7 @@ type (
 				Reservations struct {
 					Hits struct {
 						Hits []struct {
-							Reservation ec2Coverage.ReservationReport `json:"_source"`
+							Reservation ec2CoverageReports.ReservationReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"reservations"`
@@ -44,8 +44,8 @@ type (
 
 	// ReservationReport has all the information of an EC2 Coverage report
 	ReservationReport struct {
-		utils.ReportBase
-		Reservation ec2Coverage.Reservation `json:"reservation"`
+		common.ReportBase
+		Reservation ec2CoverageReports.Reservation `json:"reservation"`
 	}
 )
 

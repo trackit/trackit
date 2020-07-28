@@ -21,11 +21,35 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ebsReports"
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
+	"github.com/trackit/trackit/es/indexes/esReports"
+	"github.com/trackit/trackit/es/indexes/instanceCountReports"
+	"github.com/trackit/trackit/es/indexes/lambdaReports"
 	"github.com/trackit/trackit/es/indexes/lineItems"
+	"github.com/trackit/trackit/es/indexes/rdsReports"
+	"github.com/trackit/trackit/es/indexes/rdsRiReports"
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
+	"github.com/trackit/trackit/es/indexes/taggingCompliance"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 )
 
 var mappings = map[string]string{
-	lineItems.TemplateName: lineItems.Template,
+	lineItems.TemplateName:            lineItems.Template,
+	ebsReports.TemplateName:           ebsReports.Template,
+	ec2Reports.TemplateName:           ec2Reports.Template,
+	ec2CoverageReports.TemplateName:   ec2CoverageReports.Template,
+	elasticacheReports.TemplateName:   elasticacheReports.Template,
+	esReports.TemplateName:            ebsReports.Template,
+	instanceCountReports.TemplateName: instanceCountReports.Template,
+	lambdaReports.TemplateName:        lambdaReports.Template,
+	rdsReports.TemplateName:           rdsReports.Template,
+	riEc2Reports.TemplateName:         riEc2Reports.Template,
+	rdsRiReports.TemplateName:         rdsRiReports.Template,
+	taggingReports.TemplateName:       taggingReports.Template,
+	taggingCompliance.TemplateName:    taggingCompliance.Template,
 }
 
 // put the ElasticSearch index templates indices at startup.
@@ -39,9 +63,15 @@ func putTemplate(templateName string, template string) {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	res, err := es.Client.IndexPutTemplate(templateName).BodyString(template).Do(ctx)
 	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index lineitems.", err)
+		jsonlog.DefaultLogger.Error("Failed to put ES index template.", map[string]interface{}{
+			"templateName": templateName,
+			"error":        err,
+		})
 	} else {
-		jsonlog.DefaultLogger.Info("Put ES index lineitems.", res)
+		jsonlog.DefaultLogger.Info("Failed to put ES index template.", map[string]interface{}{
+			"templateName": templateName,
+			"res":          res,
+		})
 		ctxCancel()
 	}
 }

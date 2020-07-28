@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package lambda
+package ec2Reports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeLambdaReport = "lambda-report"
-const IndexPrefixLambdaReport = "lambda-reports"
-const TemplateNameLambdaReport = "lambda-reports"
-
-// put the ElasticSearch index for *-lambda-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameLambdaReport).BodyString(TemplateLineItem).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index LambdaReport.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index LambdaReport.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateLineItem = `
+const Template = `
 {
-	"template": "*-lambda-reports",
-	"version": 2,
+	"template": "*-ec2-reports",
+	"version": 11,
 	"mappings": {
-		"lambda-report": {
+		"ec2-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,30 +30,27 @@ const TemplateLineItem = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"function": {
+				"instance": {
 					"properties": {
-						"name": {
+						"id": {
 							"type": "keyword"
-						},
-						"description": {
-							"type": "keyword"
-						},
-						"version": {
-							"type": "keyword"
-						},
-						"lastModified": {
-							"type": "keyword"
-						},
-						"runtime": {
-							"type": "keyword"
-						},
-						"size": {
-							"type": "integer"
-						},
-						"memory": {
-							"type": "integer"
 						},
 						"region": {
+							"type": "keyword"
+						},
+						"state": {
+							"type": "keyword"
+						},
+						"purchasing": {
+							"type": "keyword"
+						},
+						"keyPair": {
+							"type": "keyword"
+						},
+						"type": {
+							"type": "keyword"
+						},
+						"platform": {
 							"type": "keyword"
 						},
 						"tags": {
@@ -92,30 +64,61 @@ const TemplateLineItem = `
 								}
 							}
 						},
+						"costs": {
+							"type": "object"
+						},
 						"stats": {
 							"type": "object",
 							"properties": {
-								"invocations": {
-									"type": "object",
-									"properties": {
-											"total": {
-												"type": "double"
-											},
-											"error": {
-												"type": "double"
-											}
-									}
-								},
-								"duration": {
+								"cpu": {
 									"type": "object",
 									"properties": {
 											"average": {
 												"type": "double"
 											},
-											"maximum": {
+											"peak": {
 												"type": "double"
 											}
 									}
+								},
+								"network": {
+									"type": "object",
+									"properties": {
+											"in": {
+												"type": "double"
+											},
+											"out": {
+												"type": "double"
+											}
+									}
+								},
+								"volumes": {
+									"type": "nested",
+									"properties": {
+										"id": {
+											"type": "keyword"
+										},
+										"read": {
+											"type": "double"
+										},
+										"write": {
+											"type": "double"
+										}
+									}
+								}
+							}
+						},
+						"recommendation": {
+							"type": "object",
+							"properties": {
+								"instancetype": {
+									"type": "keyword"
+								},
+								"reason": {
+									"type": "keyword"
+								},
+								"newgeneration": {
+									"type": "keyword"
 								}
 							}
 						}

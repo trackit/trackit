@@ -21,8 +21,8 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/riRdS"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/rdsRiReports"
 )
 
 type (
@@ -37,7 +37,7 @@ type (
 						Reservations struct {
 							Hits struct {
 								Hits []struct {
-									Reservation riRdS.InstanceReport `json:"_source"`
+									Reservation rdsRiReports.InstanceReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"reservations"`
@@ -49,18 +49,18 @@ type (
 
 	// ReservationReport has all the information of an ReservedInstances reservation report
 	ReservationReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Reservation Reservation `json:"reservation"`
 	}
 
 	// Reservation contains the information of an ReservedInstances reservation
 	Reservation struct {
-		riRdS.InstanceBase
+		rdsRiReports.InstanceBase
 		Tags map[string]string `json:"tags"`
 	}
 )
 
-func getReservedInstancesReportResponse(oldReservation riRdS.InstanceReport) ReservationReport {
+func getReservedInstancesReportResponse(oldReservation rdsRiReports.InstanceReport) ReservationReport {
 	tags := make(map[string]string, 0)
 	for _, tag := range oldReservation.Instance.Tags {
 		tags[tag.Key] = tag.Value

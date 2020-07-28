@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package riRdS
+package riEc2Reports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeReservedRDSReport = "rds-ri-report"
-const IndexPrefixReservedRDSReport = "rds-ri-reports"
-const TemplateNameReservedRDSReport = "rds-ri-reports"
-
-// put the ElasticSearch index for *-rds-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameReservedRDSReport).BodyString(TemplateReservedRdsReport).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index rds-ri-reports.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index rds-ri-reports.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateReservedRdsReport = `
+const Template = `
 {
-	"template": "*-rds-ri-reports",
-	"version": 2,
+	"template": "*-ri-ec2-reports",
+	"version": 3,
 	"mappings": {
-		"rds-ri-report": {
+		"ri-ec2-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,41 +30,49 @@ const TemplateReservedRdsReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instance": {
-					"type": "object",
+				"service": {
+					"type": "keyword"
+				},
+				"reservation": {
 					"properties": {
 						"id": {
 							"type": "keyword"
 						},
-						"offeringId": {
+						"region": {
 							"type": "keyword"
 						},
 						"availabilityZone": {
 							"type": "keyword"
 						},
-						"instanceClass": {
+						"type": {
 							"type": "keyword"
 						},
-						"instanceCount": {
-							"type": "integer"
-						},
-						"duration": {
-							"type": "integer"
-						},
-						"multiAz": {
-							"type": "boolean"
-						},
-						"productDescription": {
+						"offeringClass": {
 							"type": "keyword"
 						},
 						"offeringType": {
 							"type": "keyword"
 						},
-						"state": {
+						"productDescription": {
 							"type": "keyword"
 						},
-						"startTime": {
+						"state":{
+							"type": "keyword"
+						},
+						"start": {
 							"type": "date"
+						},
+						"end": {
+							"type": "date"
+						},
+						"instanceCount": {
+							"type": "integer"
+						},
+						"tenancy": {
+							"type": "keyword"
+						},
+						"usagePrice": {
+							"type": "double"
 						},
 						"recurringCharges": {
 							"type": "nested",
@@ -98,6 +81,17 @@ const TemplateReservedRdsReport = `
 									"type": "double"
 								},
 								"frequency": {
+									"type": "keyword"
+								}
+							}
+						},
+						"tags": {
+							"type": "nested",
+							"properties": {
+								"key": {
+									"type": "keyword"
+								},
+								"value": {
 									"type": "keyword"
 								}
 							}

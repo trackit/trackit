@@ -12,35 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package tagging
+package taggingReports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const typeTaggingReport = "tagging-reports"
-const IndexPrefixTaggingReport = "tagging-reports"
-const templateNameTaggingReport = "tagging-reports"
-
-// put the ElasticSearch index for *-tagging-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(templateNameTaggingReport).BodyString(templateTaggingReport).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index tagging-reports.", err)
-		ctxCancel()
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index tagging-reports.", res)
-		ctxCancel()
-	}
-}
-
-const templateTaggingReport = `
+const Template = `
 {
     "template":"*-tagging-reports",
     "version":1,

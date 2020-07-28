@@ -26,14 +26,16 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/esReports"
 )
 
-func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials, dom utils.CostPerResource,
-	region string, domainChan chan Domain, start, end time.Time) error {
+func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials, dom common.CostPerResource,
+	region string, domainChan chan esReports.Domain, start, end time.Time) error {
 	defer close(domainChan)
-	var tags []utils.Tag
+	var tags []common.Tag
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -49,15 +51,15 @@ func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials
 	domain := domainStatus.DomainStatus
 	if esTags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{ARN: domain.ARN}); err != nil {
 		logger.Error("Error while listing Tags for domain", err.Error())
-		tags = make([]utils.Tag, 0)
+		tags = make([]common.Tag, 0)
 	} else {
 		tags = getDomainTag(esTags.TagList)
 	}
 	stats := getDomainStats(ctx, *domain.DomainName, sess, start, end)
 	costs := make(map[string]float64, 0)
 	costs["domain"] = dom.Cost
-	domainChan <- Domain{
-		DomainBase: DomainBase{
+	domainChan <- esReports.Domain{
+		DomainBase: esReports.DomainBase{
 			Arn:               aws.StringValue(domain.ARN),
 			InstanceType:      aws.StringValue(domain.ElasticsearchClusterConfig.InstanceType),
 			InstanceCount:     aws.Int64Value(domain.ElasticsearchClusterConfig.InstanceCount),
@@ -74,7 +76,7 @@ func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials
 }
 
 // getEsMetrics gets credentials, accounts and region to fetch RDS instances stats
-func getEsMetrics(ctx context.Context, domainsList []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]DomainReport, error) {
+func getEsMetrics(ctx context.Context, domainsList []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]esReports.DomainReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, ESStsSessionName)
 	if err != nil {
@@ -95,18 +97,18 @@ func getEsMetrics(ctx context.Context, domainsList []utils.CostPerResource, aa t
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, err
 	}
-	domainChans := make([]<-chan Domain, 0, len(regions))
+	domainChans := make([]<-chan esReports.Domain, 0, len(regions))
 	for _, domain := range domainsList {
 		for _, region := range regions {
-			domainChan := make(chan Domain)
+			domainChan := make(chan esReports.Domain)
 			go fetchMonthlyDomainsList(ctx, creds, domain, region, domainChan, startDate, endDate)
 			domainChans = append(domainChans, domainChan)
 		}
 	}
-	domains := make([]DomainReport, 0)
+	domains := make([]esReports.DomainReport, 0)
 	for domain := range merge(domainChans...) {
-		domains = append(domains, DomainReport{
-			ReportBase: utils.ReportBase{
+		domains = append(domains, esReports.DomainReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
@@ -118,12 +120,12 @@ func getEsMetrics(ctx context.Context, domainsList []utils.CostPerResource, aa t
 }
 
 // filterEsDomains filters cost per domain to get only costs associated to an ES domain
-func filterEsDomains(esCost []utils.CostPerResource) []utils.CostPerResource {
-	costDomains := []utils.CostPerResource{}
+func filterEsDomains(esCost []common.CostPerResource) []common.CostPerResource {
+	costDomains := []common.CostPerResource{}
 	for _, domain := range esCost {
 		split := strings.Split(domain.Resource, ":")
 		if len(split) == 6 && split[2] == "es" {
-			costDomains = append(costDomains, utils.CostPerResource{
+			costDomains = append(costDomains, common.CostPerResource{
 				Resource: split[5],
 				Cost:     domain.Cost,
 				Region:   domain.Region},
@@ -134,7 +136,7 @@ func filterEsDomains(esCost []utils.CostPerResource) []utils.CostPerResource {
 }
 
 // PutEsMonthlyReport puts a monthly report of ES in ES
-func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+func PutEsMonthlyReport(ctx context.Context, esCost []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting ES monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -146,7 +148,7 @@ func PutEsMonthlyReport(ctx context.Context, esCost []utils.CostPerResource, aa 
 		logger.Info("No ES domains found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixESReport)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, esReports.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

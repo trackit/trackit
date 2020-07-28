@@ -22,10 +22,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
+
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/riEc2"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/users"
@@ -85,7 +86,7 @@ func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQuer
 
 // GetReservedInstancesData gets Reserved Instances daily reports
 func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, riEc2.IndexPrefixReservedInstancesReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, riEc2Reports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

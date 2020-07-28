@@ -25,58 +25,21 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
 )
 
 const MonitorReservationStsSessionName = "monitor-reservation"
 
-type (
-	// ReservationReport is saved in ES to have all the information of a reservation
-	ReservationReport struct {
-		utils.ReportBase
-		Reservation Reservation `json:"reservation"`
-	}
-
-	// ReservationBase contains basics information of a reserved instance
-	ReservationBase struct {
-		Id                 string             `json:"id"`
-		Region             string             `json:"region"`
-		AvailabilityZone   string             `json:"availabilityZone"`
-		Type               string             `json:"type"`
-		OfferingClass      string             `json:"offeringClass"`
-		OfferingType       string             `json:"offeringType"`
-		ProductDescription string             `json:"productDescription"`
-		State              string             `json:"state"`
-		Start              time.Time          `json:"start"`
-		End                time.Time          `json:"end"`
-		InstanceCount      int64              `json:"instanceCount"`
-		Tenancy            string             `json:"tenancy"`
-		UsagePrice         float64            `json:"usagePrice"`
-		RecurringCharges   []RecurringCharges `json:"recurringCharges"`
-	}
-
-	// Reservation contains all the information of a reservation
-	Reservation struct {
-		ReservationBase
-		Tags []utils.Tag `json:"tags"`
-	}
-
-	//RecurringCharges contains recurring charges informations of a reservation
-	RecurringCharges struct {
-		Amount    float64
-		Frequency string
-	}
-)
-
 // importReservationsToEs imports reserved instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservations []ReservationReport) error {
+func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservations []riEc2Reports.ReservationReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating reserved instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixReservedInstancesReport)
+	index := es.IndexNameForUserId(aa.UserId, riEc2Reports.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -88,7 +51,7 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 			logger.Error("Error when marshaling reservation var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, reservation, TypeReservedInstancesReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, reservation, riEc2Reports.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -100,7 +63,7 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 	return nil
 }
 
-func generateId(reservation ReservationReport) (string, error) {
+func generateId(reservation riEc2Reports.ReservationReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -122,13 +85,13 @@ func generateId(reservation ReservationReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Reservation) <-chan Reservation {
+func merge(cs ...<-chan riEc2Reports.Reservation) <-chan riEc2Reports.Reservation {
 	var wg sync.WaitGroup
-	out := make(chan Reservation)
+	out := make(chan riEc2Reports.Reservation)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Reservation) {
+	output := func(c <-chan riEc2Reports.Reservation) {
 		for n := range c {
 			out <- n
 		}

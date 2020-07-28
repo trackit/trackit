@@ -24,12 +24,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/elasticache"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
 )
 
-func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc *elasticache.ElastiCache, account, region string) []utils.Tag {
+func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc *elasticache.ElastiCache, account, region string) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	tags := make([]utils.Tag, 0)
+	tags := make([]common.Tag, 0)
 	// format ARN for an ElastiCache instance is:
 	// "arn:aws:elasticache:[region]:[aws_id]:cluster:[cluster name]"
 	arn := "arn:aws:elasticache:" + region + ":" + account + ":cluster:" + aws.StringValue(cluster.CacheClusterId)
@@ -41,7 +42,7 @@ func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc 
 		return tags
 	}
 	for _, tag := range res.TagList {
-		tags = append(tags, utils.Tag{
+		tags = append(tags, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})
@@ -49,10 +50,10 @@ func getClusterTags(ctx context.Context, cluster *elasticache.CacheCluster, svc 
 	return tags
 }
 
-func extractCacheNodes(cacheNodes []*elasticache.CacheNode) []Node {
-	nodes := make([]Node, 0)
+func extractCacheNodes(cacheNodes []*elasticache.CacheNode) []elasticacheReports.Node {
+	nodes := make([]elasticacheReports.Node, 0)
 	for _, node := range cacheNodes {
-		nodes = append(nodes, Node{
+		nodes = append(nodes, elasticacheReports.Node{
 			Id:     aws.StringValue(node.CacheNodeId),
 			Status: aws.StringValue(node.CacheNodeStatus),
 			Region: aws.StringValue(node.CustomerAvailabilityZone),
@@ -114,14 +115,14 @@ func getInstanceNetworkStats(svc *cloudwatch.CloudWatch, dimensions []*cloudwatc
 }
 
 // getInstanceStats gets the instance stats from CloudWatch
-func getInstanceStats(ctx context.Context, instance *elasticache.CacheCluster, sess *session.Session, start, end time.Time) Stats {
+func getInstanceStats(ctx context.Context, instance *elasticache.CacheCluster, sess *session.Session, start, end time.Time) elasticacheReports.Stats {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := cloudwatch.New(sess)
 	dimensions := []*cloudwatch.Dimension{{
 		Name:  aws.String("CacheClusterId"),
 		Value: aws.String(aws.StringValue(instance.CacheClusterId)),
 	}}
-	var stats Stats
+	var stats elasticacheReports.Stats
 	var err error = nil
 	stats.Cpu.Average, stats.Cpu.Peak, err = getInstanceCPUStats(svc, dimensions, start, end)
 	if err != nil {

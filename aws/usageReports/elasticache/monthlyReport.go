@@ -26,14 +26,16 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
 )
 
 // fetchMonthlyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
-func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst utils.CostPerResource,
-	account, region string, instanceChan chan Instance, startDate, endDate time.Time) error {
+func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentials, inst common.CostPerResource,
+	account, region string, instanceChan chan elasticacheReports.Instance, startDate, endDate time.Time) error {
 	defer close(instanceChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -50,8 +52,8 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 		costs := make(map[string]float64, 0)
 		costs[inst.Resource] = inst.Cost
 		tags := getClusterTags(ctx, cluster, svc, account, region)
-		instanceChan <- Instance{
-			InstanceBase: InstanceBase{
+		instanceChan <- elasticacheReports.Instance{
+			InstanceBase: elasticacheReports.InstanceBase{
 				Id:            aws.StringValue(cluster.CacheClusterId),
 				Status:        aws.StringValue(cluster.CacheClusterStatus),
 				Region:        aws.StringValue(cluster.PreferredAvailabilityZone),
@@ -69,7 +71,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 }
 
 // getEc2Metrics gets credentials, accounts and region to fetch ElastiCache instances stats
-func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]InstanceReport, error) {
+func fetchMonthlyInstancesStats(ctx context.Context, instances []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) ([]elasticacheReports.InstanceReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorInstanceStsSessionName)
 	if err != nil {
@@ -90,20 +92,20 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	instanceChans := make([]<-chan elasticacheReports.Instance, 0, len(regions))
 	for _, instance := range instances {
 		for _, region := range regions {
 			if strings.Contains(instance.Region, region) {
-				instanceChan := make(chan Instance)
+				instanceChan := make(chan elasticacheReports.Instance)
 				go fetchMonthlyInstancesList(ctx, creds, instance, account, region, instanceChan, startDate, endDate)
 				instanceChans = append(instanceChans, instanceChan)
 			}
 		}
 	}
-	instancesList := make([]InstanceReport, 0)
+	instancesList := make([]elasticacheReports.InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
-		instancesList = append(instancesList, InstanceReport{
-			ReportBase: utils.ReportBase{
+		instancesList = append(instancesList, elasticacheReports.InstanceReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
@@ -115,14 +117,14 @@ func fetchMonthlyInstancesStats(ctx context.Context, instances []utils.CostPerRe
 }
 
 // filterElastiCacheInstances filters cost per instance to get only costs associated to an ElastiCache Instance
-func filterElastiCacheInstances(elastiCacheCost []utils.CostPerResource) []utils.CostPerResource {
-	costInstances := make([]utils.CostPerResource, 0)
+func filterElastiCacheInstances(elastiCacheCost []common.CostPerResource) []common.CostPerResource {
+	costInstances := make([]common.CostPerResource, 0)
 	for _, domain := range elastiCacheCost {
 		// format in billing data for an ElastiCache instance is:
 		// "arn:aws:elasticache:[region]:[aws_id]:cluster:[cluster name]"
 		split := strings.Split(domain.Resource, ":")
 		if len(split) == 7 && split[2] == "elasticache" {
-			costInstances = append(costInstances, utils.CostPerResource{
+			costInstances = append(costInstances, common.CostPerResource{
 				Resource: split[6],
 				Cost:     domain.Cost,
 				Region:   domain.Region,
@@ -133,7 +135,7 @@ func filterElastiCacheInstances(elastiCacheCost []utils.CostPerResource) []utils
 }
 
 // PutElastiCacheMonthlyReport puts a monthly report of ElastiCache instance in ES
-func PutElastiCacheMonthlyReport(ctx context.Context, costs []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+func PutElastiCacheMonthlyReport(ctx context.Context, costs []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting ElastiCache monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
@@ -145,7 +147,7 @@ func PutElastiCacheMonthlyReport(ctx context.Context, costs []utils.CostPerResou
 		logger.Info("No ElastiCache instances found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixElastiCacheReport)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, elasticacheReports.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

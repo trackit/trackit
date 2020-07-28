@@ -22,10 +22,11 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/trackit/es/indexes/instanceCountReports"
+
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/users"
@@ -85,7 +86,7 @@ func GetInstanceCountMonthly(ctx context.Context, params InstanceCountQueryParam
 
 // GetInstanceCountData gets InstanceCount monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetInstanceCountData(ctx context.Context, parsedParams InstanceCountQueryParams, user users.User, tx *sql.Tx) (int, []InstanceCountReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, instanceCount.IndexPrefixInstanceCountReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, instanceCountReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

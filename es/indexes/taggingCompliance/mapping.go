@@ -12,35 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package tagging
+package taggingCompliance
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const typeTaggingCompliance = "tagging-compliance"
-const indexPrefixTaggingCompliance = "tagging-compliance"
-const templateNameTaggingCompliance = "tagging-compliance"
-
-// put the ElasticSearch index for *-tagging-compliance indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(templateNameTaggingCompliance).BodyString(templateTaggingCompliance).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index tagging-compliance.", err)
-		ctxCancel()
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index tagging-compliance.", res)
-		ctxCancel()
-	}
-}
-
-const templateTaggingCompliance = `
+const Template = `
 {
     "template":"*-tagging-compliance",
     "version":1,

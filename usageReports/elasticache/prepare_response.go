@@ -24,9 +24,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/elasticache"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
 )
 
 type (
@@ -55,7 +55,7 @@ type (
 				Instances struct {
 					Hits struct {
 						Hits []struct {
-							Instance elasticache.InstanceReport `json:"_source"`
+							Instance elasticacheReports.InstanceReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"instances"`
@@ -73,7 +73,7 @@ type (
 						Instances struct {
 							Hits struct {
 								Hits []struct {
-									Instance elasticache.InstanceReport `json:"_source"`
+									Instance elasticacheReports.InstanceReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"instances"`
@@ -85,20 +85,20 @@ type (
 
 	// InstanceReport has all the information of an ElastiCache instance report
 	InstanceReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Instance Instance `json:"instance"`
 	}
 
 	// Instance contains the information of an ElastiCache instance
 	Instance struct {
-		elasticache.InstanceBase
-		Tags  map[string]string  `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
-		Stats elasticache.Stats  `json:"stats"`
+		elasticacheReports.InstanceBase
+		Tags  map[string]string        `json:"tags"`
+		Costs map[string]float64       `json:"costs"`
+		Stats elasticacheReports.Stats `json:"stats"`
 	}
 )
 
-func getElastiCacheInstanceReportResponse(oldInstance elasticache.InstanceReport) InstanceReport {
+func getElastiCacheInstanceReportResponse(oldInstance elasticacheReports.InstanceReport) InstanceReport {
 	tags := make(map[string]string, 0)
 	for _, tag := range oldInstance.Instance.Tags {
 		tags[tag.Key] = tag.Value
@@ -116,7 +116,7 @@ func getElastiCacheInstanceReportResponse(oldInstance elasticache.InstanceReport
 }
 
 // addCostToInstance adds a cost for an instance based on billing data
-func addCostToInstance(instance elasticache.InstanceReport, costs ResponseCost) elasticache.InstanceReport {
+func addCostToInstance(instance elasticacheReports.InstanceReport, costs ResponseCost) elasticacheReports.InstanceReport {
 	if instance.Instance.Costs == nil {
 		instance.Instance.Costs = make(map[string]float64, 0)
 	}

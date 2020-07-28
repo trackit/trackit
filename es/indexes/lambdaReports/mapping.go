@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package rds
+package lambdaReports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeRDSReport = "rds-report"
-const IndexPrefixRDSReport = "rds-reports"
-const TemplateNameRDSReport = "rds-reports"
-
-// put the ElasticSearch index for *-rds-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameRDSReport).BodyString(TemplateRdsReport).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index rds-reports.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index rds-reports.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateRdsReport = `
+const Template = `
 {
-	"template": "*-rds-reports",
-	"version": 5,
+	"template": "*-lambda-reports",
+	"version": 2,
 	"mappings": {
-		"rds-report": {
+		"lambda-report": {
 			"properties": {
 				"account": {
 					"type": "keyword"
@@ -55,26 +30,31 @@ const TemplateRdsReport = `
 				"reportType": {
 					"type": "keyword"
 				},
-				"instance": {
-					"type": "object",
+				"function": {
 					"properties": {
-						"id": {
+						"name": {
 							"type": "keyword"
 						},
-						"availabilityZone": {
+						"description": {
 							"type": "keyword"
 						},
-						"type": {
+						"version": {
 							"type": "keyword"
 						},
-						"engine": {
+						"lastModified": {
 							"type": "keyword"
 						},
-						"allocatedStorage": {
+						"runtime": {
+							"type": "keyword"
+						},
+						"size": {
 							"type": "integer"
 						},
-						"multiAZ": {
-							"type": "boolean"
+						"memory": {
+							"type": "integer"
+						},
+						"region": {
+							"type": "keyword"
 						},
 						"tags": {
 							"type": "nested",
@@ -87,33 +67,27 @@ const TemplateRdsReport = `
 								}
 							}
 						},
-						"costs": {
-							"type": "object"
-						},
 						"stats": {
 							"type": "object",
 							"properties": {
-								"cpu": {
+								"invocations": {
 									"type": "object",
 									"properties": {
-											"average": {
+											"total": {
 												"type": "double"
 											},
-											"peak": {
+											"error": {
 												"type": "double"
 											}
 									}
 								},
-								"freeSpace": {
+								"duration": {
 									"type": "object",
 									"properties": {
-											"minimum": {
+											"average": {
 												"type": "double"
 											},
 											"maximum": {
-												"type": "double"
-											},
-											"average": {
 												"type": "double"
 											}
 									}

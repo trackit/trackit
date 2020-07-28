@@ -25,9 +25,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
 	"github.com/trackit/trackit/users"
 )
 
@@ -84,7 +84,7 @@ func GetEc2CoverageMonthlyReservations(ctx context.Context, params Ec2CoverageQu
 
 // GetEc2CoverageData gets EC2 Coverage monthly reports based on query params
 func GetEc2CoverageData(ctx context.Context, parsedParams Ec2CoverageQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2Coverage.IndexPrefixEC2CoverageReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2CoverageReports.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
