@@ -16,7 +16,6 @@ package plugins_account_core
 
 import (
 	"context"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/olivere/elastic"
@@ -53,22 +52,6 @@ type PluginResult struct {
 	Error   string
 	Checked int
 	Passed  int
-}
-
-// PluginResultES is the struct used to save a plugin result into elaticsearch
-type PluginResultES struct {
-	AccountPluginIdx string    `json:"accountPluginIdx"`
-	Account          string    `json:"account"`
-	ReportDate       time.Time `json:"reportDate"`
-	PluginName       string    `json:"pluginName"`
-	Category         string    `json:"category"`
-	Label            string    `json:"label"`
-	Result           string    `json:"result"`
-	Status           string    `json:"status"`
-	Details          []string  `json:"details"`
-	Error            string    `json:"error"`
-	Checked          int       `json:"checked"`
-	Passed           int       `json:"passed"`
 }
 
 // PluginFunc is the type that should be implemented by the plugin's function

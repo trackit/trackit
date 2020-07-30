@@ -30,6 +30,7 @@ import (
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/accountPlugins"
 	core "github.com/trackit/trackit/plugins/account/core"
 	"github.com/trackit/trackit/users"
 )
@@ -97,7 +98,7 @@ func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccoun
 			continue
 		}
 		accountId := aa.AwsIdentity
-		pluginResultES := core.PluginResultES{
+		pluginResultES := accountPlugins.PluginResultES{
 			Account:    accountId,
 			ReportDate: time.Now().UTC(),
 			PluginName: plugin.Name,
