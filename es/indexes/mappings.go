@@ -68,7 +68,7 @@ func putTemplate(templateName string, template string) {
 			"error":        err,
 		})
 	} else {
-		jsonlog.DefaultLogger.Info("Failed to put ES index template.", map[string]interface{}{
+		jsonlog.DefaultLogger.Info("Put ES index template.", map[string]interface{}{
 			"templateName": templateName,
 			"res":          res,
 		})
