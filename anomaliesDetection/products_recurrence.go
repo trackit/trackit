@@ -8,28 +8,15 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/anomaliesDetection"
 )
 
 type (
-	// esProductRecurrentAnomaly is a partial document for ElasticSearch.
-	esProductRecurrentAnomaly struct {
-		Recurrent bool `json:"recurrent"`
-	}
-
-	// esProductAnomalyWithId is used to get anomalies from ElasticSearch.
-	esProductAnomalyWithId struct {
-		Source esProductAnomaly `json:"source"`
-		Id     string           `json:"id"`
-	}
-
-	// esProductAnomaliesWithId is used to get anomalies from ElasticSearch.
-	esProductAnomaliesWithId []esProductAnomalyWithId
-
 	// anomaliesByDate is used to get an anomaly with its date more easily.
-	anomaliesByDate map[time.Time]esProductAnomalyWithId
+	anomaliesByDate map[time.Time]anomaliesDetection.EsProductAnomalyWithId
 
 	// anomaliesByProduct is used to get an anomaly with its product more easily.
 	anomaliesByProduct map[string]anomaliesByDate
@@ -39,12 +26,12 @@ type (
 func removeRecurrence(ctx context.Context, params AnomalyEsQueryParams, account aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Removing recurrent anomalies", nil)
-	params.Index = es.IndexNameForUserId(account.UserId, IndexPrefixAnomaliesDetection)
+	params.Index = es.IndexNameForUserId(account.UserId, anomaliesDetection.IndexSuffix)
 	if raw, err := getAnomaliesFromEs(ctx, params); err != nil {
 		return err
 	} else {
 		res := transformAnomaliesToMap(raw)
-		var recurrentAnomalies esProductAnomaliesWithId
+		var recurrentAnomalies anomaliesDetection.EsProductAnomaliesWithId
 		for product := range res {
 			recurrentAnomalies = append(recurrentAnomalies, detectRecurrence(res[product])...)
 		}
@@ -55,12 +42,12 @@ func removeRecurrence(ctx context.Context, params AnomalyEsQueryParams, account 
 
 // applyRecurrentAnomaliesToEs will save in ElasticSearch all recurrent anomalies
 // by setting recurrent field to true.
-func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, recurrentAnomalies esProductAnomaliesWithId) error {
+func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, recurrentAnomalies anomaliesDetection.EsProductAnomaliesWithId) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating recurrent anomalies.", map[string]interface{}{
 		"awsAccount": account,
 	})
-	index := es.IndexNameForUserId(account.UserId, IndexPrefixAnomaliesDetection)
+	index := es.IndexNameForUserId(account.UserId, anomaliesDetection.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -72,7 +59,7 @@ func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, re
 			logger.Error("Error when marshaling recurrent anomalies var", err.Error())
 			return err
 		}
-		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, TypeProductAnomaliesDetection, index, recurrentAnomaly.Id)
+		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, anomaliesDetection.Type, index, recurrentAnomaly.Id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -93,7 +80,7 @@ func approximateCostComparison(a, b float64) bool {
 }
 
 // detectRecurrence detects recurrent anomalies.
-func detectRecurrence(an anomaliesByDate) (res esProductAnomaliesWithId) {
+func detectRecurrence(an anomaliesByDate) (res anomaliesDetection.EsProductAnomaliesWithId) {
 	for date := range an {
 		prev := date.AddDate(0, -1, 0)
 		if an[prev].Source.Abnormal && approximateCostComparison(an[date].Source.Cost.Value, an[prev].Source.Cost.Value) {
@@ -104,7 +91,7 @@ func detectRecurrence(an anomaliesByDate) (res esProductAnomaliesWithId) {
 }
 
 // transformAnomaliesToMap transform a raw slice of anomalies in a parsed map.
-func transformAnomaliesToMap(raw esProductAnomaliesWithId) anomaliesByProduct {
+func transformAnomaliesToMap(raw anomaliesDetection.EsProductAnomaliesWithId) anomaliesByProduct {
 	res := make(anomaliesByProduct)
 	for _, r := range raw {
 		if res[r.Source.Product] == nil {
@@ -118,9 +105,9 @@ func transformAnomaliesToMap(raw esProductAnomaliesWithId) anomaliesByProduct {
 }
 
 // getAnomaliesFromEs returns product anomalies in ElasticSearch
-func getAnomaliesFromEs(ctx context.Context, params AnomalyEsQueryParams) (esProductAnomaliesWithId, error) {
+func getAnomaliesFromEs(ctx context.Context, params AnomalyEsQueryParams) (anomaliesDetection.EsProductAnomaliesWithId, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	sr, err := getAnomalyElasticSearchParams(params.Account, params.DateBegin, params.DateEnd, es.Client, params.Index, TypeProductAnomaliesDetection).Do(ctx)
+	sr, err := getAnomalyElasticSearchParams(params.Account, params.DateBegin, params.DateEnd, es.Client, params.Index, anomaliesDetection.Type).Do(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +117,7 @@ func getAnomaliesFromEs(ctx context.Context, params AnomalyEsQueryParams) (esPro
 		"account": params.Account,
 		"amount":  sr.Hits.TotalHits,
 	})
-	typedDocuments := make(esProductAnomaliesWithId, sr.Hits.TotalHits)
+	typedDocuments := make(anomaliesDetection.EsProductAnomaliesWithId, sr.Hits.TotalHits)
 	for i, h := range sr.Hits.Hits {
 		typedDocuments[i].Id = h.Id
 		if b, err := h.Source.MarshalJSON(); err != nil {

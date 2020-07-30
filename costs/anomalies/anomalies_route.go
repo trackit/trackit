@@ -27,7 +27,6 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/anomaliesDetection"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/costs/anomalies/anomalyFilters"
@@ -35,6 +34,7 @@ import (
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/anomaliesDetection"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
@@ -237,13 +237,13 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 		parsedParams.AccountList = a[anomalyQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, anomalies.IndexPrefixAnomaliesDetection)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, anomaliesDetection.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	parsedParams.AnomalyType = anomalies.TypeProductAnomaliesDetection
+	parsedParams.AnomalyType = anomaliesDetection.Type
 	raw, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams)
 	if err != nil {
 		if returnCode == http.StatusOK {

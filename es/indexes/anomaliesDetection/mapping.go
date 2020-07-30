@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,39 +12,14 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package anomalies
+package anomaliesDetection
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeProductAnomaliesDetection = "product-anomalies-detection"
-const IndexPrefixAnomaliesDetection = "anomalies-detection"
-const TemplateNameAnomaliesDetection = "anomalies-detection"
-
-// put the ElasticSearch index for *-anomalies-detection indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameAnomaliesDetection).BodyString(TemplateAnomaliesDetection).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index AnomaliesDetection.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index AnomaliesDetection.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateAnomaliesDetection = `
+const Template = `
 {
-	"template": "*-` + IndexPrefixAnomaliesDetection + `",
+	"template": "*-anomalies-detection",
 	"version": 2,
 	"mappings": {
-		"` + TypeProductAnomaliesDetection + `": {
+		"product-anomalies-detection": {
 			"properties": {
 				"account": {
 					"type": "keyword"
