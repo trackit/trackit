@@ -39,14 +39,14 @@ func (ev *EsVersioning) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.es_versioning (` +
-		`current_version, template_name, index_name` +
+		`id, current_version, template_name, index_name` +
 		`) VALUES (` +
-		`?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, ev.CurrentVersion, ev.TemplateName, ev.IndexName)
-	res, err := db.Exec(sqlstr, ev.CurrentVersion, ev.TemplateName, ev.IndexName)
+	XOLog(sqlstr, ev.ID, ev.CurrentVersion, ev.TemplateName, ev.IndexName)
+	res, err := db.Exec(sqlstr, ev.ID, ev.CurrentVersion, ev.TemplateName, ev.IndexName)
 	if err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (ev *EsVersioning) Insert(db XODB) error {
 	}
 
 	// set primary key and existence
-	ev.ID = int(id)
+	ev.IndexName = string(id)
 	ev._exists = true
 
 	return nil
@@ -78,14 +78,14 @@ func (ev *EsVersioning) Update(db XODB) error {
 		return errors.New("update failed: marked for deletion")
 	}
 
-	// sql query
+	// sql query with composite primary key
 	const sqlstr = `UPDATE trackit.es_versioning SET ` +
-		`current_version = ?, template_name = ?, index_name = ?` +
-		` WHERE id = ?`
+		`current_version = ?, template_name = ?` +
+		` WHERE id = ? AND index_name = ?`
 
 	// run query
-	XOLog(sqlstr, ev.CurrentVersion, ev.TemplateName, ev.IndexName, ev.ID)
-	_, err = db.Exec(sqlstr, ev.CurrentVersion, ev.TemplateName, ev.IndexName, ev.ID)
+	XOLog(sqlstr, ev.CurrentVersion, ev.TemplateName, ev.ID, ev.IndexName)
+	_, err = db.Exec(sqlstr, ev.CurrentVersion, ev.TemplateName, ev.ID, ev.IndexName)
 	return err
 }
 
@@ -112,12 +112,12 @@ func (ev *EsVersioning) Delete(db XODB) error {
 		return nil
 	}
 
-	// sql query
-	const sqlstr = `DELETE FROM trackit.es_versioning WHERE id = ?`
+	// sql query with composite primary key
+	const sqlstr = `DELETE FROM trackit.es_versioning WHERE id = ? AND index_name = ?`
 
 	// run query
-	XOLog(sqlstr, ev.ID)
-	_, err = db.Exec(sqlstr, ev.ID)
+	XOLog(sqlstr, ev.ID, ev.IndexName)
+	_, err = db.Exec(sqlstr, ev.ID, ev.IndexName)
 	if err != nil {
 		return err
 	}
@@ -128,25 +128,25 @@ func (ev *EsVersioning) Delete(db XODB) error {
 	return nil
 }
 
-// EsVersioningByID retrieves a row from 'trackit.es_versioning' as a EsVersioning.
+// EsVersioningByIndexName retrieves a row from 'trackit.es_versioning' as a EsVersioning.
 //
-// Generated from index 'es_versioning_id_pkey'.
-func EsVersioningByID(db XODB, id int) (*EsVersioning, error) {
+// Generated from index 'es_versioning_index_name_pkey'.
+func EsVersioningByIndexName(db XODB, indexName string) (*EsVersioning, error) {
 	var err error
 
 	// sql query
 	const sqlstr = `SELECT ` +
 		`id, current_version, template_name, index_name ` +
 		`FROM trackit.es_versioning ` +
-		`WHERE id = ?`
+		`WHERE index_name = ?`
 
 	// run query
-	XOLog(sqlstr, id)
+	XOLog(sqlstr, indexName)
 	ev := EsVersioning{
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&ev.ID, &ev.CurrentVersion, &ev.TemplateName, &ev.IndexName)
+	err = db.QueryRow(sqlstr, indexName).Scan(&ev.ID, &ev.CurrentVersion, &ev.TemplateName, &ev.IndexName)
 	if err != nil {
 		return nil, err
 	}

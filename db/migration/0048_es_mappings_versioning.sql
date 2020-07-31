@@ -17,7 +17,7 @@ CREATE TABLE es_versioning (
 	current_version        INTEGER      NOT NULL,
 	template_name          VARCHAR(255) NOT NULL,
 	index_name             VARCHAR(255) NOT NULL,
-	CONSTRAINT PRIMARY KEY (id)
+	CONSTRAINT PRIMARY KEY (id, index_name)
 );
 
 CREATE TABLE update_es_mappings_job (

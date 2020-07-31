@@ -23,6 +23,7 @@ import (
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/accountPlugins"
 	"github.com/trackit/trackit/es/indexes/anomaliesDetection"
+	"github.com/trackit/trackit/es/indexes/common"
 	"github.com/trackit/trackit/es/indexes/ebsReports"
 	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
 	"github.com/trackit/trackit/es/indexes/ec2Reports"
@@ -39,29 +40,115 @@ import (
 	"github.com/trackit/trackit/es/indexes/taggingReports"
 )
 
-var mappings = map[string]string{
-	lineItems.TemplateName:            lineItems.Template,
-	ebsReports.TemplateName:           ebsReports.Template,
-	ec2Reports.TemplateName:           ec2Reports.Template,
-	ec2CoverageReports.TemplateName:   ec2CoverageReports.Template,
-	elasticacheReports.TemplateName:   elasticacheReports.Template,
-	esReports.TemplateName:            ebsReports.Template,
-	instanceCountReports.TemplateName: instanceCountReports.Template,
-	lambdaReports.TemplateName:        lambdaReports.Template,
-	rdsReports.TemplateName:           rdsReports.Template,
-	riEc2Reports.TemplateName:         riEc2Reports.Template,
-	rdsRiReports.TemplateName:         rdsRiReports.Template,
-	taggingReports.TemplateName:       taggingReports.Template,
-	taggingCompliance.TemplateName:    taggingCompliance.Template,
-	accountPlugins.TemplateName:       accountPlugins.Template,
-	anomaliesDetection.TemplateName:   anomaliesDetection.Template,
-	odToRiEc2Reports.TemplateName:     odToRiEc2Reports.Template,
+var versioningData = [...]common.VersioningData{
+	common.VersioningData{
+		Name:        lineItems.TemplateName,
+		IndexSuffix: lineItems.IndexSuffix,
+		Template:    lineItems.Template,
+		Version:     8,
+	},
+	common.VersioningData{
+		Name:        ebsReports.TemplateName,
+		IndexSuffix: ebsReports.IndexSuffix,
+		Template:    ebsReports.Template,
+		Version:     2,
+	},
+	common.VersioningData{
+		Name:        ec2Reports.TemplateName,
+		IndexSuffix: ec2Reports.IndexSuffix,
+		Template:    ec2Reports.Template,
+		Version:     11,
+	},
+	common.VersioningData{
+		Name:        ec2CoverageReports.TemplateName,
+		IndexSuffix: ec2CoverageReports.IndexSuffix,
+		Template:    ec2CoverageReports.Template,
+		Version:     1,
+	},
+	common.VersioningData{
+		Name:        elasticacheReports.TemplateName,
+		IndexSuffix: elasticacheReports.IndexSuffix,
+		Template:    elasticacheReports.Template,
+		Version:     1,
+	},
+	common.VersioningData{
+		Name:        esReports.TemplateName,
+		IndexSuffix: esReports.IndexSuffix,
+		Template:    esReports.Template,
+		Version:     1,
+	},
+	common.VersioningData{
+		Name:        instanceCountReports.TemplateName,
+		IndexSuffix: instanceCountReports.IndexSuffix,
+		Template:    instanceCountReports.Template,
+		Version:     1,
+	},
+	common.VersioningData{
+		Name:        esReports.TemplateName,
+		IndexSuffix: esReports.IndexSuffix,
+		Template:    esReports.Template,
+		Version:     2,
+	},
+	common.VersioningData{
+		Name:        lambdaReports.TemplateName,
+		IndexSuffix: lambdaReports.IndexSuffix,
+		Template:    lambdaReports.Template,
+		Version:     2,
+	},
+	common.VersioningData{
+		Name:        rdsReports.TemplateName,
+		IndexSuffix: rdsReports.IndexSuffix,
+		Template:    rdsReports.Template,
+		Version:     5,
+	},
+	common.VersioningData{
+		Name:        riEc2Reports.TemplateName,
+		IndexSuffix: riEc2Reports.IndexSuffix,
+		Template:    riEc2Reports.Template,
+		Version:     3,
+	},
+	common.VersioningData{
+		Name:        rdsRiReports.TemplateName,
+		IndexSuffix: rdsRiReports.IndexSuffix,
+		Template:    rdsRiReports.Template,
+		Version:     2,
+	},
+	common.VersioningData{
+		Name:        taggingReports.TemplateName,
+		IndexSuffix: taggingReports.IndexSuffix,
+		Template:    taggingReports.Template,
+		Version:     1,
+	},
+	common.VersioningData{
+		Name:        taggingCompliance.TemplateName,
+		IndexSuffix: taggingCompliance.IndexSuffix,
+		Template:    taggingCompliance.Template,
+		Version:     1,
+	},
+	common.VersioningData{
+		Name:        accountPlugins.TemplateName,
+		IndexSuffix: accountPlugins.IndexSuffix,
+		Template:    accountPlugins.Template,
+		Version:     3,
+	},
+	common.VersioningData{
+		Name:        anomaliesDetection.TemplateName,
+		IndexSuffix: anomaliesDetection.IndexSuffix,
+		Template:    anomaliesDetection.Template,
+		Version:     2,
+	},
+	common.VersioningData{
+		Name:        odToRiEc2Reports.TemplateName,
+		IndexSuffix: odToRiEc2Reports.IndexSuffix,
+		Template:    odToRiEc2Reports.Template,
+		Version:     1,
+	},
 }
 
 // put the ElasticSearch index templates indices at startup.
 func init() {
-	for templateName, template := range mappings {
-		putTemplate(templateName, template)
+	for _, data := range versioningData {
+		putTemplate(data.Name, data.Template)
 	}
 }
 

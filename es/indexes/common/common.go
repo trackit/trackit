@@ -37,3 +37,10 @@ type (
 		Value string `json:"value"`
 	}
 )
+
+type VersioningData struct {
+	IndexSuffix string
+	Name        string
+	Version     int
+	Template    string
+}
