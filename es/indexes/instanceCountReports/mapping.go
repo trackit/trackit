@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"instancecount-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

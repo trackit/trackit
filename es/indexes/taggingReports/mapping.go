@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-    "tagging-reports":{
+    "` + Type + `":{
         "properties":{
             "account":{
                 "type":"keyword"

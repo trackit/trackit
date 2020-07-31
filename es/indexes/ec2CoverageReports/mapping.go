@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"ec2-coverage-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

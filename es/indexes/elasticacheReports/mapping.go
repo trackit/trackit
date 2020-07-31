@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"elasticache-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

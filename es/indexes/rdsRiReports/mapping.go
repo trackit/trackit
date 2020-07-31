@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"rds-ri-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

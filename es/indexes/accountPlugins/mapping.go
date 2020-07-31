@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-  "account-plugin": {
+  "` + Type + `": {
     "properties": {
       "accountPluginIdx": {
         "type": "keyword"

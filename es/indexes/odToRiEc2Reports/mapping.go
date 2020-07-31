@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"od-to-ri-ec2-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

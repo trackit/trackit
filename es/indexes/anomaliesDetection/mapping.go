@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"product-anomalies-detection": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

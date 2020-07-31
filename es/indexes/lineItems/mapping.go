@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"lineitem": {
+	"` + Type + `": {
 		"properties": {
 			"billRepositoryId": {
 				"type": "integer"

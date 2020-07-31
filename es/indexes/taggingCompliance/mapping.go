@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-    "tagging-compliance":{
+    "` + Type + `":{
         "properties":{
             "reportDate":{
                 "type":"date"

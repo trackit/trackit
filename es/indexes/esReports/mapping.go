@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"es-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"

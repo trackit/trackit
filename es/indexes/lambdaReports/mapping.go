@@ -24,7 +24,7 @@ const Template = `
 
 const Mappings = `
 {
-	"lambda-report": {
+	"` + Type + `": {
 		"properties": {
 			"account": {
 				"type": "keyword"
