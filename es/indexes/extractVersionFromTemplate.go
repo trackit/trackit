@@ -15,20 +15,21 @@
 package indexes
 
 import (
-	"context"
+	"encoding/json"
 )
 
-// UpdateEsMappings updates Elasticsearch index mappings
-func UpdateEsMappings(ctx context.Context) error {
-	err := extractVersionFromTemplate()
-	if err != nil {
-		return err
-	}
+type partialTemplate struct {
+	Version int `json:"version"`
+}
 
-	err = discoverIndexes(ctx)
-	if err != nil {
-		return err
+func extractVersionFromTemplate() error {
+	for index, data := range versioningData {
+		var obj partialTemplate
+		err := json.Unmarshal([]byte(data.Template), &obj)
+		if err != nil {
+			return nil
+		}
+		versioningData[index].Version = obj.Version
 	}
-
 	return nil
 }
