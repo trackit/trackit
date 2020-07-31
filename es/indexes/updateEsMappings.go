@@ -30,5 +30,10 @@ func UpdateEsMappings(ctx context.Context) error {
 		return err
 	}
 
+	err = updateOutdatedIndexes(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

@@ -16,7 +16,6 @@ package indexes
 
 import (
 	"context"
-	"strings"
 
 	"github.com/trackit/trackit/es/indexes/common"
 
@@ -57,9 +56,21 @@ func indexVersionned(indexName string) bool {
 
 func getIndexVersioningData(indexName string) *common.VersioningData {
 	for _, template := range versioningData {
-		if strings.HasSuffix(indexName, template.IndexSuffix) {
+		if trimLeftChars(indexName, 7) == template.IndexSuffix {
 			return &template
 		}
 	}
 	return nil
+}
+
+// From https://stackoverflow.com/questions/48798588/how-do-you-remove-the-first-character-of-a-string
+func trimLeftChars(s string, n int) string {
+	m := 0
+	for i := range s {
+		if m >= n {
+			return s[i:]
+		}
+		m++
+	}
+	return s[:0]
 }
