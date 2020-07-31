@@ -61,6 +61,16 @@ func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template 
 		return err
 	}
 
+	_, err = es.Client.DeleteIndex(ev.IndexName).Do(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = es.Client.Alias().Add(newIndexName, ev.IndexName).Do(ctx)
+	if err != nil {
+		return err
+	}
+
 	ev.CurrentVersion = template.Version
 	ev.Update(db.Db)
 	return nil
