@@ -16,104 +16,108 @@ package lineItems
 
 const Template = `
 {
-	"template": "*-lineitems",
+	"template": "*-` + IndexSuffix + `",
 	"version": 8,
-	"mappings": {
-		"lineitem": {
-			"properties": {
-				"billRepositoryId": {
-					"type": "integer"
-				},
-				"lineItemId": {
-					"type": "keyword",
-					"norms": false
-				},
-				"timeInterval": {
-					"type": "keyword",
-					"norms": false
-				},
-				"invoiceId": {
-					"type": "keyword",
-					"norms": false
-				},
-				"usageAccountId": {
-					"type": "keyword",
-					"norms": false
-				},
-				"lineItemType": {
-					"type": "keyword",
-					"norms": false
-				},
-				"productCode": {
-					"type": "keyword",
-					"norms": false
-				},
-				"usageType": {
-					"type": "keyword",
-					"norms": false
-				},
-				"operation": {
-					"type": "keyword",
-					"norms": false
-				},
-				"availabilityZone": {
-					"type": "keyword",
-					"norms": false
-				},
-				"region": {
-					"type": "keyword",
-					"norms": false
-				},
-				"resourceId": {
-					"type": "keyword",
-					"norms": false
-				},
-				"usageAmount": {
-					"type": "float",
-					"index": false
-				},
-				"serviceCode": {
-					"type": "keyword",
-					"norms": false
-				},
-				"currencyCode": {
-					"type": "keyword",
-					"norms": false
-				},
-				"unblendedCost": {
-					"type": "float",
-					"index": false
-				},
-				"taxType": {
-					"type": "keyword",
-					"norms": false
-				},
-				"usageStartDate": {
-					"type": "date"
-				},
-				"usageEndDate": {
-					"type": "date"
-				},
-				"tags": {
-					"type": "nested",
-					"properties": {
-						"key": {
-							"type": "keyword",
-							"norms": false
-						},
-						"tag": {
-							"type": "keyword",
-							"norms": false
-						}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"lineitem": {
+		"properties": {
+			"billRepositoryId": {
+				"type": "integer"
+			},
+			"lineItemId": {
+				"type": "keyword",
+				"norms": false
+			},
+			"timeInterval": {
+				"type": "keyword",
+				"norms": false
+			},
+			"invoiceId": {
+				"type": "keyword",
+				"norms": false
+			},
+			"usageAccountId": {
+				"type": "keyword",
+				"norms": false
+			},
+			"lineItemType": {
+				"type": "keyword",
+				"norms": false
+			},
+			"productCode": {
+				"type": "keyword",
+				"norms": false
+			},
+			"usageType": {
+				"type": "keyword",
+				"norms": false
+			},
+			"operation": {
+				"type": "keyword",
+				"norms": false
+			},
+			"availabilityZone": {
+				"type": "keyword",
+				"norms": false
+			},
+			"region": {
+				"type": "keyword",
+				"norms": false
+			},
+			"resourceId": {
+				"type": "keyword",
+				"norms": false
+			},
+			"usageAmount": {
+				"type": "float",
+				"index": false
+			},
+			"serviceCode": {
+				"type": "keyword",
+				"norms": false
+			},
+			"currencyCode": {
+				"type": "keyword",
+				"norms": false
+			},
+			"unblendedCost": {
+				"type": "float",
+				"index": false
+			},
+			"taxType": {
+				"type": "keyword",
+				"norms": false
+			},
+			"usageStartDate": {
+				"type": "date"
+			},
+			"usageEndDate": {
+				"type": "date"
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword",
+						"norms": false
+					},
+					"tag": {
+						"type": "keyword",
+						"norms": false
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

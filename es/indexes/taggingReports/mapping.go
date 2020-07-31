@@ -16,47 +16,50 @@ package taggingReports
 
 const Template = `
 {
-    "template":"*-tagging-reports",
+    "template":"*-` + IndexSuffix + `",
     "version":1,
-    "mappings":{
-        "tagging-reports":{
-            "properties":{
-                "account":{
-                    "type":"keyword"
-                },
-                "region":{
-                    "type":"keyword"
-                },
-                "reportDate":{
-                    "type":"date"
-                },
-                "resourceId":{
-                    "type":"keyword"
-                },
-                "resourceType":{
-                    "type":"keyword"
-                },
-                "tags":{
-                    "type":"nested",
-                    "properties":{
-                        "key":{
-                            "type":"keyword"
-                        },
-                        "value":{
-                            "type":"keyword"
-                        }
-                    }
-                },
-                "url":{
-                    "type":"keyword"
-                }
-            },
-            "_all": {
-                "enabled": false
-            },
-            "date_detection": false,
-            "numeric_detection": false
-        }
-    }
+    "mappings": ` + Mappings + `
 }
 `
+
+const Mappings = `
+{
+    "tagging-reports":{
+        "properties":{
+            "account":{
+                "type":"keyword"
+            },
+            "region":{
+                "type":"keyword"
+            },
+            "reportDate":{
+                "type":"date"
+            },
+            "resourceId":{
+                "type":"keyword"
+            },
+            "resourceType":{
+                "type":"keyword"
+            },
+            "tags":{
+                "type":"nested",
+                "properties":{
+                    "key":{
+                        "type":"keyword"
+                    },
+                    "value":{
+                        "type":"keyword"
+                    }
+                }
+            },
+            "url":{
+                "type":"keyword"
+            }
+        },
+        "_all": {
+            "enabled": false
+        },
+        "date_detection": false,
+        "numeric_detection": false
+    }
+}`

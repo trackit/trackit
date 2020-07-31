@@ -16,121 +16,125 @@ package ec2Reports
 
 const Template = `
 {
-	"template": "*-ec2-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 11,
-	"mappings": {
-		"ec2-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"instance": {
-					"properties": {
-						"id": {
-							"type": "keyword"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"state": {
-							"type": "keyword"
-						},
-						"purchasing": {
-							"type": "keyword"
-						},
-						"keyPair": {
-							"type": "keyword"
-						},
-						"type": {
-							"type": "keyword"
-						},
-						"platform": {
-							"type": "keyword"
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"ec2-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"instance": {
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"state": {
+						"type": "keyword"
+					},
+					"purchasing": {
+						"type": "keyword"
+					},
+					"keyPair": {
+						"type": "keyword"
+					},
+					"type": {
+						"type": "keyword"
+					},
+					"platform": {
+						"type": "keyword"
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
-						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"network": {
-									"type": "object",
-									"properties": {
-											"in": {
-												"type": "double"
-											},
-											"out": {
-												"type": "double"
-											}
-									}
-								},
-								"volumes": {
-									"type": "nested",
-									"properties": {
-										"id": {
-											"type": "keyword"
-										},
-										"read": {
+						}
+					},
+					"costs": {
+						"type": "object"
+					},
+					"stats": {
+						"type": "object",
+						"properties": {
+							"cpu": {
+								"type": "object",
+								"properties": {
+										"average": {
 											"type": "double"
 										},
-										"write": {
+										"peak": {
 											"type": "double"
 										}
+								}
+							},
+							"network": {
+								"type": "object",
+								"properties": {
+										"in": {
+											"type": "double"
+										},
+										"out": {
+											"type": "double"
+										}
+								}
+							},
+							"volumes": {
+								"type": "nested",
+								"properties": {
+									"id": {
+										"type": "keyword"
+									},
+									"read": {
+										"type": "double"
+									},
+									"write": {
+										"type": "double"
 									}
 								}
 							}
-						},
-						"recommendation": {
-							"type": "object",
-							"properties": {
-								"instancetype": {
-									"type": "keyword"
-								},
-								"reason": {
-									"type": "keyword"
-								},
-								"newgeneration": {
-									"type": "keyword"
-								}
+						}
+					},
+					"recommendation": {
+						"type": "object",
+						"properties": {
+							"instancetype": {
+								"type": "keyword"
+							},
+							"reason": {
+								"type": "keyword"
+							},
+							"newgeneration": {
+								"type": "keyword"
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

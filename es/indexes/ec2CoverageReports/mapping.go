@@ -16,58 +16,62 @@ package ec2CoverageReports
 
 const Template = `
 {
-	"template": "*-ec2-coverage-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 1,
-	"mappings": {
-		"ec2-coverage-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"reservation": {
-					"properties": {
-						"type": {
-							"type": "keyword"
-						},
-						"platform": {
-							"type": "keyword"
-						},
-						"tenancy": {
-							"type": "keyword"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"averageCoverage": {
-							"type": "double"
-						},
-						"coveredHours": {
-							"type": "double"
-						},
-						"onDemandHours": {
-							"type": "double"
-						},
-						"totalRunningHours": {
-							"type": "double"
-						},
-						"instancesNames": {
-							"type": "keyword"
-						}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"ec2-coverage-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"reservation": {
+				"properties": {
+					"type": {
+						"type": "keyword"
+					},
+					"platform": {
+						"type": "keyword"
+					},
+					"tenancy": {
+						"type": "keyword"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"averageCoverage": {
+						"type": "double"
+					},
+					"coveredHours": {
+						"type": "double"
+					},
+					"onDemandHours": {
+						"type": "double"
+					},
+					"totalRunningHours": {
+						"type": "double"
+					},
+					"instancesNames": {
+						"type": "keyword"
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

@@ -16,45 +16,49 @@ package instanceCountReports
 
 const Template = `
 {
-	"template": "*-instancecount-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 1,
-	"mappings": {
-		"instancecount-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"instanceCount": {
-					"properties": {
-						"instanceType": {
-							"type": "keyword"
-						},
-						"hours": {
-							"type": "nested",
-							"properties": {
-								"hour": {
-									"type": "date"
-								},
-								"count": {
-									"type": "integer"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"instancecount-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"instanceCount": {
+				"properties": {
+					"instanceType": {
+						"type": "keyword"
+					},
+					"hours": {
+						"type": "nested",
+						"properties": {
+							"hour": {
+								"type": "date"
+							},
+							"count": {
+								"type": "integer"
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

@@ -16,54 +16,58 @@ package accountPlugins
 
 const Template = `
 {
-  "template": "*-account-plugins",
+  "template": "*-` + IndexSuffix + `",
   "version": 3,
-  "mappings": {
-    "account-plugin": {
-      "properties": {
-        "accountPluginIdx": {
-          "type": "keyword"
-        },
-        "account": {
-          "type": "keyword"
-        },
-        "reportDate": {
-          "type": "date"
-        },
-        "pluginName": {
-          "type": "keyword"
-        },
-        "category": {
-          "type": "keyword"
-        },
-        "label": {
-          "type": "keyword"
-        },
-        "result": {
-          "type": "keyword"
-        },
-        "status": {
-          "type": "keyword"
-        },
-        "details": {
-          "type": "keyword"
-        },
-        "error": {
-          "type": "keyword"
-        },
-        "checked": {
-          "type": "integer"
-        },
-        "passed": {
-          "type": "integer"
-        }
+  "mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+  "account-plugin": {
+    "properties": {
+      "accountPluginIdx": {
+        "type": "keyword"
       },
-      "_all": {
-         "enabled": false
+      "account": {
+        "type": "keyword"
       },
-      "numeric_detection": false,
-      "date_detection": false
-    }
+      "reportDate": {
+        "type": "date"
+      },
+      "pluginName": {
+        "type": "keyword"
+      },
+      "category": {
+        "type": "keyword"
+      },
+      "label": {
+        "type": "keyword"
+      },
+      "result": {
+        "type": "keyword"
+      },
+      "status": {
+        "type": "keyword"
+      },
+      "details": {
+        "type": "keyword"
+      },
+      "error": {
+        "type": "keyword"
+      },
+      "checked": {
+        "type": "integer"
+      },
+      "passed": {
+        "type": "integer"
+      }
+    },
+    "_all": {
+       "enabled": false
+    },
+    "numeric_detection": false,
+    "date_detection": false
   }
 }
 `

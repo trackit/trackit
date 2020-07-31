@@ -16,94 +16,97 @@ package rdsReports
 
 const Template = `
 {
-	"template": "*-rds-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 5,
-	"mappings": {
-		"rds-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"instance": {
-					"type": "object",
-					"properties": {
-						"id": {
-							"type": "keyword"
-						},
-						"availabilityZone": {
-							"type": "keyword"
-						},
-						"type": {
-							"type": "keyword"
-						},
-						"engine": {
-							"type": "keyword"
-						},
-						"allocatedStorage": {
-							"type": "integer"
-						},
-						"multiAZ": {
-							"type": "boolean"
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"rds-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"instance": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"availabilityZone": {
+						"type": "keyword"
+					},
+					"type": {
+						"type": "keyword"
+					},
+					"engine": {
+						"type": "keyword"
+					},
+					"allocatedStorage": {
+						"type": "integer"
+					},
+					"multiAZ": {
+						"type": "boolean"
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
-						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"freeSpace": {
-									"type": "object",
-									"properties": {
-											"minimum": {
-												"type": "double"
-											},
-											"maximum": {
-												"type": "double"
-											},
-											"average": {
-												"type": "double"
-											}
-									}
+						}
+					},
+					"costs": {
+						"type": "object"
+					},
+					"stats": {
+						"type": "object",
+						"properties": {
+							"cpu": {
+								"type": "object",
+								"properties": {
+										"average": {
+											"type": "double"
+										},
+										"peak": {
+											"type": "double"
+										}
+								}
+							},
+							"freeSpace": {
+								"type": "object",
+								"properties": {
+										"minimum": {
+											"type": "double"
+										},
+										"maximum": {
+											"type": "double"
+										},
+										"average": {
+											"type": "double"
+										}
 								}
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
-}
-`
+}`

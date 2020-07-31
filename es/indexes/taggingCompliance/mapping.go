@@ -16,36 +16,40 @@ package taggingCompliance
 
 const Template = `
 {
-    "template":"*-tagging-compliance",
+    "template":"*-` + IndexSuffix + `",
     "version":1,
-    "mappings":{
-        "tagging-compliance":{
-            "properties":{
-                "reportDate":{
-                    "type":"date"
-                },
-                "total":{
-                    "type":"long"
-                },
-                "totallyTagged":{
-                    "type":"long"
-                },
-                "partiallyTagged":{
-                    "type":"long"
-                },
-                "notTagged":{
-                    "type":"long"
-                },
-                "mostUsedTagsId":{
-                    "type":"keyword"
-                }
+    "mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+    "tagging-compliance":{
+        "properties":{
+            "reportDate":{
+                "type":"date"
             },
-            "_all": {
-                "enabled": false
+            "total":{
+                "type":"long"
             },
-            "date_detection": false,
-            "numeric_detection": false
-        }
+            "totallyTagged":{
+                "type":"long"
+            },
+            "partiallyTagged":{
+                "type":"long"
+            },
+            "notTagged":{
+                "type":"long"
+            },
+            "mostUsedTagsId":{
+                "type":"keyword"
+            }
+        },
+        "_all": {
+            "enabled": false
+        },
+        "date_detection": false,
+        "numeric_detection": false
     }
 }
 `

@@ -16,44 +16,48 @@ package anomaliesDetection
 
 const Template = `
 {
-	"template": "*-anomalies-detection",
+	"template": "*-` + IndexSuffix + `",
 	"version": 2,
-	"mappings": {
-		"product-anomalies-detection": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"date": {
-					"type": "date"
-				},
-				"product" : {
-					"type": "keyword"
-				},
-				"abnormal" : {
-					"type": "boolean"
-				},
-				"recurrent" : {
-					"type": "boolean"
-				},
-				"cost": {
-					"type": "object",
-					"properties": {
-						"value": {
-							"type": "double"
-						},
-						"maxExpected": {
-							"type": "double"
-						}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"product-anomalies-detection": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"date": {
+				"type": "date"
+			},
+			"product" : {
+				"type": "keyword"
+			},
+			"abnormal" : {
+				"type": "boolean"
+			},
+			"recurrent" : {
+				"type": "boolean"
+			},
+			"cost": {
+				"type": "object",
+				"properties": {
+					"value": {
+						"type": "double"
+					},
+					"maxExpected": {
+						"type": "double"
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

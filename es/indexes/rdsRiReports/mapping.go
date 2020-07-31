@@ -16,76 +16,80 @@ package rdsRiReports
 
 const Template = `
 {
-	"template": "*-rds-ri-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 2,
-	"mappings": {
-		"rds-ri-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"instance": {
-					"type": "object",
-					"properties": {
-						"id": {
-							"type": "keyword"
-						},
-						"offeringId": {
-							"type": "keyword"
-						},
-						"availabilityZone": {
-							"type": "keyword"
-						},
-						"instanceClass": {
-							"type": "keyword"
-						},
-						"instanceCount": {
-							"type": "integer"
-						},
-						"duration": {
-							"type": "integer"
-						},
-						"multiAz": {
-							"type": "boolean"
-						},
-						"productDescription": {
-							"type": "keyword"
-						},
-						"offeringType": {
-							"type": "keyword"
-						},
-						"state": {
-							"type": "keyword"
-						},
-						"startTime": {
-							"type": "date"
-						},
-						"recurringCharges": {
-							"type": "nested",
-							"properties": {
-								"amount": {
-									"type": "double"
-								},
-								"frequency": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"rds-ri-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"instance": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"offeringId": {
+						"type": "keyword"
+					},
+					"availabilityZone": {
+						"type": "keyword"
+					},
+					"instanceClass": {
+						"type": "keyword"
+					},
+					"instanceCount": {
+						"type": "integer"
+					},
+					"duration": {
+						"type": "integer"
+					},
+					"multiAz": {
+						"type": "boolean"
+					},
+					"productDescription": {
+						"type": "keyword"
+					},
+					"offeringType": {
+						"type": "keyword"
+					},
+					"state": {
+						"type": "keyword"
+					},
+					"startTime": {
+						"type": "date"
+					},
+					"recurringCharges": {
+						"type": "nested",
+						"properties": {
+							"amount": {
+								"type": "double"
+							},
+							"frequency": {
+								"type": "keyword"
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

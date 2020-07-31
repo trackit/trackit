@@ -16,95 +16,99 @@ package riEc2Reports
 
 const Template = `
 {
-	"template": "*-ri-ec2-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 3,
-	"mappings": {
-		"ri-ec2-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"service": {
-					"type": "keyword"
-				},
-				"reservation": {
-					"properties": {
-						"id": {
-							"type": "keyword"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"availabilityZone": {
-							"type": "keyword"
-						},
-						"type": {
-							"type": "keyword"
-						},
-						"offeringClass": {
-							"type": "keyword"
-						},
-						"offeringType": {
-							"type": "keyword"
-						},
-						"productDescription": {
-							"type": "keyword"
-						},
-						"state":{
-							"type": "keyword"
-						},
-						"start": {
-							"type": "date"
-						},
-						"end": {
-							"type": "date"
-						},
-						"instanceCount": {
-							"type": "integer"
-						},
-						"tenancy": {
-							"type": "keyword"
-						},
-						"usagePrice": {
-							"type": "double"
-						},
-						"recurringCharges": {
-							"type": "nested",
-							"properties": {
-								"amount": {
-									"type": "double"
-								},
-								"frequency": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"ri-ec2-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"service": {
+				"type": "keyword"
+			},
+			"reservation": {
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"availabilityZone": {
+						"type": "keyword"
+					},
+					"type": {
+						"type": "keyword"
+					},
+					"offeringClass": {
+						"type": "keyword"
+					},
+					"offeringType": {
+						"type": "keyword"
+					},
+					"productDescription": {
+						"type": "keyword"
+					},
+					"state":{
+						"type": "keyword"
+					},
+					"start": {
+						"type": "date"
+					},
+					"end": {
+						"type": "date"
+					},
+					"instanceCount": {
+						"type": "integer"
+					},
+					"tenancy": {
+						"type": "keyword"
+					},
+					"usagePrice": {
+						"type": "double"
+					},
+					"recurringCharges": {
+						"type": "nested",
+						"properties": {
+							"amount": {
+								"type": "double"
+							},
+							"frequency": {
+								"type": "keyword"
 							}
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+						}
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

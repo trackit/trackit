@@ -43,4 +43,6 @@ type VersioningData struct {
 	Name        string
 	Version     int
 	Template    string
+	Mapping     string
+	Type        string
 }

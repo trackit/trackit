@@ -16,93 +16,96 @@ package lambdaReports
 
 const Template = `
 {
-	"template": "*-lambda-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 2,
-	"mappings": {
-		"lambda-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"function": {
-					"properties": {
-						"name": {
-							"type": "keyword"
-						},
-						"description": {
-							"type": "keyword"
-						},
-						"version": {
-							"type": "keyword"
-						},
-						"lastModified": {
-							"type": "keyword"
-						},
-						"runtime": {
-							"type": "keyword"
-						},
-						"size": {
-							"type": "integer"
-						},
-						"memory": {
-							"type": "integer"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"lambda-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"function": {
+				"properties": {
+					"name": {
+						"type": "keyword"
+					},
+					"description": {
+						"type": "keyword"
+					},
+					"version": {
+						"type": "keyword"
+					},
+					"lastModified": {
+						"type": "keyword"
+					},
+					"runtime": {
+						"type": "keyword"
+					},
+					"size": {
+						"type": "integer"
+					},
+					"memory": {
+						"type": "integer"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"invocations": {
-									"type": "object",
-									"properties": {
-											"total": {
-												"type": "double"
-											},
-											"error": {
-												"type": "double"
-											}
-									}
-								},
-								"duration": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"maximum": {
-												"type": "double"
-											}
-									}
+						}
+					},
+					"stats": {
+						"type": "object",
+						"properties": {
+							"invocations": {
+								"type": "object",
+								"properties": {
+										"total": {
+											"type": "double"
+										},
+										"error": {
+											"type": "double"
+										}
+								}
+							},
+							"duration": {
+								"type": "object",
+								"properties": {
+										"average": {
+											"type": "double"
+										},
+										"maximum": {
+											"type": "double"
+										}
 								}
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
-}
-`
+}`

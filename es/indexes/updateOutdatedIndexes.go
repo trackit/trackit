@@ -16,8 +16,12 @@ package indexes
 
 import (
 	"context"
+	"strconv"
+
+	"github.com/olivere/elastic"
 
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/common"
 	"github.com/trackit/trackit/models"
 )
@@ -40,6 +44,23 @@ func updateOutdatedIndexes(ctx context.Context) error {
 }
 
 func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template common.VersioningData) error {
+	newIndexName := ev.IndexName + "-v" + strconv.Itoa(template.Version)
+
+	_, err := elastic.NewIndicesCreateService(es.Client).Index(newIndexName).Do(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = es.Client.PutMapping().Index(newIndexName).BodyString(template.Mapping).Type(template.Type).Do(ctx)
+	if err != nil {
+		return err
+	}
+
+	_, err = es.Client.Reindex().SourceIndex(ev.IndexName).DestinationIndex(newIndexName).Do(ctx)
+	if err != nil {
+		return err
+	}
+
 	ev.CurrentVersion = template.Version
 	ev.Update(db.Db)
 	return nil

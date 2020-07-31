@@ -16,104 +16,108 @@ package elasticacheReports
 
 const Template = `
 {
-	"template": "*-elasticache-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 1,
-	"mappings": {
-		"elasticache-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"instance": {
-					"properties": {
-						"id": {
-							"type": "keyword"
-						},
-						"status": {
-							"type": "keyword"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"nodeType": {
-							"type": "keyword"
-						},
-						"nodes": {
-							"type": "nested",
-							"properties": {
-								"id": {
-									"type": "keyword"
-								},
-								"status": {
-									"type": "keyword"
-								},
-								"region": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"elasticache-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"instance": {
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"status": {
+						"type": "keyword"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"nodeType": {
+						"type": "keyword"
+					},
+					"nodes": {
+						"type": "nested",
+						"properties": {
+							"id": {
+								"type": "keyword"
+							},
+							"status": {
+								"type": "keyword"
+							},
+							"region": {
+								"type": "keyword"
 							}
-						},
-						"engine": {
-							"type": "keyword"
-						},
-						"engineVersion": {
-							"type": "keyword"
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+						}
+					},
+					"engine": {
+						"type": "keyword"
+					},
+					"engineVersion": {
+						"type": "keyword"
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
-						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"network": {
-									"type": "object",
-									"properties": {
-											"in": {
-												"type": "double"
-											},
-											"out": {
-												"type": "double"
-											}
-									}
+						}
+					},
+					"costs": {
+						"type": "object"
+					},
+					"stats": {
+						"type": "object",
+						"properties": {
+							"cpu": {
+								"type": "object",
+								"properties": {
+										"average": {
+											"type": "double"
+										},
+										"peak": {
+											"type": "double"
+										}
+								}
+							},
+							"network": {
+								"type": "object",
+								"properties": {
+										"in": {
+											"type": "double"
+										},
+										"out": {
+											"type": "double"
+										}
 								}
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

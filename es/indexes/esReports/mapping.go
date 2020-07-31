@@ -16,93 +16,97 @@ package esReports
 
 const Template = `
 {
-	"template": "*-es-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 1,
-	"mappings": {
-		"es-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"domain": {
-					"properties": {
-						"arn": {
-							"type": "keyword"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"domainId": {
-							"type": "keyword"
-						},
-						"instanceType": {
-							"type": "keyword"
-						},
-						"instanceCount": {
-							"type": "integer"
-						},
-						"totalStorageSpace": {
-							"type": "integer"
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"es-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"domain": {
+				"properties": {
+					"arn": {
+						"type": "keyword"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"domainId": {
+						"type": "keyword"
+					},
+					"instanceType": {
+						"type": "keyword"
+					},
+					"instanceCount": {
+						"type": "integer"
+					},
+					"totalStorageSpace": {
+						"type": "integer"
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
-						},
-						"costs": {
-							"type": "object"
-						},
-						"stats": {
-							"type": "object",
-							"properties": {
-								"cpu": {
-									"type": "object",
-									"properties": {
-											"average": {
-												"type": "double"
-											},
-											"peak": {
-												"type": "double"
-											}
-									}
-								},
-								"freeSpace": {
-									"type": "double"
-								},
-								"JVMMemoryPressure": {
-									"type": "object",
-									"properties": {
-											"in": {
-												"type": "double"
-											},
-											"out": {
-												"type": "double"
-											}
-									}
+						}
+					},
+					"costs": {
+						"type": "object"
+					},
+					"stats": {
+						"type": "object",
+						"properties": {
+							"cpu": {
+								"type": "object",
+								"properties": {
+										"average": {
+											"type": "double"
+										},
+										"peak": {
+											"type": "double"
+										}
+								}
+							},
+							"freeSpace": {
+								"type": "double"
+							},
+							"JVMMemoryPressure": {
+								"type": "object",
+								"properties": {
+										"in": {
+											"type": "double"
+										},
+										"out": {
+											"type": "double"
+										}
 								}
 							}
 						}
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `

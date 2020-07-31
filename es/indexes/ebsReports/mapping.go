@@ -16,74 +16,78 @@ package ebsReports
 
 const Template = `
 {
-	"template": "*-ebs-reports",
+	"template": "*-` + IndexSuffix + `",
 	"version": 2,
-	"mappings": {
-		"ebs-report": {
-			"properties": {
-				"account": {
-					"type": "keyword"
-				},
-				"reportDate": {
-					"type": "date"
-				},
-				"reportType": {
-					"type": "keyword"
-				},
-				"snapshot": {
-					"properties": {
-						"id": {
-							"type": "keyword"
-						},
-						"description": {
-							"type": "keyword"
-						},
-						"state": {
-							"type": "keyword"
-						},
-						"encrypted": {
-							"type": "boolean"
-						},
-						"startTime": {
-							"type": "date"
-						},
-						"region": {
-							"type": "keyword"
-						},
-						"tags": {
-							"type": "nested",
-							"properties": {
-								"key": {
-									"type": "keyword"
-								},
-								"value": {
-									"type": "keyword"
-								}
+	"mappings": ` + Mappings + `
+}
+`
+
+const Mappings = `
+{
+	"ebs-report": {
+		"properties": {
+			"account": {
+				"type": "keyword"
+			},
+			"reportDate": {
+				"type": "date"
+			},
+			"reportType": {
+				"type": "keyword"
+			},
+			"snapshot": {
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"description": {
+						"type": "keyword"
+					},
+					"state": {
+						"type": "keyword"
+					},
+					"encrypted": {
+						"type": "boolean"
+					},
+					"startTime": {
+						"type": "date"
+					},
+					"region": {
+						"type": "keyword"
+					},
+					"tags": {
+						"type": "nested",
+						"properties": {
+							"key": {
+								"type": "keyword"
+							},
+							"value": {
+								"type": "keyword"
 							}
-						},
-						"volume": {
-							"type": "object",
-							"properties": {
-								"id": {
-									"type": "keyword"
-								},
-								"size": {
-									"type": "integer"
-								}
-							}
-						},
-						"cost": {
-							"type": "double"
 						}
+					},
+					"volume": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "keyword"
+							},
+							"size": {
+								"type": "integer"
+							}
+						}
+					},
+					"cost": {
+						"type": "double"
 					}
 				}
-			},
-			"_all": {
-				"enabled": false
-			},
-			"numeric_detection": false,
-			"date_detection": false
-		}
+			}
+		},
+		"_all": {
+			"enabled": false
+		},
+		"numeric_detection": false,
+		"date_detection": false
 	}
 }
 `
