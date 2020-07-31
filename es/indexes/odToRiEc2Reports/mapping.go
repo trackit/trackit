@@ -1,4 +1,4 @@
-//   Copyright 2019 MSolution.IO
+//   Copyright 2020 MSolution.IO
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -12,34 +12,9 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package onDemandToRiEc2
+package odToRiEc2Reports
 
-import (
-	"context"
-	"time"
-
-	"github.com/trackit/jsonlog"
-
-	"github.com/trackit/trackit/es"
-)
-
-const TypeOdToRiEC2Report = "od-to-ri-ec2-report"
-const IndexPrefixOdToRiEC2Report = "od-to-ri-ec2-reports"
-const TemplateNameOdToRiEC2Report = "od-to-ri-ec2-reports"
-
-// put the ElasticSearch index for *-od-to-ri-ec2-reports indices at startup.
-func init() {
-	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
-	res, err := es.Client.IndexPutTemplate(TemplateNameOdToRiEC2Report).BodyString(TemplateOdToRiEc2Report).Do(ctx)
-	if err != nil {
-		jsonlog.DefaultLogger.Error("Failed to put ES index OdToRiEC2Report.", err)
-	} else {
-		jsonlog.DefaultLogger.Info("Put ES index OdToRiEC2Report.", res)
-		ctxCancel()
-	}
-}
-
-const TemplateOdToRiEc2Report = `
+const Template = `
 {
 	"template": "*-od-to-ri-ec2-reports",
 	"version": 1,

@@ -31,6 +31,7 @@ import (
 	"github.com/trackit/trackit/es/indexes/instanceCountReports"
 	"github.com/trackit/trackit/es/indexes/lambdaReports"
 	"github.com/trackit/trackit/es/indexes/lineItems"
+	"github.com/trackit/trackit/es/indexes/odToRiEc2Reports"
 	"github.com/trackit/trackit/es/indexes/rdsReports"
 	"github.com/trackit/trackit/es/indexes/rdsRiReports"
 	"github.com/trackit/trackit/es/indexes/riEc2Reports"
@@ -54,6 +55,7 @@ var mappings = map[string]string{
 	taggingCompliance.TemplateName:    taggingCompliance.Template,
 	accountPlugins.TemplateName:       accountPlugins.Template,
 	anomaliesDetection.TemplateName:   anomaliesDetection.Template,
+	odToRiEc2Reports.TemplateName:     odToRiEc2Reports.Template,
 }
 
 // put the ElasticSearch index templates indices at startup.

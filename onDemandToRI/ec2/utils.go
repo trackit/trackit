@@ -26,6 +26,7 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/odToRiEc2Reports"
 	"github.com/trackit/trackit/usageReports/ec2"
 	"github.com/trackit/trackit/usageReports/riEc2"
 )
@@ -57,7 +58,7 @@ func instanceMatchReservation(instanceReport ec2.InstanceReport, reservationRepo
 
 // instanceMatchSpecs takes an ec2.InstanceReport and an InstancesSpecs
 // it returns true if the InstanceReport matches the InstancesSpecs
-func instanceMatchSpecs(instanceReport ec2.InstanceReport, specs InstancesSpecs) bool {
+func instanceMatchSpecs(instanceReport ec2.InstanceReport, specs odToRiEc2Reports.InstancesSpecs) bool {
 	if getRegionName(instanceReport.Instance.Region) == specs.Region &&
 		instanceReport.Instance.Type == specs.Type && instanceReport.Instance.Platform == specs.Platform {
 		return true
@@ -75,7 +76,7 @@ func getMonthlyCostPerUnit(hourlyCost float64) float64 {
 }
 
 // IngestOdToRiEc2Result saves a OdToRiEc2Report into elasticsearch
-func IngestOdToRiEc2Result(ctx context.Context, aa aws.AwsAccount, report OdToRiEc2Report) error {
+func IngestOdToRiEc2Result(ctx context.Context, aa aws.AwsAccount, report odToRiEc2Reports.OdToRiEc2Report) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Saving od to ri ec2 result for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
@@ -94,11 +95,11 @@ func IngestOdToRiEc2Result(ctx context.Context, aa aws.AwsAccount, report OdToRi
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixOdToRiEC2Report)
+	index := es.IndexNameForUserId(aa.UserId, odToRiEc2Reports.IndexSuffix)
 	if res, err := client.
 		Index().
 		Index(index).
-		Type(TypeOdToRiEC2Report).
+		Type(odToRiEc2Reports.Type).
 		BodyJson(report).
 		Id(hash64).
 		Do(context.Background()); err != nil {
