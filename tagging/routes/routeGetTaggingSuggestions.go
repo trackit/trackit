@@ -27,30 +27,30 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-const maxSuggestionsCount = 3
+const maxSuggestionsCount = 10
 
 func routeGetTaggingSuggestions(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
-	tagName := a[suggestionsQueryArgs[0]].(string)
+	tagKey := a[suggestionsQueryArgs[0]].(string)
 
-	suggestions, err := getSuggestions(r.Context(), u.Id, tagName)
+	suggestions, err := getSuggestions(r.Context(), u.Id, tagKey)
 	if err != nil {
 		return http.StatusInternalServerError, nil
 	}
 
 	return http.StatusOK, map[string]interface{}{
-		"tagName":     tagName,
+		"tagKey":      tagKey,
 		"suggestions": suggestions,
 	}
 }
 
-func getSuggestions(ctx context.Context, userId int, tagName string) ([]string, error) {
+func getSuggestions(ctx context.Context, userId int, tagKey string) ([]string, error) {
 	client := es.Client
 
 	res, err := client.Search().Index(es.IndexNameForUserId(userId, tagging.IndexPrefixTaggingReport)).Size(0).
 		Aggregation("byDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
 			SubAggregation("nested", elastic.NewNestedAggregation().Path("tags").
-				SubAggregation("byTagName", elastic.NewFilterAggregation().Filter(elastic.NewTermQuery("tags.key", "Name")).
+				SubAggregation("byTagKey", elastic.NewFilterAggregation().Filter(elastic.NewTermQuery("tags.key", tagKey)).
 					SubAggregation("results", elastic.NewTermsAggregation().Field("tags.value").Size(maxSuggestionsCount))))).Do(ctx)
 	if err != nil {
 		return nil, err
@@ -69,12 +69,12 @@ func processTaggingSuggestionsResult(res *elastic.SearchResult) ([]string, error
 		return []string{}, nil
 	}
 
-	byTagNameRes, found := nestedRes.Aggregations.Terms("byTagName")
+	byTagKeyRes, found := nestedRes.Aggregations.Terms("byTagKey")
 	if !found || len(byDateRes.Buckets) <= 0 {
 		return []string{}, nil
 	}
 
-	resultsRes, found := byTagNameRes.Aggregations.Terms("results")
+	resultsRes, found := byTagKeyRes.Aggregations.Terms("results")
 	if !found {
 		return []string{}, nil
 	}

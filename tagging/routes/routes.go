@@ -48,9 +48,9 @@ var resourcesQueryArgs = []routes.QueryArg{
 // suggestionsQueryArgs allows to get required queryArgs params
 var suggestionsQueryArgs = []routes.QueryArg{
 	routes.QueryArg{
-		Name:        "tagName",
+		Name:        "tagkey",
 		Type:        routes.QueryArgString{},
-		Description: "Tag name for suggestions",
+		Description: "Tag key for suggestions",
 		Optional:    false,
 	},
 }
@@ -107,5 +107,5 @@ func init() {
 				Description: "Responds with suggestions for a tag's value for a user.",
 			},
 		),
-	}.H().Register("/tagging/suggestions")
+	}.H().Register("/tagging/suggestions/tag-value")
 }
