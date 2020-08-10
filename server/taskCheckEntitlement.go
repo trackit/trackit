@@ -21,6 +21,7 @@ import (
 	"flag"
 	"strconv"
 	"time"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -64,7 +65,7 @@ func taskCheckEntitlement(ctx context.Context) error {
 }
 
 // getUserEntitlement calls getEntitlements function to retrieve specific user entitlement from AWS marketplace.
-func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement, error) {
+func getUserEntitlement(ctx context.Context, customerIdentifier string, productCode string) ([]*marketplaceentitlementservice.Entitlement, error) {
 	svc := marketplaceentitlementservice.New(awsSession.Session)
 	var awsInput marketplaceentitlementservice.GetEntitlementsInput
 	var filter = make(map[string][]*string)
@@ -87,28 +88,38 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 // checkUserEntitlement enables entitlement to be checked.
 func checkUserEntitlement(ctx context.Context, cuId string, userId int) error {
 	var expirationDate time.Time
-	res, err := getUserEntitlement(ctx, cuId)
-	if err != nil {
-		return err
+	var entitlements []bool
+	var err error
+	productCodes := strings.Split(config.MarketPlaceProductCode, ":")
+	for _, productCode := range productCodes {
+		res, err := getUserEntitlement(ctx, cuId, productCode)
+		if err != nil {
+			return err
+		}
+		for _, key := range res {
+			expirationDate = aws.TimeValue(key.ExpirationDate)
+		}
+		entitlements = append(entitlements, checkExpirationDate(expirationDate, ctx, db.Db, userId))
 	}
-	for _, key := range res {
-		expirationDate = aws.TimeValue(key.ExpirationDate)
+	for _, entitlement := range entitlements {
+		if entitlement == true {
+			err = updateCustomerEntitlement(db.Db, ctx, userId, true)
+			return err
+		}
 	}
-	err = checkExpirationDate(expirationDate, ctx, db.Db, userId)
+	err = updateCustomerEntitlement(db.Db, ctx, userId, false)
 	return err
 }
 
 // checkExpirationDate compares expiration date given by AWS to current time.
-// According to result, an update is pushed to db.
-func checkExpirationDate(expirationDate time.Time, ctx context.Context, db *sql.DB, userId int) error {
-	var err error
+// Return true or false according to the result.
+func checkExpirationDate(expirationDate time.Time, ctx context.Context, db *sql.DB, userId int) bool {
 	currentTime := time.Now()
 	if expirationDate.After(currentTime) {
-		err = updateCustomerEntitlement(db, ctx, userId, true)
+		return true
 	} else {
-		err = updateCustomerEntitlement(db, ctx, userId, false)
+		return false
 	}
-	return err
 }
 
 // updateCustomerEntitlement updates aws customer entitlement according to entitlement value.
