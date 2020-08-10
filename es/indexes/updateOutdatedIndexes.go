@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"github.com/olivere/elastic"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
@@ -44,6 +45,7 @@ func updateOutdatedIndexes(ctx context.Context) error {
 }
 
 func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template common.VersioningData) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	newIndexName := ev.IndexName + "-v" + strconv.Itoa(template.Version)
 
 	_, err := elastic.NewIndicesCreateService(es.Client).Index(newIndexName).Do(ctx)
@@ -71,7 +73,15 @@ func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template 
 		return err
 	}
 
+	logger.Info("Updated index.", map[string]interface{}{
+		"indexName":       ev.IndexName,
+		"templateName":    template.Name,
+		"previousVersion": ev.CurrentVersion,
+		"newVersion":      template.Version,
+	})
+
 	ev.CurrentVersion = template.Version
 	ev.Update(db.Db)
+
 	return nil
 }
