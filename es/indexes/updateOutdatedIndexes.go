@@ -70,15 +70,7 @@ func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template 
 		return err
 	}
 
-	_, err = es.Client.DeleteIndex(ev.IndexName).Do(ctx)
-	if err != nil {
-		return err
-	}
-
-	_, err = es.Client.Alias().Add(newIndexName, ev.IndexName).Do(ctx)
-	if err != nil {
-		return err
-	}
+	_, err = es.Client.Alias().Action(elastic.NewAliasRemoveIndexAction(ev.IndexName), elastic.NewAliasAddAction(ev.IndexName).Index(newIndexName)).Do(ctx)
 
 	logger.Info("Index mappings updated.", map[string]interface{}{
 		"indexName":       ev.IndexName,

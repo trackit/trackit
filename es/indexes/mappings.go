@@ -41,7 +41,7 @@ import (
 	"github.com/trackit/trackit/es/indexes/taggingReports"
 )
 
-var versioningData = [...]common.VersioningData{
+var versioningData = []common.VersioningData{
 	lineItems.Model,
 	ebsReports.Model,
 	ec2Reports.Model,
@@ -63,9 +63,9 @@ var versioningData = [...]common.VersioningData{
 
 // put the ElasticSearch index templates indices at startup.
 func init() {
-	for _, data := range versioningData {
-		buildTemplatesAndMappings(&data)
-		putTemplate(data.Name, data.Template)
+	for index := range versioningData {
+		buildTemplatesAndMappings(&versioningData[index])
+		putTemplate(versioningData[index].Name, versioningData[index].Template)
 	}
 }
 
