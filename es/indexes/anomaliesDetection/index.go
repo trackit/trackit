@@ -14,9 +14,15 @@
 
 package anomaliesDetection
 
-const IndexSuffix = "anomalies-detection"
-const Type = "product-anomalies-detection"
-const TemplateName = "anomalies-detection"
+import "github.com/trackit/trackit/es/indexes/common"
+
+var Model = common.VersioningData{
+	IndexSuffix:       "anomalies-detection",
+	Name:              "anomalies-detection",
+	Type:              "product-anomalies-detection",
+	Version:           2,
+	MappingProperties: properties,
+}
 
 type (
 	// EsProductAnomalyCost contains the cost data
@@ -72,3 +78,34 @@ type (
 	// EsProductAnomaliesWithId is used to get anomalies from ElasticSearch.
 	EsProductAnomaliesWithId []EsProductAnomalyWithId
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"date": {
+		"type": "date"
+	},
+	"product": {
+		"type": "keyword"
+	},
+	"abnormal": {
+		"type": "boolean"
+	},
+	"recurrent": {
+		"type": "boolean"
+	},
+	"cost": {
+		"type": "object",
+		"properties": {
+			"value": {
+				"type": "double"
+			},
+			"maxExpected": {
+				"type": "double"
+			}
+		}
+	}
+}
+`

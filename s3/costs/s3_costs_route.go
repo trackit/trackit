@@ -148,7 +148,7 @@ func getS3CostDataHandler(request *http.Request, a routes.Arguments) (int, inter
 	var err error
 	var returnCode int
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}

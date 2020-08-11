@@ -16,9 +16,13 @@ package esReports
 
 import "github.com/trackit/trackit/es/indexes/common"
 
-const IndexSuffix = "es-reports"
-const Type = "es-report"
-const TemplateName = "es-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "es-reports",
+	Name:              "es-reports",
+	Type:              "es-report",
+	Version:           1,
+	MappingProperties: properties,
+}
 
 type (
 	// DomainReport represents the report with all the information for ES domains.
@@ -65,3 +69,83 @@ type (
 		Peak    float64 `json:"peak"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"domain": {
+		"properties": {
+			"arn": {
+				"type": "keyword"
+			},
+			"region": {
+				"type": "keyword"
+			},
+			"domainId": {
+				"type": "keyword"
+			},
+			"instanceType": {
+				"type": "keyword"
+			},
+			"instanceCount": {
+				"type": "integer"
+			},
+			"totalStorageSpace": {
+				"type": "integer"
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword"
+					},
+					"value": {
+						"type": "keyword"
+					}
+				}
+			},
+			"costs": {
+				"type": "object"
+			},
+			"stats": {
+				"type": "object",
+				"properties": {
+					"cpu": {
+						"type": "object",
+						"properties": {
+								"average": {
+									"type": "double"
+								},
+								"peak": {
+									"type": "double"
+								}
+						}
+					},
+					"freeSpace": {
+						"type": "double"
+					},
+					"JVMMemoryPressure": {
+						"type": "object",
+						"properties": {
+								"in": {
+									"type": "double"
+								},
+								"out": {
+									"type": "double"
+								}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+`

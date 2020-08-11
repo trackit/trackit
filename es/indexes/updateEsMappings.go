@@ -20,12 +20,7 @@ import (
 
 // UpdateEsMappings updates Elasticsearch index mappings
 func UpdateEsMappings(ctx context.Context) error {
-	err := extractVersionFromTemplate()
-	if err != nil {
-		return err
-	}
-
-	err = discoverIndexes(ctx)
+	err := discoverIndexes(ctx)
 	if err != nil {
 		return err
 	}

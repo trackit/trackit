@@ -20,9 +20,13 @@ import (
 	"github.com/trackit/trackit/es/indexes/common"
 )
 
-const IndexSuffix = "rds-ri-reports"
-const Type = "rds-ri-report"
-const TemplateName = "rds-ri-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "rds-ri-reports",
+	Name:              "rds-ri-reports",
+	Type:              "rds-ri-report",
+	Version:           2,
+	MappingProperties: properties,
+}
 
 type (
 	// InstanceReport is saved in ES to have all the information of an RDS reserved instance
@@ -59,3 +63,66 @@ type (
 		Frequency string
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"instance": {
+		"type": "object",
+		"properties": {
+			"id": {
+				"type": "keyword"
+			},
+			"offeringId": {
+				"type": "keyword"
+			},
+			"availabilityZone": {
+				"type": "keyword"
+			},
+			"instanceClass": {
+				"type": "keyword"
+			},
+			"instanceCount": {
+				"type": "integer"
+			},
+			"duration": {
+				"type": "integer"
+			},
+			"multiAz": {
+				"type": "boolean"
+			},
+			"productDescription": {
+				"type": "keyword"
+			},
+			"offeringType": {
+				"type": "keyword"
+			},
+			"state": {
+				"type": "keyword"
+			},
+			"startTime": {
+				"type": "date"
+			},
+			"recurringCharges": {
+				"type": "nested",
+				"properties": {
+					"amount": {
+						"type": "double"
+					},
+					"frequency": {
+						"type": "keyword"
+					}
+				}
+			}
+		}
+	}
+}
+`

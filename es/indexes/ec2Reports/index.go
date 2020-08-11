@@ -16,9 +16,13 @@ package ec2Reports
 
 import "github.com/trackit/trackit/es/indexes/common"
 
-const IndexSuffix = "ec2-reports"
-const Type = "ec2-report"
-const TemplateName = "ec2-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "ec2-reports",
+	Name:              "ec2-reports",
+	Type:              "ec2-report",
+	Version:           11,
+	MappingProperties: properties,
+}
 
 type (
 	// InstanceReport is saved in ES to have all the information of an EC2 instance
@@ -80,3 +84,111 @@ type (
 		Write float64 `json:"write"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"instance": {
+		"properties": {
+			"id": {
+				"type": "keyword"
+			},
+			"region": {
+				"type": "keyword"
+			},
+			"state": {
+				"type": "keyword"
+			},
+			"purchasing": {
+				"type": "keyword"
+			},
+			"keyPair": {
+				"type": "keyword"
+			},
+			"type": {
+				"type": "keyword"
+			},
+			"platform": {
+				"type": "keyword"
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword"
+					},
+					"value": {
+						"type": "keyword"
+					}
+				}
+			},
+			"costs": {
+				"type": "object"
+			},
+			"stats": {
+				"type": "object",
+				"properties": {
+					"cpu": {
+						"type": "object",
+						"properties": {
+								"average": {
+									"type": "double"
+								},
+								"peak": {
+									"type": "double"
+								}
+						}
+					},
+					"network": {
+						"type": "object",
+						"properties": {
+								"in": {
+									"type": "double"
+								},
+								"out": {
+									"type": "double"
+								}
+						}
+					},
+					"volumes": {
+						"type": "nested",
+						"properties": {
+							"id": {
+								"type": "keyword"
+							},
+							"read": {
+								"type": "double"
+							},
+							"write": {
+								"type": "double"
+							}
+						}
+					}
+				}
+			},
+			"recommendation": {
+				"type": "object",
+				"properties": {
+					"instancetype": {
+						"type": "keyword"
+					},
+					"reason": {
+						"type": "keyword"
+					},
+					"newgeneration": {
+						"type": "keyword"
+					}
+				}
+			}
+		}
+	}
+}
+`

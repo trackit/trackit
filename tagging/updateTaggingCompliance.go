@@ -126,7 +126,7 @@ func handleComplianceEsReponse(res *elastic.SearchResult, err error) (int64, err
 
 func getReportsCount(ctx context.Context, userId int) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
+	indexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 	index := client.Search().Index(indexName)
 
 	res, err := index.Size(0).Query(elastic.NewMatchAllQuery()).
@@ -136,7 +136,7 @@ func getReportsCount(ctx context.Context, userId int) (int64, error) {
 
 func getTotallyTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []string) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
+	indexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 	index := client.Search().Index(indexName)
 
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
@@ -149,7 +149,7 @@ func getTotallyTaggedReportsCount(ctx context.Context, userId int, mostUsedTags 
 
 func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []string) (int64, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
+	indexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 	index := client.Search().Index(indexName)
 
 	termQueries := mostUsedTagsToTermQueries(mostUsedTags)
@@ -163,8 +163,8 @@ func getNotTaggedReportsCount(ctx context.Context, userId int, mostUsedTags []st
 func pushComplianceToEs(ctx context.Context, userId int, compliance taggingCompliance.ComplianceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, taggingCompliance.IndexSuffix)
-	_, err := client.Index().Index(indexName).Type(taggingCompliance.Type).BodyJson(compliance).Do(ctx)
+	indexName := es.IndexNameForUserId(userId, taggingCompliance.Model.IndexSuffix)
+	_, err := client.Index().Index(indexName).Type(taggingCompliance.Model.Type).BodyJson(compliance).Do(ctx)
 
 	if err == nil {
 		logger.Info("Tagging compliance pushed to ES.", map[string]interface{}{

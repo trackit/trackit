@@ -93,7 +93,7 @@ func GetElastiCacheDailyInstances(ctx context.Context, params ElastiCacheQueryPa
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -109,7 +109,7 @@ func GetElastiCacheDailyInstances(ctx context.Context, params ElastiCacheQueryPa
 
 // GetElastiCacheData gets ElastiCache monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetElastiCacheData(ctx context.Context, parsedParams ElastiCacheQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, elasticacheReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, elasticacheReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

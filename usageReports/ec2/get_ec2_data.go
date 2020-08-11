@@ -92,7 +92,7 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -108,7 +108,7 @@ func GetEc2DailyInstances(ctx context.Context, params Ec2QueryParams, user users
 
 // GetEc2Data gets EC2 monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2Reports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2Reports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

@@ -14,11 +14,19 @@
 
 package odToRiEc2Reports
 
-import "time"
+import (
+	"time"
 
-const IndexSuffix = "od-to-ri-ec2-reports"
-const Type = "od-to-ri-ec2-report"
-const TemplateName = "od-to-ri-ec2-reports"
+	"github.com/trackit/trackit/es/indexes/common"
+)
+
+var Model = common.VersioningData{
+	IndexSuffix:       "od-to-ri-ec2-reports",
+	Name:              "od-to-ri-ec2-reports",
+	Type:              "od-to-ri-ec2-report",
+	Version:           1,
+	MappingProperties: properties,
+}
 
 type (
 	Cost struct {
@@ -77,3 +85,183 @@ type (
 		Instances []InstancesSpecs `json:"instances"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"onDemand": {
+		"properties": {
+			"monthly": {
+				"type": "double"
+			},
+			"oneYear": {
+				"type": "double"
+			},
+			"threeYears": {
+				"type": "double"
+			}
+		}
+	},
+	"reservation": {
+		"properties": {
+			"oneYear": {
+				"properties": {
+					"monthly": {
+						"type": "double"
+					},
+					"global": {
+						"type": "double"
+					},
+					"saving": {
+						"type": "double"
+					}
+				}
+			},
+			"threeYears": {
+				"properties": {
+					"monthly": {
+						"type": "double"
+					},
+					"global": {
+						"type": "double"
+					},
+					"saving": {
+						"type": "double"
+					}
+				}
+			}
+		}
+	},
+	"instances": {
+		"type": "nested",
+		"properties": {
+			"region": {
+				"type": "keyword"
+			},
+			"instanceType": {
+				"type": "keyword"
+			},
+			"platform": {
+				"type": "keyword"
+			},
+			"instanceCount": {
+				"type": "integer"
+			},
+			"onDemand": {
+				"properties": {
+					"monthly": {
+						"properties": {
+							"perUnit": {
+								"type": "double"
+							},
+							"total": {
+								"type": "double"
+							}
+						}
+					},
+					"oneYear": {
+						"properties": {
+							"perUnit": {
+								"type": "double"
+							},
+							"total": {
+								"type": "double"
+							}
+						}
+					},
+					"threeYears": {
+						"properties": {
+							"perUnit": {
+								"type": "double"
+							},
+							"total": {
+								"type": "double"
+							}
+						}
+					}
+				}
+			},
+			"reservation": {
+				"properties": {
+					"type": {
+						"type": "keyword"
+					},
+					"oneYear": {
+						"properties": {
+							"monthly": {
+								"properties": {
+									"perUnit": {
+										"type": "double"
+									},
+									"total": {
+										"type": "double"
+									}
+								}
+							},
+							"global": {
+								"properties": {
+									"perUnit": {
+										"type": "double"
+									},
+									"total": {
+										"type": "double"
+									}
+								}
+							},
+							"saving": {
+								"properties": {
+									"perUnit": {
+										"type": "double"
+									},
+									"total": {
+										"type": "double"
+									}
+								}
+							}
+						}
+					},
+					"threeYears": {
+						"properties": {
+							"monthly": {
+								"properties": {
+									"perUnit": {
+										"type": "double"
+									},
+									"total": {
+										"type": "double"
+									}
+								}
+							},
+							"global": {
+								"properties": {
+									"perUnit": {
+										"type": "double"
+									},
+									"total": {
+										"type": "double"
+									}
+								}
+							},
+							"saving": {
+								"properties": {
+									"perUnit": {
+										"type": "double"
+									},
+									"total": {
+										"type": "double"
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+`

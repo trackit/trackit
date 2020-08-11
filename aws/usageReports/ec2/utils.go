@@ -39,7 +39,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []ec
 	logger.Info("Updating EC2 instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, ec2Reports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, ec2Reports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -51,7 +51,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []ec
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, ec2Reports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, ec2Reports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

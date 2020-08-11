@@ -61,7 +61,7 @@ func getRIReport(ctx context.Context, aa aws.AwsAccount) ([]riEc2.ReservationRep
 	currentMonthBeginning := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	riReportParams := riEc2.ReservedInstancesQueryParams{
 		AccountList: []string{aa.AwsIdentity},
-		IndexList:   []string{es.IndexNameForUserId(aa.UserId, riEc2Reports.IndexSuffix)},
+		IndexList:   []string{es.IndexNameForUserId(aa.UserId, riEc2Reports.Model.IndexSuffix)},
 		Date:        currentMonthBeginning,
 	}
 	_, res, err := riEc2.GetReservedInstancesDaily(ctx, riReportParams)
@@ -82,7 +82,7 @@ func getEC2Report(ctx context.Context, aa aws.AwsAccount) ([]ec2.InstanceReport,
 	currentMonthBeginning := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	ec2ReportParams := ec2.Ec2QueryParams{
 		AccountList: []string{aa.AwsIdentity},
-		IndexList:   []string{es.IndexNameForUserId(aa.UserId, ec2Reports.IndexSuffix)},
+		IndexList:   []string{es.IndexNameForUserId(aa.UserId, ec2Reports.Model.IndexSuffix)},
 		Date:        currentMonthBeginning,
 	}
 	_, res, err := ec2.GetEc2DailyInstances(ctx, ec2ReportParams, user, tx)
@@ -269,7 +269,7 @@ func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
 
 // GetRiEc2Report gets RI EC2 reports based on query params
 func GetRiEc2Report(ctx context.Context, parsedParams RiEc2QueryParams, user users.User, tx *sql.Tx) (int, []odToRiEc2Reports.OdToRiEc2Report, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, odToRiEc2Reports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, odToRiEc2Reports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

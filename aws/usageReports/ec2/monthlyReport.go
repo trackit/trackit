@@ -95,7 +95,7 @@ func getInstanceInfoFromES(ctx context.Context, instance common.CostPerResource,
 	}
 	inst.Costs["instance"] = instance.Cost
 	res, err := getElasticSearchEc2Instance(ctx, account, instance.Resource,
-		es.Client, es.IndexNameForUserId(userId, ec2Reports.IndexSuffix))
+		es.Client, es.IndexNameForUserId(userId, ec2Reports.Model.IndexSuffix))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
@@ -257,7 +257,7 @@ func PutEc2MonthlyReport(ctx context.Context, ec2Cost, cloudWatchCost []common.C
 		logger.Info("No EC2 instances found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, ec2Reports.IndexSuffix)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, ec2Reports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

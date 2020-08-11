@@ -24,7 +24,7 @@ import (
 
 // CleanBillByBillRepositoryId removes every bills information of a specific bill repository
 func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
-	index := IndexNameForUserId(aaUId, lineItems.IndexSuffix)
+	index := IndexNameForUserId(aaUId, lineItems.Model.IndexSuffix)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("billRepositoryId", brId))
 	_, err := elastic.NewDeleteByQueryService(Client).WaitForCompletion(false).Index(index).Query(query).Do(ctx)
@@ -33,7 +33,7 @@ func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 
 // CleanCurrentMonthBillByBillRepositoryId removes incomplete bills of a specific bill repository (invoiceId == "" when incomplete)
 func CleanCurrentMonthBillByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
-	index := IndexNameForUserId(aaUId, lineItems.IndexSuffix)
+	index := IndexNameForUserId(aaUId, lineItems.Model.IndexSuffix)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("billRepositoryId", brId), elastic.NewTermQuery("invoiceId", ""))
 	_, err := elastic.NewDeleteByQueryService(Client).WaitForCompletion(false).Index(index).Query(query).Do(ctx)

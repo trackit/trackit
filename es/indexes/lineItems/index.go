@@ -14,11 +14,19 @@
 
 package lineItems
 
-import "fmt"
+import (
+	"fmt"
 
-const IndexSuffix = "lineitems"
-const Type = "lineitem"
-const TemplateName = "lineitems"
+	"github.com/trackit/trackit/es/indexes/common"
+)
+
+var Model = common.VersioningData{
+	IndexSuffix:       "lineitems",
+	Name:              "lineitems",
+	Type:              "lineitem",
+	Version:           8,
+	MappingProperties: properties,
+}
 
 type LineItem struct {
 	BillRepositoryId   int               `csv:"-"                            json:"billRepositoryId"`
@@ -54,3 +62,94 @@ type LineItemTags struct {
 func (li LineItem) EsId() string {
 	return fmt.Sprintf("%s/%s", li.TimeInterval, li.LineItemId)
 }
+
+const properties = `
+{
+	"billRepositoryId": {
+		"type": "integer"
+	},
+	"lineItemId": {
+		"type": "keyword",
+		"norms": false
+	},
+	"timeInterval": {
+		"type": "keyword",
+		"norms": false
+	},
+	"invoiceId": {
+		"type": "keyword",
+		"norms": false
+	},
+	"usageAccountId": {
+		"type": "keyword",
+		"norms": false
+	},
+	"lineItemType": {
+		"type": "keyword",
+		"norms": false
+	},
+	"productCode": {
+		"type": "keyword",
+		"norms": false
+	},
+	"usageType": {
+		"type": "keyword",
+		"norms": false
+	},
+	"operation": {
+		"type": "keyword",
+		"norms": false
+	},
+	"availabilityZone": {
+		"type": "keyword",
+		"norms": false
+	},
+	"region": {
+		"type": "keyword",
+		"norms": false
+	},
+	"resourceId": {
+		"type": "keyword",
+		"norms": false
+	},
+	"usageAmount": {
+		"type": "float",
+		"index": false
+	},
+	"serviceCode": {
+		"type": "keyword",
+		"norms": false
+	},
+	"currencyCode": {
+		"type": "keyword",
+		"norms": false
+	},
+	"unblendedCost": {
+		"type": "float",
+		"index": false
+	},
+	"taxType": {
+		"type": "keyword",
+		"norms": false
+	},
+	"usageStartDate": {
+		"type": "date"
+	},
+	"usageEndDate": {
+		"type": "date"
+	},
+	"tags": {
+		"type": "nested",
+		"properties": {
+			"key": {
+				"type": "keyword",
+				"norms": false
+			},
+			"tag": {
+				"type": "keyword",
+				"norms": false
+			}
+		}
+	}
+}
+`

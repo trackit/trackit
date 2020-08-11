@@ -108,7 +108,7 @@ func getTagsValues(request *http.Request, a routes.Arguments) (int, interface{})
 		parsedParams.AccountList = a[tagsValuesQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}
@@ -158,7 +158,7 @@ func getTagsKeys(request *http.Request, a routes.Arguments) (int, interface{}) {
 		parsedParams.AccountList = a[tagsKeysQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}

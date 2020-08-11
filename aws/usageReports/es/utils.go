@@ -51,7 +51,7 @@ func importDomainsToEs(ctx context.Context, aa taws.AwsAccount, domains []esRepo
 	logger.Info("Updating ES domains for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, esReports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, esReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -63,7 +63,7 @@ func importDomainsToEs(ctx context.Context, aa taws.AwsAccount, domains []esRepo
 			logger.Error("Error when marshaling domain var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, domain, esReports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, domain, esReports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

@@ -20,9 +20,13 @@ import (
 	"github.com/trackit/trackit/es/indexes/common"
 )
 
-const IndexSuffix = "tagging-reports"
-const Type = "tagging-reports"
-const TemplateName = "tagging-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "tagging-reports",
+	Name:              "tagging-reports",
+	Type:              "tagging-reports",
+	Version:           1,
+	MappingProperties: properties,
+}
 
 // TaggingReportDocument is an entry in ES' tagging index
 type TaggingReportDocument struct {
@@ -34,3 +38,37 @@ type TaggingReportDocument struct {
 	URL          string       `json:"url"`
 	Tags         []common.Tag `json:"tags"`
 }
+
+const properties = `
+{
+	"account":{
+		"type":"keyword"
+	},
+	"region":{
+		"type":"keyword"
+	},
+	"reportDate":{
+		"type":"date"
+	},
+	"resourceId":{
+		"type":"keyword"
+	},
+	"resourceType":{
+		"type":"keyword"
+	},
+	"tags":{
+		"type":"nested",
+		"properties":{
+			"key":{
+				"type":"keyword"
+			},
+			"value":{
+				"type":"keyword"
+			}
+		}
+	},
+	"url":{
+		"type":"keyword"
+	}
+}
+`

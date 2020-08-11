@@ -21,14 +21,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/trackit/trackit/es/indexes/accountPlugins"
-
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/accountPlugins"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
 )
@@ -96,7 +95,7 @@ func getPluginsResults(request *http.Request, a routes.Arguments) (int, interfac
 		parsedParams.accountList = a[pluginsQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, accountPlugins.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, accountPlugins.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}

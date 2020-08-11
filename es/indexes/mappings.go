@@ -16,6 +16,7 @@ package indexes
 
 import (
 	"context"
+	"strconv"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -41,132 +42,55 @@ import (
 )
 
 var versioningData = [...]common.VersioningData{
-	common.VersioningData{
-		Name:        lineItems.TemplateName,
-		IndexSuffix: lineItems.IndexSuffix,
-		Template:    lineItems.Template,
-		Mapping:     lineItems.Mappings,
-		Type:        lineItems.Type,
-	},
-	common.VersioningData{
-		Name:        ebsReports.TemplateName,
-		IndexSuffix: ebsReports.IndexSuffix,
-		Template:    ebsReports.Template,
-		Mapping:     ebsReports.Mappings,
-		Type:        ebsReports.Type,
-	},
-	common.VersioningData{
-		Name:        ec2Reports.TemplateName,
-		IndexSuffix: ec2Reports.IndexSuffix,
-		Template:    ec2Reports.Template,
-		Mapping:     ec2Reports.Mappings,
-		Type:        ec2Reports.Type,
-	},
-	common.VersioningData{
-		Name:        ec2CoverageReports.TemplateName,
-		IndexSuffix: ec2CoverageReports.IndexSuffix,
-		Template:    ec2CoverageReports.Template,
-		Mapping:     ec2CoverageReports.Mappings,
-		Type:        ec2CoverageReports.Type,
-	},
-	common.VersioningData{
-		Name:        elasticacheReports.TemplateName,
-		IndexSuffix: elasticacheReports.IndexSuffix,
-		Template:    elasticacheReports.Template,
-		Mapping:     elasticacheReports.Mappings,
-		Type:        elasticacheReports.Type,
-	},
-	common.VersioningData{
-		Name:        esReports.TemplateName,
-		IndexSuffix: esReports.IndexSuffix,
-		Template:    esReports.Template,
-		Mapping:     esReports.Mappings,
-		Type:        esReports.Type,
-	},
-	common.VersioningData{
-		Name:        instanceCountReports.TemplateName,
-		IndexSuffix: instanceCountReports.IndexSuffix,
-		Template:    instanceCountReports.Template,
-		Mapping:     instanceCountReports.Mappings,
-		Type:        instanceCountReports.Type,
-	},
-	common.VersioningData{
-		Name:        esReports.TemplateName,
-		IndexSuffix: esReports.IndexSuffix,
-		Template:    esReports.Template,
-		Mapping:     esReports.Mappings,
-		Type:        esReports.Type,
-	},
-	common.VersioningData{
-		Name:        lambdaReports.TemplateName,
-		IndexSuffix: lambdaReports.IndexSuffix,
-		Template:    lambdaReports.Template,
-		Mapping:     lambdaReports.Mappings,
-		Type:        lambdaReports.Type,
-	},
-	common.VersioningData{
-		Name:        rdsReports.TemplateName,
-		IndexSuffix: rdsReports.IndexSuffix,
-		Template:    rdsReports.Template,
-		Mapping:     rdsReports.Mappings,
-		Type:        rdsReports.Type,
-	},
-	common.VersioningData{
-		Name:        riEc2Reports.TemplateName,
-		IndexSuffix: riEc2Reports.IndexSuffix,
-		Template:    riEc2Reports.Template,
-		Mapping:     riEc2Reports.Mappings,
-		Type:        riEc2Reports.Type,
-	},
-	common.VersioningData{
-		Name:        rdsRiReports.TemplateName,
-		IndexSuffix: rdsRiReports.IndexSuffix,
-		Template:    rdsRiReports.Template,
-		Mapping:     rdsRiReports.Mappings,
-		Type:        rdsRiReports.Type,
-	},
-	common.VersioningData{
-		Name:        taggingReports.TemplateName,
-		IndexSuffix: taggingReports.IndexSuffix,
-		Template:    taggingReports.Template,
-		Mapping:     taggingReports.Mappings,
-		Type:        taggingReports.Type,
-	},
-	common.VersioningData{
-		Name:        taggingCompliance.TemplateName,
-		IndexSuffix: taggingCompliance.IndexSuffix,
-		Template:    taggingCompliance.Template,
-		Mapping:     taggingCompliance.Mappings,
-		Type:        taggingCompliance.Type,
-	},
-	common.VersioningData{
-		Name:        accountPlugins.TemplateName,
-		IndexSuffix: accountPlugins.IndexSuffix,
-		Template:    accountPlugins.Template,
-		Mapping:     accountPlugins.Mappings,
-		Type:        accountPlugins.Type,
-	},
-	common.VersioningData{
-		Name:        anomaliesDetection.TemplateName,
-		IndexSuffix: anomaliesDetection.IndexSuffix,
-		Template:    anomaliesDetection.Template,
-		Mapping:     anomaliesDetection.Mappings,
-		Type:        anomaliesDetection.Type,
-	},
-	common.VersioningData{
-		Name:        odToRiEc2Reports.TemplateName,
-		IndexSuffix: odToRiEc2Reports.IndexSuffix,
-		Template:    odToRiEc2Reports.Template,
-		Mapping:     odToRiEc2Reports.Mappings,
-		Type:        odToRiEc2Reports.Type,
-	},
+	lineItems.Model,
+	ebsReports.Model,
+	ec2Reports.Model,
+	ec2CoverageReports.Model,
+	elasticacheReports.Model,
+	esReports.Model,
+	instanceCountReports.Model,
+	esReports.Model,
+	lambdaReports.Model,
+	rdsReports.Model,
+	riEc2Reports.Model,
+	rdsRiReports.Model,
+	taggingReports.Model,
+	taggingCompliance.Model,
+	accountPlugins.Model,
+	anomaliesDetection.Model,
+	odToRiEc2Reports.Model,
 }
 
 // put the ElasticSearch index templates indices at startup.
 func init() {
 	for _, data := range versioningData {
+		buildTemplatesAndMappings(&data)
 		putTemplate(data.Name, data.Template)
 	}
+}
+
+func buildTemplatesAndMappings(data *common.VersioningData) {
+	data.Mapping = `
+	{
+		"` + data.Type + `": {
+			"properties": ` + data.MappingProperties + `
+			,
+			"_all": {
+				"enabled": false
+			},
+			"numeric_detection": false,
+			"date_detection": false
+		}
+	}
+	`
+
+	data.Template = `
+	{
+		"template": "*-` + data.Name + `",
+		"version": ` + strconv.Itoa(data.Version) + `,
+		"mappings": ` + data.Mapping + `
+	}
+	`
 }
 
 func putTemplate(templateName string, template string) {

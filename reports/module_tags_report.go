@@ -97,7 +97,7 @@ func tagsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time
 		Detailed:    true,
 	}
 	parsedParams.AccountList = identities
-	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return nil, err
 	}

@@ -114,7 +114,7 @@ func formatResultInstanceCount(ctx context.Context, res *elastic.SearchResult, a
 // getInstanceCountMetrics gets credentials, accounts and region to fetch InstanceCount report stats
 func fetchMonthlyInstanceCountReports(ctx context.Context, aa taws.AwsAccount, startDate, endDate time.Time) ([]instanceCountReports.InstanceCountReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 	parsedParams := EsQueryParams{
 		AccountList: []string{aa.AwsIdentity},
 		IndexList:   []string{index},
@@ -138,7 +138,7 @@ func PutInstanceCountMonthlyReport(ctx context.Context, aa taws.AwsAccount, star
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, instanceCountReports.IndexSuffix)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, instanceCountReports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

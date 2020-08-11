@@ -81,7 +81,7 @@ func GetHistoryDate() (time.Time, time.Time) {
 func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client, aa aws.AwsAccount,
 	startDate, endDate time.Time, product string, partition int) (*elastic.SearchResult, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("productCode", product))
@@ -200,7 +200,7 @@ func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 	query = query.Filter(elastic.NewTermQuery("invoiceId", ""))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
-	index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 	result, err := es.Client.Search().Index(index).Size(1).Query(query).Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {

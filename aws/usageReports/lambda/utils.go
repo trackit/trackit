@@ -39,7 +39,7 @@ func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []la
 	logger.Info("Updating Lambda functions for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, lambdaReports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, lambdaReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -51,7 +51,7 @@ func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []la
 			logger.Error("Error when marshaling function var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, function, lambdaReports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, function, lambdaReports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

@@ -166,7 +166,7 @@ func TaskDiffData(ctx context.Context, aa aws.AwsAccount, dateRange DateRange, a
 	if err != nil {
 		return
 	}
-	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return costDiff{}, err
 	}
@@ -191,7 +191,7 @@ func prepareGetDiffData(request *http.Request, a routes.Arguments) (int, interfa
 		return http.StatusBadRequest, fmt.Errorf("invalid aggregation period : %s", parsedParams.aggregationPeriod)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.accountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}

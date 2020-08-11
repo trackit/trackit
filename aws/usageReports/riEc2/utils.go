@@ -39,7 +39,7 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 	logger.Info("Updating reserved instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, riEc2Reports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, riEc2Reports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -51,7 +51,7 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 			logger.Error("Error when marshaling reservation var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, reservation, riEc2Reports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, reservation, riEc2Reports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

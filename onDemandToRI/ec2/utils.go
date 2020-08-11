@@ -95,11 +95,11 @@ func IngestOdToRiEc2Result(ctx context.Context, aa aws.AwsAccount, report odToRi
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, odToRiEc2Reports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, odToRiEc2Reports.Model.IndexSuffix)
 	if res, err := client.
 		Index().
 		Index(index).
-		Type(odToRiEc2Reports.Type).
+		Type(odToRiEc2Reports.Model.Type).
 		BodyJson(report).
 		Id(hash64).
 		Do(context.Background()); err != nil {

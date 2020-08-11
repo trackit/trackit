@@ -84,7 +84,7 @@ func GetEc2CoverageMonthlyReservations(ctx context.Context, params Ec2CoverageQu
 
 // GetEc2CoverageData gets EC2 Coverage monthly reports based on query params
 func GetEc2CoverageData(ctx context.Context, parsedParams Ec2CoverageQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2CoverageReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ec2CoverageReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

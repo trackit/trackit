@@ -20,9 +20,13 @@ import (
 	"github.com/trackit/trackit/es/indexes/common"
 )
 
-const IndexSuffix = "ebs-reports"
-const Type = "ebs-report"
-const TemplateName = "ebs-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "ebs-reports",
+	Name:              "ebs-reports",
+	Type:              "ebs-report",
+	Version:           2,
+	MappingProperties: properties,
+}
 
 type (
 	// SnapshotReport is saved in ES to have all the information of an EBS snapshot
@@ -55,3 +59,64 @@ type (
 		Size int64  `json:"size"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"snapshot": {
+		"properties": {
+			"id": {
+				"type": "keyword"
+			},
+			"description": {
+				"type": "keyword"
+			},
+			"state": {
+				"type": "keyword"
+			},
+			"encrypted": {
+				"type": "boolean"
+			},
+			"startTime": {
+				"type": "date"
+			},
+			"region": {
+				"type": "keyword"
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword"
+					},
+					"value": {
+						"type": "keyword"
+					}
+				}
+			},
+			"volume": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "keyword"
+					},
+					"size": {
+						"type": "integer"
+					}
+				}
+			},
+			"cost": {
+				"type": "double"
+			}
+		}
+	}
+}
+`

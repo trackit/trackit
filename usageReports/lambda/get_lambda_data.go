@@ -85,7 +85,7 @@ func GetLambdaDailyFunctions(ctx context.Context, params LambdaQueryParams, user
 
 // GetLambdaData gets Lambda monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetLambdaData(ctx context.Context, parsedParams LambdaQueryParams, user users.User, tx *sql.Tx) (int, []FunctionReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lambdaReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lambdaReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

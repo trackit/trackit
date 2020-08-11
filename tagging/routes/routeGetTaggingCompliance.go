@@ -51,7 +51,7 @@ func routeGetTaggingCompliance(r *http.Request, a routes.Arguments) (int, interf
 func getTaggingComplianceInRange(ctx context.Context, accountID int, begin time.Time, end time.Time) (map[string]interface{}, error) {
 	client := es.Client
 
-	res, err := client.Search().Index(es.IndexNameForUserId(accountID, taggingCompliance.IndexSuffix)).Query(elastic.NewMatchAllQuery()).
+	res, err := client.Search().Index(es.IndexNameForUserId(accountID, taggingCompliance.Model.IndexSuffix)).Query(elastic.NewMatchAllQuery()).
 		Aggregation("range", elastic.NewDateRangeAggregation().Field("reportDate").AddRange(begin, end).
 			SubAggregation("topHits", elastic.NewTopHitsAggregation().Size(2147483647))).Do(ctx)
 	if err != nil {

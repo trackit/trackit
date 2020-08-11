@@ -16,9 +16,13 @@ package rdsReports
 
 import "github.com/trackit/trackit/es/indexes/common"
 
-const IndexSuffix = "rds-reports"
-const Type = "rds-report"
-const TemplateName = "rds-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "rds-reports",
+	Name:              "rds-reports",
+	Type:              "rds-report",
+	Version:           5,
+	MappingProperties: properties,
+}
 
 type (
 	// InstanceReport is saved in ES to have all the information of an RDS instance
@@ -64,3 +68,84 @@ type (
 		Average float64 `json:"average"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"instance": {
+		"type": "object",
+		"properties": {
+			"id": {
+				"type": "keyword"
+			},
+			"availabilityZone": {
+				"type": "keyword"
+			},
+			"type": {
+				"type": "keyword"
+			},
+			"engine": {
+				"type": "keyword"
+			},
+			"allocatedStorage": {
+				"type": "integer"
+			},
+			"multiAZ": {
+				"type": "boolean"
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword"
+					},
+					"value": {
+						"type": "keyword"
+					}
+				}
+			},
+			"costs": {
+				"type": "object"
+			},
+			"stats": {
+				"type": "object",
+				"properties": {
+					"cpu": {
+						"type": "object",
+						"properties": {
+								"average": {
+									"type": "double"
+								},
+								"peak": {
+									"type": "double"
+								}
+						}
+					},
+					"freeSpace": {
+						"type": "object",
+						"properties": {
+								"minimum": {
+									"type": "double"
+								},
+								"maximum": {
+									"type": "double"
+								},
+								"average": {
+									"type": "double"
+								}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+`

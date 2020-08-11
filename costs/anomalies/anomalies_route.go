@@ -237,13 +237,13 @@ func getAnomaliesData(request *http.Request, a routes.Arguments) (int, interface
 		parsedParams.AccountList = a[anomalyQueryArgs[0]].([]string)
 	}
 	tx := a[db.Transaction].(*sql.Tx)
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, anomaliesDetection.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, anomaliesDetection.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, err
 	}
 	parsedParams.AccountList = accountsAndIndexes.Accounts
 	parsedParams.IndexList = accountsAndIndexes.Indexes
-	parsedParams.AnomalyType = anomaliesDetection.Type
+	parsedParams.AnomalyType = anomaliesDetection.Model.Type
 	raw, returnCode, err := makeElasticSearchRequest(request.Context(), parsedParams)
 	if err != nil {
 		if returnCode == http.StatusOK {

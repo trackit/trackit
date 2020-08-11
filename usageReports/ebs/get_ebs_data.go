@@ -92,7 +92,7 @@ func GetEbsDailySnapshots(ctx context.Context, params EbsQueryParams, user users
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -108,7 +108,7 @@ func GetEbsDailySnapshots(ctx context.Context, params EbsQueryParams, user users
 
 // GetEbsData gets EBS monthly reports based on query params, if there isn't a monthly report, it gets daily reports
 func GetEbsData(ctx context.Context, parsedParams EbsQueryParams, user users.User, tx *sql.Tx) (int, []SnapshotReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ebsReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, ebsReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

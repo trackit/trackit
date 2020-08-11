@@ -81,7 +81,7 @@ type (
 
 // RunAnomaliesDetection run every anomaly detection algorithms and store results in ElasticSearch.
 func RunAnomaliesDetection(account aws.AwsAccount, lastUpdate time.Time, ctx context.Context) (time.Time, error) {
-	esIndex := es.IndexNameForUserId(account.UserId, lineItems.IndexSuffix)
+	esIndex := es.IndexNameForUserId(account.UserId, lineItems.Model.IndexSuffix)
 	begin, end, err := getDateRange(account, lastUpdate, ctx)
 	if err != nil {
 		return begin, err
@@ -136,7 +136,7 @@ func getEsDateRange(ctx context.Context, account string, index string) (time.Tim
 // getDateRange gets the begin and the end date to launch anomaly detection.
 func getDateRange(account aws.AwsAccount, lastUpdate time.Time, ctx context.Context) (time.Time, time.Time, error) {
 	now := time.Now().UTC()
-	esIndex := es.IndexNameForUserId(account.UserId, lineItems.IndexSuffix)
+	esIndex := es.IndexNameForUserId(account.UserId, lineItems.Model.IndexSuffix)
 	begin, end, err := getEsDateRange(ctx, account.AwsIdentity, esIndex)
 	if err != nil {
 		return begin, end, err

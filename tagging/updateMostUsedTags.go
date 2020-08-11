@@ -78,7 +78,7 @@ func UpdateMostUsedTagsForUser(ctx context.Context, userId int) error {
 
 func getMostUsedTagsForUser(ctx context.Context, userId int, ignoredTagsRegexp []string) ([]string, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
+	indexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {

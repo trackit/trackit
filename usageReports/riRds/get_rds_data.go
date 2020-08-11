@@ -85,7 +85,7 @@ func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQuer
 
 // GetReservedInstancesData gets Reserved Instances daily reports
 func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rdsRiReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rdsRiReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

@@ -14,11 +14,19 @@
 
 package accountPlugins
 
-import "time"
+import (
+	"time"
 
-const IndexSuffix = "account-plugins"
-const Type = "account-plugin"
-const TemplateName = "account-plugins"
+	"github.com/trackit/trackit/es/indexes/common"
+)
+
+var Model = common.VersioningData{
+	IndexSuffix:       "account-plugins",
+	Name:              "account-plugins",
+	Type:              "account-plugin",
+	Version:           3,
+	MappingProperties: properties,
+}
 
 // PluginResultES is the struct used to save a plugin result into elaticsearch
 type PluginResultES struct {
@@ -35,3 +43,44 @@ type PluginResultES struct {
 	Checked          int       `json:"checked"`
 	Passed           int       `json:"passed"`
 }
+
+const properties = `
+{
+    "accountPluginIdx":{
+        "type":"keyword"
+    },
+    "account":{
+        "type":"keyword"
+    },
+    "reportDate":{
+        "type":"date"
+    },
+    "pluginName":{
+        "type":"keyword"
+    },
+    "category":{
+        "type":"keyword"
+    },
+    "label":{
+        "type":"keyword"
+    },
+    "result":{
+        "type":"keyword"
+    },
+    "status":{
+        "type":"keyword"
+    },
+    "details":{
+        "type":"keyword"
+    },
+    "error":{
+        "type":"keyword"
+    },
+    "checked":{
+        "type":"integer"
+    },
+    "passed":{
+        "type":"integer"
+    }
+}
+`

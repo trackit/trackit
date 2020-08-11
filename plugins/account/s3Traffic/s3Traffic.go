@@ -64,7 +64,7 @@ func getBucketsWithNoTraffic(pluginRes *core.PluginResult, storage, bandwidth bu
 func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResult) {
 	beginDate := time.Now().AddDate(0, -1, 0).UTC()
 	endDate := time.Now().UTC()
-	esIndex := es.IndexNameForUserId(pluginParams.User.Id, lineItems.IndexSuffix)
+	esIndex := es.IndexNameForUserId(pluginParams.User.Id, lineItems.Model.IndexSuffix)
 
 	searchService := GetS3StorageUsage(beginDate, endDate, pluginParams.ESClient, pluginParams.AccountId, esIndex)
 	res, err := searchService.Do(pluginParams.Context)

@@ -22,14 +22,13 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/trackit/trackit/es/indexes/rdsReports"
-
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/lineItems"
+	"github.com/trackit/trackit/es/indexes/rdsReports"
 	"github.com/trackit/trackit/users"
 )
 
@@ -93,7 +92,7 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 	} else if res == nil {
 		return http.StatusInternalServerError, nil, errors.New("Error while getting data. Please check again in few hours.")
 	}
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(params.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
@@ -109,7 +108,7 @@ func GetRdsDailyInstances(ctx context.Context, params RdsQueryParams, user users
 
 // GetRdsData gets RDS monthly reports based on query params, if there isn't a monthly report, it calls getRdsDailyInstances
 func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.User, tx *sql.Tx) (int, []InstanceReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rdsReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rdsReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

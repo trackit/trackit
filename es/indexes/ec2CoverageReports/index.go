@@ -16,9 +16,13 @@ package ec2CoverageReports
 
 import "github.com/trackit/trackit/es/indexes/common"
 
-const IndexSuffix = "ec2-coverage-reports"
-const Type = "ec2-coverage-report"
-const TemplateName = "ec2-coverage-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "ec2-coverage-reports",
+	Name:              "ec2-coverage-reports",
+	Type:              "ec2-coverage-report",
+	Version:           1,
+	MappingProperties: properties,
+}
 
 type (
 	// ReservationReport is saved in ES to have all the information of an EC2 reservation
@@ -40,3 +44,48 @@ type (
 		InstancesNames    []string `json:"instancesNames"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"reservation": {
+		"properties": {
+			"type": {
+				"type": "keyword"
+			},
+			"platform": {
+				"type": "keyword"
+			},
+			"tenancy": {
+				"type": "keyword"
+			},
+			"region": {
+				"type": "keyword"
+			},
+			"averageCoverage": {
+				"type": "double"
+			},
+			"coveredHours": {
+				"type": "double"
+			},
+			"onDemandHours": {
+				"type": "double"
+			},
+			"totalRunningHours": {
+				"type": "double"
+			},
+			"instancesNames": {
+				"type": "keyword"
+			}
+		}
+	}
+}
+`

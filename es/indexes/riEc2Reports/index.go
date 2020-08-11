@@ -20,9 +20,13 @@ import (
 	"github.com/trackit/trackit/es/indexes/common"
 )
 
-const IndexSuffix = "ri-ec2-reports"
-const Type = "ri-ec2-report"
-const TemplateName = "ri-ec2-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "ri-ec2-reports",
+	Name:              "ri-ec2-reports",
+	Type:              "ri-ec2-report",
+	Version:           3,
+	MappingProperties: properties,
+}
 
 type (
 	// ReservationReport is saved in ES to have all the information of a reservation
@@ -61,3 +65,85 @@ type (
 		Frequency string
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"service": {
+		"type": "keyword"
+	},
+	"reservation": {
+		"properties": {
+			"id": {
+				"type": "keyword"
+			},
+			"region": {
+				"type": "keyword"
+			},
+			"availabilityZone": {
+				"type": "keyword"
+			},
+			"type": {
+				"type": "keyword"
+			},
+			"offeringClass": {
+				"type": "keyword"
+			},
+			"offeringType": {
+				"type": "keyword"
+			},
+			"productDescription": {
+				"type": "keyword"
+			},
+			"state":{
+				"type": "keyword"
+			},
+			"start": {
+				"type": "date"
+			},
+			"end": {
+				"type": "date"
+			},
+			"instanceCount": {
+				"type": "integer"
+			},
+			"tenancy": {
+				"type": "keyword"
+			},
+			"usagePrice": {
+				"type": "double"
+			},
+			"recurringCharges": {
+				"type": "nested",
+				"properties": {
+					"amount": {
+						"type": "double"
+					},
+					"frequency": {
+						"type": "keyword"
+					}
+				}
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword"
+					},
+					"value": {
+						"type": "keyword"
+					}
+				}
+			}
+		}
+	}
+}
+`

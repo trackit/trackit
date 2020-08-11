@@ -134,7 +134,7 @@ func UpdateReport(ctx context.Context, aa aws.AwsAccount, br BillRepository) (la
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return latestManifest, err
 	} else {
-		index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
+		index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 		latestManifest, err = ReadBills(
 			ctx,
 			aa,
@@ -161,7 +161,7 @@ func UpdateReportLimit(ctx context.Context, aa aws.AwsAccount, br BillRepository
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return latestManifest, err
 	} else {
-		index := es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)
+		index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 		latestManifest, err = ReadBills(
 			ctx,
 			aa,
@@ -199,7 +199,7 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 			rq := elastic.NewBulkIndexRequest()
 			rq = rq.Index(index)
 			rq = rq.OpType(opTypeCreate)
-			rq = rq.Type(lineItems.Type)
+			rq = rq.Type(lineItems.Model.Type)
 			rq = rq.Id(li.EsId())
 			rq = rq.Doc(li)
 			bp.Add(rq)

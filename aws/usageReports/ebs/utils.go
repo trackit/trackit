@@ -39,7 +39,7 @@ func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []eb
 	logger.Info("Updating EBS snapshots for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, ebsReports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, ebsReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -51,7 +51,7 @@ func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []eb
 			logger.Error("Error when marshaling snapshot var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, snapshot, ebsReports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, snapshot, ebsReports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

@@ -39,10 +39,11 @@ type (
 )
 
 type VersioningData struct {
-	IndexSuffix string
-	Name        string
-	Version     int
-	Template    string
-	Mapping     string
-	Type        string
+	IndexSuffix       string
+	Name              string
+	Version           int
+	Template          string
+	Mapping           string
+	MappingProperties string
+	Type              string
 }

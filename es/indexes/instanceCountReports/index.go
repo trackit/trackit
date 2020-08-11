@@ -20,9 +20,13 @@ import (
 	"github.com/trackit/trackit/es/indexes/common"
 )
 
-const IndexSuffix = "instancecount-reports"
-const Type = "instancecount-report"
-const TemplateName = "instancecount-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "instancecount-reports",
+	Name:              "instancecount-reports",
+	Type:              "instancecount-report",
+	Version:           1,
+	MappingProperties: properties,
+}
 
 type (
 	// InstanceCount is saved in ES to have all the information of an InstanceCount
@@ -43,3 +47,35 @@ type (
 		Count float64   `json:"count"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"instanceCount": {
+		"properties": {
+			"instanceType": {
+				"type": "keyword"
+			},
+			"hours": {
+				"type": "nested",
+				"properties": {
+					"hour": {
+						"type": "date"
+					},
+					"count": {
+						"type": "integer"
+					}
+				}
+			}
+		}
+	}
+}
+`

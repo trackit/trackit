@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/accountPlugins"
@@ -48,12 +49,12 @@ func IngestPluginResult(ctx context.Context, aa aws.AwsAccount, pluginRes accoun
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, accountPlugins.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, accountPlugins.Model.IndexSuffix)
 	pluginRes.AccountPluginIdx = fmt.Sprintf("%s-%s", pluginRes.Account, pluginRes.PluginName)
 	if res, err := client.
 		Index().
 		Index(index).
-		Type(accountPlugins.Type).
+		Type(accountPlugins.Model.Type).
 		BodyJson(pluginRes).
 		Id(hash64).
 		Do(context.Background()); err != nil {

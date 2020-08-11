@@ -64,7 +64,7 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 	logger.Info("Updating anomalies for AWS account.", map[string]interface{}{
 		"awsAccount": account,
 	})
-	index := es.IndexNameForUserId(account.UserId, anomaliesDetection.IndexSuffix)
+	index := es.IndexNameForUserId(account.UserId, anomaliesDetection.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -87,7 +87,7 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 			logger.Error("Error when marshaling anomalies var", err.Error())
 			return err
 		}
-		bp = addDocToBulkProcessor(bp, doc, anomaliesDetection.Type, index, id)
+		bp = addDocToBulkProcessor(bp, doc, anomaliesDetection.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

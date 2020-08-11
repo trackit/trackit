@@ -141,7 +141,7 @@ func PutRdsMonthlyReport(ctx context.Context, rdsCost []common.CostPerResource, 
 		logger.Info("No RDS instances found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, rdsReports.IndexSuffix)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, rdsReports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

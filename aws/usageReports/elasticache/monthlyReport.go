@@ -147,7 +147,7 @@ func PutElastiCacheMonthlyReport(ctx context.Context, costs []common.CostPerReso
 		logger.Info("No ElastiCache instances found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, elasticacheReports.IndexSuffix)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, elasticacheReports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

@@ -21,13 +21,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/trackit/trackit/es/indexes/instanceCountReports"
-
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
 	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/instanceCountReports"
 )
 
 // importInstanceCountsToEs imports Instance Count in ElasticSearch.
@@ -37,7 +36,7 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 	logger.Info("Updating InstanceCount for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, instanceCountReports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, instanceCountReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -49,7 +48,7 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 			logger.Error("Error when marshaling instanceCount var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, report, instanceCountReports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, report, instanceCountReports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

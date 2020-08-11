@@ -14,11 +14,19 @@
 
 package taggingCompliance
 
-import "time"
+import (
+	"time"
 
-const IndexSuffix = "tagging-compliance"
-const Type = "tagging-compliance"
-const TemplateName = "tagging-compliance"
+	"github.com/trackit/trackit/es/indexes/common"
+)
+
+var Model = common.VersioningData{
+	IndexSuffix:       "tagging-compliance",
+	Name:              "tagging-compliance",
+	Type:              "tagging-compliance",
+	Version:           1,
+	MappingProperties: properties,
+}
 
 type ComplianceReport struct {
 	ReportDate      time.Time `json:"reportDate"`
@@ -28,3 +36,26 @@ type ComplianceReport struct {
 	NotTagged       int64     `json:"notTagged"`
 	MostUsedTagsId  string    `json:"mostUsedTagsId"`
 }
+
+const properties = `
+{
+	"reportDate":{
+		"type":"date"
+	},
+	"total":{
+		"type":"long"
+	},
+	"totallyTagged":{
+		"type":"long"
+	},
+	"partiallyTagged":{
+		"type":"long"
+	},
+	"notTagged":{
+		"type":"long"
+	},
+	"mostUsedTagsId":{
+		"type":"keyword"
+	}
+}
+`

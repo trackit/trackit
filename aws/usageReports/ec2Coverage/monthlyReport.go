@@ -20,8 +20,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -32,6 +30,7 @@ import (
 	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
 	"github.com/trackit/trackit/usageReports/ec2"
 	"github.com/trackit/trackit/users"
 )
@@ -130,7 +129,7 @@ func PutEc2MonthlyCoverageReport(ctx context.Context, aa taws.AwsAccount, start,
 		"startDate":    start.Format("2006-01-02T15:04:05Z"),
 		"endDate":      end.Format("2006-01-02T15:04:05Z"),
 	})
-	if already, err := utils.CheckMonthlyReportExists(ctx, start, aa, ec2CoverageReports.IndexSuffix); err != nil {
+	if already, err := utils.CheckMonthlyReportExists(ctx, start, aa, ec2CoverageReports.Model.IndexSuffix); err != nil {
 		return false, err
 	} else if already {
 		logger.Info("There is already an EC2 Coverage monthly report", nil)

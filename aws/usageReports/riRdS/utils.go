@@ -39,7 +39,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []rd
 	logger.Info("Updating RDS reserved instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, rdsRiReports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, rdsRiReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -51,7 +51,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []rd
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, rdsRiReports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, rdsRiReports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

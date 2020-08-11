@@ -101,7 +101,7 @@ func pushToEs(ctx context.Context, documents []taggingReports.TaggingReportDocum
 	logger.Info("Pushing generated tagging reports to ES.", map[string]interface{}{
 		"reportDate": reportDate.String(),
 	})
-	destIndexName := es.IndexNameForUserId(userId, taggingReports.IndexSuffix)
+	destIndexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 	bulkProcessor, err := bulk.GetBulkProcessor(ctx)
 	if err != nil {
 		return err
@@ -116,7 +116,7 @@ func pushToEs(ctx context.Context, documents []taggingReports.TaggingReportDocum
 			continue
 		}
 
-		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, taggingReports.Type, destIndexName, documentID)
+		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, taggingReports.Model.Type, destIndexName, documentID)
 	}
 
 	bulkProcessor.Flush()

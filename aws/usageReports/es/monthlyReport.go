@@ -148,7 +148,7 @@ func PutEsMonthlyReport(ctx context.Context, esCost []common.CostPerResource, aa
 		logger.Info("No ES domains found in billing data.", nil)
 		return false, nil
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, esReports.IndexSuffix)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, esReports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

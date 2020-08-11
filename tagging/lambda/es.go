@@ -26,7 +26,7 @@ import (
 
 func fetchReports(ctx context.Context, userId int) ([]*elastic.SearchHit, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, lambdaReports.IndexSuffix)
+	indexName := es.IndexNameForUserId(userId, lambdaReports.Model.IndexSuffix)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {

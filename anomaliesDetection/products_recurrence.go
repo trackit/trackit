@@ -26,7 +26,7 @@ type (
 func removeRecurrence(ctx context.Context, params AnomalyEsQueryParams, account aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Removing recurrent anomalies", nil)
-	params.Index = es.IndexNameForUserId(account.UserId, anomaliesDetection.IndexSuffix)
+	params.Index = es.IndexNameForUserId(account.UserId, anomaliesDetection.Model.IndexSuffix)
 	if raw, err := getAnomaliesFromEs(ctx, params); err != nil {
 		return err
 	} else {
@@ -47,7 +47,7 @@ func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, re
 	logger.Info("Updating recurrent anomalies.", map[string]interface{}{
 		"awsAccount": account,
 	})
-	index := es.IndexNameForUserId(account.UserId, anomaliesDetection.IndexSuffix)
+	index := es.IndexNameForUserId(account.UserId, anomaliesDetection.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -59,7 +59,7 @@ func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, re
 			logger.Error("Error when marshaling recurrent anomalies var", err.Error())
 			return err
 		}
-		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, anomaliesDetection.Type, index, recurrentAnomaly.Id)
+		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, anomaliesDetection.Model.Type, index, recurrentAnomaly.Id)
 	}
 	bp.Flush()
 	err = bp.Close()
@@ -107,7 +107,7 @@ func transformAnomaliesToMap(raw anomaliesDetection.EsProductAnomaliesWithId) an
 // getAnomaliesFromEs returns product anomalies in ElasticSearch
 func getAnomaliesFromEs(ctx context.Context, params AnomalyEsQueryParams) (anomaliesDetection.EsProductAnomaliesWithId, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	sr, err := getAnomalyElasticSearchParams(params.Account, params.DateBegin, params.DateEnd, es.Client, params.Index, anomaliesDetection.Type).Do(ctx)
+	sr, err := getAnomalyElasticSearchParams(params.Account, params.DateBegin, params.DateEnd, es.Client, params.Index, anomaliesDetection.Model.Type).Do(ctx)
 	if err != nil {
 		return nil, err
 	}

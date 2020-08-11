@@ -21,14 +21,13 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
-
 	uuid "github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
 	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
 )
 
 // importReportsToEs imports EC2 Coverage report in ElasticSearch.
@@ -38,7 +37,7 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []ec
 	logger.Info("Updating EC2 Coverage report for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, ec2CoverageReports.IndexSuffix)
+	index := es.IndexNameForUserId(aa.UserId, ec2CoverageReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -50,7 +49,7 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []ec
 			logger.Error("Error when marshaling reservation var", err.Error())
 			return false, err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, reservation, ec2CoverageReports.Type, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, reservation, ec2CoverageReports.Model.Type, index, id)
 	}
 	bp.Flush()
 	err = bp.Close()

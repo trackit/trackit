@@ -87,7 +87,7 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot common.CostPerResource,
 		},
 	}
 	res, err := getElasticSearchEbsSnapshot(ctx, account, snapshot.Resource,
-		es.Client, es.IndexNameForUserId(userId, ebsReports.IndexSuffix))
+		es.Client, es.IndexNameForUserId(userId, ebsReports.Model.IndexSuffix))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
@@ -200,7 +200,7 @@ func PutEbsMonthlyReport(ctx context.Context, ec2Cost []common.CostPerResource, 
 			ebsCost = append(ebsCost, cost)
 		}
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, ebsReports.IndexSuffix)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, ebsReports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {

@@ -16,9 +16,13 @@ package lambdaReports
 
 import "github.com/trackit/trackit/es/indexes/common"
 
-const IndexSuffix = "lambda-reports"
-const Type = "lambda-report"
-const TemplateName = "lambda-reports"
+var Model = common.VersioningData{
+	IndexSuffix:       "lambda-reports",
+	Name:              "lambda-reports",
+	Type:              "lambda-report",
+	Version:           2,
+	MappingProperties: properties,
+}
 
 type (
 	// FunctionReport is saved in ES to have all the information of an Lambda function
@@ -62,3 +66,83 @@ type (
 		Maximum float64 `json:"maximum"`
 	}
 )
+
+const properties = `
+{
+	"account": {
+		"type": "keyword"
+	},
+	"reportDate": {
+		"type": "date"
+	},
+	"reportType": {
+		"type": "keyword"
+	},
+	"function": {
+		"properties": {
+			"name": {
+				"type": "keyword"
+			},
+			"description": {
+				"type": "keyword"
+			},
+			"version": {
+				"type": "keyword"
+			},
+			"lastModified": {
+				"type": "keyword"
+			},
+			"runtime": {
+				"type": "keyword"
+			},
+			"size": {
+				"type": "integer"
+			},
+			"memory": {
+				"type": "integer"
+			},
+			"region": {
+				"type": "keyword"
+			},
+			"tags": {
+				"type": "nested",
+				"properties": {
+					"key": {
+						"type": "keyword"
+					},
+					"value": {
+						"type": "keyword"
+					}
+				}
+			},
+			"stats": {
+				"type": "object",
+				"properties": {
+					"invocations": {
+						"type": "object",
+						"properties": {
+								"total": {
+									"type": "double"
+								},
+								"error": {
+									"type": "double"
+								}
+						}
+					},
+					"duration": {
+						"type": "object",
+						"properties": {
+								"average": {
+									"type": "double"
+								},
+								"maximum": {
+									"type": "double"
+								}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+`

@@ -108,7 +108,7 @@ func getCostFromExplorer(ctx context.Context, aa taws.AwsAccount, intervalBegin,
 func getCostFromES(ctx context.Context, aa taws.AwsAccount, intervalBegin, intervalEnd time.Time) (es.SimplifiedCostsDocument, int, error) {
 	accountList := []string{aa.AwsIdentity}
 	aggregationParams := []string{"month"}
-	indexList := []string{es.IndexNameForUserId(aa.UserId, lineItems.IndexSuffix)}
+	indexList := []string{es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)}
 	params := costs.EsQueryParams{
 		DateBegin:         intervalBegin,
 		DateEnd:           intervalEnd,

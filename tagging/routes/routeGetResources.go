@@ -71,7 +71,7 @@ func routeGetResources(request *http.Request, a routes.Arguments) (int, interfac
 
 // GetResourcesData gets resources report based on query params
 func GetResourcesData(ctx context.Context, parsedParams ResourcesQueryParams, user users.User, tx *sql.Tx) (int, []taggingReports.TaggingReportDocument, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountsList, user, tx, taggingReports.IndexSuffix)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountsList, user, tx, taggingReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}
