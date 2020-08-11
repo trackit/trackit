@@ -48,6 +48,13 @@ func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template 
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	newIndexName := ev.IndexName + "-v" + strconv.Itoa(template.Version)
 
+	logger.Info("Updating index mappings.", map[string]interface{}{
+		"indexName":       ev.IndexName,
+		"templateName":    template.Name,
+		"previousVersion": ev.CurrentVersion,
+		"newVersion":      template.Version,
+	})
+
 	_, err := elastic.NewIndicesCreateService(es.Client).Index(newIndexName).Do(ctx)
 	if err != nil {
 		return err
@@ -73,7 +80,7 @@ func updateOutdatedIndex(ctx context.Context, ev *models.EsVersioning, template 
 		return err
 	}
 
-	logger.Info("Updated index.", map[string]interface{}{
+	logger.Info("Index mappings updated.", map[string]interface{}{
 		"indexName":       ev.IndexName,
 		"templateName":    template.Name,
 		"previousVersion": ev.CurrentVersion,
