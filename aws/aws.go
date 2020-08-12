@@ -151,13 +151,14 @@ func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error
 		return err
 	}
 	dbAwsAccount := models.AwsAccount{
-		UserID:      a.UserId,
-		RoleArn:     a.RoleArn,
-		Pretty:      a.Pretty,
-		External:    a.External,
-		Payer:       a.Payer,
-		AwsIdentity: identity,
-		ParentID:    a.ParentId,
+		UserID:                a.UserId,
+		RoleArn:               a.RoleArn,
+		Pretty:                a.Pretty,
+		External:              a.External,
+		Payer:                 a.Payer,
+		AwsIdentity:           identity,
+		ParentID:              a.ParentId,
+		NeedsTagbotOnboarding: false,
 	}
 	err = dbAwsAccount.Insert(db)
 	if err == nil {

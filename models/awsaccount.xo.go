@@ -12,6 +12,8 @@ import (
 // AwsAccount represents a row from 'trackit.aws_account'.
 type AwsAccount struct {
 	ID                                    int           `json:"id"`                                        // id
+	Created                               time.Time     `json:"created"`                                   // created
+	Modified                              time.Time     `json:"modified"`                                  // modified
 	UserID                                int           `json:"user_id"`                                   // user_id
 	Pretty                                string        `json:"pretty"`                                    // pretty
 	RoleArn                               string        `json:"role_arn"`                                  // role_arn
@@ -29,6 +31,7 @@ type AwsAccount struct {
 	NextMasterSpreadsheetReportGeneration time.Time     `json:"next_master_spreadsheet_report_generation"` // next_master_spreadsheet_report_generation
 	LastTagsSpreadsheetReportGeneration   time.Time     `json:"last_tags_spreadsheet_report_generation"`   // last_tags_spreadsheet_report_generation
 	NextTagsSpreadsheetReportGeneration   time.Time     `json:"next_tags_spreadsheet_report_generation"`   // next_tags_spreadsheet_report_generation
+	NeedsTagbotOnboarding                 bool          `json:"needs_tagbot_onboarding"`                   // needs_tagbot_onboarding
 
 	// xo fields
 	_exists, _deleted bool
@@ -55,14 +58,14 @@ func (aa *AwsAccount) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.aws_account (` +
-		`user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation` +
+		`created, modified, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration)
-	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration)
+	XOLog(sqlstr, aa.Created, aa.Modified, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
+	res, err := db.Exec(sqlstr, aa.Created, aa.Modified, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
 	if err != nil {
 		return err
 	}
@@ -96,12 +99,12 @@ func (aa *AwsAccount) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.aws_account SET ` +
-		`user_id = ?, pretty = ?, role_arn = ?, external = ?, next_update = ?, payer = ?, next_update_plugins = ?, aws_identity = ?, parent_id = ?, last_spreadsheet_report_generation = ?, next_spreadsheet_report_generation = ?, next_update_anomalies_detection = ?, last_anomalies_update = ?, last_master_spreadsheet_report_generation = ?, next_master_spreadsheet_report_generation = ?, last_tags_spreadsheet_report_generation = ?, next_tags_spreadsheet_report_generation = ?` +
+		`created = ?, modified = ?, user_id = ?, pretty = ?, role_arn = ?, external = ?, next_update = ?, payer = ?, next_update_plugins = ?, aws_identity = ?, parent_id = ?, last_spreadsheet_report_generation = ?, next_spreadsheet_report_generation = ?, next_update_anomalies_detection = ?, last_anomalies_update = ?, last_master_spreadsheet_report_generation = ?, next_master_spreadsheet_report_generation = ?, last_tags_spreadsheet_report_generation = ?, next_tags_spreadsheet_report_generation = ?, needs_tagbot_onboarding = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.ID)
-	_, err = db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.ID)
+	XOLog(sqlstr, aa.Created, aa.Modified, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.ID)
+	_, err = db.Exec(sqlstr, aa.Created, aa.Modified, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.ID)
 	return err
 }
 
@@ -159,7 +162,7 @@ func AwsAccountByID(db XODB, id int) (*AwsAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation ` +
+		`id, created, modified, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding ` +
 		`FROM trackit.aws_account ` +
 		`WHERE id = ?`
 
@@ -169,7 +172,7 @@ func AwsAccountByID(db XODB, id int) (*AwsAccount, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration)
+	err = db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.Created, &aa.Modified, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration, &aa.NeedsTagbotOnboarding)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +188,7 @@ func AwsAccountsByUserID(db XODB, userID int) ([]*AwsAccount, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation ` +
+		`id, created, modified, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding ` +
 		`FROM trackit.aws_account ` +
 		`WHERE user_id = ?`
 
@@ -205,7 +208,7 @@ func AwsAccountsByUserID(db XODB, userID int) ([]*AwsAccount, error) {
 		}
 
 		// scan
-		err = q.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration)
+		err = q.Scan(&aa.ID, &aa.Created, &aa.Modified, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration, &aa.NeedsTagbotOnboarding)
 		if err != nil {
 			return nil, err
 		}
