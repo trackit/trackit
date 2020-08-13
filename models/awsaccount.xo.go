@@ -62,8 +62,8 @@ func (aa *AwsAccount) Insert(db XODB) error {
 		`)`
 
 	// run query
-	XOLog(sqlstr, aa.Created, aa.Modified, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
-	res, err := db.Exec(sqlstr, aa.Created, aa.Modified, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
+	XOLog(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
+	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
 	if err != nil {
 		return err
 	}
