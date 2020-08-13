@@ -70,7 +70,7 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string, productC
 	var awsInput marketplaceentitlementservice.GetEntitlementsInput
 	var filter = make(map[string][]*string)
 	filter["CUSTOMER_IDENTIFIER"] = []*string{aws.String(customerIdentifier)}
-	awsInput.SetProductCode(config.MarketPlaceProductCode)
+	awsInput.SetProductCode(productCode)
 	awsInput.SetFilter(filter)
 	result, err := svc.GetEntitlements(&awsInput)
 	if err != nil {
