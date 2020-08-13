@@ -25,6 +25,7 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
 )
@@ -32,10 +33,11 @@ import (
 // postAwsAccountRequestBody is the expected request body for the
 // postAwsAccount request handler.
 type postAwsAccountRequestBody struct {
-	RoleArn  string `json:"roleArn"  req:"nonzero"`
-	External string `json:"external" req:"nonzero"`
-	Pretty   string `json:"pretty"`
-	Payer    bool   `json:"payer"`
+	RoleArn    string `json:"roleArn"  req:"nonzero"`
+	External   string `json:"external" req:"nonzero"`
+	Pretty     string `json:"pretty"`
+	Payer      bool   `json:"payer"`
+	TagbotUser bool   `json:"tagbotUser"`
 }
 
 var (
@@ -71,6 +73,13 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 		logger.Warning("tried to add AWS account with bad external", account)
 		return 400, errors.New("incorrect external. Use /aws/next to get expected external")
 	} else if err := testAndCreateAwsAccount(ctx, tx, &account, &user); err == nil {
+		err = setNeedsTagbotOnboarding(tx, body, account)
+		if err != nil {
+			logger.Error("Could not set needs tagbot onboard flag.", map[string]interface{}{
+				"account": account.Id,
+				"err":     err.Error(),
+			})
+		}
 		return 200, account
 	} else {
 		switch err {
@@ -118,4 +127,19 @@ func newTestAndCreateAwsAccountError(e error, a aws.AwsAccount, u users.User) te
 		account: a,
 		user:    u,
 	}
+}
+
+func setNeedsTagbotOnboarding(tx *sql.Tx, body postAwsAccountRequestBody, awsAccount aws.AwsAccount) error {
+	if !body.TagbotUser {
+		return nil
+	}
+
+	dbAwsAccount, err := models.AwsAccountByID(tx, awsAccount.Id)
+	if err != nil {
+		return err
+	}
+
+	dbAwsAccount.NeedsTagbotOnboarding = true
+
+	return dbAwsAccount.Update(tx)
 }
