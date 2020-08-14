@@ -18,9 +18,11 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
 )
 
@@ -85,6 +87,12 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	token, err := generateToken(user)
 	if err == nil {
+		if err := updateLastSeen(user); err != nil {
+			logger.Error("Could not update last seen for user.", map[string]interface{}{
+				"email": user.Email,
+				"err":   err,
+			})
+		}
 		logger.Info("User logged in.", user)
 		return 200, loginResponseBody{
 			User:  user,
@@ -100,4 +108,19 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 // the token belongs to.
 func me(request *http.Request, a routes.Arguments) (int, interface{}) {
 	return 200, a[AuthenticatedUser].(User)
+}
+
+// updateLastSeen update the last seen datetime in the database
+func updateLastSeen(user User) error {
+	dbUser, err := models.UserByID(db.Db, user.Id)
+
+	if dbUser == nil {
+		return errors.New("user not found")
+	} else if err != nil {
+		return err
+	}
+
+	dbUser.LastSeen = time.Now()
+
+	return dbUser.Update(db.Db)
 }
