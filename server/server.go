@@ -75,6 +75,7 @@ var tasks = map[string]func(context.Context) error{
 	"ingest-limit":                taskIngestLimit,
 	"update-tags":                 taskUpdateTags,
 	"onboard-tagbot":              taskOnboardTagbot,
+	"check-unused-accounts":       taskCheckUnusedAccounts,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
