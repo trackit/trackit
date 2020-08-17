@@ -28,23 +28,6 @@ var taggingComplianceQueryArgs = []routes.QueryArg{
 	routes.DateEndQueryArg,
 }
 
-// resourcesQueryArgs allows to get required queryArgs params
-var resourcesQueryArgs = []routes.QueryArg{
-	routes.AwsAccountsOptionalQueryArg,
-	routes.QueryArg{
-		Name:        "regions",
-		Type:        routes.QueryArgStringSlice{},
-		Description: "Regions of the resources",
-		Optional:    true,
-	},
-	routes.QueryArg{
-		Name:        "resourceTypes",
-		Type:        routes.QueryArgStringSlice{},
-		Description: "Types of the resources",
-		Optional:    true,
-	},
-}
-
 // suggestionsQueryArgs allows to get required queryArgs params
 var suggestionsQueryArgs = []routes.QueryArg{
 	routes.QueryArg{
@@ -84,13 +67,14 @@ func init() {
 
 func init() {
 	routes.MethodMuxer{
-		http.MethodGet: routes.H(routeGetResources).With(
+		http.MethodPost: routes.H(routeGetResources).With(
 			db.RequestTransaction{db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
-			routes.QueryArgs(resourcesQueryArgs),
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{ResourcesRequestBody{[]string{"394125495069"}, []string{"us-west-2"}, []string{"lambda"}, []Tag{{"project", "trackit"}}, []Tag{{"Product", "msol"}}}},
 			routes.Documentation{
 				Summary:     "get list of resources",
-				Description: "Responds with the list of resources based on the queryparams passed to it",
+				Description: "Responds with the list of resources based on the request body passed to it",
 			},
 		),
 	}.H().Register("/tagging/resources")
