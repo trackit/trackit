@@ -22,7 +22,7 @@ const maxAggregationSize = 0x7FFFFFFF
 
 // getElasticSearchResourcesParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
 // It takes as parameters :
-// 	- params ResourcesQueryParams : contains the list of accounts
+// 	- params ResourcesRequestBody : contains the list of accounts and filters
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
 //	- index string : The Elastic Search index on which to execute the query. In this context the default value
@@ -31,10 +31,10 @@ const maxAggregationSize = 0x7FFFFFFF
 // it crash :
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
-func getElasticSeachResourcesParams(params ResourcesQueryParams, client *elastic.Client, index string) *elastic.SearchService {
+func getElasticSeachResourcesParams(params ResourcesRequestBody, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
-	if len(params.AccountsList) > 0 {
-		query = query.Filter(createQueryAccountFilterResources(params.AccountsList))
+	if len(params.Accounts) > 0 {
+		query = query.Filter(createQueryAccountFilterResources(params.Accounts))
 	}
 	if len(params.Regions) > 0 {
 		query = query.Filter(createQueryRegionFilterResources(params.Regions))
@@ -42,9 +42,15 @@ func getElasticSeachResourcesParams(params ResourcesQueryParams, client *elastic
 	if len(params.ResourceTypes) > 0 {
 		query = query.Filter(createQueryTypeFilterResources(params.ResourceTypes))
 	}
+	if len(params.Tags) > 0 {
+		query = query.Filter(createQueryTagsFilterResources(params.Tags))
+	}
+	if len(params.MissingTags) > 0 {
+		query = query.Filter(createQueryMissingTagsFilterResources(params.MissingTags))
+	}
 	search := client.Search().Index(index).Size(0).Query(query)
 	search.Aggregation("accounts", elastic.NewTermsAggregation().Field("account").
-		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").
+		SubAggregation("dates", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
 			SubAggregation("resources", elastic.NewTopHitsAggregation().Sort("reportDate", false).Size(maxAggregationSize))))
 	return search
 }
@@ -67,11 +73,29 @@ func createQueryRegionFilterResources(regionList []string) *elastic.TermsQuery {
 	return elastic.NewTermsQuery("region", regionListFormatted...)
 }
 
-//createQueryTypeFilterResources creates and return a nex *elastic.TermsQuery on the typeList array
+//createQueryTypeFilterResources creates and return a new *elastic.TermsQuery on the typeList array
 func createQueryTypeFilterResources(typeList []string) *elastic.TermsQuery {
 	typeListFormatted := make([]interface{}, len(typeList))
 	for i, v := range typeList {
 		typeListFormatted[i] = v
 	}
 	return elastic.NewTermsQuery("resourceType", typeListFormatted...)
+}
+
+//createQueryTagsFilterResources creates and return a new *elastic.BoolQuery based on the tagList
+func createQueryTagsFilterResources(tagList []Tag) *elastic.BoolQuery {
+	termQueries := []elastic.Query{}
+	for _, v := range tagList {
+		termQueries = append(termQueries, elastic.NewNestedQuery("tags", elastic.NewBoolQuery().Must(elastic.NewTermQuery("tags.key", v.Key), elastic.NewTermQuery("tags.value", v.Value))))
+	}
+	return elastic.NewBoolQuery().Must(termQueries...)
+}
+
+//createQueryTypeFilterResources creates and return a new *elastic.BoolQuery based on the missingTagList
+func createQueryMissingTagsFilterResources(missingTagList []Tag) *elastic.BoolQuery {
+	termQueries := []elastic.Query{}
+	for _, v := range missingTagList {
+		termQueries = append(termQueries, elastic.NewNestedQuery("tags", elastic.NewBoolQuery().Must(elastic.NewTermQuery("tags.key", v.Key), elastic.NewTermQuery("tags.value", v.Value))))
+	}
+	return elastic.NewBoolQuery().MustNot(termQueries...)
 }
