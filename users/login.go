@@ -67,12 +67,7 @@ func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	user, err := GetUserWithEmailAndPassword(request.Context(), tx, body.Email, body.Password)
 	if err == nil {
-		if !user.AwsCustomerEntitlement {
-			logger.Warning("AWS entitlement failure.", user)
-			return 403, errors.New("Please check your AWS marketplace subscription.")
-		} else {
-			return logAuthenticatedUserIn(request, user)
-		}
+		return logAuthenticatedUserIn(request, user)
 	} else {
 		logger.Warning("Authentication failure.", struct {
 			Email string `json:"user"`
