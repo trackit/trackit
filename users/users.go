@@ -64,11 +64,10 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 	return UserFromDbUser(dbUser), err
 }
 
-// CreateUserWithPassword creates a user with an email and a password. A nil
-// error indicates a success.
+// CreateTagbotUser creates a tagbot user row associated with a trackit user
 func CreateTagbotUser(ctx context.Context, db models.XODB, userId int, awsCustomerIdentifier string) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbUser := models.UserTagbot{
+	dbUser := models.TagbotUser{
 		UserID:                 userId,
 		AwsCustomerIdentifier:  awsCustomerIdentifier,
 		AwsCustomerEntitlement: false,

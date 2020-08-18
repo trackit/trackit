@@ -1162,9 +1162,9 @@ CREATE TABLE check_unused_accounts_job (
 --   See the License for the specific language governing permissions and
 --   limitations under the License.
 
-CREATE TABLE user_tagbot (
+CREATE TABLE tagbot_user (
 	id                          INTEGER      NOT NULL AUTO_INCREMENT,
-	user_id                     INTEGER      NOT NULL,
+	user_id                     INTEGER      NOT NULL UNIQUE,
 	aws_customer_identifier     VARCHAR(255) NOT NULL,
 	aws_customer_entitlement    TINYINT(1)   NOT NULL DEFAULT 0,
 	stripe_customer_identifier  VARCHAR(255) NOT NULL,

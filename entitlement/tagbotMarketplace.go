@@ -24,14 +24,10 @@ import (
 )
 
 func getUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId int) (bool, error) {
-	dbUsers, err := models.UserTagbotsByUserID(db, userId)
+	dbUser, err := models.TagbotUserByUserID(db, userId)
 	if err != nil {
 		return false, err
 	}
-	if len(dbUsers) == 0 {
-		return false, nil
-	}
-	dbUser := dbUsers[0]
 
 	if dbUser.AwsCustomerIdentifier == "" {
 		return false, nil
@@ -49,14 +45,10 @@ func getUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId
 }
 
 func updateUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId int, entitlementValue bool) error {
-	dbUsers, err := models.UserTagbotsByUserID(db, userId)
+	dbUser, err := models.TagbotUserByUserID(db, userId)
 	if err != nil {
 		return err
 	}
-	if len(dbUsers) == 0 {
-		return nil
-	}
-	dbUser := dbUsers[0]
 	dbUser.AwsCustomerEntitlement = entitlementValue
 	err = dbUser.Update(db)
 	return err
