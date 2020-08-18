@@ -46,12 +46,12 @@ func taskCheckEntitlement(ctx context.Context) (err error) {
 	if len(args) != 1 {
 		return errors.New("taskCheckEntitlement requires one integer argument")
 	} else if userId, err := strconv.Atoi(args[0]); err != nil {
+		return errors.New("user id not valid")
+	} else {
 		tx, err = db.Db.BeginTx(ctx, nil)
 		if err != nil {
 			logger.Error("Could not connect to database.", err.Error())
 		}
 		return entitlement.CheckUserEntitlements(ctx, tx, userId)
-	} else {
 	}
-	return nil
 }

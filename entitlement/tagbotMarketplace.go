@@ -1,0 +1,60 @@
+//   Copyright 2019 MSolution.IO
+//
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
+//
+//       http://www.apache.org/licenses/LICENSE-2.0
+//
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
+
+package entitlement
+
+import (
+	"context"
+	"database/sql"
+	"time"
+
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/models"
+)
+
+func getUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId int) (bool, error) {
+	dbUsers, err := models.UserTagbotsByUserID(db, userId)
+	if err != nil {
+		return false, err
+	}
+	if len(dbUsers) == 0 {
+		return false, nil
+	}
+	dbUser := dbUsers[0]
+
+	if dbUser.AwsCustomerIdentifier == "" {
+		return false, nil
+	}
+
+	entitlement, err := getAwsEntitlement(ctx, dbUser.AwsCustomerIdentifier, config.TagbotMarketPlaceProductCode)
+	if err != nil {
+		return false, err
+	}
+
+	return entitlement.ExpirationDate.Before(time.Now()), nil
+}
+
+func updateUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId int, entitlementValue bool) error {
+	dbUsers, err := models.UserTagbotsByUserID(db, userId)
+	if err != nil {
+		return err
+	}
+	if len(dbUsers) == 0 {
+		return nil
+	}
+	dbUser := dbUsers[0]
+	dbUser.AwsCustomerEntitlement = entitlementValue
+	err = dbUser.Update(db)
+	return err
+}

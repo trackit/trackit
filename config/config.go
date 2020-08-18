@@ -82,6 +82,8 @@ var (
 	Periodics bool
 	// Aws Market place product code
 	MarketPlaceProductCode string
+	// Aws Market place product code for Tagbot
+	TagbotMarketPlaceProductCode string
 	// AnomalyDetectionBollingerBandPeriod is the period in day used to generate the upper band.
 	AnomalyDetectionBollingerBandPeriod int
 	// AnomalyDetectionBollingerBandStandardDeviationCoefficient is the coefficient applied to the standard deviation used to generate the upper band.
@@ -136,6 +138,7 @@ func init() {
 	flag.StringVar(&Task, "task", "server", "The task to be run.")
 	flag.BoolVar(&Periodics, "periodics", true, "Periodic jobs should be run by the process.")
 	flag.StringVar(&MarketPlaceProductCode, "market-place-product-code", "productcode", "Aws market place product code.")
+	flag.StringVar(&TagbotMarketPlaceProductCode, "tagbot-market-place-product-code", "productcode", "Aws market place product code for Tagbot.")
 	flag.IntVar(&AnomalyDetectionBollingerBandPeriod, "anomaly-detection-bollinger-band-period", 3, "Period used by the Bollinger Band algorithm.")
 	flag.Float64Var(&AnomalyDetectionBollingerBandStandardDeviationCoefficient, "anomaly-detection-bollinger-band-standard-deviation-coefficient", 3.0, "Coefficient used by the Bollinger Band algorithm to generate the standard deviation.")
 	flag.Float64Var(&AnomalyDetectionBollingerBandUpperBandCoefficient, "anomaly-detection-bollinger-band-upper-band-coefficient", 1.05, "Coefficient used by the Bollinger Band algorithm to generate the upper band.")
