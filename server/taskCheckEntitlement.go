@@ -22,6 +22,7 @@ import (
 	"strconv"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/entitlement"
 )

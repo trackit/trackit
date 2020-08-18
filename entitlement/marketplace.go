@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"github.com/trackit/trackit/config"
-
 	"github.com/trackit/trackit/models"
 )
 
