@@ -24,10 +24,11 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/client"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/marketplaceentitlementservice"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/awsSession"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
@@ -47,11 +48,11 @@ func taskCheckEntitlement(ctx context.Context) error {
 	} else {
 		customer, err := models.UserByID(db.Db, userId)
 		if err != nil {
-			logger.Error("Error while getting cursomer infos", err)
+			logger.Error("Error while getting customer infos", err)
 			return err
 		} else if customer.AwsCustomerIdentifier == "" {
 			logger.Info("No AWS customer identifier", err)
-			return nil
+			return updateCustomerEntitlement(db.Db, ctx, userId, false)
 		} else {
 			err = checkUserEntitlement(ctx, customer.AwsCustomerIdentifier, userId)
 			if err != nil {
@@ -63,9 +64,17 @@ func taskCheckEntitlement(ctx context.Context) error {
 	return nil
 }
 
+// getAwsEntitlementConfig returns an AWS config with the region required for entitlement API calls
+func getAwsEntitlementConfig() client.ConfigProvider {
+	return session.Must(session.NewSession(&aws.Config{
+		CredentialsChainVerboseErrors: aws.Bool(true),
+		Region:                        aws.String("us-east-1"),
+	}))
+}
+
 // getUserEntitlement calls getEntitlements function to retrieve specific user entitlement from AWS marketplace.
 func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*marketplaceentitlementservice.Entitlement, error) {
-	svc := marketplaceentitlementservice.New(awsSession.Session)
+	svc := marketplaceentitlementservice.New(getAwsEntitlementConfig())
 	var awsInput marketplaceentitlementservice.GetEntitlementsInput
 	var filter = make(map[string][]*string)
 	filter["CUSTOMER_IDENTIFIER"] = []*string{aws.String(customerIdentifier)}
@@ -78,7 +87,10 @@ func getUserEntitlement(ctx context.Context, customerIdentifier string) ([]*mark
 			return nil, errors.New("AWS error cast failed")
 		}
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Error when checking the AWS token", aerr.Message())
+		logger.Error("Error when checking the AWS token", map[string]interface{}{
+			"message": aerr.Message(),
+			"err":     aerr.Error(),
+		})
 		return nil, err
 	}
 	return result.Entitlements, nil
