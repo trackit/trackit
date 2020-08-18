@@ -31,6 +31,7 @@ import (
 	"github.com/trackit/trackit/awsSession"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/entitlement"
 	"github.com/trackit/trackit/mail"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
@@ -165,6 +166,7 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier)
 	if err == nil {
 		logger.Info("User created.", user)
+		entitlement.CheckUserEntitlements(request.Context(), tx, user.Id)
 		return 200, user
 	} else {
 		logger.Error(err.Error(), nil)
