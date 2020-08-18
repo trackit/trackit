@@ -166,7 +166,13 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier)
 	if err == nil {
 		logger.Info("User created.", user)
-		entitlement.CheckUserEntitlements(request.Context(), tx, user.Id)
+		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
+			logger.Error("Could not check new user's entitlements", map[string]interface{}{
+				"email":      body.Email,
+				"tagbotUser": body.TagbotUser,
+				"err":        err.Error(),
+			})
+		}
 		return 200, user
 	} else {
 		logger.Error(err.Error(), nil)
@@ -188,7 +194,13 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
 			return 500, errors.New("Failed to create user.")
 		}
-		entitlement.CheckUserEntitlements(request.Context(), tx, user.Id)
+		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
+			logger.Error("Could not check new user's entitlements", map[string]interface{}{
+				"email":      body.Email,
+				"tagbotUser": body.TagbotUser,
+				"err":        err.Error(),
+			})
+		}
 		return 200, user
 	} else {
 		logger.Error(err.Error(), nil)
