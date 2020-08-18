@@ -42,6 +42,9 @@ func getUserEntitlementMarketplace(db *sql.Tx, ctx context.Context, userId int) 
 	if err != nil {
 		return false, err
 	}
+	if entitlement == nil {
+		return false, nil
+	}
 
 	return entitlement.ExpirationDate.After(time.Now()), nil
 }

@@ -188,6 +188,7 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
 			return 500, errors.New("Failed to create user.")
 		}
+		entitlement.CheckUserEntitlements(request.Context(), tx, user.Id)
 		return 200, user
 	} else {
 		logger.Error(err.Error(), nil)

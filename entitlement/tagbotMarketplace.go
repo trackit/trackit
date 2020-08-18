@@ -41,8 +41,11 @@ func getUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId
 	if err != nil {
 		return false, err
 	}
+	if entitlement == nil {
+		return false, nil
+	}
 
-	return entitlement.ExpirationDate.Before(time.Now()), nil
+	return entitlement.ExpirationDate.After(time.Now()), nil
 }
 
 func updateUserEntitlementTagbotMarketplace(db *sql.Tx, ctx context.Context, userId int, entitlementValue bool) error {
