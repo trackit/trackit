@@ -93,3 +93,16 @@ func init() {
 		),
 	}.H().Register("/tagging/suggestions/tag-value")
 }
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(shouldPopup).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.Documentation{
+				Summary:     "get list of resources",
+				Description: "Responds with the list of resources based on the queryparams passed to it",
+			},
+		),
+	}.H().Register("/tagging/should-popup")
+}
