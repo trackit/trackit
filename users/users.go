@@ -35,11 +35,11 @@ var (
 // User is a user of the platform. It is different from models.User which is
 // the database representation of a User.
 type User struct {
-	Id                      int    `json:"id"`
-	Email                   string `json:"email"`
-	NextExternal            string `json:"-"`
-	ParentId                *int   `json:"parentId,omitempty"`
-	AwsCustomerEntitlement	bool   `json:aws_customer_entitlement`
+	Id                     int    `json:"id"`
+	Email                  string `json:"email"`
+	NextExternal           string `json:"-"`
+	ParentId               *int   `json:"parentId,omitempty"`
+	AwsCustomerEntitlement bool   `json:aws_customer_entitlement`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
@@ -47,9 +47,9 @@ type User struct {
 func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, password string, customerIdentifier string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
-		Email: email,
-		AwsCustomerIdentifier: customerIdentifier,
-		AwsCustomerEntitlement: true,
+		Email:                  email,
+		AwsCustomerIdentifier:  customerIdentifier,
+		AwsCustomerEntitlement: false,
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {
@@ -64,13 +64,28 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 	return UserFromDbUser(dbUser), err
 }
 
+// CreateTagbotUser creates a tagbot user row associated with a trackit user
+func CreateTagbotUser(ctx context.Context, db models.XODB, userId int, awsCustomerIdentifier string) error {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	dbUser := models.TagbotUser{
+		UserID:                 userId,
+		AwsCustomerIdentifier:  awsCustomerIdentifier,
+		AwsCustomerEntitlement: false,
+	}
+	err := dbUser.Insert(db)
+	if err != nil {
+		logger.Error("Failed to create tagbot user.", err.Error())
+	}
+	return err
+}
+
 // CreateUserWithParent creates a viewer user with an email and a parent. A nil
 // error indicates a success.
 func CreateUserWithParent(ctx context.Context, db models.XODB, email string, parent User) (User, string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
-		Email:        email,
-		ParentUserID: sql.NullInt64{int64(parent.Id), true},
+		Email:                  email,
+		ParentUserID:           sql.NullInt64{int64(parent.Id), true},
 		AwsCustomerEntitlement: true,
 	}
 	var user User
