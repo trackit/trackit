@@ -58,22 +58,22 @@ func shouldPopup(request *http.Request, a routes.Arguments) (int, interface{}) {
 }
 
 func checkPopup(dbUser *models.TagbotUser, customer *models.User) (int, interface{}) {
-	if dbUser.AwsCustomerIdentifier != "" && dbUser.AwsCustomerEntitlement {
-		return 200, PopupInfoResponseBody{
+	if dbUser.AwsCustomerEntitlement {
+		return http.StatusOK, PopupInfoResponseBody{
 			popup: false,
 		}
 	}
-	if dbUser.StripeCustomerIdentifier != "" && dbUser.StripeCustomerEntitlement {
-		return 200, PopupInfoResponseBody{
+	if dbUser.StripeCustomerEntitlement {
+		return http.StatusOK, PopupInfoResponseBody{
 			popup: false,
 		}
 	}
 	if checkUserTagbotFreeTrial(customer.Created) {
-		return 200, PopupInfoResponseBody{
+		return http.StatusOK, PopupInfoResponseBody{
 			popup: false,
 		}
 	}
-	return 200, PopupInfoResponseBody{
+	return http.StatusOK, PopupInfoResponseBody{
 		popup: true,
 	}
 }
