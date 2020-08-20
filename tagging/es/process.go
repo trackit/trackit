@@ -26,7 +26,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://console.aws.amazon.com/es/home?region=%s#domain:resource=%s;action=dashboard"
+const urlFormat = "https://console.aws.amazon.com/es/home?region=%s#domain:resource=%s;action=dashboard;tab=TAB_OVERVIEW_ID"
 
 // Process generates tagging reports from ES reports
 func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
