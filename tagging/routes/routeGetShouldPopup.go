@@ -15,9 +15,9 @@
 package routes
 
 import (
-	"net/http"
 	"database/sql"
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -30,7 +30,7 @@ import (
 
 // PopupInfoResponseBody is the response body in case /tagging/should-popup is called.
 type PopupInfoResponseBody struct {
-	popup bool `json:"popup"`
+	Popup bool `json:"popup"`
 }
 
 var (
@@ -54,27 +54,28 @@ func shouldPopup(request *http.Request, a routes.Arguments) (int, interface{}) {
 	if err != nil {
 		return http.StatusInternalServerError, errors.New("Error while getting customer infos")
 	}
+
 	return checkPopup(dbUser, customer)
 }
 
 func checkPopup(dbUser *models.TagbotUser, customer *models.User) (int, interface{}) {
 	if dbUser.AwsCustomerEntitlement {
 		return http.StatusOK, PopupInfoResponseBody{
-			popup: false,
+			false,
 		}
 	}
 	if dbUser.StripeCustomerEntitlement {
 		return http.StatusOK, PopupInfoResponseBody{
-			popup: false,
+			false,
 		}
 	}
 	if checkUserTagbotFreeTrial(customer.Created) {
 		return http.StatusOK, PopupInfoResponseBody{
-			popup: false,
+			false,
 		}
 	}
 	return http.StatusOK, PopupInfoResponseBody{
-		popup: true,
+		true,
 	}
 }
 
