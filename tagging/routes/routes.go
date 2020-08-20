@@ -100,8 +100,8 @@ func init() {
 			db.RequestTransaction{db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
-				Summary:     "get list of resources",
-				Description: "Responds with the list of resources based on the queryparams passed to it",
+				Summary:     "get Tagbot access",
+				Description: "Returns whether or not to display subscription popup",
 			},
 		),
 	}.H().Register("/tagging/should-popup")
