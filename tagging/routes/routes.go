@@ -93,3 +93,16 @@ func init() {
 		),
 	}.H().Register("/tagging/suggestions/tag-value")
 }
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(shouldPopup).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.Documentation{
+				Summary:     "get Tagbot access",
+				Description: "Returns whether or not to display subscription popup",
+			},
+		),
+	}.H().Register("/tagging/should-popup")
+}
