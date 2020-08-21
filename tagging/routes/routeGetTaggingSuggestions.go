@@ -29,6 +29,11 @@ import (
 
 const maxSuggestionsCount = 10
 
+type suggestion struct {
+	Value      string `json:"value"`
+	Confidence int64  `json:"confidence"`
+}
+
 func routeGetTaggingSuggestions(r *http.Request, a routes.Arguments) (int, interface{}) {
 	u := a[users.AuthenticatedUser].(users.User)
 	tagKey := a[suggestionsQueryArgs[0]].(string)
@@ -44,7 +49,7 @@ func routeGetTaggingSuggestions(r *http.Request, a routes.Arguments) (int, inter
 	}
 }
 
-func getSuggestions(ctx context.Context, userId int, tagKey string) ([]string, error) {
+func getSuggestions(ctx context.Context, userId int, tagKey string) ([]suggestion, error) {
 	client := es.Client
 
 	res, err := client.Search().Index(es.IndexNameForUserId(userId, tagging.IndexPrefixTaggingReport)).Size(0).
@@ -58,31 +63,38 @@ func getSuggestions(ctx context.Context, userId int, tagKey string) ([]string, e
 	return processTaggingSuggestionsResult(res)
 }
 
-func processTaggingSuggestionsResult(res *elastic.SearchResult) ([]string, error) {
+func processTaggingSuggestionsResult(res *elastic.SearchResult) ([]suggestion, error) {
 	byDateRes, found := res.Aggregations.Terms("byDate")
 	if !found || len(byDateRes.Buckets) <= 0 {
-		return []string{}, nil
+		return []suggestion{}, nil
 	}
 
 	nestedRes, found := byDateRes.Buckets[0].Nested("nested")
 	if !found {
-		return []string{}, nil
+		return []suggestion{}, nil
 	}
 
 	byTagKeyRes, found := nestedRes.Aggregations.Terms("byTagKey")
 	if !found || len(byDateRes.Buckets) <= 0 {
-		return []string{}, nil
+		return []suggestion{}, nil
 	}
 
 	resultsRes, found := byTagKeyRes.Aggregations.Terms("results")
 	if !found {
-		return []string{}, nil
+		return []suggestion{}, nil
 	}
 
-	results := []string{}
+	results := []suggestion{}
+	var total int64 = 0
 
 	for _, buck := range resultsRes.Buckets {
-		results = append(results, fmt.Sprintf("%s", buck.Key))
+		total += buck.DocCount
+	}
+	for _, buck := range resultsRes.Buckets {
+		results = append(results, suggestion{
+			Value:      fmt.Sprintf("%s", buck.Key),
+			Confidence: buck.DocCount * 100 / total,
+		})
 	}
 
 	return results, nil
