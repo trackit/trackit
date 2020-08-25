@@ -271,6 +271,8 @@ func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
+	// We are excluding AWSDataTransfer products because it's value is always zero.
+	// Data transfer costs are included in other products' costs.
 	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd),
 		elastic.NewBoolQuery().MustNot(elastic.NewTermQuery("productCode", "AWSDataTransfer")))
 	search := client.Search().Index(index).Size(0).Query(query)
