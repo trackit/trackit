@@ -265,13 +265,16 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 //	- If a param in the slice is not present in the detailedLineItemsFieldsName, the program will crash.
 //	- If the client is nil or malconfigured, it will crash
 //	- If the index is not an index present in the ES, it will crash
+// We are excluding AWSDataTransfer products because it's value is always zero.
+// Data transfer costs are included in other products' costs.
 func GetElasticSearchParams(accountList []string, durationBegin time.Time,
 	durationEnd time.Time, params []string, client *elastic.Client, index string) *elastic.SearchService {
 	query := elastic.NewBoolQuery()
 	if len(accountList) > 0 {
 		query = query.Filter(createQueryAccountFilter(accountList))
 	}
-	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd))
+	query = query.Filter(createQueryTimeRange(durationBegin, durationEnd),
+		elastic.NewBoolQuery().MustNot(elastic.NewTermQuery("productCode", "AWSDataTransfer")))
 	search := client.Search().Index(index).Size(0).Query(query)
 	params = append(params, "cost")
 	var allAggregationSlice []paramAggrAndName
