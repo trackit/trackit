@@ -573,6 +573,36 @@
 			"revisionTime": "2017-05-14T20:27:02Z"
 		},
 		{
+			"checksumSHA1": "UzKNOpEqUPGSjY5zyyFapNk8FKI=",
+			"path": "github.com/stripe/stripe-go",
+			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
+			"revisionTime": "2020-08-21T20:48:37Z"
+		},
+		{
+			"checksumSHA1": "k17zct5y0sw8CcRdj7gnxi8ct60=",
+			"path": "github.com/stripe/stripe-go/customer",
+			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
+			"revisionTime": "2020-08-21T20:48:37Z"
+		},
+		{
+			"checksumSHA1": "NwYu7Jcprry1RopYuZtB+kIMJQk=",
+			"path": "github.com/stripe/stripe-go/invoice",
+			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
+			"revisionTime": "2020-08-21T20:48:37Z"
+		},
+		{
+			"checksumSHA1": "uWzkdVhO3lAReo3MdvC4yNh7IoM=",
+			"path": "github.com/stripe/stripe-go/paymentmethod",
+			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
+			"revisionTime": "2020-08-21T20:48:37Z"
+		},
+		{
+			"checksumSHA1": "OT+P90soezjF8d2GPyIdmo1/mzE=",
+			"path": "github.com/stripe/stripe-go/sub",
+			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
+			"revisionTime": "2020-08-21T20:48:37Z"
+		},
+		{
 			"checksumSHA1": "fXENG3ndXoSruFRlAH+HnfAiN3g=",
 			"path": "github.com/trackit/jsonlog",
 			"revision": "36b6a128f6562df64a87de1e2cb53028ecf32958",
