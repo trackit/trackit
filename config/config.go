@@ -106,6 +106,8 @@ var (
 	AnomalyDetectionPrettyLevels string
 	// AnomalyEmailingMinLevel is the minimum level required for the mail to be sent.
 	AnomalyEmailingMinLevel int
+	// Stripe secret key for Tagbot
+	StripeKey string
 )
 
 func init() {
@@ -150,6 +152,7 @@ func init() {
 	flag.StringVar(&AnomalyDetectionLevels, "anomaly-detection-levels", "0,120,150,200", "Rules to generate the levels.")
 	flag.StringVar(&AnomalyDetectionPrettyLevels, "anomaly-detection-pretty-levels", "low,medium,high,critical", "Pretty names of the levels.")
 	flag.IntVar(&AnomalyEmailingMinLevel, "anomaly-emailing-min-level", 2, "Minimum level for the mail to be sent.")
+	flag.StringVar(&StripeKey, "stripe-key", "stripekey", "Stripe key for Tagbot")
 	flag.Parse()
 	if len(EsAddress) == 0 {
 		EsAddress = stringArray{"http://127.0.0.1:9200"}
