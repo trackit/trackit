@@ -106,3 +106,107 @@ func init() {
 		),
 	}.H().Register("/tagging/should-popup")
 }
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(routeCreateCustomer).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{CreateCustomerRequestBody{"example@example.com"}},
+			routes.Documentation{
+				Summary:     "Create a stripe customer",
+				Description: "Responds with customer informations",
+			},
+		),
+	}.H().Register("/tagging/create-customer")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(routeCreateSubscription).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{CreateSubscriptionRequestBody{"pm_1HL9NKHPvmk5HTchutPljt1d", "cus_HuzN2Ie7ZFLvHC", "tagbot"}},
+			routes.Documentation{
+				Summary:     "Create stripe payment method",
+				Description: "Responds with payment method informations",
+			},
+		),
+	}.H().Register("/tagging/create-subscription")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(routeHandleRetryInvoice).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{RetryInvoiceRequestBody{"cus_HuzN2Ie7ZFLvHC", "pm_1HL9NKHPvmk5HTchutPljt1d", "in_1HOj7bHPvmk5HTchOPvXsNry"}},
+			routes.Documentation{
+				Summary:     "Handle retry invoice",
+				Description: "Updates stripe customer with new payment method",
+			},
+		),
+	}.H().Register("/tagging/retry-invoice")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(routeCancelSubscription).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{CancelSubscriptionRequestBody{"sub_HyiV5QLQrY1YIc"}},
+			routes.Documentation{
+				Summary:     "Cancel subscription",
+				Description: "Cancels customer subscription",
+			},
+		),
+	}.H().Register("/tagging/cancel-subscription")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(routeRetrieveSubscription).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{RetrieveSubscriptionRequestBody{"sub_HyiV5QLQrY1YIc"}},
+			routes.Documentation{
+				Summary:     "Retrieve subscription",
+				Description: "Retrieves customer subscription information",
+			},
+		),
+	}.H().Register("/tagging/retrieve-subscription")
+}
+
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodPost: routes.H(routeChangePaymentMethod).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.RequestContentType{"application/json"},
+			routes.RequestBody{ChangePaymentMehtodRequestBody{"pm_1HL9NKHPvmk5HTchutPljt1d"}},
+			routes.Documentation{
+				Summary:     "Change payment method",
+				Description: "Changes customer payment method",
+			},
+		),
+	}.H().Register("/tagging/change-payment-method")
+}
+
+func init() {
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(routeGetStripeCustomerInformation).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.Documentation{
+				Summary:     "get stripe customer information",
+				Description: "Returns stripe customer information",
+			},
+		),
+	}.H().Register("/tagging/stripe-customer-information")
+}
