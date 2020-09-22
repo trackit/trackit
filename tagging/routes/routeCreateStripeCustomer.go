@@ -19,10 +19,11 @@ import (
     "errors"
     "net/http"
 
+    "github.com/stripe/stripe-go/v72"
+    "github.com/stripe/stripe-go/v72/customer"
     "github.com/trackit/jsonlog"
-    "github.com/stripe/stripe-go"
-    "github.com/stripe/stripe-go/customer"
 
+    "github.com/trackit/trackit/config"
     "github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
     "github.com/trackit/trackit/routes"
@@ -46,7 +47,7 @@ func routeCreateCustomer(request *http.Request, a routes.Arguments) (int, interf
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
     }
 
-    stripe.Key = "sk_test_51HAGBpHPvmk5HTchHxZJ0h9RGC1M8DAVuoSQeQJc3fbLFXII39hjAEMMxp0A7sAm5leXcZe8qsKbxHUXfBefjySO00ZJ4TSYeP"
+    stripe.Key = config.StripeKey
     var body CreateCustomerRequestBody
     routes.MustRequestBody(a, &body)
     params := &stripe.CustomerParams{
