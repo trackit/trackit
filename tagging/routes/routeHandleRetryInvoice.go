@@ -17,7 +17,7 @@ package routes
 import (
 	"net/http"
 	"database/sql"
-    "errors"
+	"errors"
 
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/customer"
@@ -28,8 +28,8 @@ import (
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
-    "github.com/trackit/trackit/routes"
-    "github.com/trackit/trackit/users"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type RetryInvoiceRequestBody struct {
@@ -42,8 +42,8 @@ func routeHandleRetryInvoice(request *http.Request, a routes.Arguments) (int, in
 	l := jsonlog.LoggerFromContextOrDefault(request.Context())
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-    dbUser, err := models.TagbotUserByUserID(tx, user.Id)
-    if err != nil {
+	dbUser, err := models.TagbotUserByUserID(tx, user.Id)
+	if err != nil {
 		l.Error("Failed to get tagbot user with id", map[string]interface{}{
 			"userId": user.Id,
 			"error":  err.Error(),
@@ -69,9 +69,9 @@ func routeHandleRetryInvoice(request *http.Request, a routes.Arguments) (int, in
 	dbUser.StripePaymentMethodIdentifier = pm.ID
 	err = dbUser.Update(tx)
 	if err != nil {
-        l.Error("Failed to update Tagbot stripe payment method ID.", err)
-        return http.StatusInternalServerError, errors.New("Failed to update Tagbot stripe payment method ID.")
-    }
+		l.Error("Failed to update Tagbot stripe payment method ID.", err)
+		return http.StatusInternalServerError, errors.New("Failed to update Tagbot stripe payment method ID.")
+	}
 
 	// Update invoice settings default
 	customerParams := &stripe.CustomerParams{

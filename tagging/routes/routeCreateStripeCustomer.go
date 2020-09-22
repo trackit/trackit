@@ -15,61 +15,61 @@
 package routes
 
 import (
-    "database/sql"
-    "errors"
-    "net/http"
+	"database/sql"
+	"errors"
+	"net/http"
 
-    "github.com/stripe/stripe-go/v72"
-    "github.com/stripe/stripe-go/v72/customer"
-    "github.com/trackit/jsonlog"
+	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/trackit/jsonlog"
 
-    "github.com/trackit/trackit/config"
-    "github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
-    "github.com/trackit/trackit/routes"
-    "github.com/trackit/trackit/users"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type CreateCustomerRequestBody struct {
-    Email string `json:"email" req:"nonzero"`
+	Email string `json:"email" req:"nonzero"`
 }
 
 func routeCreateCustomer(request *http.Request, a routes.Arguments) (int, interface{}) {
-    l := jsonlog.LoggerFromContextOrDefault(request.Context())
+	l := jsonlog.LoggerFromContextOrDefault(request.Context())
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-    dbUser, err := models.TagbotUserByUserID(tx, user.Id)
-    if err != nil {
+	dbUser, err := models.TagbotUserByUserID(tx, user.Id)
+	if err != nil {
 		l.Error("Failed to get tagbot user with id", map[string]interface{}{
 			"userId": user.Id,
 			"error":  err.Error(),
 		})
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
-    }
+	}
 
-    stripe.Key = config.StripeKey
-    var body CreateCustomerRequestBody
-    routes.MustRequestBody(a, &body)
-    params := &stripe.CustomerParams{
-        Email: stripe.String(body.Email),
-    }
-    c, err := customer.New(params)
-    if err != nil {
-        l.Error("Failed to create stripe customer", err)
-        return http.StatusInternalServerError, err
-    }
+	stripe.Key = config.StripeKey
+	var body CreateCustomerRequestBody
+	routes.MustRequestBody(a, &body)
+	params := &stripe.CustomerParams{
+		Email: stripe.String(body.Email),
+	}
+	c, err := customer.New(params)
+	if err != nil {
+		l.Error("Failed to create stripe customer", err)
+		return http.StatusInternalServerError, err
+	}
 
-    dbUser.StripeCustomerIdentifier = c.ID
-    err = dbUser.Update(tx)
-    if err != nil {
-        l.Error("Failed to update Tagbot Customer ID", err)
-        return http.StatusInternalServerError, errors.New("Failed to update Tagbot customer ID")
-    }
+	dbUser.StripeCustomerIdentifier = c.ID
+	err = dbUser.Update(tx)
+	if err != nil {
+		l.Error("Failed to update Tagbot Customer ID", err)
+		return http.StatusInternalServerError, errors.New("Failed to update Tagbot customer ID")
+	}
 
-    res := struct {
-        Customer *stripe.Customer `json:"customer"`
-    }{
-        Customer: c,
-    }
-    return http.StatusOK, res
+	res := struct {
+		Customer *stripe.Customer `json:"customer"`
+	}{
+		Customer: c,
+	}
+	return http.StatusOK, res
 }

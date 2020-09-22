@@ -15,41 +15,41 @@
 package routes
 
 import (
-    "database/sql"
-    "errors"
-    "net/http"
+	"database/sql"
+	"errors"
+	"net/http"
 
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/paymentmethod"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/config"
-    "github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
-    "github.com/trackit/trackit/routes"
-    "github.com/trackit/trackit/users"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type ChangePaymentMehtodRequestBody struct {
-    PaymentMethodID string `json:"paymentMethodId" req:"nonzero"`
+	PaymentMethodID string `json:"paymentMethodId" req:"nonzero"`
 }
 
 func routeChangePaymentMethod(request *http.Request, a routes.Arguments) (int, interface{}) {
-    l := jsonlog.LoggerFromContextOrDefault(request.Context())
+	l := jsonlog.LoggerFromContextOrDefault(request.Context())
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-    dbUser, err := models.TagbotUserByUserID(tx, user.Id)
-    if err != nil {
+	dbUser, err := models.TagbotUserByUserID(tx, user.Id)
+	if err != nil {
 		l.Error("Failed to get tagbot user with id", map[string]interface{}{
 			"userId": user.Id,
 			"error":  err.Error(),
 		})
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
-    }
+	}
 
 	stripe.Key = config.StripeKey
-    var body ChangePaymentMehtodRequestBody
-    routes.MustRequestBody(a, &body)
+	var body ChangePaymentMehtodRequestBody
+	routes.MustRequestBody(a, &body)
 
 	pm, err := paymentmethod.Detach(
 		dbUser.StripePaymentMethodIdentifier,
@@ -57,7 +57,7 @@ func routeChangePaymentMethod(request *http.Request, a routes.Arguments) (int, i
 	)
 	if err != nil {
 		l.Error("Stripe failed to detach payment method", pm.ID)
-        return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, err
 	}
 
 	params := &stripe.PaymentMethodAttachParams{
@@ -69,15 +69,15 @@ func routeChangePaymentMethod(request *http.Request, a routes.Arguments) (int, i
 	)
 	if err != nil {
 		l.Error("Stripe failed to update payment method", pmUpdate.ID)
-        return http.StatusInternalServerError, err
+		return http.StatusInternalServerError, err
 	}
 
 	dbUser.StripePaymentMethodIdentifier = pmUpdate.ID
 	err = dbUser.Update(tx)
 	if err != nil {
-        l.Error("Failed to update Tagbot stripe payment method ID.", err)
-        return http.StatusInternalServerError, errors.New("Failed to update Tagbot stripe payment method ID.")
-    }
+		l.Error("Failed to update Tagbot stripe payment method ID.", err)
+		return http.StatusInternalServerError, errors.New("Failed to update Tagbot stripe payment method ID.")
+	}
 
 	return http.StatusOK, pmUpdate
 }

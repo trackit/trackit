@@ -17,7 +17,7 @@ package routes
 import (
 	"net/http"
 	"database/sql"
-    "errors"
+	"errors"
 
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/sub"
@@ -26,20 +26,20 @@ import (
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
-    "github.com/trackit/trackit/routes"
-    "github.com/trackit/trackit/users"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 )
 
 type CancelSubscriptionRequestBody struct {
-    SubscriptionID string `json:"subscriptionId" req:"nonzero"`
+	SubscriptionID string `json:"subscriptionId" req:"nonzero"`
 }
 
 func routeCancelSubscription(request *http.Request, a routes.Arguments) (int, interface{}) {
 	l := jsonlog.LoggerFromContextOrDefault(request.Context())
 	tx := a[db.Transaction].(*sql.Tx)
 	user := a[users.AuthenticatedUser].(users.User)
-    dbUser, err := models.TagbotUserByUserID(tx, user.Id)
-    if err != nil {
+	dbUser, err := models.TagbotUserByUserID(tx, user.Id)
+	if err != nil {
 		l.Error("Failed to get tagbot user with id", map[string]interface{}{
 			"userId": user.Id,
 			"error":  err.Error(),
@@ -58,9 +58,9 @@ func routeCancelSubscription(request *http.Request, a routes.Arguments) (int, in
 	dbUser.StripePaymentMethodIdentifier = ""
 	dbUser.StripeCustomerEntitlement = false
 	err = dbUser.Update(tx)
-    if err != nil {
-        l.Error("Failed to update Tagbot subscription ID and stripe payment method ID", err)
-        return http.StatusInternalServerError, errors.New("Failed to update Tagbot subscription ID and stripe payment method ID")
-    }
+	if err != nil {
+		l.Error("Failed to update Tagbot subscription ID and stripe payment method ID", err)
+		return http.StatusInternalServerError, errors.New("Failed to update Tagbot subscription ID and stripe payment method ID")
+	}
 	return http.StatusOK, s
 }
