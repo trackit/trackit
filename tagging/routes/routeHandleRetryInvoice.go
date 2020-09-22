@@ -19,13 +19,13 @@ import (
 	"database/sql"
     "errors"
 
-	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/customer"
-	"github.com/stripe/stripe-go/paymentmethod"
-	"github.com/stripe/stripe-go/invoice"
-
+	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/customer"
+	"github.com/stripe/stripe-go/v72/invoice"
+	"github.com/stripe/stripe-go/v72/paymentmethod"
 	"github.com/trackit/jsonlog"
 
+	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
     "github.com/trackit/trackit/routes"
@@ -49,8 +49,8 @@ func routeHandleRetryInvoice(request *http.Request, a routes.Arguments) (int, in
 			"error":  err.Error(),
 		})
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
-    }
-	stripe.Key = "sk_test_51HAGBpHPvmk5HTchHxZJ0h9RGC1M8DAVuoSQeQJc3fbLFXII39hjAEMMxp0A7sAm5leXcZe8qsKbxHUXfBefjySO00ZJ4TSYeP"
+	}
+	stripe.Key = config.StripeKey
 	var body RetryInvoiceRequestBody
 	routes.MustRequestBody(a, &body)
 
