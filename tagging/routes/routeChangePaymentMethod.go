@@ -19,11 +19,11 @@ import (
     "errors"
     "net/http"
 
+	"github.com/stripe/stripe-go/v72"
+	"github.com/stripe/stripe-go/v72/paymentmethod"
 	"github.com/trackit/jsonlog"
 
-    "github.com/stripe/stripe-go"
-    "github.com/stripe/stripe-go/paymentmethod"
-
+	"github.com/trackit/trackit/config"
     "github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
     "github.com/trackit/trackit/routes"
@@ -47,7 +47,7 @@ func routeChangePaymentMethod(request *http.Request, a routes.Arguments) (int, i
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
     }
 
-    stripe.Key = "sk_test_51HAGBpHPvmk5HTchHxZJ0h9RGC1M8DAVuoSQeQJc3fbLFXII39hjAEMMxp0A7sAm5leXcZe8qsKbxHUXfBefjySO00ZJ4TSYeP"
+	stripe.Key = config.StripeKey
     var body ChangePaymentMehtodRequestBody
     routes.MustRequestBody(a, &body)
 
