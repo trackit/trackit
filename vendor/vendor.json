@@ -513,24 +513,24 @@
 			"versionExact": "v6.2.21"
 		},
 		{
-			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
-			"path": "github.com/olivere/elastic",
-			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
-			"revisionTime": "2018-09-20T17:30:04Z"
-		},
-		{
-			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
-			"path": "github.com/olivere/elastic",
-			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
-			"revisionTime": "2018-09-20T17:30:04Z"
-		},
-		{
 			"checksumSHA1": "3OUEENCNkXU947M3a5abAtk19PA=",
 			"path": "github.com/olivere/elastic",
 			"revision": "2ce6dee3af14e17dc059746a1de4f983169030e9",
 			"revisionTime": "2019-06-30T15:32:01Z",
 			"version": "v6.2.21",
 			"versionExact": "v6.2.21"
+		},
+		{
+			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
+			"path": "github.com/olivere/elastic",
+			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
+			"revisionTime": "2018-09-20T17:30:04Z"
+		},
+		{
+			"checksumSHA1": "bOqP4dqo2VSxOJvYF92a5XTCYMc=",
+			"path": "github.com/olivere/elastic",
+			"revision": "fc3063a8c0686f64e94f4b2c17eb140c06eb6793",
+			"revisionTime": "2018-09-20T17:30:04Z"
 		},
 		{
 			"path": "github.com/olivere/elastic.v6",
@@ -573,34 +573,40 @@
 			"revisionTime": "2017-05-14T20:27:02Z"
 		},
 		{
-			"checksumSHA1": "UzKNOpEqUPGSjY5zyyFapNk8FKI=",
-			"path": "github.com/stripe/stripe-go",
-			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
-			"revisionTime": "2020-08-21T20:48:37Z"
+			"checksumSHA1": "73W12a5AZO9hGGcMDzW4JbeNU3k=",
+			"path": "github.com/stripe/stripe-go/v72",
+			"revision": "81f75d56592cae0f0a478bbc5f052d3f2adaaffa",
+			"revisionTime": "2020-09-14T23:03:48Z"
 		},
 		{
-			"checksumSHA1": "k17zct5y0sw8CcRdj7gnxi8ct60=",
-			"path": "github.com/stripe/stripe-go/customer",
-			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
-			"revisionTime": "2020-08-21T20:48:37Z"
+			"checksumSHA1": "tGZy5eVwvWeo+8fpcBPrF8VqJR0=",
+			"path": "github.com/stripe/stripe-go/v72/customer",
+			"revision": "81f75d56592cae0f0a478bbc5f052d3f2adaaffa",
+			"revisionTime": "2020-09-14T23:03:48Z"
 		},
 		{
-			"checksumSHA1": "NwYu7Jcprry1RopYuZtB+kIMJQk=",
-			"path": "github.com/stripe/stripe-go/invoice",
-			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
-			"revisionTime": "2020-08-21T20:48:37Z"
+			"checksumSHA1": "p6u+f2pQgN2LuoVSg8jCSbqPQn8=",
+			"path": "github.com/stripe/stripe-go/v72/form",
+			"revision": "81f75d56592cae0f0a478bbc5f052d3f2adaaffa",
+			"revisionTime": "2020-09-14T23:03:48Z"
 		},
 		{
-			"checksumSHA1": "uWzkdVhO3lAReo3MdvC4yNh7IoM=",
-			"path": "github.com/stripe/stripe-go/paymentmethod",
-			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
-			"revisionTime": "2020-08-21T20:48:37Z"
+			"checksumSHA1": "7b7wYx2CD3q1QBI3KNLW/MK2tLw=",
+			"path": "github.com/stripe/stripe-go/v72/invoice",
+			"revision": "81f75d56592cae0f0a478bbc5f052d3f2adaaffa",
+			"revisionTime": "2020-09-14T23:03:48Z"
 		},
 		{
-			"checksumSHA1": "OT+P90soezjF8d2GPyIdmo1/mzE=",
-			"path": "github.com/stripe/stripe-go/sub",
-			"revision": "3fefe762728b2b6298e0bdb5ea8006a97fec7149",
-			"revisionTime": "2020-08-21T20:48:37Z"
+			"checksumSHA1": "4KhPeOHGzs+U9So3VQtX2blrlds=",
+			"path": "github.com/stripe/stripe-go/v72/paymentmethod",
+			"revision": "81f75d56592cae0f0a478bbc5f052d3f2adaaffa",
+			"revisionTime": "2020-09-14T23:03:48Z"
+		},
+		{
+			"checksumSHA1": "92ctcMIyD53143ZzYItbscjTKqM=",
+			"path": "github.com/stripe/stripe-go/v72/sub",
+			"revision": "81f75d56592cae0f0a478bbc5f052d3f2adaaffa",
+			"revisionTime": "2020-09-14T23:03:48Z"
 		},
 		{
 			"checksumSHA1": "fXENG3ndXoSruFRlAH+HnfAiN3g=",
