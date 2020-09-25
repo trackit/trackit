@@ -20,10 +20,8 @@ import (
 	"net/http"
 
 	"github.com/trackit/jsonlog"
-	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/paymentmethod"
 
-	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
@@ -49,7 +47,6 @@ func routeGetStripeCustomerInformation(request *http.Request, a routes.Arguments
 		isSubscribed = true
 	}
 	if (dbUser.StripePaymentMethodIdentifier != "") {
-		stripe.Key = config.StripeKey
 		pm, err := paymentmethod.Get(dbUser.StripePaymentMethodIdentifier, nil)
 		if err != nil {
 			l.Error("Failed to get stripe customer payment method", err)

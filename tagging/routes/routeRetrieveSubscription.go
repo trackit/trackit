@@ -19,12 +19,9 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/sub"
-
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
@@ -47,7 +44,6 @@ func routeRetrieveSubscription(request *http.Request, a routes.Arguments) (int, 
 		})
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
 	}
-	stripe.Key = config.StripeKey
 	var body RetrieveSubscriptionRequestBody
 	routes.MustRequestBody(a, &body)
 

@@ -25,7 +25,6 @@ import (
 	"github.com/stripe/stripe-go/v72/paymentmethod"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
@@ -50,7 +49,6 @@ func routeHandleRetryInvoice(request *http.Request, a routes.Arguments) (int, in
 		})
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
 	}
-	stripe.Key = config.StripeKey
 	var body RetryInvoiceRequestBody
 	routes.MustRequestBody(a, &body)
 

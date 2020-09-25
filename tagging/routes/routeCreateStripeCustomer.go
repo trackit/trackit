@@ -23,7 +23,6 @@ import (
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
@@ -47,7 +46,6 @@ func routeCreateCustomer(request *http.Request, a routes.Arguments) (int, interf
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
 	}
 
-	stripe.Key = config.StripeKey
 	var body CreateCustomerRequestBody
 	routes.MustRequestBody(a, &body)
 	params := &stripe.CustomerParams{
@@ -66,10 +64,5 @@ func routeCreateCustomer(request *http.Request, a routes.Arguments) (int, interf
 		return http.StatusInternalServerError, errors.New("Failed to update Tagbot customer ID")
 	}
 
-	res := struct {
-		Customer *stripe.Customer `json:"customer"`
-	}{
-		Customer: c,
-	}
-	return http.StatusOK, res
+	return http.StatusOK, c
 }
