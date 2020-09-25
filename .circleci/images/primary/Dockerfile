@@ -1,4 +1,4 @@
-FROM golang:1.9.2
+FROM golang:1.15.2
 MAINTAINER Victor Schubert <victor@trackit.io>
 
 RUN 	   apt-get update \
