@@ -7,6 +7,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Get dependencies with go mod
+          command: |
+            set -xe
+            go mod download
+      - run:
           name: Build portable binary
           command: |
             set -xe
@@ -18,6 +23,11 @@ jobs:
       - image: msolution/trackit2-circleci
     steps:
       - checkout
+      - run:
+          name: Get dependencies with go mod
+          command: |
+            set -xe
+            go mod download
       - run:
           name: Build portable binary
           command: |
