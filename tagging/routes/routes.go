@@ -17,6 +17,9 @@ package routes
 import (
 	"net/http"
 
+	"github.com/stripe/stripe-go/v72"
+
+	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/users"
@@ -39,6 +42,9 @@ var suggestionsQueryArgs = []routes.QueryArg{
 }
 
 func init() {
+
+	stripe.Key = config.StripeKey
+
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetMostUsedTags).With(
 			db.RequestTransaction{db.Db},
@@ -49,9 +55,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/mostusedtags")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetTaggingCompliance).With(
 			db.RequestTransaction{db.Db},
@@ -63,9 +67,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/compliance")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeGetResources).With(
 			db.RequestTransaction{db.Db},
@@ -78,9 +80,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/resources")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetTaggingSuggestions).With(
 			db.RequestTransaction{db.Db},
@@ -92,9 +92,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/suggestions/tag-value")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(shouldPopup).With(
 			db.RequestTransaction{db.Db},
@@ -105,9 +103,6 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/should-popup")
-}
-
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeCreateCustomer).With(
 			db.RequestTransaction{db.Db},
@@ -120,9 +115,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/create-customer")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeCreateSubscription).With(
 			db.RequestTransaction{db.Db},
@@ -135,9 +128,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/create-subscription")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeHandleRetryInvoice).With(
 			db.RequestTransaction{db.Db},
@@ -150,9 +141,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/retry-invoice")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeCancelSubscription).With(
 			db.RequestTransaction{db.Db},
@@ -165,9 +154,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/cancel-subscription")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeRetrieveSubscription).With(
 			db.RequestTransaction{db.Db},
@@ -180,10 +167,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/retrieve-subscription")
-}
 
-
-func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(routeChangePaymentMethod).With(
 			db.RequestTransaction{db.Db},
@@ -196,9 +180,7 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/change-payment-method")
-}
 
-func init() {
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetStripeCustomerInformation).With(
 			db.RequestTransaction{db.Db},
