@@ -14,5 +14,3 @@ RUN 	   apt-get update \
 	&& apt-get update \
 	&& apt-get -y install docker-ce \
 	&& rm -rf /var/lib/apt/lists/*
-RUN go get -u github.com/kardianos/govendor
-RUN go install github.com/kardianos/govendor
