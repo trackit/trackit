@@ -20,6 +20,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/models"
@@ -50,6 +51,7 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 		Email:                  email,
 		AwsCustomerIdentifier:  customerIdentifier,
 		AwsCustomerEntitlement: false,
+		Created:                time.Now(),
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {
