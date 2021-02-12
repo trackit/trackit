@@ -13,5 +13,5 @@
 --   limitations under the License.
 
 ALTER TABLE user ADD account_type VARCHAR(255) NOT NULL DEFAULT "trackit";
-ALTER TABLE user DROP CONSTRAINT unique_email;
+ALTER TABLE user DROP INDEX unique_email;
 ALTER TABLE user ADD CONSTRAINT type_email_unique UNIQUE (email, account_type);
