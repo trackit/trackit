@@ -49,7 +49,13 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken", false}},
+			routes.RequestBody{createUserRequestBody{
+				Email:      "example@example.com",
+				Password:   "pa55w0rd",
+				AwsToken:   "marketplacetoken",
+				Origin:     "trackit",
+				TagbotUser: false},
+			},
 			routes.Documentation{
 				Summary:     "register a new user",
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
@@ -58,7 +64,12 @@ func init() {
 		http.MethodPatch: routes.H(patchUser).With(
 			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken", false}},
+			routes.RequestBody{createUserRequestBody{
+				Email:      "example@example.com",
+				Password:   "pa55w0rd",
+				AwsToken:   "marketplacetoken",
+				Origin:     "trackit",
+				TagbotUser: false}},
 			routes.Documentation{
 				Summary:     "edit the current user",
 				Description: "Edit the current user, and responds with the user's data.",
@@ -103,6 +114,7 @@ func init() {
 type createUserRequestBody struct {
 	Email      string `json:"email"    req:"nonzero"`
 	Password   string `json:"password" req:"nonzero"`
+	Origin     string `json:"origin" req:"nonzero"`
 	AwsToken   string `json:"awsToken"`
 	TagbotUser bool   `json:"tagbotUser"`
 }
@@ -163,7 +175,7 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier)
+	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier, body.Origin)
 	if err == nil {
 		logger.Info("User created.", user)
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
@@ -188,7 +200,7 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "")
+	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "", body.Origin)
 	if err == nil {
 		logger.Info("User created.", user)
 		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {

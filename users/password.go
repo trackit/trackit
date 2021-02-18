@@ -120,8 +120,8 @@ func createForgottenPasswordEntry(request *http.Request, body forgottenPasswordR
 		return 500, errors.New("Failed to create token hash")
 	}
 	dbForgottenPassword := models.ForgottenPassword{
-		UserID:  user.Id,
-		Token:   tokenHash,
+		UserID: user.Id,
+		Token:  tokenHash,
 		Created: time.Now(),
 	}
 	err = dbForgottenPassword.Insert(tx)

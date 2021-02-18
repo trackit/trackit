@@ -1,11 +1,11 @@
 package shared_account
 
 import (
-	"github.com/trackit/trackit/routes"
-	"net/http"
-	"github.com/trackit/trackit/db"
-	"github.com/trackit/trackit/users"
 	"encoding/json"
+	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
+	"net/http"
 )
 
 // inviteUserRequest is the expected request body for the invite user route handler.

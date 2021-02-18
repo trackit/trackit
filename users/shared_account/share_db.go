@@ -49,7 +49,7 @@ func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]Share
 				logger.Error("Error getting users from database.", err.Error())
 				return nil, errors.New("Error while getting data from database")
 			}
-			response = append(response, SharedResults{key.ID, dbUser.Email,key.UserPermission,key.UserID,key.SharingAccepted})
+			response = append(response, SharedResults{key.ID, dbUser.Email, key.UserPermission, key.UserID, key.SharingAccepted})
 		}
 		return response, nil
 	}
@@ -73,7 +73,7 @@ func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissi
 }
 
 // DeleteSharedUser deletes a user access to an AWS account by removing entry in shared_account database table.
-func DeleteSharedUser(ctx context.Context, db models.XODB, shareId int) (error) {
+func DeleteSharedUser(ctx context.Context, db models.XODB, shareId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccount, err := models.SharedAccountByID(db, shareId)
 	if err != nil {

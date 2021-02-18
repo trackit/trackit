@@ -20,10 +20,9 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
-	"time"
-
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/models"
+	"time"
 )
 
 var (
@@ -45,13 +44,14 @@ type User struct {
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
 // error indicates a success.
-func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, password string, customerIdentifier string) (User, error) {
+func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, password string, customerIdentifier string, origin string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
 		Email:                  email,
 		AwsCustomerIdentifier:  customerIdentifier,
 		AwsCustomerEntitlement: false,
 		Created:                time.Now(),
+		AccountType:            origin,
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {
@@ -228,9 +228,9 @@ func GetUserWithEmail(ctx context.Context, db models.XODB, email string) (User, 
 	}
 }
 
-// GetUserWithEmailAndPassword retrieves the user with the given unique Email
+// GetUserFromOriginWithEmailAndPassword retrieves the user with the given unique Email
 // and stored hash matching the given password. A nil eror indicates a success.
-func GetUserWithEmailAndPassword(ctx context.Context, db models.XODB, email string, password string) (User, error) {
+func GetUserFromOriginWithEmailAndPassword(ctx context.Context, db models.XODB, email string, password string, origin string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser, err := models.UserByEmail(db, email)
 	if err == sql.ErrNoRows {
@@ -239,6 +239,9 @@ func GetUserWithEmailAndPassword(ctx context.Context, db models.XODB, email stri
 		logger.Error("Error getting user from database.", err.Error())
 		return User{}, err
 	} else {
+		if dbUser.AccountType != origin {
+			return User{}, ErrUserNotFound
+		}
 		err = passwordMatchesHash(password, dbUser.Auth)
 		return UserFromDbUser(*dbUser), err
 	}
