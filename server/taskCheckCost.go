@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"github.com/trackit/trackit/models"
 	"strconv"
 	"strings"
 	"time"
@@ -68,6 +69,7 @@ func prepareCheckCostForAccount(ctx context.Context, aaId int) (err error) {
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = taws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 	} else {
 		runCostCheckForAccount(ctx, aa)
 	}

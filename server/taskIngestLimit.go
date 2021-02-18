@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"github.com/trackit/trackit/models"
 	"strconv"
 	"time"
 
@@ -73,6 +74,7 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 	} else if br, err = s3.GetBillRepositoryForAwsAccountById(aa, brId, tx); err != nil {
 	} else if updateId, err = registerUpdate(db.Db, br); err != nil {
 	} else if latestManifest, err = s3.UpdateReportLimit(ctx, aa, br, dateUpperLimit); err != nil {

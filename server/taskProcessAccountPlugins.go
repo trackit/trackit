@@ -20,6 +20,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/trackit/trackit/models"
 	"strconv"
 	"strings"
 	"time"
@@ -69,6 +70,7 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if trackitUser, err := models.UserByID(db.Db, aa.UserId); err != nil || trackitUser.AccountType != "trackit" {
 	} else if user, err = users.GetUserWithId(tx, aa.UserId); err != nil {
 	} else if updateId, err = registerAccountPluginsProcessing(db.Db, aa); err != nil {
 	} else {

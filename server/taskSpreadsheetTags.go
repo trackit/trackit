@@ -62,6 +62,7 @@ func generateTagsReport(ctx context.Context, aaId int, date time.Time) (err erro
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 	} else if generation, err = checkTagsReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerAccountTagsReportGeneration(db.Db, aa); err != nil {
 	} else {

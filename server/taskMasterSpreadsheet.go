@@ -63,6 +63,7 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 	} else if generation, err = checkMasterReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerMasterAccountReportGeneration(db.Db, aa); err != nil {
 	} else if dbAccounts, err := getAccounts(ctx, db.Db, aa); err != nil {
