@@ -46,6 +46,14 @@ func taskUpdateTags(ctx context.Context) error {
 		})
 		return err
 	}
+	if user, err := models.UserByID(db.Db, userId); err != nil {
+		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
+			"err": err.Error(),
+		})
+		return err
+	} else if user.AccountType != "tagbot" {
+		return nil
+	}
 
 	err = updateTagsForUser(ctx, userId)
 
