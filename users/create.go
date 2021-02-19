@@ -54,7 +54,6 @@ func init() {
 				Password:   "pa55w0rd",
 				AwsToken:   "marketplacetoken",
 				Origin:     "trackit",
-				TagbotUser: false,
 			}},
 			routes.Documentation{
 				Summary:     "register a new user",
@@ -69,7 +68,6 @@ func init() {
 				Password:   "pa55w0rd",
 				AwsToken:   "marketplacetoken",
 				Origin:     "trackit",
-				TagbotUser: false,
 			}},
 			routes.Documentation{
 				Summary:     "edit the current user",
@@ -117,7 +115,6 @@ type createUserRequestBody struct {
 	Password   string `json:"password"    req:"nonzero"`
 	Origin     string `json:"origin"      req:"nonzero"`
 	AwsToken   string `json:"awsToken"`
-	TagbotUser bool   `json:"tagbotUser"`
 }
 
 //checkAwsTokenLegitimacy checks if the AWS Token exists. It returns the product code and
@@ -159,7 +156,7 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 		awsCustomer := result.CustomerIdentifier
 		awsCustomerConvert = *awsCustomer
 	}
-	if body.TagbotUser {
+	if body.Origin == "tagbot" {
 		code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert)
 	} else {
 		code, resp = createUserWithValidBody(request, body, tx, awsCustomerConvert)
@@ -182,7 +179,7 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
 				"email":      body.Email,
-				"tagbotUser": body.TagbotUser,
+				"tagbotUser": body.Origin == "tagbot",
 				"err":        err.Error(),
 			})
 		}
@@ -210,7 +207,7 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
 				"email":      body.Email,
-				"tagbotUser": body.TagbotUser,
+				"tagbotUser": body.Origin == "tagbot",
 				"err":        err.Error(),
 			})
 		}
