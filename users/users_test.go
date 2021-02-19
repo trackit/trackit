@@ -50,7 +50,7 @@ func TestNonExistingUserByEmailFailure(t *testing.T) {
 		"lol.nexist@example.trackit.io",
 	}
 	for _, email := range emails {
-		_, err := GetUserWithEmail(ctx, db.Db, email)
+		_, err := GetUserWithEmailAndOrigin(ctx, db.Db, email, "trackit")
 		if err == nil {
 			t.Error("Error should not be nil, instead is nil.")
 		} else if err != ErrUserNotFound {

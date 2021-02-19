@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit/models"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +33,7 @@ import (
 	"github.com/trackit/trackit/costs"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/models"
 )
 
 // taskCheckCost is the entry point for account cost verification

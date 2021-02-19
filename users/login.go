@@ -30,7 +30,7 @@ import (
 type loginRequestBody struct {
 	Email    string `json:"email"    req:"nonzero"`
 	Password string `json:"password" req:"nonzero"`
-	Origin   string `json:"origin" req:"nonzero"`
+	Origin   string `json:"origin"   req:"nonzero"`
 }
 
 // loginResponseBody is the response body in case LogIn succeeds.

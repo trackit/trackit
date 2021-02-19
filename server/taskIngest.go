@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit/models"
 	"math/rand"
 	"strconv"
 	"time"
@@ -31,6 +30,7 @@ import (
 	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.

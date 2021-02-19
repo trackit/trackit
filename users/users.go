@@ -214,11 +214,11 @@ func GetUserWithId(db models.XODB, id int) (User, error) {
 	}
 }
 
-// GetUserWithEmail retrieves the user with the given unique Email. A nil error
+// GetUserWithEmailAndOrigin retrieves the user with the given unique pair (Email, AccountType). A nil error
 // indicates a success.
-func GetUserWithEmail(ctx context.Context, db models.XODB, email string) (User, error) {
+func GetUserWithEmailAndOrigin(ctx context.Context, db models.XODB, email string, accountType string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbUser, err := models.UserByEmail(db, email)
+	dbUser, err := models.UserByEmailAccountType(db, email, accountType)
 	if err == sql.ErrNoRows {
 		return User{}, ErrUserNotFound
 	} else if err != nil {
@@ -233,7 +233,7 @@ func GetUserWithEmail(ctx context.Context, db models.XODB, email string) (User, 
 // and stored hash matching the given password. A nil eror indicates a success.
 func GetUserFromOriginWithEmailAndPassword(ctx context.Context, db models.XODB, email string, password string, origin string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbUser, err := models.UserByEmail(db, email)
+	dbUser, err := models.UserByEmailAccountType(db, email, origin)
 	if err == sql.ErrNoRows {
 		return User{}, ErrUserNotFound
 	} else if err != nil {

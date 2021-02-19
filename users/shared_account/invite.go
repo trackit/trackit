@@ -45,11 +45,11 @@ func getPasswordHash(password string) (string, error) {
 	return string(hash), err
 }
 
-// checkuserWithEmail checks if user already exist.
+// checkUserWithEmailAndAccountType checks if user already exist.
 // true is returned if invited user already exist.
-func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string, user users.User) (bool, int, error) {
+func checkUserWithEmailAndAccountType(ctx context.Context, db models.XODB, userEmail string, accountType string, user users.User) (bool, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbUser, err := models.UserByEmail(db, userEmail)
+	dbUser, err := models.UserByEmailAccountType(db, userEmail, accountType)
 	if err == sql.ErrNoRows {
 		return false, 0, nil
 	} else if err != nil {
@@ -229,7 +229,7 @@ func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, acco
 		logger.Info("Non existing user permission", nil)
 		return http.StatusBadRequest, ErrorInviteUser
 	}
-	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email, user)
+	result, guestId, err := checkUserWithEmailAndAccountType(request.Context(), tx, body.Email, body.Origin, user)
 	if err == nil {
 		if result {
 			code, res := inviteUserAlreadyExist(request.Context(), tx, body, accountId, guestId)

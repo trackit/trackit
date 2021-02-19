@@ -25,10 +25,10 @@ import (
 )
 
 type SharedResults struct {
-	ShareId       int    `json:"sharedId" req:"nonzero"`
-	Mail          string `json:"email" req:"nonzero"`
+	ShareId       int    `json:"sharedId"      req:"nonzero"`
+	Mail          string `json:"email"         req:"nonzero"`
 	Level         int    `json:"level"`
-	UserId        int    `json:"userId" req:"nonzero"`
+	UserId        int    `json:"userId"        req:"nonzero"`
 	SharingStatus bool   `json:"sharingStatus"`
 }
 
