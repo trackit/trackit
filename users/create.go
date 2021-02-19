@@ -158,8 +158,10 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	}
 	if body.Origin == "tagbot" {
 		code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert)
-	} else {
+	} else if body.Origin == "trackit" {
 		code, resp = createUserWithValidBody(request, body, tx, awsCustomerConvert)
+	} else {
+		return 400, errors.New("Can't create a user with " + body.Origin + " as AccountType. Unknown Origin.")
 	}
 	// Add the default role to the new account. No error is returned in case of failure
 	// The billing repository is not processed instantly
@@ -178,9 +180,9 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 		logger.Info("User created.", user)
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":      body.Email,
-				"tagbotUser": body.Origin == "tagbot",
-				"err":        err.Error(),
+				"email":   body.Email,
+				"origin":  body.Origin,
+				"err":     err.Error(),
 			})
 		}
 		return 200, user
@@ -206,9 +208,9 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		}
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":      body.Email,
-				"tagbotUser": body.Origin == "tagbot",
-				"err":        err.Error(),
+				"email":   body.Email,
+				"origin":  body.Origin,
+				"err":     err.Error(),
 			})
 		}
 		return 200, user
