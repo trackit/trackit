@@ -187,25 +187,25 @@ func UsersByParentUserID(db XODB, parentUserID sql.NullInt64) ([]*User, error) {
 	return res, nil
 }
 
-// UserByEmail retrieves a row from 'trackit.user' as a User.
+// UserByEmailAccountType retrieves a row from 'trackit.user' as a User.
 //
-// Generated from index 'unique_email'.
-func UserByEmail(db XODB, email string) (*User, error) {
+// Generated from index 'type_email_unique'.
+func UserByEmailAccountType(db XODB, email string, accountType string) (*User, error) {
 	var err error
 
 	// sql query
 	const sqlstr = `SELECT ` +
 		`id, created, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
 		`FROM trackit.user ` +
-		`WHERE email = ?`
+		`WHERE email = ? AND account_type = ?`
 
 	// run query
-	XOLog(sqlstr, email)
+	XOLog(sqlstr, email, accountType)
 	u := User{
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, email).Scan(&u.ID, &u.Created, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType)
+	err = db.QueryRow(sqlstr, email, accountType).Scan(&u.ID, &u.Created, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType)
 	if err != nil {
 		return nil, err
 	}
