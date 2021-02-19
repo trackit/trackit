@@ -19,7 +19,6 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
-	"github.com/trackit/trackit/models"
 	"strconv"
 	"time"
 
@@ -30,6 +29,7 @@ import (
 	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 const iso8601DateFormat = "2006-01-02"
@@ -75,6 +75,12 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'IngestLimit' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if br, err = s3.GetBillRepositoryForAwsAccountById(aa, brId, tx); err != nil {
 	} else if updateId, err = registerUpdate(db.Db, br); err != nil {
 	} else if latestManifest, err = s3.UpdateReportLimit(ctx, aa, br, dateUpperLimit); err != nil {

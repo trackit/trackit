@@ -54,8 +54,8 @@ func init() {
 				Password:   "pa55w0rd",
 				AwsToken:   "marketplacetoken",
 				Origin:     "trackit",
-				TagbotUser: false},
-			},
+				TagbotUser: false,
+			}},
 			routes.Documentation{
 				Summary:     "register a new user",
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
@@ -69,7 +69,8 @@ func init() {
 				Password:   "pa55w0rd",
 				AwsToken:   "marketplacetoken",
 				Origin:     "trackit",
-				TagbotUser: false}},
+				TagbotUser: false,
+			}},
 			routes.Documentation{
 				Summary:     "edit the current user",
 				Description: "Edit the current user, and responds with the user's data.",
@@ -112,9 +113,9 @@ func init() {
 }
 
 type createUserRequestBody struct {
-	Email      string `json:"email"    req:"nonzero"`
-	Password   string `json:"password" req:"nonzero"`
-	Origin     string `json:"origin" req:"nonzero"`
+	Email      string `json:"email"       req:"nonzero"`
+	Password   string `json:"password"    req:"nonzero"`
+	Origin     string `json:"origin"      req:"nonzero"`
 	AwsToken   string `json:"awsToken"`
 	TagbotUser bool   `json:"tagbotUser"`
 }

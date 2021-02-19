@@ -20,9 +20,10 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
+	"time"
+
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/models"
-	"time"
 )
 
 var (

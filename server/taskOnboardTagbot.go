@@ -51,6 +51,10 @@ func taskOnboardTagbot(ctx context.Context) error {
 		})
 		return err
 	} else if user.AccountType != "tagbot" {
+		logger.Info("Task 'OnBoardTagbot' has been skipped because the user has the wrong account type.", map[string]interface{}{
+			"userAccountType": user.AccountType,
+			"requiredAccount": "tagbot",
+		})
 		return nil
 	}
 
