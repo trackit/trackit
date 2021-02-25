@@ -30,6 +30,7 @@ import (
 type loginRequestBody struct {
 	Email    string `json:"email"    req:"nonzero"`
 	Password string `json:"password" req:"nonzero"`
+	Origin   string `json:"origin"   req:"nonzero"`
 }
 
 // loginResponseBody is the response body in case LogIn succeeds.
@@ -42,7 +43,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(logIn).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{loginRequestBody{"example@example.com", "pA55w0rd"}},
+			routes.RequestBody{loginRequestBody{"example@example.com", "pA55w0rd", "trackit"}},
 			db.RequestTransaction{db.Db},
 			routes.Documentation{
 				Summary:     "log in as a user",
@@ -65,7 +66,7 @@ func logIn(request *http.Request, a routes.Arguments) (int, interface{}) {
 // validated login request.
 func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	user, err := GetUserWithEmailAndPassword(request.Context(), tx, body.Email, body.Password)
+	user, err := GetUserFromOriginWithEmailAndPassword(request.Context(), tx, body.Email, body.Password, body.Origin)
 	if err == nil {
 		return logAuthenticatedUserIn(request, user)
 	} else {

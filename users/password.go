@@ -37,13 +37,14 @@ var (
 
 // forgottenPasswordRequestBody is the expected request body for the forgottenPassword route handler.
 type forgottenPasswordRequestBody struct {
-	Email string `json:"email"    req:"nonzero"`
+	Email  string `json:"email"   req:"nonzero"`
+	Origin string `json:"origin"  req:"nonzero"`
 }
 
 // resetPasswordRequestBody is the expected request body for the resetPassword route handler.
 type resetPasswordRequestBody struct {
-	Id       int    `json:"id" req:"nonzero"`
-	Token    string `json:"token"   req:"nonzero"`
+	Id       int    `json:"id"       req:"nonzero"`
+	Token    string `json:"token"    req:"nonzero"`
 	Password string `json:"password" req:"nonzero"`
 }
 
@@ -51,7 +52,10 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(forgottenPassword).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{forgottenPasswordRequestBody{"example@example.com"}},
+			routes.RequestBody{forgottenPasswordRequestBody{
+				Email: "example@example.com",
+				Origin: "trackit",
+			}},
 			db.RequestTransaction{db.Db},
 			routes.Documentation{
 				Summary:     "request a forgotten password reset",
@@ -100,7 +104,7 @@ func forgottenPassword(request *http.Request, a routes.Arguments) (int, interfac
 
 func forgottenPasswordWithValidBody(request *http.Request, body forgottenPasswordRequestBody, tx *sql.Tx) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	user, err := GetUserWithEmail(request.Context(), tx, body.Email)
+	user, err := GetUserWithEmailAndOrigin(request.Context(), tx, body.Email, body.Origin)
 	if err != nil {
 		logger.Warning("Forgotten password request failure", struct {
 			Email string `json:"user"`
@@ -120,8 +124,8 @@ func createForgottenPasswordEntry(request *http.Request, body forgottenPasswordR
 		return 500, errors.New("Failed to create token hash")
 	}
 	dbForgottenPassword := models.ForgottenPassword{
-		UserID:  user.Id,
-		Token:   tokenHash,
+		UserID: user.Id,
+		Token:  tokenHash,
 		Created: time.Now(),
 	}
 	err = dbForgottenPassword.Insert(tx)

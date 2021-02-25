@@ -15,25 +15,25 @@
 package shared_account
 
 import (
-	"time"
-	"fmt"
-	"errors"
-	"database/sql"
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 	"net/http"
+	"time"
 
-	"github.com/trackit/jsonlog"
 	"github.com/satori/go.uuid"
+	"github.com/trackit/jsonlog"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/trackit/trackit/mail"
-	"github.com/trackit/trackit/users"
 	"github.com/trackit/trackit/models"
+	"github.com/trackit/trackit/users"
 )
 
 var (
 	ErrorInviteNewUser = errors.New("An error occured while inviting a new user. Please, try again.")
-	ErrorInviteUser = errors.New("An error occured while inviting a user. Please, try again.")
+	ErrorInviteUser    = errors.New("An error occured while inviting a user. Please, try again.")
 	ErrorAlreadyShared = errors.New("You are already sharing this account with this user.")
 )
 
@@ -45,13 +45,13 @@ func getPasswordHash(password string) (string, error) {
 	return string(hash), err
 }
 
-// checkuserWithEmail checks if user already exist.
+// checkUserWithEmailAndAccountType checks if user already exist.
 // true is returned if invited user already exist.
-func checkUserWithEmail(ctx context.Context, db models.XODB, userEmail string, user users.User) (bool, int, error) {
+func checkUserWithEmailAndAccountType(ctx context.Context, db models.XODB, userEmail string, accountType string, user users.User) (bool, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	dbUser, err := models.UserByEmail(db, userEmail)
+	dbUser, err := models.UserByEmailAccountType(db, userEmail, accountType)
 	if err == sql.ErrNoRows {
-		return false, 0 , nil
+		return false, 0, nil
 	} else if err != nil {
 		logger.Error("Error getting user from database.", err.Error())
 		return false, 0, err
@@ -91,15 +91,15 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, gues
 			}
 		}
 	}
-	return false,nil
+	return false, nil
 }
 
 // addAccountToGuest adds an entry in shared_account table allowing a user
 // to share an access to all or part of his account
 func addAccountToGuest(ctx context.Context, db *sql.Tx, accountId int, permissionLevel int, guestId int) (models.SharedAccount, error) {
 	dbSharedAccount := models.SharedAccount{
-		AccountID:  accountId,
-		UserID:   guestId,
+		AccountID:      accountId,
+		UserID:         guestId,
 		UserPermission: permissionLevel,
 	}
 	err := dbSharedAccount.Insert(db)
@@ -111,7 +111,7 @@ func createAccountForGuest(ctx context.Context, db *sql.Tx, body InviteUserReque
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var sharedAccount models.SharedAccount
 	tempPassword := uuid.NewV1().String()
-	usr, err := users.CreateUserWithPassword(ctx, db, body.Email, tempPassword, "")
+	usr, err := users.CreateUserWithPassword(ctx, db, body.Email, tempPassword, "", "trackit")
 	if err == nil {
 		sharedAccount, err = addAccountToGuest(ctx, db, accountId, body.PermissionLevel, usr.Id)
 		if err != nil {
@@ -151,11 +151,11 @@ func resetPasswordGenerator(ctx context.Context, tx *sql.Tx, newUserId int) (mod
 }
 
 // sendMailNotification sends an email to user how has been invited to access a AWS account on trackit.io
-func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, userNew bool, newUserId int) (error) {
+func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, userNew bool, newUserId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
-		mailBody := fmt.Sprintf("%s", "Hi, a new AWS account has been added to your Trackit Account. " +
+		mailBody := fmt.Sprintf("%s", "Hi, a new AWS account has been added to your Trackit Account. "+
 			"You can connect to your account to manage it : https://re.trackit.io/")
 		err := mail.SendMail(userMail, mailSubject, mailBody, ctx)
 		if err != nil {
@@ -165,7 +165,7 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	} else {
 		dbForgottenPassword, token, err := resetPasswordGenerator(ctx, tx, newUserId)
 		mailSubject := "You are invited to join Trackit"
-		mailBody := fmt.Sprintf("Hi, you have been invited to join trackit. Please follow this link to create" +
+		mailBody := fmt.Sprintf("Hi, you have been invited to join trackit. Please follow this link to create"+
 			" your account: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
 		err = mail.SendMail(userMail, mailSubject, mailBody, ctx)
 		if err != nil {
@@ -187,7 +187,7 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	}
 	sharedAccount, err := addAccountToGuest(ctx, tx, accountId, body.PermissionLevel, guestId)
 	if err == nil {
-		err = sendMailNotification(ctx, tx, body.Email,true, 0)
+		err = sendMailNotification(ctx, tx, body.Email, true, 0)
 		if err != nil {
 			logger.Error("Error occured while sending an email to an existing user.", err.Error())
 			return 403, ErrorInviteUser
@@ -204,7 +204,7 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, acco
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	newUserId, newUser, err := createAccountForGuest(ctx, tx, body, accountId)
 	if err == nil {
-		err = sendMailNotification(ctx, tx, body.Email,false, newUserId)
+		err = sendMailNotification(ctx, tx, body.Email, false, newUserId)
 		if err != nil {
 			logger.Error("Error occured while sending an email to a new user.", err.Error())
 			return 403, ErrorInviteNewUser
@@ -229,7 +229,7 @@ func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, acco
 		logger.Info("Non existing user permission", nil)
 		return http.StatusBadRequest, ErrorInviteUser
 	}
-	result, guestId, err := checkUserWithEmail(request.Context(), tx, body.Email, user)
+	result, guestId, err := checkUserWithEmailAndAccountType(request.Context(), tx, body.Email, body.Origin, user)
 	if err == nil {
 		if result {
 			code, res := inviteUserAlreadyExist(request.Context(), tx, body, accountId, guestId)

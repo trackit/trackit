@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	AdminLevel = 0
+	AdminLevel    = 0
 	StandardLevel = 1
-	ReadLevel = 2
+	ReadLevel     = 2
 	DatabaseError = "Error while getting data from database"
 )
 
@@ -48,7 +48,7 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 }
 
 // checkLevel checks if the current user permission level is high enough to perform an action
-func checkLevel(PermissionLevelToCheck int, currentUserPermissionLevel int) (bool) {
+func checkLevel(PermissionLevelToCheck int, currentUserPermissionLevel int) bool {
 	if currentUserPermissionLevel == AdminLevel {
 		return true
 	} else if currentUserPermissionLevel == StandardLevel {
@@ -77,7 +77,7 @@ func safetyCheckByAccountIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, A
 	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
 	if err == nil {
 		for _, key := range dbSharedAccount {
-			if key.UserID == user.Id  && checkLevel(body.PermissionLevel, key.UserPermission){
+			if key.UserID == user.Id && checkLevel(body.PermissionLevel, key.UserPermission) {
 				return true, nil
 			}
 		}
@@ -97,7 +97,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
-		logger.Error("Error while retrieving Shared Accounts" , err)
+		logger.Error("Error while retrieving Shared Accounts", err)
 		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	dbAwsAccount, err := models.AwsAccountByID(tx, dbShareAccount.AccountID)
@@ -125,7 +125,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
-		logger.Error("Error while retrieving Shared Accounts from DB" , err)
+		logger.Error("Error while retrieving Shared Accounts from DB", err)
 		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	dbAwsAccount, err := models.AwsAccountByID(tx, dbShareAccount.AccountID)
@@ -148,7 +148,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 }
 
 // checkPermissionLevel checks user permission level
-func checkPermissionLevel(permissionLevel int) (bool) {
+func checkPermissionLevel(permissionLevel int) bool {
 	if permissionLevel == AdminLevel {
 		return true
 	} else if permissionLevel == StandardLevel {
