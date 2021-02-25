@@ -33,6 +33,7 @@ import (
 	"github.com/trackit/trackit/costs"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/models"
 )
 
 // taskCheckCost is the entry point for account cost verification
@@ -68,6 +69,13 @@ func prepareCheckCostForAccount(ctx context.Context, aaId int) (err error) {
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = taws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'CheckCost' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else {
 		runCostCheckForAccount(ctx, aa)
 	}

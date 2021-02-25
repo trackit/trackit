@@ -67,6 +67,13 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if dbaa, err = models.AwsAccountByID(tx, aaId); err != nil {
 	} else if aa = aws.AwsAccountFromDbAwsAccount(*dbaa); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'AnomaliesDetection' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if lastUpdate, err = anomalies.RunAnomaliesDetection(aa, dbaa.LastAnomaliesUpdate, ctx); err == nil {
 		err = registerAnomaliesUpdate(tx, lastUpdate, aa.Id)
 	}

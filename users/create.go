@@ -49,7 +49,12 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken", false}},
+			routes.RequestBody{createUserRequestBody{
+				Email:      "example@example.com",
+				Password:   "pa55w0rd",
+				AwsToken:   "marketplacetoken",
+				Origin:     "trackit",
+			}},
 			routes.Documentation{
 				Summary:     "register a new user",
 				Description: "Registers a new user using an e-mail and password, and responds with the user's data.",
@@ -58,7 +63,12 @@ func init() {
 		http.MethodPatch: routes.H(patchUser).With(
 			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{createUserRequestBody{"example@example.com", "pa55w0rd", "marketplacetoken", false}},
+			routes.RequestBody{createUserRequestBody{
+				Email:      "example@example.com",
+				Password:   "pa55w0rd",
+				AwsToken:   "marketplacetoken",
+				Origin:     "trackit",
+			}},
 			routes.Documentation{
 				Summary:     "edit the current user",
 				Description: "Edit the current user, and responds with the user's data.",
@@ -101,10 +111,10 @@ func init() {
 }
 
 type createUserRequestBody struct {
-	Email      string `json:"email"    req:"nonzero"`
-	Password   string `json:"password" req:"nonzero"`
+	Email      string `json:"email"       req:"nonzero"`
+	Password   string `json:"password"    req:"nonzero"`
+	Origin     string `json:"origin"      req:"nonzero"`
 	AwsToken   string `json:"awsToken"`
-	TagbotUser bool   `json:"tagbotUser"`
 }
 
 //checkAwsTokenLegitimacy checks if the AWS Token exists. It returns the product code and
@@ -146,10 +156,12 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 		awsCustomer := result.CustomerIdentifier
 		awsCustomerConvert = *awsCustomer
 	}
-	if body.TagbotUser {
+	if body.Origin == "tagbot" {
 		code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert)
-	} else {
+	} else if body.Origin == "trackit" {
 		code, resp = createUserWithValidBody(request, body, tx, awsCustomerConvert)
+	} else {
+		return 400, errors.New("Can't create a user with " + body.Origin + " as AccountType. Unknown Origin.")
 	}
 	// Add the default role to the new account. No error is returned in case of failure
 	// The billing repository is not processed instantly
@@ -163,14 +175,14 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 func createUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier)
+	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier, body.Origin)
 	if err == nil {
 		logger.Info("User created.", user)
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":      body.Email,
-				"tagbotUser": body.TagbotUser,
-				"err":        err.Error(),
+				"email":   body.Email,
+				"origin":  body.Origin,
+				"err":     err.Error(),
 			})
 		}
 		return 200, user
@@ -188,7 +200,7 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "")
+	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "", body.Origin)
 	if err == nil {
 		logger.Info("User created.", user)
 		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
@@ -196,9 +208,9 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		}
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":      body.Email,
-				"tagbotUser": body.TagbotUser,
-				"err":        err.Error(),
+				"email":   body.Email,
+				"origin":  body.Origin,
+				"err":     err.Error(),
 			})
 		}
 		return 200, user

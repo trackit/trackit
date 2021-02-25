@@ -58,7 +58,7 @@ func (d RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerF
 			tokenString := auth[0]
 			if user, err := testToken(tx, tokenString); err == nil {
 				return d.handleWithAuthenticatedUser(user, tx, hf, w, r, a)
-			} else if err != ErrCannotReadToken && err != ErrInvalidClaims && err != ErrMarketplaceInvalidToken{
+			} else if err != ErrCannotReadToken && err != ErrInvalidClaims && err != ErrMarketplaceInvalidToken {
 				logger.Error("Abnormal authentication failure.", map[string]interface{}{
 					"error": err.Error(),
 					"user":  user.Email,

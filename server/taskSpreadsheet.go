@@ -89,6 +89,13 @@ func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'SpreadSheet' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if generation, err = checkReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerAccountReportGeneration(db.Db, aa); err != nil {
 	} else {
