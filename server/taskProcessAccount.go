@@ -19,6 +19,7 @@ import (
 	"database/sql"
 	"errors"
 	"flag"
+	"github.com/trackit/trackit/aws/usageReports/stepfunction"
 	"strconv"
 	"time"
 
@@ -100,8 +101,9 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
-		var ec2Err, rdsErr, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, ebsErr error
+		var ec2Err, rdsErr, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, ebsErr, stepFunctionError error
 		if date.IsZero() {
+			stepFunctionError = processAccountStepFunction(ctx, aa)
 			ec2Err = processAccountEC2(ctx, aa)
 			rdsErr = processAccountRDS(ctx, aa)
 			esErr = processAccountES(ctx, aa)
@@ -113,10 +115,10 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 			ebsErr = processAccountEbsSnapshot(ctx, aa)
 		}
 		historyCreated, historyErr := processAccountHistory(ctx, aa, date)
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, stepFunctionError, historyCreated)
 	}
 	if err != nil {
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false)
 		logger.Error("Failed to process account data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
@@ -152,9 +154,9 @@ func registerAccountProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	return res.LastInsertId()
 }
 
-func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr error, historyCreated bool) {
+func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, stepFunctionErr error, historyCreated bool) {
 	updateNextUpdateAccount(db, aaId)
-	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
+	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, stepFunctionErr, historyCreated)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -180,7 +182,7 @@ func updateNextUpdateAccount(db *sql.DB, aaId int) error {
 	return err
 }
 
-func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr error, historyCreated bool) error {
+func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, stepFunctionErr error, historyCreated bool) error {
 	const sqlstr = `UPDATE aws_account_update_job SET
 		completed=?,
 		jobError=?,
@@ -193,10 +195,11 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 		riEc2Error=?,
 		riRdsError=?,
 		odToRiEc2Error=?,
+	    stepFunctionError=?,
 		historyError=?,
 		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(elastiCacheErr), errToStr(lambdaErr), errToStr(ebsErr), errToStr(riEc2Err), errToStr(riRdsErr), errToStr(odToRiEc2Err), errToStr(historyErr), historyCreated, updateId)
+	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(elastiCacheErr), errToStr(lambdaErr), errToStr(ebsErr), errToStr(riEc2Err), errToStr(riRdsErr), errToStr(odToRiEc2Err), errToStr(stepFunctionErr), errToStr(historyErr), historyCreated, updateId)
 	return err
 }
 
@@ -219,6 +222,19 @@ func processAccountEC2(ctx context.Context, aa aws.AwsAccount) error {
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest EC2 data.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountStepFunction processes all the StepFunctions data for an AwsAccount
+func processAccountStepFunction(ctx context.Context, aa aws.AwsAccount) error {
+	err := stepfunction.FetchDailyStepFunctionsStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest StepFunction data", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
 		})
@@ -281,8 +297,8 @@ func processAccountLambda(ctx context.Context, aa aws.AwsAccount) error {
 // processAccountHistory processes EC2, RDS, ES, ElastiCache, Lambda and EC2 Coverage data with billing data for an AwsAccount
 func processAccountHistory(ctx context.Context, aa aws.AwsAccount, date time.Time) (bool, error) {
 	status, err := history.FetchHistoryInfos(ctx, aa, date)
-	if err != nil && err != history.ErrBillingDataIncomplete {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	if err != nil && err != history.ErrBillingDataIncomplete {
 		logger.Error("Failed to ingest History data.", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
