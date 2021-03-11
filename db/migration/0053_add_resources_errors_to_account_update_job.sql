@@ -13,3 +13,4 @@
 --   limitations under the License.
 
 ALTER TABLE aws_account_update_job ADD stepFunctionError VARCHAR(255) NOT NULL DEFAULT "";
+ALTER TABLE aws_account_update_job ADD s3Error VARCHAR(255) NOT NULL DEFAULT "";

@@ -31,6 +31,7 @@ import (
 	lambda "github.com/trackit/trackit/tagging/lambda"
 	rds "github.com/trackit/trackit/tagging/rds"
 	rdsRi "github.com/trackit/trackit/tagging/rdsRi"
+	s3 "github.com/trackit/trackit/tagging/s3"
 	stepfunction "github.com/trackit/trackit/tagging/stepfunction"
 	"github.com/trackit/trackit/tagging/utils"
 )
@@ -81,6 +82,10 @@ var processors = []processor{
 	processor{
 		Name: "stepfunction",
 		Run:  stepfunction.Process,
+	},
+	processor{
+		Name: "s3",
+		Run: s3.Process,
 	},
 }
 
