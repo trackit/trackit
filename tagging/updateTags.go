@@ -23,6 +23,7 @@ import (
 
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	cloudformation "github.com/trackit/trackit/tagging/cloudformation"
 	ebs "github.com/trackit/trackit/tagging/ebs"
 	ec2 "github.com/trackit/trackit/tagging/ec2"
 	ec2Ri "github.com/trackit/trackit/tagging/ec2Ri"
@@ -31,6 +32,10 @@ import (
 	lambda "github.com/trackit/trackit/tagging/lambda"
 	rds "github.com/trackit/trackit/tagging/rds"
 	rdsRi "github.com/trackit/trackit/tagging/rdsRi"
+	route53 "github.com/trackit/trackit/tagging/route53"
+	s3 "github.com/trackit/trackit/tagging/s3"
+	sqs "github.com/trackit/trackit/tagging/sqs"
+	stepfunction "github.com/trackit/trackit/tagging/stepfunction"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
@@ -76,6 +81,26 @@ var processors = []processor{
 	processor{
 		Name: "rds-ri",
 		Run:  rdsRi.Process,
+	},
+	processor{
+		Name: "stepfunction",
+		Run:  stepfunction.Process,
+	},
+	processor{
+		Name: "s3",
+		Run: s3.Process,
+	},
+	processor{
+		Name: "sqs",
+		Run: sqs.Process,
+	},
+	processor{
+		Name: "cloudformation",
+		Run: cloudformation.Process,
+	},
+	processor{
+		Name: "route53",
+		Run: route53.Process,
 	},
 }
 
