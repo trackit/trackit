@@ -60,6 +60,7 @@ func init() {
 
 var tasks = map[string]func(context.Context) error{
 	"server":                      taskServer,
+	"worker":                      taskWorker,
 	"ingest":                      taskIngest,
 	"ingest-due":                  taskIngestDue,
 	"process-account":             taskProcessAccount,
