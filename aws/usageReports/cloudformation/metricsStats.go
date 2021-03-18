@@ -16,9 +16,11 @@ package cloudformation
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/aws/usageReports"
 )
 

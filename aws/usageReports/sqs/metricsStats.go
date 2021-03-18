@@ -16,9 +16,11 @@ package sqs
 
 import (
 	"context"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/aws/usageReports"
 )
 
