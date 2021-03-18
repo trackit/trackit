@@ -28,7 +28,7 @@ import (
 
 const urlFormat = "https://s3.console.aws.amazon.com/s3/buckets/%s?region=%s"
 
-// Process generates tagging reports from StepFunctions reports
+// Process generates tagging reports from S3 reports
 func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Processing reports.", map[string]interface{}{

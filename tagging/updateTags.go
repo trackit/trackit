@@ -50,55 +50,43 @@ const destIndexName = "tagging-reports"
 const destTypeName = "tagging-reports"
 
 var processors = []processor{
-	processor{
+	{
 		Name: "ebs",
 		Run:  ebs.Process,
-	},
-	processor{
+	}, {
 		Name: "ec2",
 		Run:  ec2.Process,
-	},
-	processor{
+	}, {
 		Name: "ec2-ri",
 		Run:  ec2Ri.Process,
-	},
-	processor{
+	}, {
 		Name: "elasticache",
 		Run:  elasticache.Process,
-	},
-	processor{
+	}, {
 		Name: "es",
 		Run:  esProc.Process,
-	},
-	processor{
+	}, {
 		Name: "lambda",
 		Run:  lambda.Process,
-	},
-	processor{
+	}, {
 		Name: "rds",
 		Run:  rds.Process,
-	},
-	processor{
+	}, {
 		Name: "rds-ri",
 		Run:  rdsRi.Process,
-	},
-	processor{
+	}, {
 		Name: "stepfunction",
 		Run:  stepfunction.Process,
-	},
-	processor{
+	}, {
 		Name: "s3",
 		Run: s3.Process,
-	},
-	processor{
+	}, {
 		Name: "sqs",
 		Run: sqs.Process,
-	},
-	processor{
+	}, {
 		Name: "cloudformation",
 		Run: cloudformation.Process,
-	},
-	processor{
+	}, {
 		Name: "route53",
 		Run: route53.Process,
 	},

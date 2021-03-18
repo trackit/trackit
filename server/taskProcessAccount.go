@@ -61,56 +61,43 @@ var accountProcessors = []accountProcessor{
 	{
 		ErrName: "cloudformation",
 		Run:     processAccountCloudFormation,
-	},
-	{
+	}, {
 		ErrName: "route53",
 		Run:     processAccountRoute53,
-	},
-	{
+	}, {
 		ErrName: "s3",
 		Run:     processAccountS3,
-	},
-	{
+	}, {
 		ErrName: "sqs",
 		Run:     processAccountSQS,
-	},
-	{
+	}, {
 		ErrName: "stepfunction",
 		Run:     processAccountStepFunction,
-	},
-	{
+	}, {
 		ErrName: "ec2",
 		Run:     processAccountEC2,
-	},
-	{
+	}, {
 		ErrName: "rds",
 		Run:     processAccountRDS,
-	},
-	{
+	}, {
 		ErrName: "es",
 		Run:     processAccountES,
-	},
-	{
+	}, {
 		ErrName: "elasticcache",
 		Run:     processAccountElastiCache,
-	},
-	{
+	}, {
 		ErrName: "lambda",
 		Run:     processAccountLambda,
-	},
-	{
+	}, {
 		ErrName: "ec2-ri",
 		Run:     riEc2.FetchDailyReservationsStats,
-	},
-	{
+	}, {
 		ErrName: "rds-ri",
 		Run:     riRdS.FetchDailyInstancesStats,
-	},
-	{
+	}, {
 		ErrName: "od-ec2-ri",
 		Run:     onDemandToRiEc2.RunOnDemandToRiEc2,
-	},
-	{
+	}, {
 		ErrName: "ebs",
 		Run:     processAccountEbsSnapshot,
 	},
