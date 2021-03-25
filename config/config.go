@@ -155,7 +155,7 @@ func init() {
 	flag.StringVar(&AnomalyDetectionPrettyLevels, "anomaly-detection-pretty-levels", "low,medium,high,critical", "Pretty names of the levels.")
 	flag.IntVar(&AnomalyEmailingMinLevel, "anomaly-emailing-min-level", 2, "Minimum level for the mail to be sent.")
 	flag.StringVar(&StripeKey, "stripe-key", "stripekey", "Stripe key for Tagbot")
-	flag.StringVar(&SQSQueueName, "sqs-queue-name", "", "Name of the SQS Queue for workers.")
+	flag.StringVar(&SQSQueueName, "sqs-queue-name", "trackit-dispatcher-queue", "Name of the SQS Queue for workers.")
 	flag.Parse()
 	if len(EsAddress) == 0 {
 		EsAddress = stringArray{"http://127.0.0.1:9200"}

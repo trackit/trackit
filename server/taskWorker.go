@@ -17,7 +17,7 @@ import (
 type (
 	MessageData struct {
 		TaskName	string			`json:"task_name"`
-		ParamsData	[]string		`json:"params_data"`
+		Parameters	[]string		`json:"parameters"`
 	}
 )
 
@@ -47,7 +47,7 @@ func taskWorker(ctx context.Context) error {
 			"message": message,
 		})
 
-		ctx := context.WithValue(ctx, "paramsData", message.ParamsData)
+		ctx := context.WithValue(ctx, "taskParameters", message.Parameters)
 
 		if task, ok := tasks[message.TaskName]; ok {
 			err = task(ctx)
@@ -172,7 +172,7 @@ func retrieveQueueUrl(ctx context.Context, svc *sqs.SQS) (queueUrl *string, err 
 func paramsFromContextOrArgs(ctx context.Context) ([]string) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	args, ok := ctx.Value("paramsData").([]string)
+	args, ok := ctx.Value("taskParameters").([]string)
 
 	if !ok {
 		logger.Info("Retrieving task parameters from args as context does not contain any parameters.", nil)
