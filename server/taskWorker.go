@@ -21,7 +21,7 @@ type (
 	}
 )
 
-const Visibility = -1
+const visibilityTimeoutInMinutes = 15
 
 func taskWorker(ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -83,7 +83,7 @@ func getNextMessage(ctx context.Context, svc *sqs.SQS, queueUrl *string) (Messag
 		},
 		QueueUrl: queueUrl,
 		MaxNumberOfMessages: aws.Int64(1),
-		VisibilityTimeout: aws.Int64(60 * 15),
+		VisibilityTimeout: aws.Int64(60 * visibilityTimeoutInMinutes),
 	})
 
 	if err != nil {
