@@ -49,7 +49,7 @@ func taskWorker(ctx context.Context) error {
 
 		ctx := context.WithValue(ctx, "paramsData", message.ParamsData)
 
-		if task, ok := tasks[config.Task]; ok {
+		if task, ok := tasks[message.TaskName]; ok {
 			err = task(ctx)
 
 			if err != nil {
