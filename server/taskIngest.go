@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"math/rand"
 	"strconv"
 	"time"
@@ -35,7 +34,7 @@ import (
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.
 func taskIngest(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'ingest'.", map[string]interface{}{
 		"args": args,

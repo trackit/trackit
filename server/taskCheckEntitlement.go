@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 
 	"github.com/trackit/jsonlog"
@@ -30,7 +29,7 @@ import (
 // taskCheckEntitlement checks the user Entitlement for AWS Marketplace users
 func taskCheckEntitlement(ctx context.Context) (err error) {
 	var tx *sql.Tx
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer func() {
 		if tx != nil {
