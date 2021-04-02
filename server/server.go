@@ -60,7 +60,6 @@ func init() {
 
 var tasks = map[string]func(context.Context) error{
 	"server":                      taskServer,
-	"worker":                      taskWorker,
 	"ingest":                      taskIngest,
 	"ingest-due":                  taskIngestDue,
 	"process-account":             taskProcessAccount,
@@ -89,7 +88,9 @@ func main() {
 	logger.Info("Started.", struct {
 		BackendId string `json:"backendId"`
 	}{backendId})
-	if task, ok := tasks[config.Task]; ok {
+	if config.Worker {
+		taskWorker(ctx)
+	} else if task, ok := tasks[config.Task]; ok {
 		task(ctx)
 	} else {
 		knownTasks := make([]string, 0, len(tasks))
