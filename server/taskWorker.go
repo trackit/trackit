@@ -37,9 +37,9 @@ type (
 	}
 )
 
-const visibilityTimeoutInMinutes = 15
+const visibilityTimeoutInMinutes = 30
 const waitTimeInSeconds = 20
-const esHealthcheckTimeoutInMinutes = 5
+const esHealthcheckTimeoutInMinutes = 10
 
 func taskWorker(ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
