@@ -106,8 +106,14 @@ var (
 	AnomalyDetectionPrettyLevels string
 	// AnomalyEmailingMinLevel is the minimum level required for the mail to be sent.
 	AnomalyEmailingMinLevel int
-	// Stripe secret key for Tagbot
+	// Stripe secret key for Tagbot.
 	StripeKey string
+	// Whether to start API as a worker or not.
+	Worker bool
+	// SQS Queue name for workers.
+	SQSQueueName string
+	// Environment (prod, stg, dev).
+	Environment string
 )
 
 func init() {
@@ -153,6 +159,9 @@ func init() {
 	flag.StringVar(&AnomalyDetectionPrettyLevels, "anomaly-detection-pretty-levels", "low,medium,high,critical", "Pretty names of the levels.")
 	flag.IntVar(&AnomalyEmailingMinLevel, "anomaly-emailing-min-level", 2, "Minimum level for the mail to be sent.")
 	flag.StringVar(&StripeKey, "stripe-key", "stripekey", "Stripe key for Tagbot")
+	flag.BoolVar(&Worker, "worker", false, "Whether to start API as a worker or not.")
+	flag.StringVar(&SQSQueueName, "sqs-queue-name", "trackit-dispatcher-queue", "Name of the SQS Queue for workers.")
+	flag.StringVar(&Environment, "env", "dev", "Environment of the Trackit API.")
 	flag.Parse()
 	if len(EsAddress) == 0 {
 		EsAddress = stringArray{"http://127.0.0.1:9200"}

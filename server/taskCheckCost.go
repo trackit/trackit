@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"strings"
 	"time"
@@ -38,7 +37,7 @@ import (
 
 // taskCheckCost is the entry point for account cost verification
 func taskCheckCost(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'check-cost'.", map[string]interface{}{
 		"args": args,
