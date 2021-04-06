@@ -211,11 +211,9 @@ func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatc
 			"logStreamName": logStream,
 			"error":         err.Error(),
 		})
-		logsBuffer.Reset()
 		return err
 	}
 
-	logsBuffer.Reset()
 	return nil
 }
 
