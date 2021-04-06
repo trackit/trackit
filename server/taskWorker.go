@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -18,10 +17,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/trackit/jsonlog"
-	"github.com/trackit/trackit/es"
 
 	"github.com/trackit/trackit/awsSession"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es"
 )
 
 type (
@@ -37,9 +36,10 @@ type (
 	}
 )
 
-const visibilityTimeoutInMinutes = 30
+const visibilityTimeoutInHours = 12
 const waitTimeInSeconds = 20
 const esHealthcheckTimeoutInMinutes = 10
+const esHealthcheckWaitTimeRetryInMinutes = 10
 
 func taskWorker(ctx context.Context) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -61,6 +61,8 @@ func taskWorker(ctx context.Context) error {
 	ctx = jsonlog.ContextWithLogger(ctx, logger.WithWriter(writer))
 	logger = jsonlog.LoggerFromContextOrDefault(ctx)
 
+	timeoutStr := strconv.Itoa(esHealthcheckTimeoutInMinutes) + "m"
+
 	for {
 		message, receiptHandle, err := getNextMessage(ctx, sqsq, queueUrl)
 		if err != nil {
@@ -72,31 +74,32 @@ func taskWorker(ctx context.Context) error {
 			"message": message,
 		})
 
-		if res, err := es.Client.ClusterHealth().Timeout(strconv.Itoa(esHealthcheckTimeoutInMinutes) + "m").Do(ctx); err != nil || res.TimedOut {
+		if res, err := es.Client.ClusterHealth().Timeout(timeoutStr).Do(ctx); err != nil || res.TimedOut {
 			logger.Error("ES is not reachable.", map[string]interface{}{
-				"timeout": strconv.Itoa(esHealthcheckTimeoutInMinutes) + "m",
+				"timeout": timeoutStr,
 				"error":   err.Error(),
 			})
 			logsBuffer.Reset()
-			_ = resetMessageTimeout(ctx, sqsq, queueUrl, receiptHandle)
+			_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 0)
+			time.Sleep(time.Minute * esHealthcheckWaitTimeRetryInMinutes)
 			continue
 		}
+		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, visibilityTimeoutInHours)
 
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
 		if task, ok := tasks[message.TaskName]; ok {
-			err = task(ctx)
+			err = executeTask(ctx, task)
 			if err != nil {
 				logger.Error("Error while executing task. Resetting visibility timeout to 0.", map[string]interface{}{
 					"message": message,
 					"error":   err.Error(),
 				})
-				_ = resetMessageTimeout(ctx, sqsq, queueUrl, receiptHandle)
-				_ = flushCloudwatchLogEvents(ctx, cwl, message, &logsBuffer)
-				continue
+				_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 0)
+			} else {
+				logger.Info("Task done, acknowledging.", nil)
+				_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
 			}
-			logger.Info("Task done, acknowledging.", nil)
-			_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
 			_ = flushCloudwatchLogEvents(ctx, cwl, message, &logsBuffer)
 		} else {
 			logger.Error("Unable to find requested task.", map[string]interface{}{
@@ -108,10 +111,24 @@ func taskWorker(ctx context.Context) error {
 	}
 }
 
-func getNextMessage(ctx context.Context, svc *sqs.SQS, queueUrl *string) (MessageData, *string, error) {
+func executeTask(ctx context.Context, task func (context.Context) error) (err error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	defer func() {
+		rec := recover()
+		if rec != nil {
+			logger.Error("Task crashed, handling error.", map[string]interface{}{
+				"error": rec,
+			})
+			err = errors.New("task: crashed")
+		}
+	}()
+	return task(ctx)
+}
+func getNextMessage(ctx context.Context, sqsq *sqs.SQS, queueUrl *string) (MessageData, *string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	messageData := MessageData{}
-	msgResult, err := svc.ReceiveMessage(&sqs.ReceiveMessageInput{
+	msgResult, err := sqsq.ReceiveMessage(&sqs.ReceiveMessageInput{
 		AttributeNames: []*string{
 			aws.String(sqs.QueueAttributeNameAll),
 		},
@@ -120,7 +137,7 @@ func getNextMessage(ctx context.Context, svc *sqs.SQS, queueUrl *string) (Messag
 		},
 		QueueUrl:            queueUrl,
 		MaxNumberOfMessages: aws.Int64(1),
-		VisibilityTimeout:   aws.Int64(60 * visibilityTimeoutInMinutes),
+		VisibilityTimeout:   aws.Int64(60 * 60 * visibilityTimeoutInHours),
 		WaitTimeSeconds:     aws.Int64(waitTimeInSeconds),
 	})
 
@@ -148,8 +165,11 @@ func getNextMessage(ctx context.Context, svc *sqs.SQS, queueUrl *string) (Messag
 func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatchLogs, message MessageData, logsBuffer *bytes.Buffer) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	if config.Environment != "prod" && config.Environment != "stg" {
+	defer func() {
 		logsBuffer.Reset()
+	}()
+
+	if config.Environment != "prod" && config.Environment != "stg" {
 		return nil
 	}
 
@@ -166,7 +186,6 @@ func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatc
 			"logStreamName": logStream,
 			"error":         err.Error(),
 		})
-		logsBuffer.Reset()
 		return err
 	}
 
@@ -174,7 +193,6 @@ func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatc
 
 	var logEvents []*cloudwatchlogs.InputLogEvent
 	for _, logInput := range logInputs {
-		fmt.Println(logInput.Message)
 		logEvents = append(logEvents, &cloudwatchlogs.InputLogEvent{
 			Message:   aws.String(logInput.Message),
 			Timestamp: aws.Int64(logInput.Timestamp),
@@ -236,15 +254,15 @@ func getLogTimestamp(message string) int64 {
 	return logTime.UnixNano() / int64(time.Millisecond)
 }
 
-func resetMessageTimeout(ctx context.Context, svc *sqs.SQS, queueUrl *string, receiptHandle *string) error {
+func changeMessageVisibility(ctx context.Context, sqsq *sqs.SQS, queueUrl *string, receiptHandle *string, timeout int64) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	_, err := svc.ChangeMessageVisibility(&sqs.ChangeMessageVisibilityInput{
+	_, err := sqsq.ChangeMessageVisibility(&sqs.ChangeMessageVisibilityInput{
 		ReceiptHandle:     receiptHandle,
 		QueueUrl:          queueUrl,
-		VisibilityTimeout: aws.Int64(0),
+		VisibilityTimeout: aws.Int64(timeout),
 	})
 
-	svc.SendMessage(&sqs.SendMessageInput{})
+	sqsq.SendMessage(&sqs.SendMessageInput{})
 	if err != nil {
 		logger.Error("Unable to reset timeout.", map[string]interface{}{
 			"messageHandle": *receiptHandle,
@@ -255,9 +273,9 @@ func resetMessageTimeout(ctx context.Context, svc *sqs.SQS, queueUrl *string, re
 	return nil
 }
 
-func acknowledgeMessage(ctx context.Context, svc *sqs.SQS, queueUrl *string, receiptHandle *string) error {
+func acknowledgeMessage(ctx context.Context, sqsq *sqs.SQS, queueUrl *string, receiptHandle *string) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	_, err := svc.DeleteMessage(&sqs.DeleteMessageInput{
+	_, err := sqsq.DeleteMessage(&sqs.DeleteMessageInput{
 		QueueUrl:      queueUrl,
 		ReceiptHandle: receiptHandle,
 	})
@@ -272,9 +290,9 @@ func acknowledgeMessage(ctx context.Context, svc *sqs.SQS, queueUrl *string, rec
 	return nil
 }
 
-func retrieveQueueUrl(ctx context.Context, svc *sqs.SQS) (queueUrl *string, err error) {
+func retrieveQueueUrl(ctx context.Context, sqsq *sqs.SQS) (queueUrl *string, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	urlResult, err := svc.GetQueueUrl(&sqs.GetQueueUrlInput{
+	urlResult, err := sqsq.GetQueueUrl(&sqs.GetQueueUrlInput{
 		QueueName: &config.SQSQueueName,
 	})
 	if err != nil {
