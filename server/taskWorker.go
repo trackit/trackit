@@ -36,7 +36,7 @@ type (
 	}
 )
 
-const visibilityTimeoutInHours = 12
+const visibilityTimeoutInHours = 10
 const visibilityTimeoutTaskFailedInMinutes = 20
 const retryTaskOnFailure = true
 const waitTimeInSeconds = 20
@@ -86,7 +86,6 @@ func taskWorker(ctx context.Context) error {
 			time.Sleep(time.Minute * esHealthcheckWaitTimeRetryInMinutes)
 			continue
 		}
-		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*60*visibilityTimeoutInHours)
 
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
