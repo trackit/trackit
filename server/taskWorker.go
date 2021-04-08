@@ -86,7 +86,7 @@ func taskWorker(ctx context.Context) error {
 			time.Sleep(time.Minute * esHealthcheckWaitTimeRetryInMinutes)
 			continue
 		}
-		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60 * 60 * visibilityTimeoutInHours)
+		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*60*visibilityTimeoutInHours)
 
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
@@ -94,12 +94,12 @@ func taskWorker(ctx context.Context) error {
 			err = executeTask(ctx, task)
 			if err != nil {
 				logger.Error("Error while executing task. Setting visibility timeout to task failed timeout.", map[string]interface{}{
-					"message":           	      message,
+					"message":                    message,
 					"taskFailedTimeoutInMinutes": 60 * visibilityTimeoutTaskFailedInMinutes,
-					"error":             		  err.Error(),
+					"error":                      err.Error(),
 				})
 				if retryTaskOnFailure {
-					_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60 * visibilityTimeoutTaskFailedInMinutes)
+					_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*visibilityTimeoutTaskFailedInMinutes)
 				} else {
 					_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
 				}
