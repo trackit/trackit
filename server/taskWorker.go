@@ -37,6 +37,8 @@ type (
 )
 
 const visibilityTimeoutInHours = 12
+const visibilityTimeoutTaskFailedInMinutes = 20
+const retryTaskOnFailure = true
 const waitTimeInSeconds = 20
 const esHealthcheckTimeoutInMinutes = 10
 const esHealthcheckWaitTimeRetryInMinutes = 10
@@ -84,18 +86,23 @@ func taskWorker(ctx context.Context) error {
 			time.Sleep(time.Minute * esHealthcheckWaitTimeRetryInMinutes)
 			continue
 		}
-		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, visibilityTimeoutInHours)
+		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*60*visibilityTimeoutInHours)
 
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
 		if task, ok := tasks[message.TaskName]; ok {
 			err = executeTask(ctx, task)
 			if err != nil {
-				logger.Error("Error while executing task. Resetting visibility timeout to 0.", map[string]interface{}{
-					"message": message,
-					"error":   err.Error(),
+				logger.Error("Error while executing task. Setting visibility timeout to task failed timeout.", map[string]interface{}{
+					"message":                    message,
+					"taskFailedTimeoutInMinutes": 60 * visibilityTimeoutTaskFailedInMinutes,
+					"error":                      err.Error(),
 				})
-				_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 0)
+				if retryTaskOnFailure {
+					_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*visibilityTimeoutTaskFailedInMinutes)
+				} else {
+					_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
+				}
 			} else {
 				logger.Info("Task done, acknowledging.", nil)
 				_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
@@ -111,7 +118,7 @@ func taskWorker(ctx context.Context) error {
 	}
 }
 
-func executeTask(ctx context.Context, task func (context.Context) error) (err error) {
+func executeTask(ctx context.Context, task func(context.Context) error) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	defer func() {
@@ -260,7 +267,6 @@ func changeMessageVisibility(ctx context.Context, sqsq *sqs.SQS, queueUrl *strin
 		VisibilityTimeout: aws.Int64(timeout),
 	})
 
-	sqsq.SendMessage(&sqs.SendMessageInput{})
 	if err != nil {
 		logger.Error("Unable to reset timeout.", map[string]interface{}{
 			"messageHandle": *receiptHandle,
