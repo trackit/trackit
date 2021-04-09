@@ -106,7 +106,7 @@ func taskWorker(ctx context.Context) error {
 				logger.Info("Task done, acknowledging.", nil)
 				_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
 			}
-			_ = flushCloudwatchLogEvents(ctx, cwl, message, &logsBuffer)
+			_ = flushCloudwatchLogEvents(ctx, cwl, message, &logsBuffer, err == nil)
 		} else {
 			logger.Error("Unable to find requested task.", map[string]interface{}{
 				"task_name": message.TaskName,
@@ -168,7 +168,7 @@ func getNextMessage(ctx context.Context, sqsq *sqs.SQS, queueUrl *string) (Messa
 	return messageData, msgResult.Messages[0].ReceiptHandle, nil
 }
 
-func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatchLogs, message MessageData, logsBuffer *bytes.Buffer) error {
+func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatchLogs, message MessageData, logsBuffer *bytes.Buffer, success bool) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	defer func() {
@@ -180,7 +180,18 @@ func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatc
 	}
 
 	logGroup := config.Environment + "/task-logs/" + message.TaskName
-	logStream := message.LogStream + "/" + uuid.New().String()
+
+	logStreamPrefix := message.LogStream
+	if len(logStreamPrefix) == 0 {
+		logStreamPrefix = "generic"
+	}
+	var logStreamSuffix string
+	if success {
+		logStreamSuffix = "succeeded"
+	} else {
+		logStreamSuffix = "failed"
+	}
+	logStream := logStreamPrefix + "/" + uuid.New().String() + "/" + logStreamSuffix
 
 	_, err := cwl.CreateLogStream(&cloudwatchlogs.CreateLogStreamInput{
 		LogGroupName:  aws.String(logGroup),
@@ -296,7 +307,7 @@ func acknowledgeMessage(ctx context.Context, sqsq *sqs.SQS, queueUrl *string, re
 func retrieveQueueUrl(ctx context.Context, sqsq *sqs.SQS) (queueUrl *string, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	urlResult, err := sqsq.GetQueueUrl(&sqs.GetQueueUrlInput{
-		QueueName: &config.SQSQueueName,
+		QueueName: aws.String(config.SQSQueueName),
 	})
 	if err != nil {
 		logger.Error("Unable to get queue URL from name.", map[string]interface{}{
