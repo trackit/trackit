@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -33,7 +32,7 @@ import (
 
 // taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.
 func taskSpreadsheet(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'Spreadsheet'.", map[string]interface{}{
 		"args": args,

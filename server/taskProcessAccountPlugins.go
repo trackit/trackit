@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -37,7 +36,7 @@ import (
 
 // taskProcessAccountPlugins is the entry point for account plugins processing
 func taskProcessAccountPlugins(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'process-account-plugin'.", map[string]interface{}{
 		"args": args,

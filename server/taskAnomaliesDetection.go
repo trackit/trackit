@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -35,7 +34,7 @@ import (
 // taskAnomaliesDetection processes an AwsAccount to email
 // the user if anomalies are detected.
 func taskAnomaliesDetection(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'anomalies-detection'.", map[string]interface{}{
 		"args": args,

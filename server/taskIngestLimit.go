@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -36,7 +35,7 @@ const iso8601DateFormat = "2006-01-02"
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.
 func taskIngestLimit(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'ingest-limit'.", map[string]interface{}{
 		"args": args,
