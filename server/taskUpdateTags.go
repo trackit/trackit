@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -32,13 +31,11 @@ import (
 const invalidUserID = -1
 
 func taskUpdateTags(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	logger.Info("Running task 'update-tags'.", map[string]interface{}{
 		"args": args,
 	})
-
 	userId, err := checkUpdateTagsArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{

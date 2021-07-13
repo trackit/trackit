@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -31,7 +30,7 @@ import (
 var zeroDate = time.Date(0001, 1, 1, 00, 00, 00, 00, time.UTC)
 
 func taskOnboardTagbot(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	logger.Info("Running task 'onboard-tagbot'.", map[string]interface{}{

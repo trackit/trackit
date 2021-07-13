@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"flag"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -31,7 +30,7 @@ import (
 
 // taskMasterSpreadsheet generates Spreadsheet with reports for a master AwsAccount including subaccounts.
 func taskMasterSpreadsheet(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'Master Spreadsheet'.", map[string]interface{}{
 		"args": args,

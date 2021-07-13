@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -128,7 +127,7 @@ func checkArgumentsForProcessAccount(args []string) (int, time.Time, error) {
 
 // taskProcessAccount processes an AwsAccount to retrieve data from the AWS api.
 func taskProcessAccount(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'process-account'.", map[string]interface{}{
 		"args": args,
