@@ -93,7 +93,7 @@ func UpdateTagsForUser(ctx context.Context, userId int) error {
 		}
 	}
 	for i := range documents {
-		documents[i] = documents[i].GenCloudFormationUrl()
+		documents[i].GenCloudFormationUrl()
 	}
 	return pushToEs(ctx, documents, userId)
 }
