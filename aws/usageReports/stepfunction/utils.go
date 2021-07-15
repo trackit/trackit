@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"

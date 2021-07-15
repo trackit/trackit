@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports/cloudformation"
 	"github.com/trackit/trackit/aws/usageReports/ebs"
