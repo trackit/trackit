@@ -22,11 +22,12 @@ import (
 
 // TaggingReportDocument is an entry in ES' tagging index
 type TaggingReportDocument struct {
-	Account      string      `json:"account"`
-	ReportDate   time.Time   `json:"reportDate"`
-	ResourceID   string      `json:"resourceId"`
-	ResourceType string      `json:"resourceType"`
-	Region       string      `json:"region"`
-	URL          string      `json:"url"`
-	Tags         []utils.Tag `json:"tags"`
+	Account           string      `json:"account"`
+	ReportDate        time.Time   `json:"reportDate"`
+	ResourceID        string      `json:"resourceId"`
+	ResourceType      string      `json:"resourceType"`
+	Region            string      `json:"region"`
+	URL               string      `json:"url"`
+	Tags              []utils.Tag `json:"tags"`
+	CloudFormationURL string      `json:"cloudFormationUrl,omitempty"`
 }
