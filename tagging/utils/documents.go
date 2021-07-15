@@ -21,6 +21,7 @@ import (
 )
 
 // TaggingReportDocument is an entry in ES' tagging index
+
 type TaggingReportDocument struct {
 	Account           string      `json:"account"`
 	ReportDate        time.Time   `json:"reportDate"`

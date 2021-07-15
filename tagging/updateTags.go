@@ -92,8 +92,8 @@ func UpdateTagsForUser(ctx context.Context, userId int) error {
 			logger.Error(fmt.Sprintf("Generation of tagging reports for resources of type '%s' failed: %s", processor.Name, err.Error()), nil)
 		}
 	}
-	for index := range documents {
-		utils.GenCloudFormationUrl(&documents[index])
+	for i := range documents {
+		documents[i] = documents[i].GenCloudFormationUrl()
 	}
 	return pushToEs(ctx, documents, userId)
 }
