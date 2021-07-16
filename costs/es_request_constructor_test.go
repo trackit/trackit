@@ -37,7 +37,7 @@ func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
 		"123456",
 		"98765432",
 	}
-	expectedResult := `{"terms":{"usageAccountId":[123456,98765432]}}`
+	expectedResult := `{"terms":{"usageAccountId":["123456","98765432"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -56,7 +56,7 @@ func TestQueryAccountFiltersSingleAccount(t *testing.T) {
 	linkedAccountID := []string{
 		"123456",
 	}
-	expectedResult := `{"terms":{"usageAccountId":[123456]}}`
+	expectedResult := `{"terms":{"usageAccountId":["123456"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -74,7 +74,7 @@ func TestQueryAccountFiltersSingleAccount(t *testing.T) {
 func TestQueryTimeRange(t *testing.T) {
 	durationBegin, _ := time.Parse("2006-1-2 15:04", "2017-01-12 11:23")
 	durationEnd, _ := time.Parse("2006-1-2 15:04", "2017-05-23 11:23")
-	expectedResult := `{"range":{"usage_start_date":{"from":"2017-01-12T11:23:00Z","include_lower":true,"include_upper":true,"to":"2017-05-23T11:23:00Z"}}}`
+	expectedResult := `{"range":{"usageStartDate":{"from":"2017-01-12T11:23:00Z","include_lower":true,"include_upper":true,"to":"2017-05-23T11:23:00Z"}}}`
 
 	res := createQueryTimeRange(durationBegin, durationEnd)
 	src, err := res.Source()
@@ -92,7 +92,7 @@ func TestQueryTimeRange(t *testing.T) {
 
 func TestAggregationPerProduct(t *testing.T) {
 	res := createAggregationPerProduct([]string{""})
-	expectedResult := `{"terms":{"field":"product_name","size":2147483647}}`
+	expectedResult := `{"terms":{"field":"productCode","size":2147483647}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -108,7 +108,7 @@ func TestAggregationPerProduct(t *testing.T) {
 
 func TestAggregationPerRegion(t *testing.T) {
 	res := createAggregationPerRegion([]string{""})
-	expectedResult := `{"terms":{"field":"availability_zone","size":2147483647}}`
+	expectedResult := `{"terms":{"field":"region","size":2147483647}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -124,7 +124,7 @@ func TestAggregationPerRegion(t *testing.T) {
 
 func TestAggregationPerAccount(t *testing.T) {
 	res := createAggregationPerAccount([]string{""})
-	expectedResult := `{"terms":{"field":"linked_account_id","size":2147483647}}`
+	expectedResult := `{"terms":{"field":"usageAccountId","size":2147483647}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -140,7 +140,7 @@ func TestAggregationPerAccount(t *testing.T) {
 
 func TestAggregationPerDay(t *testing.T) {
 	res := createAggregationPerDay([]string{""})
-	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"day"}}`
+	expectedResult := `{"date_histogram":{"field":"usageStartDate","interval":"day","min_doc_count":0}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -156,7 +156,7 @@ func TestAggregationPerDay(t *testing.T) {
 
 func TestAggregationPerMonth(t *testing.T) {
 	res := createAggregationPerMonth([]string{""})
-	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"month"}}`
+	expectedResult := `{"date_histogram":{"field":"usageStartDate","interval":"month","min_doc_count":0}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -172,7 +172,7 @@ func TestAggregationPerMonth(t *testing.T) {
 
 func TestCostSumAggregation(t *testing.T) {
 	res := createCostSumAggregation([]string{""})
-	expectedResult := `{"sum":{"field":"cost"}}`
+	expectedResult := `{"sum":{"field":"unblendedCost"}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -188,7 +188,7 @@ func TestCostSumAggregation(t *testing.T) {
 
 func TestAggregationPerWeek(t *testing.T) {
 	res := createAggregationPerWeek([]string{""})
-	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"week"}}`
+	expectedResult := `{"date_histogram":{"field":"usageStartDate","interval":"week","min_doc_count":0}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -204,7 +204,7 @@ func TestAggregationPerWeek(t *testing.T) {
 
 func TestAggregationPerYear(t *testing.T) {
 	res := createAggregationPerYear([]string{""})
-	expectedResult := `{"date_histogram":{"field":"usage_start_date","interval":"year"}}`
+	expectedResult := `{"date_histogram":{"field":"usageStartDate","interval":"year","min_doc_count":0}}`
 	src, err := res[0].aggr.Source()
 	if err != nil {
 		t.Fatal(err)
@@ -277,7 +277,7 @@ func TestReverseAggregationArray(t *testing.T) {
 
 func TestAggregationNestingWithSingleElementSlice(t *testing.T) {
 	singleAggregationSlice := createAggregationPerAccount([]string{""})
-	expectedResult := `{"terms":{"field":"linked_account_id","size":2147483647}}`
+	expectedResult := `{"terms":{"field":"usageAccountId","size":2147483647}}`
 	res := nestAggregation(singleAggregationSlice)
 	src, err := res.Source()
 	if err != nil {
@@ -331,9 +331,9 @@ func TestAggregationNestingWithFewElementsSlice(t *testing.T) {
 	"aggregations": {
 		"tag_value": {
 			"aggregations": {
-				"cost": {
+				"value": {
 					"sum": {
-						"field": "cost"
+						"field": "unblendedCost"
 					}
 				}
 			},
@@ -369,13 +369,13 @@ func TestAggregationNestingWithAllHandledElasticAggregationTypes(t *testing.T) {
 	allTypesSlice = append(allTypesSlice, createAggregationPerProduct([]string{""})...)
 	expectedResult := `{
 	"aggregations": {
-		"tag_key": {
+		"by-tag_key": {
 			"aggregations": {
 				"tag_value": {
 					"aggregations": {
-						"product": {
+						"by-product": {
 							"terms": {
-								"field": "product_name",
+								"field": "productCode",
 								"size": 2147483647
 							}
 						}
@@ -394,8 +394,9 @@ func TestAggregationNestingWithAllHandledElasticAggregationTypes(t *testing.T) {
 		}
 	},
 	"date_histogram": {
-		"field": "usage_start_date",
-		"interval": "year"
+		"field": "usageStartDate",
+		"interval": "year",
+		"min_doc_count": 0
 	}
 }`
 	res := nestAggregation(allTypesSlice)
