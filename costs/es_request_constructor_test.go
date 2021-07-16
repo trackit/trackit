@@ -23,18 +23,19 @@ import (
 	"github.com/olivere/elastic"
 )
 
-func createAndConfigureTestClient(t *testing.T) *elastic.Client {
+// Fonction not used
+/* func createAndConfigureTestClient(t *testing.T) *elastic.Client {
 	client, err := elastic.NewClient()
 	if err != nil {
 		t.Fatal(err)
 	}
 	return client
-}
+} */
 
 func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
-	linkedAccountID := []int{
-		123456,
-		98765432,
+	linkedAccountID := []string{
+		"123456",
+		"98765432",
 	}
 	expectedResult := `{"terms":{"usageAccountId":[123456,98765432]}}`
 	res := createQueryAccountFilter(linkedAccountID)
@@ -52,8 +53,8 @@ func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
 }
 
 func TestQueryAccountFiltersSingleAccount(t *testing.T) {
-	linkedAccountID := []int{
-		123456,
+	linkedAccountID := []string{
+		"123456",
 	}
 	expectedResult := `{"terms":{"usageAccountId":[123456]}}`
 	res := createQueryAccountFilter(linkedAccountID)
