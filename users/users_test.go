@@ -72,31 +72,11 @@ type createWithPasswordCase struct {
 }
 
 var createWithPasswordCases = [5]createWithPasswordCase{
-	createWithPasswordCase{
-		User{Email: "victor@example.trackit.io"},
-		"testPassword",
-		"badPassword",
-	},
-	createWithPasswordCase{
-		User{Email: "victor_g@example.trackit.io"},
-		"victor_gspassword",
-		"",
-	},
-	createWithPasswordCase{
-		User{Email: "lolwut@example.trackit.io"},
-		"123456789",
-		"321654987",
-	},
-	createWithPasswordCase{
-		User{Email: "auietsrn@example.trackit.io"},
-		"Pαßwòrd wìth Ûniķod€",
-		"BäÐ §asswŏrd",
-	},
-	createWithPasswordCase{
-		User{Email: "vdljqgh@example.trackit.io"},
-		"", // Not the responsibility of this function to check for bad passwords.
-		" ",
-	},
+	{User{Email: "victor@example.trackit.io"}, "testPassword", "badPassword"},
+	{User{Email: "victor_g@example.trackit.io"}, "victor_gspassword", ""},
+	{User{Email: "lolwut@example.trackit.io"}, "123456789", "321654987"},
+	{User{Email: "auietsrn@example.trackit.io"}, "Pαßwòrd wìth Ûniķod€", "BäÐ §asswŏrd"},
+	{User{Email: "vdljqgh@example.trackit.io"}, "", " "},
 }
 
 func testCreateWithPasswordSuccess(t *testing.T) {
@@ -131,7 +111,7 @@ func testGetAndPasswordFailure(t *testing.T) {
 	for _, c := range createWithPasswordCases {
 		_, err := GetUserFromOriginWithEmailAndPassword(ctx, db.Db, c.user.Email, c.badPassword, "")
 		if err == nil {
-			t.Errorf("Getting <%s>: error should not be nil, instead is nil.", c.user.Email, err.Error())
+			t.Errorf("Getting <%s>: error should not be nil, %s instead is nil.", c.user.Email, err.Error())
 		}
 	}
 }
