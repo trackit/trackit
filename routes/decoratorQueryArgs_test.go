@@ -250,7 +250,7 @@ func TestMultipleArg(t *testing.T) {
 			QueryArgTestUintSlice,
 		} {
 			if slice, ok := args[name]; !ok {
-				t.Errorf("%s not in the arguments.", name)
+				t.Errorf("%s not in the arguments.", name.Name)
 			} else {
 				if id < 3 && slice != slices[id] {
 					t.Errorf("Expected %v. Got %v", slice, slices[id])
