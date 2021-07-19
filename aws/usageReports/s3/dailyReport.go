@@ -85,6 +85,8 @@ func FetchDailyS3Stats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		logger.Error("Error when getting account id", err.Error())
 		return err
 	}
+
+	// You might find yourself thinking this can be eluded because S3 buckets are supposed to be global, meaning it should be possible to just open one connection to one region and do everything from there. Do not delude yourself, for this is the path to learning that GetBucketTagging requires a connection to the region corresponding to the bucket
 	regions, err := utils.FetchRegionsList(ctx, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
