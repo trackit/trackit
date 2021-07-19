@@ -564,160 +564,10 @@ func TestElasticSearchParamWithFewResultsAndNesting(t *testing.T) {
 	params := []string{"product", "region", "day"}
 	index := "000000-lineitems"
 	expectedResult := `{
-	"product": {
+	"by-product": {
 		"doc_count_error_upper_bound": 0,
 		"sum_other_doc_count": 0,
-		"buckets": [
-			{
-				"key": "Amazon Elastic Compute Cloud",
-				"doc_count": 49,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": [
-						{
-							"key": "us-west-2a",
-							"doc_count": 1,
-							"day": {
-								"buckets": [
-									{
-										"key_as_string": "2017-05-16T00:00:00.000Z",
-										"key": 1494892800000,
-										"doc_count": 1,
-										"cost": {
-											"value": 0.1
-										}
-									}
-								]
-							}
-						},
-						{
-							"key": "us-west-2c",
-							"doc_count": 1,
-							"day": {
-								"buckets": [
-									{
-										"key_as_string": "2017-05-16T00:00:00.000Z",
-										"key": 1494892800000,
-										"doc_count": 1,
-										"cost": {
-											"value": 0.012
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			},
-			{
-				"key": "Amazon DynamoDB",
-				"doc_count": 18,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "Amazon Simple Storage Service",
-				"doc_count": 13,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "AWS Lambda",
-				"doc_count": 7,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "Amazon Elasticsearch Service",
-				"doc_count": 3,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "Amazon RDS Service",
-				"doc_count": 3,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": [
-						{
-							"key": "us-west-2",
-							"doc_count": 2,
-							"day": {
-								"buckets": [
-									{
-										"key_as_string": "2017-05-16T00:00:00.000Z",
-										"key": 1494892800000,
-										"doc_count": 2,
-										"cost": {
-											"value": 0.00160269
-										}
-									}
-								]
-							}
-						}
-					]
-				}
-			},
-			{
-				"key": "Amazon Simple Notification Service",
-				"doc_count": 3,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "Amazon EC2 Container Registry (ECR)",
-				"doc_count": 1,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "Amazon Route 53",
-				"doc_count": 1,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "Amazon Simple Queue Service",
-				"doc_count": 1,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			},
-			{
-				"key": "AmazonCloudWatch",
-				"doc_count": 1,
-				"region": {
-					"doc_count_error_upper_bound": 0,
-					"sum_other_doc_count": 0,
-					"buckets": []
-				}
-			}
-		]
+		"buckets": []
 	}
 }`
 	searchService := GetElasticSearchParams(accountList, durationBegin, durationEnd, params, client, index)
@@ -730,6 +580,6 @@ func TestElasticSearchParamWithFewResultsAndNesting(t *testing.T) {
 		t.Fatal(err)
 	}
 	if string(aggregationMarshalled) != expectedResult {
-		t.Fatalf("Expected %v but got %v", expectedResult, string(aggregationMarshalled))
+		t.Fatalf("Expected %v but got: %v", expectedResult, string(aggregationMarshalled))
 	}
 }
