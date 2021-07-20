@@ -53,7 +53,7 @@ func queryEs(ctx context.Context, indexName string) (*elastic.SearchResult, erro
 		Aggregation("accounts", elastic.NewTermsAggregation().Field("account").Size(2147483647).
 			SubAggregation("reportDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
 				SubAggregation("data", elastic.NewTopHitsAggregation().Size(2147483647).FetchSourceContext(elastic.NewFetchSourceContext(true).
-					Include("account", "step.name", "step.region", "step.tags"))))).Do(ctx)
+					Include("account", "step.name", "step.region", "step.tags", "step.arn"))))).Do(ctx)
 }
 
 func processSearchResult(res *elastic.SearchResult) ([]*elastic.SearchHit, error) {

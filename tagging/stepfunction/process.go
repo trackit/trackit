@@ -26,7 +26,7 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-const urlFormat = "https://console.aws.amazon.com/states/home?region=%s#/statemachines/view/arn:aws:states:%s:%s:stateMachine:%s"
+const urlFormat = "https://console.aws.amazon.com/states/home?region=%s#/statemachines/view/%s"
 
 // Process generates tagging reports from StepFunctions reports
 func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
@@ -75,7 +75,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Step.Name,
 		ResourceType: resourceTypeString,
 		Region:       source.Step.Region,
-		URL:          fmt.Sprintf(urlFormat, regionForURL, regionForURL, source.Account, source.Step.Name),
+		URL:          fmt.Sprintf(urlFormat, regionForURL, source.Step.Arn),
 		Tags:         source.Step.Tags,
 	}
 	return document, true
