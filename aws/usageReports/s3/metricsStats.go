@@ -18,11 +18,21 @@ import (
 	"context"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws/usageReports"
 )
+
+func isErrorAwsNoSuchTagSet(err error) bool {
+	if awsErr, ok := err.(awserr.Error); ok {
+		if awsErr.Code() == "NoSuchTagSet" {
+			return true
+		}
+	}
+	return false
+}
 
 // getS3Tags formats []*bucket.Tag to map[string]string
 func getS3Tags(ctx context.Context, bucket *s3.Bucket, svc *s3.S3) []utils.Tag {
@@ -31,8 +41,12 @@ func getS3Tags(ctx context.Context, bucket *s3.Bucket, svc *s3.S3) []utils.Tag {
 	tags, err := svc.GetBucketTagging(&s3.GetBucketTaggingInput{
 		Bucket: bucket.Name,
 	})
+
+	// We do this to avoid error spam since a lot of buckets will have no tag set
 	if err != nil {
-		logger.Error("Failed to get S3 tags", err.Error())
+		if !isErrorAwsNoSuchTagSet(err) {
+			logger.Error("Failed to get S3 tags", err)
+		}
 		return res
 	}
 
