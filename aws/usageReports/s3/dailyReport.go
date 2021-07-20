@@ -29,39 +29,53 @@ import (
 	"github.com/trackit/trackit/config"
 )
 
-// fetchDailyS3List sends in bucketChan the S3 Buckets fetched from ListBuckets
-func fetchDailyS3List(ctx context.Context, creds *credentials.Credentials, region string, bucketChan chan Bucket) error {
+// fetchOneRegion establishes a new API connection for the corresponding region and gets all the tags for all the buckets associated with it (passed through region_buckets
+func fetchOneRegion(ctx context.Context, creds *credentials.Credentials, region string, region_buckets []s3.Bucket, bucketChan chan Bucket) error {
 	defer close(bucketChan)
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	sess := session.Must(session.NewSession(&aws.Config{
+	session := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
+	service := s3.New(session)
+	for _, bucket := range region_buckets {
+		bucketChan <- Bucket{
+			BucketBase: BucketBase{
+				Name:         aws.StringValue(bucket.Name),
+				CreationDate: aws.TimeValue(bucket.CreationDate),
+				Region:       region,
+			},
+			Tags: getS3Tags(ctx, &bucket, service),
+		}
+	}
+	return nil
+}
+
+// getRegionBucketMap creates a map of regions (as strings) and all the buckets associated with it
+func getRegionBucketMap(ctx context.Context, creds *credentials.Credentials, sess *session.Session) (map[string][]s3.Bucket, error) {
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	svc := s3.New(sess)
 	buckets, err := svc.ListBuckets(nil)
 	if err != nil {
 		logger.Error("Error when describing S3 Buckets", err.Error())
-		return err
+		return nil, err
 	}
+
+	region_map := make(map[string][]s3.Bucket)
 	for _, bucket := range buckets.Buckets {
 		locationRes, err := svc.GetBucketLocation(&s3.GetBucketLocationInput{
 			Bucket: bucket.Name,
 		})
 		if err != nil {
+			logger.Warning("Failed to get bucket location", err.Error())
 			continue
 		}
-		if region == aws.StringValue(locationRes.LocationConstraint) {
-			bucketChan <- Bucket{
-				BucketBase: BucketBase{
-					Name:         aws.StringValue(bucket.Name),
-					CreationDate: aws.TimeValue(bucket.CreationDate),
-					Region:       region,
-				},
-				Tags: getS3Tags(ctx, bucket, svc),
-			}
+		key := aws.StringValue(locationRes.LocationConstraint)
+		if key == "" {
+			key = "us-east-1"
 		}
+		region_map[key] = append(region_map[key], *bucket)
 	}
-	return nil
+	return region_map, nil
 }
 
 // FetchDailyS3Stats fetches the stats of the S3 Bucket of an AwsAccount
@@ -86,16 +100,16 @@ func FetchDailyS3Stats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		return err
 	}
 
-	// You might find yourself thinking this can be eluded because S3 buckets are supposed to be global, meaning it should be possible to just open one connection to one region and do everything from there. Do not delude yourself, for this is the path to learning that GetBucketTagging requires a connection to the region corresponding to the bucket
-	regions, err := utils.FetchRegionsList(ctx, defaultSession)
+	// You might find yourself thinking this can be eluded because S3 buckets are supposed to be global, meaning it should be possible to just open one connection to one region and do everything from there. Do not delude yourself, for this is the path to learning that GetBucketTagging requires a connection to the region corresponding to the bucket, which is why we need to do this
+	regions, err := getRegionBucketMap(ctx, creds, defaultSession)
 	if err != nil {
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
 	bucketChans := make([]<-chan Bucket, 0, len(regions))
-	for _, region := range regions {
+	for regionName, regionBuckets := range regions {
 		bucketChan := make(chan Bucket)
-		go fetchDailyS3List(ctx, creds, region, bucketChan)
+		go fetchOneRegion(ctx, creds, regionName, regionBuckets, bucketChan)
 		bucketChans = append(bucketChans, bucketChan)
 	}
 	buckets := make([]BucketReport, 0)
