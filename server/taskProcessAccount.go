@@ -24,6 +24,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
+	"github.com/trackit/trackit/aws/usageReports/cloudformation"
 	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/aws/usageReports/elasticache"
@@ -33,6 +34,10 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/aws/usageReports/riEc2"
 	"github.com/trackit/trackit/aws/usageReports/riRdS"
+	"github.com/trackit/trackit/aws/usageReports/route53"
+	"github.com/trackit/trackit/aws/usageReports/s3"
+	"github.com/trackit/trackit/aws/usageReports/sqs"
+	"github.com/trackit/trackit/aws/usageReports/stepfunction"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
 	onDemandToRiEc2 "github.com/trackit/trackit/onDemandToRI/ec2"
@@ -41,6 +46,62 @@ import (
 const invalidAccId = -1
 
 var invalidTime = time.Time{}
+
+type processAccount func(ctx context.Context, aa aws.AwsAccount) error
+
+type accountProcessor struct {
+	ErrName string
+	Run  processAccount
+}
+
+// Every processor of accountProcessors will be run and will fetch those services.
+// Don't forget to add the returned error to the database.
+// registerAccountProcessingCompletion will push errors to the aws_account_update_job table
+var accountProcessors = []accountProcessor{
+	{
+		ErrName: "cloudformation",
+		Run:     processAccountCloudFormation,
+	}, {
+		ErrName: "route53",
+		Run:     processAccountRoute53,
+	}, {
+		ErrName: "s3",
+		Run:     processAccountS3,
+	}, {
+		ErrName: "sqs",
+		Run:     processAccountSQS,
+	}, {
+		ErrName: "stepfunction",
+		Run:     processAccountStepFunction,
+	}, {
+		ErrName: "ec2",
+		Run:     processAccountEC2,
+	}, {
+		ErrName: "rds",
+		Run:     processAccountRDS,
+	}, {
+		ErrName: "es",
+		Run:     processAccountES,
+	}, {
+		ErrName: "elasticcache",
+		Run:     processAccountElastiCache,
+	}, {
+		ErrName: "lambda",
+		Run:     processAccountLambda,
+	}, {
+		ErrName: "ec2-ri",
+		Run:     riEc2.FetchDailyReservationsStats,
+	}, {
+		ErrName: "rds-ri",
+		Run:     riRdS.FetchDailyInstancesStats,
+	}, {
+		ErrName: "od-ec2-ri",
+		Run:     onDemandToRiEc2.RunOnDemandToRiEc2,
+	}, {
+		ErrName: "ebs",
+		Run:     processAccountEbsSnapshot,
+	},
+}
 
 func checkArgumentsForProcessAccount(args []string) (int, time.Time, error) {
 	if len(args) < 1 {
@@ -99,23 +160,17 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
 	} else {
-		var ec2Err, rdsErr, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, ebsErr error
+		var processAccountErrors = make(map[string]error)
 		if date.IsZero() {
-			ec2Err = processAccountEC2(ctx, aa)
-			rdsErr = processAccountRDS(ctx, aa)
-			esErr = processAccountES(ctx, aa)
-			elastiCacheErr = processAccountElastiCache(ctx, aa)
-			lambdaErr = processAccountLambda(ctx, aa)
-			riEc2Err = riEc2.FetchDailyReservationsStats(ctx, aa)
-			riRdsErr = riRdS.FetchDailyInstancesStats(ctx, aa)
-			odToRiEc2Err = onDemandToRiEc2.RunOnDemandToRiEc2(ctx, aa)
-			ebsErr = processAccountEbsSnapshot(ctx, aa)
+			for _, accountProcessor := range accountProcessors {
+				processAccountErrors[accountProcessor.ErrName] = accountProcessor.Run(ctx, aa)
+			}
 		}
 		historyCreated, historyErr := processAccountHistory(ctx, aa, date)
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, nil, processAccountErrors, historyErr, historyCreated)
 	}
 	if err != nil {
-		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, false)
+		updateAccountProcessingCompletion(ctx, aaId, db.Db, updateId, err, nil, nil, false)
 		logger.Error("Failed to process account data.", map[string]interface{}{
 			"awsAccountId": aaId,
 			"error":        err.Error(),
@@ -151,9 +206,9 @@ func registerAccountProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 	return res.LastInsertId()
 }
 
-func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr error, historyCreated bool) {
+func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, processAccountErrors map[string]error, historyErr error, historyCreated bool) {
 	updateNextUpdateAccount(db, aaId)
-	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr, historyCreated)
+	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, processAccountErrors, historyErr, historyCreated)
 	if rErr != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to register account processing completion.", map[string]interface{}{
@@ -179,7 +234,7 @@ func updateNextUpdateAccount(db *sql.DB, aaId int) error {
 	return err
 }
 
-func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rdsErr, ec2Err, esErr, elastiCacheErr, lambdaErr, riEc2Err, riRdsErr, odToRiEc2Err, historyErr, ebsErr error, historyCreated bool) error {
+func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr error, errors map[string]error, historyErr error, historyCreated bool) error {
 	const sqlstr = `UPDATE aws_account_update_job SET
 		completed=?,
 		jobError=?,
@@ -192,10 +247,35 @@ func registerAccountProcessingCompletion(db *sql.DB, updateId int64, jobErr, rds
 		riEc2Error=?,
 		riRdsError=?,
 		odToRiEc2Error=?,
+		stepFunctionError=?,
+		s3Error=?,
+		sqsError=?,
+		cloudFormationError=?,
+		route53Error=?,
 		historyError=?,
 		monthly_reports_generated=?
 	WHERE id=?`
-	_, err := db.Exec(sqlstr, time.Now(), errToStr(jobErr), errToStr(rdsErr), errToStr(ec2Err), errToStr(esErr), errToStr(elastiCacheErr), errToStr(lambdaErr), errToStr(ebsErr), errToStr(riEc2Err), errToStr(riRdsErr), errToStr(odToRiEc2Err), errToStr(historyErr), historyCreated, updateId)
+	_, err := db.Exec(
+		sqlstr,
+		time.Now(),
+		errToStr(jobErr),
+		errToStr(errors["rds"]),
+		errToStr(errors["ec2"]),
+		errToStr(errors["es"]),
+		errToStr(errors["elasticcache"]),
+		errToStr(errors["lambda"]),
+		errToStr(errors["ebs"]),
+		errToStr(errors["ec2-ri"]),
+		errToStr(errors["eds-ri"]),
+		errToStr(errors["ec2-od-ri"]),
+		errToStr(errors["stepfunction"]),
+		errToStr(errors["s3"]),
+		errToStr(errors["sqs"]),
+		errToStr(errors["cloudformation"]),
+		errToStr(errors["route53"]),
+		errToStr(historyErr),
+		historyCreated,
+		updateId)
 	return err
 }
 
@@ -205,6 +285,45 @@ func processAccountRDS(ctx context.Context, aa aws.AwsAccount) error {
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest RDS data.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountS3 processes all the S3 data for an AwsAccount
+func processAccountS3(ctx context.Context, aa aws.AwsAccount) error {
+	err := s3.FetchDailyS3Stats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest S3 data.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountCloudFormation processes all the S3 data for an AwsAccount
+func processAccountCloudFormation(ctx context.Context, aa aws.AwsAccount) error {
+	err := cloudformation.FetchDailyCloudFormationStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest CloudFormation data.", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountSQS processes all the SQS data for an AwsAccount
+func processAccountSQS(ctx context.Context, aa aws.AwsAccount) error {
+	err := sqs.FetchDailySQSStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest SQS data.", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
 		})
@@ -231,6 +350,32 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to ingest ES data", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountRoute53 processes all the StepFunctions data for an AwsAccount
+func processAccountRoute53(ctx context.Context, aa aws.AwsAccount) error {
+	err := route53.FetchDailyRoute53Stats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest Route53 data", map[string]interface{}{
+			"awsAccountId": aa.Id,
+			"error":        err.Error(),
+		})
+	}
+	return err
+}
+
+// processAccountStepFunction processes all the StepFunctions data for an AwsAccount
+func processAccountStepFunction(ctx context.Context, aa aws.AwsAccount) error {
+	err := stepfunction.FetchDailyStepFunctionsStats(ctx, aa)
+	if err != nil {
+		logger := jsonlog.LoggerFromContextOrDefault(ctx)
+		logger.Error("Failed to ingest StepFunction data", map[string]interface{}{
 			"awsAccountId": aa.Id,
 			"error":        err.Error(),
 		})
