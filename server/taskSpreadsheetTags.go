@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"flag"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -31,7 +30,7 @@ import (
 
 // taskSpreadsheet generates Spreadsheet with reports for a given AwsAccount.
 func taskTagsSpreadsheet(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'Spreadsheet Tags'.", map[string]interface{}{
 		"args": args,
@@ -62,6 +61,13 @@ func generateTagsReport(ctx context.Context, aaId int, date time.Time) (err erro
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'SpreadSheetTags' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if generation, err = checkTagsReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerAccountTagsReportGeneration(db.Db, aa); err != nil {
 	} else {

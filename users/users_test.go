@@ -50,7 +50,7 @@ func TestNonExistingUserByEmailFailure(t *testing.T) {
 		"lol.nexist@example.trackit.io",
 	}
 	for _, email := range emails {
-		_, err := GetUserWithEmail(ctx, db.Db, email)
+		_, err := GetUserWithEmailAndOrigin(ctx, db.Db, email, "trackit")
 		if err == nil {
 			t.Error("Error should not be nil, instead is nil.")
 		} else if err != ErrUserNotFound {
@@ -102,7 +102,7 @@ var createWithPasswordCases = [5]createWithPasswordCase{
 func testCreateWithPasswordSuccess(t *testing.T) {
 	ctx := context.Background()
 	for _, c := range createWithPasswordCases {
-		u, err := CreateUserWithPassword(ctx, db.Db, c.user.Email, c.password)
+		u, err := CreateUserWithPassword(ctx, db.Db, c.user.Email, c.password, "", "trackit")
 		if err != nil {
 			t.Errorf("Creating <%s>: error should be nil, instead is \"%s\".", c.user.Email, err.Error())
 		} else {
@@ -116,7 +116,7 @@ func testCreateWithPasswordSuccess(t *testing.T) {
 func testGetAndPasswordSuccess(t *testing.T) {
 	ctx := context.Background()
 	for _, c := range createWithPasswordCases {
-		u, err := GetUserWithEmailAndPassword(ctx, db.Db, c.user.Email, c.password)
+		u, err := GetUserFromOriginWithEmailAndPassword(ctx, db.Db, c.user.Email, c.password, "trackit")
 		if err != nil {
 			t.Errorf("Getting <%s>: error should be nil, instead is \"%s\".", c.user.Email, err.Error())
 		}
@@ -129,7 +129,7 @@ func testGetAndPasswordSuccess(t *testing.T) {
 func testGetAndPasswordFailure(t *testing.T) {
 	ctx := context.Background()
 	for _, c := range createWithPasswordCases {
-		_, err := GetUserWithEmailAndPassword(ctx, db.Db, c.user.Email, c.badPassword)
+		_, err := GetUserFromOriginWithEmailAndPassword(ctx, db.Db, c.user.Email, c.badPassword, "")
 		if err == nil {
 			t.Errorf("Getting <%s>: error should not be nil, instead is nil.", c.user.Email, err.Error())
 		}

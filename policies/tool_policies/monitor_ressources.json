@@ -23,7 +23,18 @@
         "rds:DescribeReservedDBInstances",
         "lambda:ListFunctions",
         "lambda:ListTags",
-        "ce:GetReservationCoverage"
+        "ce:GetReservationCoverage",
+        "cloudformation:ListStacks",
+        "cloudformation:DescribeStacks",
+        "route53:ListHostedZones",
+        "route53:ListTagsForResource",
+        "s3:ListBucket",
+        "s3:GetBucketLocation",
+        "s3:GetBucketTagging",
+        "sqs:ListQueues",
+        "sqs:ListQueueTags",
+        "states:ListStateMachines",
+        "states:ListTagsForResource"
       ],
       "Effect": "Allow",
       "Resource": "*"

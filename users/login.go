@@ -18,9 +18,11 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/routes"
 )
 
@@ -28,6 +30,7 @@ import (
 type loginRequestBody struct {
 	Email    string `json:"email"    req:"nonzero"`
 	Password string `json:"password" req:"nonzero"`
+	Origin   string `json:"origin"   req:"nonzero"`
 }
 
 // loginResponseBody is the response body in case LogIn succeeds.
@@ -40,7 +43,7 @@ func init() {
 	routes.MethodMuxer{
 		http.MethodPost: routes.H(logIn).With(
 			routes.RequestContentType{"application/json"},
-			routes.RequestBody{loginRequestBody{"example@example.com", "pA55w0rd"}},
+			routes.RequestBody{loginRequestBody{"example@example.com", "pA55w0rd", "trackit"}},
 			db.RequestTransaction{db.Db},
 			routes.Documentation{
 				Summary:     "log in as a user",
@@ -63,14 +66,9 @@ func logIn(request *http.Request, a routes.Arguments) (int, interface{}) {
 // validated login request.
 func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
-	user, err := GetUserWithEmailAndPassword(request.Context(), tx, body.Email, body.Password)
+	user, err := GetUserFromOriginWithEmailAndPassword(request.Context(), tx, body.Email, body.Password, body.Origin)
 	if err == nil {
-		if !user.AwsCustomerEntitlement {
-			logger.Warning("AWS entitlement failure.", user)
-			return 403, errors.New("Please check your AWS marketplace subscription.")
-		} else {
-			return logAuthenticatedUserIn(request, user)
-		}
+		return logAuthenticatedUserIn(request, user)
 	} else {
 		logger.Warning("Authentication failure.", struct {
 			Email string `json:"user"`
@@ -85,6 +83,12 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	token, err := generateToken(user)
 	if err == nil {
+		if err := updateLastSeen(user); err != nil {
+			logger.Error("Could not update last seen for user.", map[string]interface{}{
+				"email": user.Email,
+				"err":   err,
+			})
+		}
 		logger.Info("User logged in.", user)
 		return 200, loginResponseBody{
 			User:  user,
@@ -100,4 +104,19 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 // the token belongs to.
 func me(request *http.Request, a routes.Arguments) (int, interface{}) {
 	return 200, a[AuthenticatedUser].(User)
+}
+
+// updateLastSeen update the last seen datetime in the database
+func updateLastSeen(user User) error {
+	dbUser, err := models.UserByID(db.Db, user.Id)
+
+	if dbUser == nil {
+		return errors.New("user not found")
+	} else if err != nil {
+		return err
+	}
+
+	dbUser.LastSeen = time.Now()
+
+	return dbUser.Update(db.Db)
 }

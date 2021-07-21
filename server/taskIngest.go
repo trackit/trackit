@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"math/rand"
 	"strconv"
 	"time"
@@ -30,11 +29,12 @@ import (
 	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/cache"
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/models"
 )
 
 // taskIngest ingests billing data for a given BillRepository and AwsAccount.
 func taskIngest(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'ingest'.", map[string]interface{}{
 		"args": args,
@@ -70,6 +70,13 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'Ingest' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if br, err = s3.GetBillRepositoryForAwsAccountById(aa, brId, tx); err != nil {
 	} else if updateId, err = registerUpdate(db.Db, br); err != nil {
 	} else if latestManifest, err = s3.UpdateReport(ctx, aa, br); err != nil {

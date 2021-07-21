@@ -7,10 +7,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Get dependencies with govendor
+          name: Get dependencies with go mod
           command: |
             set -xe
-            govendor sync -v
+            go mod download
       - run:
           name: Build portable binary
           command: |
@@ -24,10 +24,10 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Get dependencies with govendor
+          name: Get dependencies with go mod
           command: |
             set -xe
-            govendor sync -v
+            go mod download
       - run:
           name: Build portable binary
           command: |
