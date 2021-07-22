@@ -12,7 +12,7 @@ Each of these functions takes two parameters: a string message, and an interface
 
 ### Example:
 ```go
-logger := jsonlog.LoggerFromContextOrDefault(ctx)	
+logger := jsonlog.LoggerFromContextOrDefault(ctx)
 logger.Info("An example message.", map[string] interface{} {
     "reportDate": time.Now().UTC(),
     "moreInfo": "Another example message.",

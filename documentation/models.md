@@ -4,7 +4,7 @@ In order to interact with the SQL database, why use `xo` which is a command-line
 
 In order to modify the database architecture, you must add a migration file in the `db/migration` folder. Your migration should be added at the end of the 'db/schema.sql' file. In a development environment, you have to manually apply the migration before you can continue.
 
-Once the database is modified, you can use the `xo` tool to generate go models: 
+Once the database is modified, you can use the `xo` tool to generate go models:
 
 `xo mysql://user:pass@host/dbname -o models`.
 

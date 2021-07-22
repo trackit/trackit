@@ -5,9 +5,10 @@ Tasks are a main concept of TrackIt.
 They are parts of the main executable which can be executed independently. The first argument passed to the main executable is the name of the task which is going to be run. For example, `./main server` will launch the task named `server`.
 
 Examples of tasks are:
-* server: starts the REST API
-* ingest: processes AWS bills from S3
-* process-account: fetches resources status from AWS API
+* `server`: starts the REST API
+* `ingest`: processes AWS bills from S3
+* `process-account`: fetches resources status from AWS API
+* `update-tags`: updates the tagging data for TagBot using the information retrieved by `process-account`
 
 ## How to run a task locally
 You can use the `task.sh` script to run a task.
