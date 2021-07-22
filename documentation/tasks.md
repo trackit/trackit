@@ -11,8 +11,8 @@ Examples of tasks are:
 * `update-tags`: updates the tagging data for TagBot using the information retrieved by `process-account`
 
 ## How to run a task locally
-You can use the `task.sh` script to run a task.
-For example: `./task.sh process-account 1` will run the task process-account on the local environment for the AWS account with ID 1.
+You can use the `tasks.sh` script to run a task.
+For example: `./tasks.sh process-account 1` will run the task process-account on the local environment for the AWS account with ID 1.
 
 Tasks to run in order to get an account ready:
 - `ingest {AWS ID} {BILL REPOSITORY ID}`
