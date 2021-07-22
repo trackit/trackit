@@ -20,7 +20,7 @@ Tasks to run in order to get an account ready:
 - `process-account-plugins {AWS ID}`
 
 ## How to create a new task
-In order to create a task, you must add a function which takes a context. Context as parameter in the map named `task` in the file [`server/server.go`](https://github.com/trackit/trackit/blob/master/server/server.go#L61).
+In order to create a task, you must add a function which takes a context, and put it in the map named `tasks` in the file [`server/server.go`](https://github.com/trackit/trackit/blob/master/server/server.go#L61).
 
 A task should log when it starts, ends or encounters and error. See [Logging](./logging.md).
 
