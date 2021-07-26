@@ -30,12 +30,12 @@ const TemplateNameStepFunctionReport = "stepfunction-reports"
 // put the ElasticSearch index for *-stepfunction-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameStepFunctionReport).BodyString(TemplateStepFunctionReport).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index stepfunction-reports.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index stepfunction-reports.", res)
-		ctxCancel()
 	}
 }
 

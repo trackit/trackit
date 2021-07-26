@@ -30,12 +30,12 @@ const TemplateNameESReport = "es-reports"
 // put the ElasticSearch index for *-es-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameESReport).BodyString(TemplateEsReport).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index ESReport.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index ESReport.", res)
-		ctxCancel()
 	}
 }
 

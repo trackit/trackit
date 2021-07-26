@@ -195,21 +195,22 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp Mani
 	outs, out := mergecdLineItem()
 	go func() {
 		defer close(outs)
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, ctxCancel := context.WithCancel(ctx)
 		l := jsonlog.LoggerFromContextOrDefault(ctx)
 		reader, err := getBillReader(ctx, s3svc, s, m)
 		if err != nil {
 			l.Error("Failed to read bill.", err.Error())
+			ctxCancel()
 		} else {
 			l.Debug("Reading bill.", map[string]interface{}{"key": s, "manifest": m})
-			outs <- readBill(ctx, cancel, reader, s, m, mp)
+			outs <- readBill(ctx, ctxCancel, reader, s, m, mp)
 		}
 	}()
 	return out
 }
 
 // readBill returns a channel of all LineItems in a single bill file.
-func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
+func readBill(ctx context.Context, ctxCancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {
 		defer reader.Close()
@@ -220,6 +221,7 @@ func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadClos
 				out <- r
 			}
 		}
+		ctxCancel()
 	}()
 	return out
 }
