@@ -103,7 +103,7 @@ type LineItem struct {
 	UsageAccountId     string            `csv:"lineItem/UsageAccountId"      json:"usageAccountId"`
 	LineItemType       string            `csv:"lineItem/LineItemType"        json:"lineItemType"`
 	UsageStartDate     string            `csv:"lineItem/UsageStartDate"      json:"usageStartDate"`
-	UsageEndDate       string            `csv:"lineItem/UsageEndDate"        json:"usageEndDate""`
+	UsageEndDate       string            `csv:"lineItem/UsageEndDate"        json:"usageEndDate"`
 	ProductCode        string            `csv:"lineItem/ProductCode"         json:"productCode"`
 	UsageType          string            `csv:"lineItem/UsageType"           json:"usageType"`
 	Operation          string            `csv:"lineItem/Operation"           json:"operation"`
