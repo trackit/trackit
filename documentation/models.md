@@ -1,6 +1,6 @@
 # Models
 
-In order to interact with the SQL database, why use `xo` which is a command-line tool used to generate Go code based on a database schema.
+The `xo` command-line tool can be useful in order to create code to interact with the SQL database. It generates Go code based on a database schema.
 
 In order to modify the database architecture, you must add a migration file in the `db/migration` folder. Your migration should be added at the end of the 'db/schema.sql' file. In a development environment, you have to manually apply the migration before you can continue.
 
