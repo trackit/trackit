@@ -46,12 +46,12 @@ func fetchDailySQSList(ctx context.Context, creds *credentials.Credentials, regi
 	}
 	for _, queueUrl := range queues.QueueUrls {
 		ss := strings.Split(aws.StringValue(queueUrl), "/")
-		queueName := ss[len(ss) - 1]
+		queueName := ss[len(ss)-1]
 		sqsChan <- Queue{
 			QueueBase: QueueBase{
-				Name:         queueName,
-				Url:          aws.StringValue(queueUrl),
-				Region:       region,
+				Name:   queueName,
+				Url:    aws.StringValue(queueUrl),
+				Region: region,
 			},
 			Tags: getSQSTags(ctx, queueUrl, svc),
 		}

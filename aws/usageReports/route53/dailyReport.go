@@ -46,7 +46,7 @@ func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, 
 	}
 	for _, hostedZone := range hostedZones.HostedZones {
 		ss := strings.Split(aws.StringValue(hostedZone.Id), "/")
-		hostedZoneId := ss[len(ss) - 1]
+		hostedZoneId := ss[len(ss)-1]
 		hostedZoneChan <- HostedZone{
 			HostedZoneBase: HostedZoneBase{
 				Name:   aws.StringValue(hostedZone.Name),

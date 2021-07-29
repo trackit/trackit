@@ -40,15 +40,15 @@ type (
 
 	// HostedZoneBase contains basics information of a Route53 Hosted Zone
 	HostedZoneBase struct {
-		Name         string    `json:"name"`
-		Id           string    `json:"id"`
-		Region       string    `json:"region"`
+		Name   string `json:"name"`
+		Id     string `json:"id"`
+		Region string `json:"region"`
 	}
 
 	// HostedZone contains all the information of an Route53 Hosted Zone
 	HostedZone struct {
 		HostedZoneBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 

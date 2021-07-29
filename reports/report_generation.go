@@ -40,7 +40,7 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 		if now.Month() != time.January {
 			reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
 		} else {
-			reportDate = fmt.Sprintf("%s%s", time.December.String(), strconv.Itoa(now.Year() - 1))
+			reportDate = fmt.Sprintf("%s%s", time.December.String(), strconv.Itoa(now.Year()-1))
 		}
 	} else {
 		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
@@ -90,7 +90,7 @@ func GenerateTagsReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAcc
 		if now.Month() != time.January {
 			reportDate = fmt.Sprintf("%s%s", (now.Month() - 1).String(), strconv.Itoa(now.Year()))
 		} else {
-			reportDate = fmt.Sprintf("%s%s", time.December.String(), strconv.Itoa(now.Year() - 1))
+			reportDate = fmt.Sprintf("%s%s", time.December.String(), strconv.Itoa(now.Year()-1))
 		}
 	} else {
 		reportDate = fmt.Sprintf("%s%s", (date.Month()).String(), strconv.Itoa(date.Year()))
