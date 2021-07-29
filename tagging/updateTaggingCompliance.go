@@ -36,6 +36,7 @@ type ComplianceReport struct {
 	PartiallyTagged int64     `json:"partiallyTagged"`
 	NotTagged       int64     `json:"notTagged"`
 	MostUsedTagsId  string    `json:"mostUsedTagsId"`
+	MostUsedTags    []string  `json:"mostUsedTags"`
 }
 
 const invalidMostUsedTagsId = "-1"
@@ -66,6 +67,7 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 			TotallyTagged:   0,
 			PartiallyTagged: 0,
 			NotTagged:       count,
+			MostUsedTags:    mostUsedTags,
 			MostUsedTagsId:  mostUsedTagsId,
 			ReportDate:      time.Now().UTC(),
 		})
@@ -90,6 +92,7 @@ func UpdateTaggingComplianceForUser(ctx context.Context, userId int) error {
 		NotTagged:       untagged,
 		MostUsedTagsId:  mostUsedTagsId,
 		ReportDate:      time.Now().UTC(),
+		MostUsedTags:    mostUsedTags,
 	})
 }
 
