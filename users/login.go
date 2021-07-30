@@ -83,7 +83,7 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	token, err := generateToken(user)
 	if err == nil {
-		if err := updateLastSeen(user); err != nil {
+		if err = updateLastSeen(user); err != nil {
 			logger.Error("Could not update last seen for user.", map[string]interface{}{
 				"email": user.Email,
 				"err":   err,
