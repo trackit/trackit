@@ -17,6 +17,7 @@ package routes
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/trackit/jsonlog"
@@ -63,13 +64,11 @@ func routeGetMostUsedTagsHistory(r *http.Request, a routes.Arguments) (int, inte
 	dbRes, err := models.MostUsedTagsHistoryByUser(tx, u.Id)
 	if err != nil {
 		logger.Error("Could not fetch most used tags.", err.Error())
-		return http.StatusInternalServerError, nil
+		return http.StatusInternalServerError, err.Error()
 	}
 
 	if dbRes == nil {
-		return http.StatusInternalServerError, map[string]interface{}{
-			"error": "No history reports available.",
-		}
+		return http.StatusInternalServerError, errors.New("no history reports available")
 	}
 	history := make([]map[string]interface{}, 0)
 	for _, mut := range dbRes {

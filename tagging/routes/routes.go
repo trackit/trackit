@@ -61,8 +61,8 @@ func init() {
 			db.RequestTransaction{db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},
 			routes.Documentation{
-				Summary:     "get most used tags",
-				Description: "Responds with most used tags for a user.",
+				Summary:     "get most used tags history",
+				Description: "Responds with most used tags history of a user.",
 			},
 		),
 	}.H().Register("/tagging/mostusedtags-history")
