@@ -27,7 +27,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for resources tagging
+	// ResponseResources allows us to parse an ES response for resources tagging
 	ResponseResources struct {
 		Accounts struct {
 			Buckets []struct {

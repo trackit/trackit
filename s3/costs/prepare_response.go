@@ -108,7 +108,7 @@ func parseBuckets(buckets BucketsInfo, parsedDocument bucket, resultType string)
 		if isValidBucket(bucketName) {
 			bucketInfo := getBucketInfoByName(buckets, bucketName)
 			if resultTypePtr, ok := resultTypeToBucketCostGetter[resultType]; ok {
-				bucketInfo = resultTypePtr(bucketInfo, bucketData)
+				resultTypePtr(bucketInfo, bucketData)
 			}
 		}
 	}

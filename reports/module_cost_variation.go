@@ -217,7 +217,6 @@ func costVariationGenerateHeader(file *excelize.File, sheetName string, dates []
 		newColumnWidth(totalCol, 15),
 	}
 	columns.setValues(file, sheetName)
-	return
 }
 
 func costVariationFormatCostDiff(data []diff.PricePoint) (values costVariationProduct, err error) {

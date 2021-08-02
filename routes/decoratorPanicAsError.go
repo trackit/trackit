@@ -32,7 +32,7 @@ func (d PanicAsError) Decorate(h Handler) Handler {
 }
 
 // getFunc builds the handler function for PanicAsError.Decorate.
-func (_ PanicAsError) getFunc(hf HandlerFunc) HandlerFunc {
+func (PanicAsError) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, output interface{}) {
 		defer func() {
 			if rc := recover(); rc != nil {

@@ -71,7 +71,7 @@ type (
 		} `json:"buckets"`
 	}
 
-	// contain a product and his cost
+	// TagValue contains a product and its cost
 	TagValue struct {
 		Item string  `json:"item"`
 		Cost float64 `json:"cost"`
@@ -87,20 +87,19 @@ type (
 		UsageTypes []ValueDetailed `json:"usagetypes"`
 	}
 
-	// contain a tag and the list of products associated
+	// TagsValues contains a tag and the list of products associated
 	TagsValues struct {
 		Tag   string             `json:"tag"`
 		Costs []TagValue         `json:"costs,omitempty"`
 		Items []TagValueDetailed `json:"items,omitempty"`
 	}
 
-	// response format of the endpoint
+	// TagsValuesResponse is the response format of the endpoint
 	TagsValuesResponse map[string][]TagsValues
 )
 
 // GetTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
 func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryParams) (int, TagsValuesResponse, error) {
-	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTagsValuesDetailedResult
 	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
@@ -115,6 +114,8 @@ func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryPa
 		l.Error("Error while unmarshaling", err)
 		return http.StatusInternalServerError, nil, errors.GetErrorMessage(ctx, err)
 	}
+
+	var response TagsValuesResponse
 	if params.Detailed == true {
 		response = getTagsResponseDetailed(typedDocument, params)
 	} else {

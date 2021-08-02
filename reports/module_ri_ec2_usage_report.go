@@ -151,5 +151,4 @@ func riEc2ReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("L", 15).toColumn("M"),
 	}
 	columns.setValues(file, riEc2ReportSheetName)
-	return
 }

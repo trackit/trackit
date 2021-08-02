@@ -29,7 +29,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -46,7 +46,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for InstanceCount Monthly
+	// ResponseInstanceCountMonthly allows us to parse an ES response for InstanceCount Monthly
 	ResponseInstanceCountMonthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -61,7 +61,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for InstanceCount Daily
+	// ResponseInstanceCountDaily allows us to parse an ES response for InstanceCount Daily
 	ResponseInstanceCountDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -81,7 +81,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// InstanceCount is saved in ES to have all the information of an InstanceCount
+	// InstanceCountReport is saved in ES to have all the information of an InstanceCount
 	InstanceCountReport struct {
 		utils.ReportBase
 		InstanceCount InstanceCount `json:"instanceCount"`

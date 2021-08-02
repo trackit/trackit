@@ -34,7 +34,7 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 
 	// run query
 	XOLog(sqlstr, formattedIds)
-	accounts := make(map[int]AwsAccountStatus, 0)
+	accounts := make(map[int]AwsAccountStatus)
 
 	q, err := db.Query(sqlstr, formattedIds)
 	if err != nil {

@@ -134,7 +134,9 @@ func getAnomaliesFromEs(ctx context.Context, params AnomalyEsQueryParams) (esPro
 	for i, h := range sr.Hits.Hits {
 		typedDocuments[i].Id = h.Id
 		if b, err := h.Source.MarshalJSON(); err != nil {
+			logger.Error("Failed to marshal one of the documents", map[string]interface{}{"document": h.Source})
 		} else if err := json.Unmarshal(b, &typedDocuments[i].Source); err != nil {
+			logger.Error("Failed to unmarshal one of the documents", map[string]interface{}{"document": string(b)})
 		}
 	}
 	return typedDocuments, nil

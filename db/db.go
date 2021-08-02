@@ -20,6 +20,7 @@ import (
 	"log"
 	"time"
 
+	// We need the MySQL driver to register itself to be able to use database/sql properly
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/trackit/jsonlog"
 

@@ -87,6 +87,7 @@ func taskWorker(ctx context.Context) error {
 			continue
 		}
 
+		// TODO: Perhaps should avoid using built-in string type as key, so as to avoid collisions
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
 		if task, ok := tasks[message.TaskName]; ok {

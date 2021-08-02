@@ -71,7 +71,7 @@ func initAccountId(s *sts.STS) string {
 // AccountId returns the server's AWS account ID.
 func AccountId() string { return accountId }
 
-// GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
+// GetAwsAccountsFromUser returns a slice of all AWS accounts configured by a
 // given user.
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	var res []AwsAccount

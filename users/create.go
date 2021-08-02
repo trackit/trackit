@@ -42,7 +42,7 @@ const (
 )
 
 var (
-	ErrPasswordTooShort = errors.New(fmt.Sprintf("Password must be at least %u characters.", passwordMaxLength))
+	ErrPasswordTooShort = fmt.Errorf("Password must be at least %u characters.", passwordMaxLength)
 )
 
 func init() {

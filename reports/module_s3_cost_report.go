@@ -134,5 +134,4 @@ func s3CostReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("H", 20).toColumn("I"),
 	}
 	columns.setValues(file, s3CostReportSheetName)
-	return
 }

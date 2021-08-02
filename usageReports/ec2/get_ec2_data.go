@@ -116,7 +116,7 @@ func GetEc2Data(ctx context.Context, parsedParams Ec2QueryParams, user users.Use
 	returnCode, monthlyInstances, err := GetEc2MonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
+	} else if len(monthlyInstances) > 0 { // Note: len(nil) is 0
 		return returnCode, monthlyInstances, nil
 	}
 	returnCode, dailyInstances, err := GetEc2DailyInstances(ctx, parsedParams, user, tx)

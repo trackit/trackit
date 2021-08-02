@@ -87,7 +87,7 @@ func NewSignedHttpClientForElasticSearch(endpoint string, creds *credentials.Cre
 	return NewSignedHttpClient(creds, region, "es")
 }
 
-// NewSignedHttpCilent returns an http.Client which signs its requests with AWS
+// NewSignedHttpClient returns an http.Client which signs its requests with AWS
 // v4 signatures for the provided service name and region.
 func NewSignedHttpClient(creds *credentials.Credentials, region, service string) (*http.Client, error) {
 	signer := v4.NewSigner(creds)
