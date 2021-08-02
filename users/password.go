@@ -164,7 +164,7 @@ func resetPasswordWithValidBody(request *http.Request, body resetPasswordRequest
 	err = passwordMatchesHash(body.Token, forgottenPassword.Token)
 	delta := time.Now().Sub(forgottenPassword.Created)
 	expired := delta.Hours() > nbHoursValidityForgottenToken
-	if err != nil || expired == true {
+	if err != nil || expired {
 		logger.Warning("Invalid token", struct {
 			Token string `json:"token"`
 		}{body.Token})

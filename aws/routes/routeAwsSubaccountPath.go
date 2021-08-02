@@ -57,13 +57,13 @@ func patchAwsSubaccountWithValidBody(r *http.Request, tx *sql.Tx, user users.Use
 	}
 	awsAccount.RoleArn = body.RoleArn
 	awsAccount.External = body.External
-	if awsAccount.ParentId.Valid == false {
+	if !awsAccount.ParentId.Valid {
 		logger.Info("tried to edit an AWS account as a sub-account", awsAccount)
 		return 400, errors.New("not a sub-account.")
 	} else if awsAccount.External != user.NextExternal {
 		logger.Info("tried to edit AWS account with bad external", awsAccount)
 		return 400, errors.New("incorrect external.")
-	} else if testRoleIdentityMatch(awsAccount) == false {
+	} else if !testRoleIdentityMatch(awsAccount) {
 		logger.Info("role account id does not match aws identity", awsAccount)
 		return 400, errors.New("role account id does not match aws identity.")
 	} else if err := testAndUpdateSubaccount(ctx, tx, awsAccount, user); err == nil {

@@ -32,7 +32,7 @@ func updateExistingAccount(ctx context.Context, aa AwsAccount, subs []AwsAccount
 		return err
 	}
 	for _, exist := range exists {
-		if exist.ParentID.Valid == true {
+		if exist.ParentID.Valid {
 			continue
 		}
 		for _, sub := range subs {
