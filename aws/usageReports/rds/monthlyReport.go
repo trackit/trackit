@@ -47,7 +47,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 	for _, DBInstance := range instances.DBInstances {
 		tags := getInstanceTags(ctx, DBInstance, svc)
 		stats := getInstanceStats(ctx, DBInstance, sess, startDate, endDate)
-		costs := make(map[string]float64, 0)
+		costs := make(map[string]float64)
 		costs["instance"] = inst.Cost
 		instanceChan <- Instance{
 			InstanceBase: InstanceBase{

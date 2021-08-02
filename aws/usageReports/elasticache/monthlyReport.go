@@ -47,7 +47,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 	}
 	for _, cluster := range instances.CacheClusters {
 		stats := getInstanceStats(ctx, cluster, sess, startDate, endDate)
-		costs := make(map[string]float64, 0)
+		costs := make(map[string]float64)
 		costs[inst.Resource] = inst.Cost
 		tags := getClusterTags(ctx, cluster, svc, account, region)
 		instanceChan <- Instance{

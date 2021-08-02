@@ -54,7 +54,7 @@ func fetchMonthlyDomainsList(ctx context.Context, creds *credentials.Credentials
 		tags = getDomainTag(esTags.TagList)
 	}
 	stats := getDomainStats(ctx, *domain.DomainName, sess, start, end)
-	costs := make(map[string]float64, 0)
+	costs := make(map[string]float64)
 	costs["domain"] = dom.Cost
 	domainChan <- Domain{
 		DomainBase: DomainBase{
