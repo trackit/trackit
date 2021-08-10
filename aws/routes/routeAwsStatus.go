@@ -30,7 +30,7 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 		l.Error("failed to get AWS accounts' bill repositories", err.Error())
 		return 500, errors.New("failed to retrieve bill repositories")
 	}
-	// Code unneeded for now
+	// Code unneeded for now considering all it does is create an array and fill it with all the id data from the AWS stuff before proceeding to do nothing with it
 	/*
 	billRepositoriesIds := make([]int, 0)
 	for _, awsAccount := range awsAccountsWithBillRepositories {
