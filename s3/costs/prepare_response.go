@@ -106,9 +106,8 @@ func parseBuckets(buckets BucketsInfo, parsedDocument bucket, resultType string)
 		bucketName := bucketData["key"].(string)
 		// The billing data can contain billings for errored requests that we do not want to see
 		if isValidBucket(bucketName) {
-			bucketInfo := getBucketInfoByName(buckets, bucketName)
 			if resultTypePtr, ok := resultTypeToBucketCostGetter[resultType]; ok {
-				resultTypePtr(bucketInfo, bucketData)
+				resultTypePtr(getBucketInfoByName(buckets, bucketName), bucketData)
 			}
 		}
 	}
