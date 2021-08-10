@@ -16,8 +16,7 @@
 package models
 
 // AwsAccounts returns the set of aws account
-func AwsAccounts(db XODB) ([]*AwsAccount, error) {
-	var err error
+func AwsAccounts(db XODB) (res []*AwsAccount, err error) {
 	const sqlstr = `SELECT ` +
 		`id, user_id, pretty, role_arn, external, next_update, aws_identity ` +
 		`FROM trackit.aws_account`
@@ -26,8 +25,11 @@ func AwsAccounts(db XODB) ([]*AwsAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
-	var res []*AwsAccount
+	defer func() {
+                if closeErr := q.Close(); err == nil {
+                        err = closeErr
+                }
+        }()
 	for q.Next() {
 		aa := AwsAccount{
 			_exists: true,
@@ -41,8 +43,7 @@ func AwsAccounts(db XODB) ([]*AwsAccount, error) {
 	return res, nil
 }
 
-func AwsAccountsByParentId(db XODB, parentID int) ([]*AwsAccount, error) {
-	var err error
+func AwsAccountsByParentId(db XODB, parentID int) (res []*AwsAccount, err error) {
 	const sqlstr = `SELECT ` +
 		`id, user_id, pretty, role_arn, external, next_update, aws_identity, last_spreadsheet_report_generation ` +
 		`FROM trackit.aws_account ` +
@@ -52,8 +53,11 @@ func AwsAccountsByParentId(db XODB, parentID int) ([]*AwsAccount, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
-	var res []*AwsAccount
+	defer func() {
+                if closeErr := q.Close(); err == nil {
+                        err = closeErr
+                }
+        }()
 	for q.Next() {
 		aa := AwsAccount{
 			_exists: true,

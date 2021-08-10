@@ -91,7 +91,11 @@ func main() {
 	if config.Worker {
 		taskWorker(ctx)
 	} else if task, ok := tasks[config.Task]; ok {
-		task(ctx)
+		if err := task(ctx); err != nil {
+			logger.Error("Error while executing task", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 	} else {
 		knownTasks := make([]string, 0, len(tasks))
 		for k := range tasks {

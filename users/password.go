@@ -78,18 +78,30 @@ func init() {
 
 func cleanExpiredTokens() {
 	transaction, err := db.Db.BeginTx(context.Background(), nil)
+	logger := jsonlog.DefaultLogger
+	doErr := func(errString string) {
+		logger.Error(errString, map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 	if err == nil {
-		now := time.Now()
-		expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
-		models.DeleteExpiredForgottenPassword(transaction, expire)
 		defer func() {
 			rec := recover()
-			if rec != nil {
-				transaction.Rollback()
+			if rec != nil || err != nil {
+				if err = transaction.Rollback(); err != nil {
+					doErr("Failed to rollback expired forgotten password transaction")
+				}
 			} else {
-				transaction.Commit()
+				if err = transaction.Commit(); err != nil {
+					doErr("Failed to commit expired forgotten password transaction")
+				}
 			}
 		}()
+		now := time.Now()
+		expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
+		if err = models.DeleteExpiredForgottenPassword(transaction, expire); err != nil {
+			doErr("Failed to delete expired forgotten passwords")
+		}
 	}
 }
 

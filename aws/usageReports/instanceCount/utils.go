@@ -69,8 +69,10 @@ func importInstanceCountToEs(ctx context.Context, aa taws.AwsAccount, reports []
 		}
 		bp = utils.AddDocToBulkProcessor(bp, report, TypeInstanceCountReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put InstanceCount in ES", err.Error())
 		return err

@@ -144,9 +144,9 @@ func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli O
 	mck = getManifestKeys(ctx, mck)
 	mc := getManifests(ctx, s3svc, mck)
 	mc, lastManifestPromise := selectManifests(mp, mc)
-	es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
+	err = es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
 	importBills(ctx, s3svc, mc, oli, mp)
-	return <-lastManifestPromise, nil
+	return <-lastManifestPromise, err
 }
 
 // selectManifests returns a channel of all AWS manifest files which match
@@ -212,7 +212,13 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp Mani
 func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {
-		defer reader.Close()
+		defer func () {
+			if err := reader.Close(); err != nil {
+				jsonlog.LoggerFromContextOrDefault(ctx).Error("Error while closing bill file reader", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}()
 		defer close(out)
 		csvDecoder := csv.NewDecoder(reader)
 		for r := range records(ctx, &csvDecoder) {

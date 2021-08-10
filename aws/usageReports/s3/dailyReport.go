@@ -30,7 +30,7 @@ import (
 )
 
 // fetchOneRegion establishes a new API connection for the corresponding region and gets all the tags for all the buckets associated with it (passed through region_buckets
-func fetchOneRegion(ctx context.Context, creds *credentials.Credentials, region string, region_buckets []s3.Bucket, bucketChan chan Bucket) error {
+func fetchOneRegion(ctx context.Context, creds *credentials.Credentials, region string, region_buckets []s3.Bucket, bucketChan chan Bucket) {
 	defer close(bucketChan)
 	session := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -47,7 +47,6 @@ func fetchOneRegion(ctx context.Context, creds *credentials.Credentials, region 
 			Tags: getS3Tags(ctx, &bucket, service),
 		}
 	}
-	return nil
 }
 
 // getRegionBucketMap creates a map of regions (as strings) and all the buckets associated with it

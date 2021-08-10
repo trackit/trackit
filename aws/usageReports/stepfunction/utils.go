@@ -74,8 +74,10 @@ func importStepFunctionToEs(ctx context.Context, aa taws.AwsAccount, stepFunctio
 		}
 		bp = utils.AddDocToBulkProcessor(bp, stepFunction, TypeStepFunctionReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put StepFunctions in ES", err.Error())
 		return err

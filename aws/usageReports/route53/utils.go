@@ -73,8 +73,10 @@ func importRoute53ToEs(ctx context.Context, aa taws.AwsAccount, hostedZones []Ho
 		}
 		bp = utils.AddDocToBulkProcessor(bp, hostedZone, TypeRoute53Report, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put hostedZone in ES", err.Error())
 		return err

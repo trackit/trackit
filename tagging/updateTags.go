@@ -136,8 +136,10 @@ func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, user
 		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, destTypeName, destIndexName, documentID)
 	}
 
-	bulkProcessor.Flush()
-	err = bulkProcessor.Close()
+	err = bulkProcessor.Flush()
+	if closeErr := bulkProcessor.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed to put tagging reports in ES", err.Error())
 		return err
