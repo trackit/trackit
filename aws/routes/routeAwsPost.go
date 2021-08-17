@@ -114,18 +114,18 @@ func testAndCreateAwsAccount(ctx context.Context, tx *sql.Tx, account *aws.AwsAc
 // testAndCreateAwsAccountError is used to log errors in
 // testAndCreateAwsAccount.
 type testAndCreateAwsAccountError struct {
-	err     string         `json:"error"`
-	account aws.AwsAccount `json:"account"`
-	user    users.User     `json:"user"`
+	Err     string         `json:"error"`
+	Account aws.AwsAccount `json:"account"`
+	User    users.User     `json:"user"`
 }
 
 // newTestAndCreateAwsAccountError is used to log errors in
 // testAndCreateAwsAccount.
 func newTestAndCreateAwsAccountError(e error, a aws.AwsAccount, u users.User) testAndCreateAwsAccountError {
 	return testAndCreateAwsAccountError{
-		err:     e.Error(),
-		account: a,
-		user:    u,
+		Err:     e.Error(),
+		Account: a,
+		User:    u,
 	}
 }
 
