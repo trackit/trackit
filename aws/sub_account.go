@@ -27,7 +27,7 @@ import (
 )
 
 func updateExistingAccount(ctx context.Context, aa AwsAccount, subs []AwsAccount, tx *sql.Tx) error {
-	exists, err := models.AwsAccountsByUserID(tx, aa.UserId)
+	exists, err := models.AwsAccountByUserID(tx, aa.UserId)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func PutSubAccounts(ctx context.Context, account AwsAccount, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	alreadyAccounts, err := models.AwsAccountsByUserID(tx, account.UserId)
+	alreadyAccounts, err := models.AwsAccountByUserID(tx, account.UserId)
 	if err != nil {
 		return err
 	}

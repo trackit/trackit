@@ -156,7 +156,7 @@ func UpdateBillRepositoryWithoutContext(br BillRepository, db models.XODB) error
 // GetBillRepositoriesForAwsAccount retrieves from the database all the
 // BillRepositories for an AwsAccount.
 func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepository, error) {
-	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
+	dbAwsBillRepositories, err := models.AwsBillRepositoryByAwsAccountID(tx, aa.Id)
 	if err == nil {
 		out := make([]BillRepository, len(dbAwsBillRepositories))
 		for i := range out {

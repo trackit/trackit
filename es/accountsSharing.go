@@ -68,7 +68,7 @@ func (ai *AccountsAndIndexes) addIndex(index string) {
 func getAllAccountsAndIndexes(user users.User, tx *sql.Tx, indexPrefix string) (AccountsAndIndexes, int, error) {
 	accountsAndIndexes := AccountsAndIndexes{}
 	// Retrieve the user accounts and shared accounts
-	userAccounts, err := models.AwsAccountsByUserID(tx, user.Id)
+	userAccounts, err := models.AwsAccountByUserID(tx, user.Id)
 	if err != nil {
 		return accountsAndIndexes, http.StatusInternalServerError, fmt.Errorf("Unable to retrieve the list of accounts for current user: %s", err.Error())
 	}
@@ -109,7 +109,7 @@ func GetAccountsAndIndexes(accountList []string, user users.User, tx *sql.Tx, in
 		return accountsAndIndexes, http.StatusBadRequest, err
 	}
 	// Retrieve the user's accounts and shared accounts
-	userAccounts, err := models.AwsAccountsByUserID(tx, user.Id)
+	userAccounts, err := models.AwsAccountByUserID(tx, user.Id)
 	if err != nil {
 		return accountsAndIndexes, http.StatusInternalServerError, fmt.Errorf("Unable to retrieve the list of accounts for current user: %s", err.Error())
 	}

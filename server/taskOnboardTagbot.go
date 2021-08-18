@@ -85,7 +85,7 @@ func checkOnboardTagbotArguments(args []string) (int, error) {
 func onboardTagbotUser(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	accounts, err := models.AwsAccountsByUserID(db.Db, userId)
+	accounts, err := models.AwsAccountByUserID(db.Db, userId)
 	if err != nil {
 		return err
 	}
@@ -109,7 +109,6 @@ func registerOnboardTagbotTask(db *sql.DB, userId int) (models.UserOnboardTagbot
 	job := models.UserOnboardTagbotJob{
 		UserID:   userId,
 		WorkerID: backendId,
-		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)

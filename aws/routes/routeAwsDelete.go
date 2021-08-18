@@ -53,7 +53,7 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	accountToDeleteID := aa.Id
-	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
+	dbAwsBillRepositories, err := models.AwsBillRepositoryByAwsAccountID(tx, aa.Id)
 	if err != nil {
 		l.Error("unable to retrieve bill repositories", err.Error())
 	}

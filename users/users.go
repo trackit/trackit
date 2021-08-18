@@ -51,7 +51,6 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 		Email:                  email,
 		AwsCustomerIdentifier:  customerIdentifier,
 		AwsCustomerEntitlement: false,
-		Created:                time.Now(),
 		AccountType:            origin,
 	}
 	auth, err := getPasswordHash(password)
@@ -68,12 +67,23 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 }
 
 // CreateTagbotUser creates a tagbot user row associated with a trackit user
-func CreateTagbotUser(ctx context.Context, db models.XODB, userId int, awsCustomerIdentifier string) error {
+func CreateTagbotUser(ctx context.Context, db models.XODB, userId int, awsCustomerIdentifier string, discountCodeInfo *models.TagbotDiscountCode) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.TagbotUser{
 		UserID:                 userId,
 		AwsCustomerIdentifier:  awsCustomerIdentifier,
 		AwsCustomerEntitlement: false,
+	}
+	if discountCodeInfo != nil {
+		dbUser.DiscountCodeID = sql.NullInt64{
+			Valid: true,
+			Int64: int64(discountCodeInfo.ID),
+		}
+	}
+	if dbUser.DiscountCodeID.Valid {
+		dbUser.FreeTierEndAt = time.Now().AddDate(0, tagbotDiscountCodeTrialMonthsDuration, 0)
+	} else {
+		dbUser.FreeTierEndAt = time.Now().AddDate(0, 0, tagbotFreeTrialDaysDuration)
 	}
 	err := dbUser.Insert(db)
 	if err != nil {
@@ -116,7 +126,7 @@ func CreateUserWithParent(ctx context.Context, db models.XODB, email string, par
 }
 
 func GetUsersByParent(ctx context.Context, db models.XODB, parent User) ([]User, error) {
-	dbUsers, err := models.UsersByParentUserID(db, sql.NullInt64{int64(parent.Id), true})
+	dbUsers, err := models.UserByParentUserID(db, sql.NullInt64{Int64: int64(parent.Id), Valid: true})
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to get viewer users by their parent.", err.Error())

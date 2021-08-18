@@ -31,7 +31,7 @@ func GetLatestAccountUpdateJob(db XODB, accountId int) (*AwsAccountUpdateJob, er
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, accountId).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.MonthlyReportsGenerated)
+	err = db.QueryRow(sqlstr, accountId).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.JobError, &aauj.RdsError, &aauj.MonthlyReportsGenerated)
 	if err != nil {
 		return nil, err
 	}

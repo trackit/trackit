@@ -146,7 +146,7 @@ func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, f
 	if dbAccount.LastSpreadsheetReportGeneration.Before(endDate) {
 		return true, nil
 	}
-	dbProcessAccountJobs, err := models.AwsAccountUpdateJobsByAwsAccountID(db, aa.Id)
+	dbProcessAccountJobs, err := models.AwsAccountUpdateJobByAwsAccountID(db, aa.Id)
 	if err != nil {
 		logger.Info("Error while getting process account job", map[string]interface{}{
 			"awsAccountId": aa.Id,
@@ -207,14 +207,14 @@ func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId in
 	}
 	date := time.Now()
 	dbAccountReports.Completed = date
-	dbAccountReports.Joberror = errToStr(jobErr)
-	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
-	dbAccountReports.Costdifferror = errToStr(errs["costDiffError"])
-	dbAccountReports.Ec2usagereporterror = errToStr(errs["ec2UsageReportError"])
-	dbAccountReports.Rdsusagereporterror = errToStr(errs["rdsUsageReportError"])
-	dbAccountReports.Esusagereporterror = errToStr(errs["esUsageReportError"])
-	dbAccountReports.Elasticacheusagereporterror = errToStr(errs["elasticacheUsageReportError"])
-	dbAccountReports.Lambdausagereporterror = errToStr(errs["lambdaUsageReportError"])
+	dbAccountReports.JobError = errToStr(jobErr)
+	dbAccountReports.SpreadsheetError = errToStr(errs["speadsheetError"])
+	dbAccountReports.CostDiffError = errToStr(errs["costDiffError"])
+	dbAccountReports.Ec2usageReportError = errToStr(errs["ec2UsageReportError"])
+	dbAccountReports.RdsUsageReportError = errToStr(errs["rdsUsageReportError"])
+	dbAccountReports.EsUsageReportError = errToStr(errs["esUsageReportError"])
+	dbAccountReports.ElasticacheUsageReportError = errToStr(errs["elasticacheUsageReportError"])
+	dbAccountReports.LambdaUsageReportError = errToStr(errs["lambdaUsageReportError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err

@@ -142,9 +142,9 @@ func registerAccountTagsReportGenerationCompletion(db *sql.DB, aaId int, updateI
 	}
 	date := time.Now()
 	dbAccountReports.Completed = date
-	dbAccountReports.Joberror = errToStr(jobErr)
-	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
-	dbAccountReports.Tagsreporterror = errToStr(errs["tagsError"])
+	dbAccountReports.JobError = errToStr(jobErr)
+	dbAccountReports.SpreadsheetError = errToStr(errs["speadsheetError"])
+	dbAccountReports.TagsReportError = errToStr(errs["tagsError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err

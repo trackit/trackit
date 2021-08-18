@@ -181,14 +181,14 @@ func registerMasterAccountReportGenerationCompletion(db *sql.DB, aaId int, updat
 	}
 	date := time.Now()
 	dbAccountReports.Completed = date
-	dbAccountReports.Joberror = errToStr(jobErr)
-	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
-	dbAccountReports.Costdifferror = errToStr(errs["costDiffError"])
-	dbAccountReports.Ec2usagereporterror = errToStr(errs["ec2UsageReportError"])
-	dbAccountReports.Rdsusagereporterror = errToStr(errs["rdsUsageReportError"])
-	dbAccountReports.Esusagereporterror = errToStr(errs["esUsageReportError"])
-	dbAccountReports.Elasticacheusagereporterror = errToStr(errs["elasticacheUsageReportError"])
-	dbAccountReports.Lambdausagereporterror = errToStr(errs["lambdaUsageReportError"])
+	dbAccountReports.JobError = errToStr(jobErr)
+	dbAccountReports.SpreadsheetError = errToStr(errs["speadsheetError"])
+	dbAccountReports.CostDiffError = errToStr(errs["costDiffError"])
+	dbAccountReports.Ec2usageReportError = errToStr(errs["ec2UsageReportError"])
+	dbAccountReports.RdsUsageReportError = errToStr(errs["rdsUsageReportError"])
+	dbAccountReports.EsUsageReportError = errToStr(errs["esUsageReportError"])
+	dbAccountReports.ElasticacheUsageReportError = errToStr(errs["elasticacheUsageReportError"])
+	dbAccountReports.LambdaUsageReportError = errToStr(errs["lambdaUsageReportError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err

@@ -26,7 +26,7 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`aws_bill_repository_id, created, completed, error ` +
+		`aws_bill_repository_id, completed, error ` +
 		`FROM trackit.aws_account_status ` +
 		`WHERE aws_bill_repository_id IN (?)`
 
@@ -46,7 +46,6 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 		var id int
 		err = q.Scan(
 			&id,
-			&account.Created,
 			&account.Completed,
 			&account.Error)
 		if err != nil {

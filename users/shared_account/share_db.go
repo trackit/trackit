@@ -36,7 +36,7 @@ type SharedResults struct {
 func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]SharedResults, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	response := []SharedResults{}
-	dbSharedAccounts, err := models.SharedAccountsByAccountID(db, accountId)
+	dbSharedAccounts, err := models.SharedAccountByAccountID(db, accountId)
 	if err == sql.ErrNoRows {
 		return response, nil
 	} else if err != nil {

@@ -70,7 +70,7 @@ func isUserAccount(tx *sql.Tx, user users.User, aa int) (bool, error) {
 	if aaDB.UserID == user.Id {
 		return true, nil
 	}
-	saDB, err := models.SharedAccountsByAccountID(tx, aa)
+	saDB, err := models.SharedAccountByAccountID(tx, aa)
 	if err != nil {
 		return false, err
 	}

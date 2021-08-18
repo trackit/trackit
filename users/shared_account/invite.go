@@ -78,7 +78,7 @@ func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, gues
 		logger.Warning("User tries to share an account with the owner of the account", nil)
 		return false, errors.New("You can't share an account with this user")
 	}
-	dbSharedAccounts, err := models.SharedAccountsByUserID(db, guestId)
+	dbSharedAccounts, err := models.SharedAccountByUserID(db, guestId)
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {

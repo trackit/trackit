@@ -102,7 +102,6 @@ func registerUpdateTagsTask(db *sql.DB, userId int) (models.UserUpdateTagsJob, e
 	job := models.UserUpdateTagsJob{
 		UserID:   userId,
 		WorkerID: backendId,
-		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)
