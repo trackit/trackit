@@ -30,6 +30,25 @@ import (
 	"github.com/trackit/trackit/config"
 )
 
+// getCompleteHostedZoneList calls ListHostedZones repeatedly until all the zones have been fetched (this is required if the account contains more than 100 elements, as a single ListHostedZones can only return at most 100 zones)
+func getCompleteHostedZoneList(svc *route53.Route53) ([]*route53.HostedZone, error) {
+	listHostedZonesOutput, err := svc.ListHostedZones(nil)
+	if err != nil {
+		return nil, err
+	}
+	result := listHostedZonesOutput.HostedZones
+	for *listHostedZonesOutput.IsTruncated {
+		listHostedZonesOutput, err = svc.ListHostedZones(&route53.ListHostedZonesInput{
+			Marker: listHostedZonesOutput.NextMarker,
+		})
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, listHostedZonesOutput.HostedZones...)
+	}
+	return result, nil
+}
+
 // fetchDailyRoute53List sends in hostedZoneInfoChan the Hosted Zones fetched from ListHostedZones
 func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, region string, hostedZoneChan chan HostedZone) error {
 	defer close(hostedZoneChan)
@@ -39,12 +58,12 @@ func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, 
 		Region:      aws.String(region),
 	}))
 	svc := route53.New(sess)
-	hostedZones, err := svc.ListHostedZones(nil)
+	hostedZones, err := getCompleteHostedZoneList(svc)
 	if err != nil {
-		logger.Error("Error when describing Route53 HostedZones", err.Error())
+		logger.Error("Error when getting Route53 Hosted Zones list", err.Error())
 		return err
 	}
-	for _, hostedZone := range hostedZones.HostedZones {
+	for _, hostedZone := range hostedZones {
 		ss := strings.Split(aws.StringValue(hostedZone.Id), "/")
 		hostedZoneId := ss[len(ss) - 1]
 		hostedZoneChan <- HostedZone{
