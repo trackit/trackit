@@ -51,7 +51,7 @@ func taskCheckCost(ctx context.Context) error {
 	}
 }
 
-// prepareCheckCostForAccount retrieves all the informations needed to
+// prepareCheckCostForAccount retrieves all the information needed to
 // run a cost check for a given account
 func prepareCheckCostForAccount(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx

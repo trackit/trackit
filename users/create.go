@@ -146,7 +146,7 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	ctx := request.Context()
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	//Check legitimacy of the AWS Token and get user registration token
+	// Check legitimacy of the AWS Token and get user registration token
 	if body.AwsToken != "" {
 		var err error
 		result, err = checkAwsTokenLegitimacy(ctx, body.AwsToken)

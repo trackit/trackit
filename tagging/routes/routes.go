@@ -111,7 +111,7 @@ func init() {
 			routes.RequestBody{CreateCustomerRequestBody{"example@example.com"}},
 			routes.Documentation{
 				Summary:     "Create a stripe customer",
-				Description: "Responds with customer informations",
+				Description: "Responds with customer information",
 			},
 		),
 	}.H().Register("/tagging/create-customer")
@@ -124,7 +124,7 @@ func init() {
 			routes.RequestBody{CreateSubscriptionRequestBody{"pm_1HL9NKHPvmk5HTchutPljt1d", "cus_HuzN2Ie7ZFLvHC", "tagbot"}},
 			routes.Documentation{
 				Summary:     "Create stripe payment method",
-				Description: "Responds with payment method informations",
+				Description: "Responds with payment method information",
 			},
 		),
 	}.H().Register("/tagging/create-subscription")

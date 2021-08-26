@@ -146,7 +146,7 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 	if report, ok := diffData.(costDiff); ok {
 		return report, nil
 	}
-	logger.Error("An error occured while converting to diffData", nil)
+	logger.Error("An error occurred while converting to diffData", nil)
 	return nil, fmt.Errorf("Error when casting")
 }
 

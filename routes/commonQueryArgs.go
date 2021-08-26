@@ -82,7 +82,7 @@ var (
 	DateBeginQueryArg = QueryArg{
 		Name:        "begin",
 		Type:        QueryArgDate{},
-		Description: "Begining of date interval. Format is ISO8601",
+		Description: "Beginning of date interval. Format is ISO8601",
 		Optional:    false,
 	}
 
