@@ -242,7 +242,7 @@ ALTER TABLE aws_account_update_job ADD ec2Error VARCHAR(255) NOT NULL DEFAULT ""
 
 ALTER TABLE aws_bill_repository ADD grace_update DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";
 
---   Copyright 2017 MSolution.IO
+--   Copyright 2018 MSolution.IO
 --
 --   Licensed under the Apache License, Version 2.0 (the "License");
 --   you may not use this file except in compliance with the License.
