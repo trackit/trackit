@@ -77,31 +77,35 @@ func init() {
 }
 
 func cleanExpiredTokens() {
-	transaction, err := db.Db.BeginTx(context.Background(), nil)
+	var err error
 	logger := jsonlog.DefaultLogger
 	doErr := func(errString string) {
 		logger.Error(errString, map[string]interface{}{
 			"error": err.Error(),
 		})
 	}
-	if err == nil {
-		defer func() {
-			rec := recover()
-			if rec != nil || err != nil {
-				if err = transaction.Rollback(); err != nil {
-					doErr("Failed to rollback expired forgotten password transaction")
-				}
-			} else {
-				if err = transaction.Commit(); err != nil {
-					doErr("Failed to commit expired forgotten password transaction")
-				}
+
+	transaction, err := db.Db.BeginTx(context.Background(), nil)
+	if err != nil {
+		doErr("Failed to begin expired forgotten password transaction")
+		return
+	}
+	defer func() {
+		rec := recover()
+		if rec != nil || err != nil {
+			if err = transaction.Rollback(); err != nil {
+				doErr("Failed to rollback expired forgotten password transaction")
 			}
-		}()
-		now := time.Now()
-		expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
-		if err = models.DeleteExpiredForgottenPassword(transaction, expire); err != nil {
-			doErr("Failed to delete expired forgotten passwords")
+		} else {
+			if err = transaction.Commit(); err != nil {
+				doErr("Failed to commit expired forgotten password transaction")
+			}
 		}
+	}()
+	now := time.Now()
+	expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
+	if err = models.DeleteExpiredForgottenPassword(transaction, expire); err != nil {
+		doErr("Failed to delete expired forgotten passwords")
 	}
 }
 
