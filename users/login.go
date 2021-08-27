@@ -73,7 +73,7 @@ func logInWithValidBody(request *http.Request, body loginRequestBody, tx *sql.Tx
 		logger.Warning("Authentication failure.", struct {
 			Email string `json:"user"`
 		}{user.Email})
-		return 403, errors.New("The username or password is incorrect. Try again.")
+		return http.StatusForbidden, errors.New("The username or password is incorrect. Try again.")
 	}
 }
 
@@ -90,20 +90,20 @@ func logAuthenticatedUserIn(request *http.Request, user User) (int, interface{})
 			})
 		}
 		logger.Info("User logged in.", user)
-		return 200, loginResponseBody{
+		return http.StatusOK, loginResponseBody{
 			User:  user,
 			Token: token,
 		}
 	} else {
 		logger.Error("Failed to generate token.", err.Error())
-		return 500, errors.New("Failed to generate token.")
+		return http.StatusInternalServerError, errors.New("Failed to generate token.")
 	}
 }
 
 // TestToken tests a token's validity. For a valid token, it returns the user
 // the token belongs to.
 func me(request *http.Request, a routes.Arguments) (int, interface{}) {
-	return 200, a[AuthenticatedUser].(User)
+	return http.StatusOK, a[AuthenticatedUser].(User)
 }
 
 // updateLastSeen update the last seen datetime in the database

@@ -53,30 +53,30 @@ func patchAwsSubaccountWithValidBody(r *http.Request, tx *sql.Tx, user users.Use
 	awsAccount, err := aws.GetAwsAccountWithIdFromUser(user, id, tx)
 	if err != nil {
 		logger.Warning("failed to get user's AWS accounts", err.Error())
-		return 400, errors.New("failed to retrieve AWS accounts.")
+		return http.StatusBadRequest, errors.New("failed to retrieve AWS accounts.")
 	}
 	awsAccount.RoleArn = body.RoleArn
 	awsAccount.External = body.External
 	if awsAccount.ParentId.Valid == false {
 		logger.Info("tried to edit an AWS account as a sub-account", awsAccount)
-		return 400, errors.New("not a sub-account.")
+		return http.StatusBadRequest, errors.New("not a sub-account.")
 	} else if awsAccount.External != user.NextExternal {
 		logger.Info("tried to edit AWS account with bad external", awsAccount)
-		return 400, errors.New("incorrect external.")
+		return http.StatusBadRequest, errors.New("incorrect external.")
 	} else if testRoleIdentityMatch(awsAccount) == false {
 		logger.Info("role account id does not match aws identity", awsAccount)
-		return 400, errors.New("role account id does not match aws identity.")
+		return http.StatusBadRequest, errors.New("role account id does not match aws identity.")
 	} else if err := testAndUpdateSubaccount(ctx, tx, awsAccount, user); err == nil {
-		return 200, awsAccount
+		return http.StatusOK, awsAccount
 	} else {
 		switch err {
 		case errInvalidAccount:
-			return 400, err
+			return http.StatusBadRequest, err
 		default:
-			return 500, err
+			return http.StatusInternalServerError, err
 		}
 	}
-	return 200, nil
+	return http.StatusOK, nil
 }
 
 // testRoleIdentityMatch checks that the account id in the role matches the aws identity

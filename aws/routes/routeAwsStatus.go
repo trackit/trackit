@@ -23,12 +23,12 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 	awsAccounts, err := aws.GetAwsAccountsFromUser(u, tx)
 	if err != nil {
 		l.Error("failed to get user's AWS accounts", err.Error())
-		return 500, errors.New("failed to retrieve AWS accounts")
+		return http.StatusInternalServerError, errors.New("failed to retrieve AWS accounts")
 	}
 	awsAccountsWithBillRepositories, err = s3.WrapAwsAccountsWithBillRepositories(awsAccounts, tx)
 	if err != nil {
 		l.Error("failed to get AWS accounts' bill repositories", err.Error())
-		return 500, errors.New("failed to retrieve bill repositories")
+		return http.StatusInternalServerError, errors.New("failed to retrieve bill repositories")
 	}
 	billRepositoriesIds := make([]int, 0)
 	for _, awsAccount := range awsAccountsWithBillRepositories {
@@ -37,5 +37,5 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 		}
 	}
 	result := s3.WrapAwsAccountsWithBillRepositoriesWithPendingWithStatus(awsAccountsWithBillRepositories, tx)
-	return 200, result
+	return http.StatusOK, result
 }

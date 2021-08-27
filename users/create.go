@@ -151,7 +151,7 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 		var err error
 		result, err = checkAwsTokenLegitimacy(ctx, body.AwsToken)
 		if err != nil {
-			return 409, errors.New("Fail to check the AWS token")
+			return http.StatusConflict, errors.New("Fail to check the AWS token")
 		}
 		awsCustomer := result.CustomerIdentifier
 		awsCustomerConvert = *awsCustomer
@@ -161,11 +161,11 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	} else if body.Origin == "trackit" {
 		code, resp = createUserWithValidBody(request, body, tx, awsCustomerConvert)
 	} else {
-		return 400, errors.New("Can't create a user with " + body.Origin + " as AccountType. Unknown Origin.")
+		return http.StatusBadRequest, errors.New("Can't create a user with " + body.Origin + " as AccountType. Unknown Origin.")
 	}
 	// Add the default role to the new account. No error is returned in case of failure
 	// The billing repository is not processed instantly
-	if code == 200 && config.DefaultRole != "" && config.DefaultRoleName != "" &&
+	if code == http.StatusOK && config.DefaultRole != "" && config.DefaultRoleName != "" &&
 		config.DefaultRoleExternal != "" && config.DefaultRoleBucket != "" {
 		addDefaultRole(request, resp.(User), tx)
 	}
@@ -185,14 +185,14 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 				"err":     err.Error(),
 			})
 		}
-		return 200, user
+		return http.StatusOK, user
 	} else {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
-			return 409, errors.New("Account already exists.")
+			return http.StatusConflict, errors.New("Account already exists.")
 		} else {
-			return 500, errors.New("Failed to create user.")
+			return http.StatusInternalServerError, errors.New("Failed to create user.")
 		}
 	}
 }
@@ -204,7 +204,7 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 	if err == nil {
 		logger.Info("User created.", user)
 		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
-			return 500, errors.New("Failed to create user.")
+			return http.StatusInternalServerError, errors.New("Failed to create user.")
 		}
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
@@ -213,14 +213,14 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 				"err":     err.Error(),
 			})
 		}
-		return 200, user
+		return http.StatusOK, user
 	} else {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
-			return 409, errors.New("Account already exists.")
+			return http.StatusConflict, errors.New("Account already exists.")
 		} else {
-			return 500, errors.New("Failed to create user.")
+			return http.StatusInternalServerError, errors.New("Failed to create user.")
 		}
 	}
 }
@@ -245,15 +245,15 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	tokenHash, err := getPasswordHash(token)
 	if err != nil {
 		logger.Error("Failed to create token hash.", err.Error())
-		return 500, errors.New("Failed to create token hash")
+		return http.StatusInternalServerError, errors.New("Failed to create token hash")
 	}
 	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
 	if err != nil {
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
-			return 409, errors.New("Email already taken.")
+			return http.StatusConflict, errors.New("Email already taken.")
 		} else {
-			return 500, errors.New("Failed to create viewer user.")
+			return http.StatusInternalServerError, errors.New("Failed to create viewer user.")
 		}
 	}
 	response := createViewerUserResponseBody{
@@ -268,14 +268,14 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	err = dbForgottenPassword.Insert(tx)
 	if err != nil {
 		logger.Error("Failed to insert viewer password token in database.", err.Error())
-		return 500, errors.New("Failed to create viewer password token")
+		return http.StatusInternalServerError, errors.New("Failed to create viewer password token")
 	}
 	mailSubject := "Your TrackIt viewer password"
 	mailBody := fmt.Sprintf("Please follow this link to create your password: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
 	err = mail.SendMail(viewerUser.Email, mailSubject, mailBody, request.Context())
 	if err != nil {
 		logger.Error("Failed to send viewer password email.", err.Error())
-		return 500, errors.New("Failed to send viewer password email")
+		return http.StatusInternalServerError, errors.New("Failed to send viewer password email")
 	}
 	return http.StatusOK, response
 }

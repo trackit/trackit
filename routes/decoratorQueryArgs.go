@@ -208,7 +208,7 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 }
 
 // Decorate is the function called to apply the decorators to an endpoint. It returns
-// a function. This function produces a 400 error code with a json error message or
+// a function. This function produces a 400 Bad Request error code with a json error message or
 // calls the next IntermediateHandler.
 // The goal of this function is to get the URL parameters to store them in
 // the Arguments.
