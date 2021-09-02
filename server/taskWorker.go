@@ -123,7 +123,11 @@ func taskWorker(ctx context.Context) error {
 			logsBuffer.Reset()
 			_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
 		}
-		db.Close()
+		if err := db.Close(); err != nil {
+			logger.Error("Could not close connection to database.", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 	}
 }
 

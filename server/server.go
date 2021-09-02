@@ -86,6 +86,13 @@ var dockerHostnameRe = regexp.MustCompile(`[0-9a-z]{12}`)
 func main() {
 	ctx := context.Background()
 	logger := jsonlog.DefaultLogger
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error("Could not close connection to database.", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
+	}()
 	logger.Info("Started.", struct {
 		BackendId string `json:"backendId"`
 	}{backendId})
@@ -103,7 +110,6 @@ func main() {
 			"chosen":     config.Task,
 		})
 	}
-	db.Close()
 }
 
 var sched periodic.Scheduler

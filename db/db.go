@@ -46,8 +46,8 @@ func OpenWorker() error {
 }
 
 // Close shutdowns the database connection
-func Close() {
-	Db.Close()
+func Close() error {
+	return Db.Close()
 }
 
 func init() {
