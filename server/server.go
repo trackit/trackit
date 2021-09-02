@@ -33,6 +33,7 @@ import (
 	_ "github.com/trackit/trackit/costs/anomalies"
 	_ "github.com/trackit/trackit/costs/diff"
 	_ "github.com/trackit/trackit/costs/tags"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/periodic"
 	_ "github.com/trackit/trackit/plugins"
 	_ "github.com/trackit/trackit/reports"
@@ -102,6 +103,7 @@ func main() {
 			"chosen":     config.Task,
 		})
 	}
+	db.Close()
 }
 
 var sched periodic.Scheduler

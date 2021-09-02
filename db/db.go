@@ -33,7 +33,26 @@ const (
 
 var Db *sql.DB
 
+// OpenWorker setups the database connection for a worker and verifies it
+func OpenWorker() error {
+	if err := initDb(); err != nil {
+		return err
+	}
+	if err := attemptDbConnection(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Close shutdowns the database connection
+func Close() {
+	Db.Close()
+}
+
 func init() {
+	if config.Worker {
+		return
+	}
 	fatalIfError(initDb())
 	fatalIfError(attemptDbConnection())
 	Db.SetMaxIdleConns(0)
