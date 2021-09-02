@@ -41,6 +41,7 @@ func OpenWorker() error {
 	if err := attemptDbConnection(); err != nil {
 		return err
 	}
+	Db.SetMaxIdleConns(0)
 	return nil
 }
 
