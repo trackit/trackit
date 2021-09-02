@@ -92,6 +92,7 @@ func taskWorker(ctx context.Context) error {
 			logger.Error("Database is not reachable.", map[string]interface{}{
 				"error": err.Error(),
 			})
+			_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*visibilityTimeoutTaskFailedInMinutes)
 			continue
 		}
 
