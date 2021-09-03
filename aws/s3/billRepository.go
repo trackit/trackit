@@ -90,12 +90,6 @@ func init() {
 	).Register("/aws/billrepository")
 }
 
-const (
-	reportUpdateInterval        = 12 * time.Hour
-	reportUpdateVariationAfter  = 6 * time.Hour
-	reportUpdateVariationBefore = 2 * time.Hour
-)
-
 // BillRepository is a location where the server may look for bill objects.
 type BillRepository struct {
 	Id                   int       `json:"id"`

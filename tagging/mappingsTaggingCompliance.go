@@ -23,8 +23,6 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const typeTaggingCompliance = "tagging-compliance"
-const indexPrefixTaggingCompliance = "tagging-compliance"
 const templateNameTaggingCompliance = "tagging-compliance"
 
 // put the ElasticSearch index for *-tagging-compliance indices at startup.

@@ -21,15 +21,6 @@ import (
 	"github.com/olivere/elastic"
 )
 
-// paramAggrAndName is a structure containing the name of the parameter and
-// corresponding aggregation. A parameter is a string that is passed to the
-// GetElasticSearchParams and represents an aggregation. A list of those
-// parameters can be found in the paramNameToFuncPtr map.
-type paramAggrAndName struct {
-	name string
-	aggr elastic.Aggregation
-}
-
 // aggregationMaxSize is the maximum size of an Elastic Search Aggregation
 const aggregationMaxSize = 0x7FFFFFFF
 

@@ -170,11 +170,9 @@ func intArrayToSqlSet(integers []int) string {
 // The result is filtered by a slice of accountID
 func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) ([]aws.AwsAccount, error) {
 	var err error
-	var stringAccountIDs []string
 
 	// gen account_id
-	stringAccountIDs = intArrayToStringArray(accountIDs)
-	accountID := "(" + strings.Join(stringAccountIDs, ",") + ")"
+	accountID := intArrayToSqlSet(accountIDs)
 
 	// sql query
 	var sqlstr = `SELECT ` +

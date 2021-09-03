@@ -23,7 +23,6 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const typeTaggingReport = "tagging-reports"
 const IndexPrefixTaggingReport = "tagging-reports"
 const templateNameTaggingReport = "tagging-reports"
 

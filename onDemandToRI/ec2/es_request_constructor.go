@@ -29,8 +29,6 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const maxAggregationSize = 0x7FFFFFFF
-
 type (
 	// RiEc2QueryParams will store the parsed query params
 	RiEc2QueryParams struct {

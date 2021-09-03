@@ -2,7 +2,6 @@ package anomalyFilters
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/trackit/trackit/costs/anomalies/anomalyType"
 )
@@ -27,29 +26,6 @@ var (
 func registerFilter(filterName string, filter genericFilter) {
 	filters[filterName] = filter
 	filtersName[filter] = filterName
-}
-
-// genericValidDate is a generic validation function to validate a date.
-func genericValidDate(filter genericFilter, data interface{}) error {
-	if typed, ok := data.(string); !ok {
-		return fmt.Errorf("%s: not a string", filtersName[filter])
-	} else if _, err := time.Parse("2006-01-02T15:04:05.000Z", typed); err != nil {
-		return fmt.Errorf("%s: not a date", filtersName[filter])
-	}
-	return nil
-}
-
-// genericValidUnsignedInteger is a generic validation function to validate
-// an unsigned integer.
-func genericValidUnsignedInteger(filter genericFilter, data interface{}) error {
-	if typed, ok := data.(float64); !ok {
-		return fmt.Errorf("%s: not a number", filtersName[filter])
-	} else if typed < 0 {
-		return fmt.Errorf("%s: not a positive number", filtersName[filter])
-	} else if typed != float64(int64(typed)) {
-		return fmt.Errorf("%s: not an integer", filtersName[filter])
-	}
-	return nil
 }
 
 // genericValidUnsignedIntegerArray is a generic validation function to

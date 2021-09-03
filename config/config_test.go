@@ -18,6 +18,10 @@ import (
 	"testing"
 )
 
+const (
+	envVarPrefix = "TRACKIT"
+)
+
 func TestIdentifierToEnvVarName(t *testing.T) {
 	cases := [][2]string{
 		[2]string{"HttpAddress", envVarPrefix + "_HTTP_ADDRESS"},

@@ -73,6 +73,7 @@ func (c cell) addConditionalFormat(name string, styles ...string) cell {
 	return c
 }
 
+/*
 func (c cell) addCustomConditionalFormat(condition string, styles ...string) cell {
 	c.conditionalFormats = append(c.conditionalFormats, conditionalFormat{condition, true, styles})
 	return c
@@ -91,6 +92,7 @@ func (cs cells) addCustomConditionalFormat(condition string, styles ...string) c
 	}
 	return cs
 }
+*/
 
 func (cs cells) setValues(file *excelize.File, sheet string) {
 	for _, cell := range cs {
