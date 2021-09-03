@@ -46,6 +46,8 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	for _, DBInstance := range instances.ReservedDBInstances {
 		tags := getInstanceTags(ctx, DBInstance, svc)
 		charges := getRecurringCharges(DBInstance)
+		startTime := aws.TimeValue(DBInstance.StartTime)
+		endDate := startTime.AddDate(1, 0, 0)
 		InstanceChan <- Instance{
 			InstanceBase: InstanceBase{
 				DBInstanceIdentifier: aws.StringValue(DBInstance.ReservedDBInstanceId),
@@ -58,7 +60,8 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				ProductDescription:   aws.StringValue(DBInstance.ProductDescription),
 				OfferingType:         aws.StringValue(DBInstance.OfferingType),
 				State:                aws.StringValue(DBInstance.State),
-				StartTime:            aws.TimeValue(DBInstance.StartTime),
+				StartTime:            startTime,
+				EndTime:              endDate,
 				RecurringCharges:     charges,
 			},
 			Tags: tags,

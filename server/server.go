@@ -47,7 +47,7 @@ import (
 	_ "github.com/trackit/trackit/usageReports/lambda"
 	_ "github.com/trackit/trackit/usageReports/rds"
 	_ "github.com/trackit/trackit/usageReports/riEc2"
-	_ "github.com/trackit/trackit/usageReports/riRds"
+	_ "github.com/trackit/trackit/usageReports/riRDS"
 	_ "github.com/trackit/trackit/users"
 	_ "github.com/trackit/trackit/users/shared_account"
 )
