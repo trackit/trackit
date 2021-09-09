@@ -42,7 +42,7 @@ const numPartition = 5
 var ErrBillingDataIncomplete = errors.New("Billing data are not completed")
 
 type (
-	// structures that allows to parse ES result
+	// EsRegionPerResourceResult allows us to parse ES results
 	EsRegionPerResourceResult struct {
 		Resources struct {
 			Buckets []struct {
@@ -239,7 +239,7 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (
 	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
 		return false, err
-	} else if complete == false {
+	} else if !complete {
 		logger.Info("Billing data are not completed", nil)
 		return false, ErrBillingDataIncomplete
 	}

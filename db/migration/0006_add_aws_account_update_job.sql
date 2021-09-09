@@ -15,7 +15,7 @@
 CREATE TABLE aws_account_update_job (
 	id                     INTEGER      NOT NULL AUTO_INCREMENT,
 	created                TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	aws_account_id 				 INTEGER      NOT NULL,
+	aws_account_id         INTEGER      NOT NULL,
 	completed              TIMESTAMP    NOT NULL DEFAULT 0,
 	worker_id              VARCHAR(255) NOT NULL,
 	jobError               VARCHAR(255) NOT NULL DEFAULT "",

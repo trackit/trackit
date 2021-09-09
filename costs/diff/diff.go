@@ -40,7 +40,7 @@ type costDiff map[string][]PricePoint
 func (cd costDiff) ToCSVable() [][]string {
 	csv := [][]string{}
 	keys := []string{}
-	for k, _ := range cd {
+	for k := range cd {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)

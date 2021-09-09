@@ -30,12 +30,12 @@ const TemplateNameReservedInstancesReport = "ri-ec2-reports"
 // put the ElasticSearch index for *-ri-ec2-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameReservedInstancesReport).BodyString(TemplateLineItem).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index ReservedInstancesReport.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index ReservedInstancesReport.", res)
-		ctxCancel()
 	}
 }
 

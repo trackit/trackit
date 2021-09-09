@@ -3,9 +3,7 @@ package models
 import "time"
 
 // GetUnusedAccounts returns all user not seen for the duration passed in arguments
-func GetUnusedAccounts(db XODB, unseenFor time.Duration) ([]*User, error) {
-	var err error
-
+func GetUnusedAccounts(db XODB, unseenFor time.Duration) (res []*User, err error) {
 	limitTime := time.Now().Add(-unseenFor)
 
 	// sql query
@@ -20,10 +18,14 @@ func GetUnusedAccounts(db XODB, unseenFor time.Duration) ([]*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// load results
-	res := []*User{}
+	res = []*User{}
 	for q.Next() {
 		u := User{
 			_exists: true,

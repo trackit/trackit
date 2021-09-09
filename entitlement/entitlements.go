@@ -28,12 +28,12 @@ type entitlementConfig struct {
 }
 
 var entitlementConfigs = []entitlementConfig{
-	entitlementConfig{
+	{
 		getUserEntitlementMarketplace,
 		updateUserEntitlementMarketplace,
 		"Marketplace",
 	},
-	entitlementConfig{
+	{
 		getUserEntitlementTagbotMarketplace,
 		updateUserEntitlementTagbotMarketplace,
 		"Marketplace for Tagbot",

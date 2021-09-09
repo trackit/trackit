@@ -30,12 +30,12 @@ const TemplateNameInstanceCountReport = "instancecount-reports"
 // put the ElasticSearch index for *-instanceCount-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameInstanceCountReport).BodyString(TemplateInstanceCountReport).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index InstanceCountReport.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index InstanceCountReport.", res)
-		ctxCancel()
 	}
 }
 

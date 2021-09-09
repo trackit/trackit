@@ -19,8 +19,8 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/trackit/jsonlog"
 	"github.com/stripe/stripe-go/v72/paymentmethod"
+	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/models"
@@ -43,27 +43,27 @@ func routeGetStripeCustomerInformation(request *http.Request, a routes.Arguments
 		return http.StatusInternalServerError, errors.New("Failed to get Tagbot user with id")
 	}
 
-	if (dbUser.AwsCustomerEntitlement || dbUser.StripeCustomerEntitlement) {
+	if dbUser.AwsCustomerEntitlement || dbUser.StripeCustomerEntitlement {
 		isSubscribed = true
 	}
-	if (dbUser.StripePaymentMethodIdentifier != "") {
+	if dbUser.StripePaymentMethodIdentifier != "" {
 		pm, err := paymentmethod.Get(dbUser.StripePaymentMethodIdentifier, nil)
 		if err != nil {
 			l.Error("Failed to get stripe customer payment method", err)
 			return http.StatusInternalServerError, err
 		}
 		return http.StatusOK, map[string]interface{}{
-			"customerId": dbUser.StripeCustomerIdentifier,
+			"customerId":     dbUser.StripeCustomerIdentifier,
 			"subscriptionId": dbUser.StripeSubscriptionIdentifier,
-			"paymentMethod": pm,
-			"isSubscribed": isSubscribed,
+			"paymentMethod":  pm,
+			"isSubscribed":   isSubscribed,
 		}
 	}
 
 	return http.StatusOK, map[string]interface{}{
-		"customerId": dbUser.StripeCustomerIdentifier,
+		"customerId":     dbUser.StripeCustomerIdentifier,
 		"subscriptionId": dbUser.StripeSubscriptionIdentifier,
-		"paymentMethod": dbUser.StripePaymentMethodIdentifier,
-		"isSubscribed": isSubscribed,
+		"paymentMethod":  dbUser.StripePaymentMethodIdentifier,
+		"isSubscribed":   isSubscribed,
 	}
 }
