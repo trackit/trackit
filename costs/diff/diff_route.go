@@ -45,8 +45,8 @@ type usageType = map[string]interface{}
 // validAggregationPeriodMap is a map that defines the aggregation period
 // accepted by the diff route
 var validAggregationPeriodMap = map[string]struct{}{
-	"month": struct{}{},
-	"week":  struct{}{},
+	"month": {},
+	"week":  {},
 }
 
 // esQueryParams will store the parsed query params
@@ -63,7 +63,7 @@ var diffQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
-	routes.QueryArg{
+	{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation. Possible values are month, week",
 		Type:        routes.QueryArgString{},

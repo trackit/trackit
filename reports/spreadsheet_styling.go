@@ -27,16 +27,16 @@ var stylesRaw = map[string]string{
 							{"type": "right", "color": "#000000", "style": 1},
 							{"type": "top", "color": "#000000", "style": 1},
 							{"type": "bottom", "color": "#000000", "style": 1}]}`,
-	"bold": `{"font": {"bold": true}}`,
+	"bold":       `{"font": {"bold": true}}`,
 	"centerText": `{"alignment": {"horizontal": "center", "vertical": "center"}}`,
-	"price": `{"number_format": 176, "decimal_places": 3}`,
+	"price":      `{"number_format": 176, "decimal_places": 3}`,
 	"percentage": `{"number_format": 10}`,
-	"green": `{"font": {"color": "#006600"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#CCFFCC"]}}`,
-	"orange": `{"font": {"color": "#C65911"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#F8CBAD"]}}`,
-	"red": `{"font": {"color": "#CC0000"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#FFCCCC"]}}`,
+	"green":      `{"font": {"color": "#006600"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#CCFFCC"]}}`,
+	"orange":     `{"font": {"color": "#C65911"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#F8CBAD"]}}`,
+	"red":        `{"font": {"color": "#CC0000"}, "fill": {"type": "pattern", "pattern": 1, "color": ["#FFCCCC"]}}`,
 }
 
-func getStyleId(file *excelize.File, styles []string) (int, error){
+func getStyleId(file *excelize.File, styles []string) (int, error) {
 	name := strings.Join(styles, "")
 	if id, ok := stylesList[name]; ok {
 		return id, nil
