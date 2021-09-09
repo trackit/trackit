@@ -99,7 +99,7 @@ type (
 func addUnreservedInstance(unreservedInstances []InstancesSpecs, instanceReport ec2.InstanceReport) []InstancesSpecs {
 	for i, unreservedInstance := range unreservedInstances {
 		if instanceMatchSpecs(instanceReport, unreservedInstance) {
-			unreservedInstances[i].InstanceCount += 1
+			unreservedInstances[i].InstanceCount++
 			return unreservedInstances
 		}
 	}

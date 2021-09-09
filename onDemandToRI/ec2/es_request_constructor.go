@@ -38,7 +38,7 @@ type (
 		DateEnd     time.Time
 	}
 
-	// Structure that allow to parse ES response for RI EC2 reports
+	// ResponseRiEc2Reports allows us to parse ES response for RI EC2 reports
 	ResponseRiEc2Reports struct {
 		Accounts struct {
 			Buckets []struct {

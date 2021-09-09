@@ -31,7 +31,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -48,7 +48,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ElastiCache Monthly instances
+	// ResponseElastiCacheMonthly allows us to parse an ES response for ElastiCache Monthly instances
 	ResponseElastiCacheMonthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -63,7 +63,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ElastiCache Daily instances
+	// ResponseElastiCacheDaily allows us to parse an ES response for ElastiCache Daily instances
 	ResponseElastiCacheDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -99,7 +99,7 @@ type (
 )
 
 func getElastiCacheInstanceReportResponse(oldInstance elasticache.InstanceReport) InstanceReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string, len(oldInstance.Instance.Tags))
 	for _, tag := range oldInstance.Instance.Tags {
 		tags[tag.Key] = tag.Value
 	}
@@ -118,7 +118,7 @@ func getElastiCacheInstanceReportResponse(oldInstance elasticache.InstanceReport
 // addCostToInstance adds a cost for an instance based on billing data
 func addCostToInstance(instance elasticache.InstanceReport, costs ResponseCost) elasticache.InstanceReport {
 	if instance.Instance.Costs == nil {
-		instance.Instance.Costs = make(map[string]float64, 0)
+		instance.Instance.Costs = make(map[string]float64)
 	}
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != instance.Account {

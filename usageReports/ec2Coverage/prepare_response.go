@@ -27,7 +27,7 @@ import (
 )
 
 type (
-	// Structure that allow to parse ES response for EC2 Coverage Monthly report
+	// ResponseEc2CoverageMonthly allows us to parse an ES response for EC2 Coverage Monthly report
 	ResponseEc2CoverageMonthly struct {
 		Accounts struct {
 			Buckets []struct {

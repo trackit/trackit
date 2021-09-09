@@ -79,11 +79,7 @@ func checkPopup(dbUser *models.TagbotUser, customer *models.User) (int, interfac
 	}
 }
 
+// checkUserTagbotFreeTrial returns whether the time since the creation date exceeds the duration of a TagBot free trial
 func checkUserTagbotFreeTrial(creationDate time.Time) bool {
-	currentTime := time.Now()
-	timeSinceCreation := currentTime.Sub(creationDate)
-	if timeSinceCreation > tagbotFreeTrialDuration {
-		return false
-	}
-	return true
+	return time.Since(creationDate) <= tagbotFreeTrialDuration
 }

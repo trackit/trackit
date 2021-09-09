@@ -302,7 +302,7 @@ func processAccountS3(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountCloudFormation processes all the S3 data for an AwsAccount
+// processAccountCloudFormation processes all the CloudFormation data for an AwsAccount
 func processAccountCloudFormation(ctx context.Context, aa aws.AwsAccount) error {
 	err := cloudformation.FetchDailyCloudFormationStats(ctx, aa)
 	if err != nil {
@@ -354,7 +354,7 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountRoute53 processes all the StepFunctions data for an AwsAccount
+// processAccountRoute53 processes all the Route53 data for an AwsAccount
 func processAccountRoute53(ctx context.Context, aa aws.AwsAccount) error {
 	err := route53.FetchDailyRoute53Stats(ctx, aa)
 	if err != nil {

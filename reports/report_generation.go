@@ -62,17 +62,17 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 	}
 	errs = make(map[string]error)
 	file := createSpreadsheet(aa, reportDate)
-	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
+	if tx, err := db.Db.BeginTx(ctx, nil); err != nil {
+		errs["speadsheetError"] = err
+	} else {
 		for _, module := range modules {
-			err := module.GenerateSheet(ctx, aas, date, tx, file.File)
+			err = module.GenerateSheet(ctx, aas, date, tx, file.File)
 			if err != nil {
 				errs[module.ErrorName] = err
 			}
 		}
 		file.File.DeleteSheet(file.File.GetSheetName(1))
 		errs["speadsheetError"] = saveSpreadsheet(ctx, file, reportType)
-	} else {
-		errs["speadsheetError"] = err
 	}
 	return
 }
@@ -110,15 +110,15 @@ func GenerateTagsReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAcc
 	}
 	errs = make(map[string]error)
 	file := createSpreadsheet(aa, reportDate)
-	if tx, err := db.Db.BeginTx(ctx, nil); err == nil {
-		err := generateTagsUsageReportSheet(ctx, aas, date, tx, file.File)
+	if tx, err := db.Db.BeginTx(ctx, nil); err != nil {
+		errs["speadsheetError"] = err
+	} else {
+		err = generateTagsUsageReportSheet(ctx, aas, date, tx, file.File)
 		if err != nil {
 			errs["tagsError"] = err
 		}
 		file.File.DeleteSheet(file.File.GetSheetName(1))
 		errs["speadsheetError"] = saveSpreadsheet(ctx, file, TagsReport)
-	} else {
-		errs["speadsheetError"] = err
 	}
 	return
 }

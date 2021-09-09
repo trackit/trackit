@@ -116,7 +116,7 @@ func GetElastiCacheData(ctx context.Context, parsedParams ElastiCacheQueryParams
 	returnCode, monthlyInstances, err := GetElastiCacheMonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
+	} else if len(monthlyInstances) > 0 { // Note: len(nil) is 0
 		return returnCode, monthlyInstances, nil
 	}
 	returnCode, dailyInstances, err := GetElastiCacheDailyInstances(ctx, parsedParams, user, tx)

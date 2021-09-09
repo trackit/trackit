@@ -180,16 +180,15 @@ func (u User) Delete() error {
 // UpdatePassword updates a user's password. A nil error indicates a success.
 func (u User) UpdatePassword(db models.XODB, password string) error {
 	dbUser, err := models.UserByID(db, u.Id)
-	if err == nil {
-		auth, err := getPasswordHash(password)
-		if err != nil {
-			return err
-		}
-		dbUser.Auth = auth
-		return dbUser.Update(db)
-	} else {
+	if err != nil {
 		return err
 	}
+	auth, err := getPasswordHash(password)
+	if err != nil {
+		return err
+	}
+	dbUser.Auth = auth
+	return dbUser.Update(db)
 }
 
 // PasswordMatches tests whether a password matches a user's stored hash. A nil

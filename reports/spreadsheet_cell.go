@@ -55,9 +55,7 @@ func (c cell) mergeTo(merge string) cell {
 }
 
 func (c cell) addStyles(styles ...string) cell {
-	for _, style := range styles {
-		c.styles = append(c.styles, style)
-	}
+	c.styles = append(c.styles, styles...)
 	return c
 }
 

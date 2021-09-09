@@ -117,7 +117,7 @@ func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (Bil
 	return out, err
 }
 
-// UpdateBillRepository updates a BillRepository in the database
+// UpdateBillRepositorySafe updates a BillRepository in the database
 func UpdateBillRepositorySafe(dbBr *models.AwsBillRepository, br BillRepository, tx *sql.Tx) (BillRepository, error) {
 	dbBr.Prefix = br.Prefix
 	dbBr.Bucket = br.Bucket
@@ -224,7 +224,7 @@ func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) 
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
 	if err := isBillRepositoryValid(body); err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
+		return http.StatusBadRequest, fmt.Errorf("Body is invalid (%s).", err.Error())
 	}
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
@@ -265,7 +265,7 @@ func patchBillRepository(r *http.Request, a routes.Arguments) (int, interface{})
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
 	if err := isBillRepositoryValid(body); err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
+		return http.StatusBadRequest, fmt.Errorf("Body is invalid (%s).", err.Error())
 	}
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
@@ -339,7 +339,7 @@ func isBucketNameValid(bn string) error {
 	} else if l > 63 {
 		return errors.New("bucket name shall be no longer than 63 chars")
 	} else if !noTwoDotsInBucketName.MatchString(bn) {
-		return errors.New(fmt.Sprintf("bucket name shall satisfy the regexp /%s/", noTwoDotsInBucketNameRegex))
+		return fmt.Errorf("bucket name shall satisfy the regexp /%s/", noTwoDotsInBucketNameRegex)
 	} else {
 		return nil
 	}
