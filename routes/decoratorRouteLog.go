@@ -51,7 +51,7 @@ func (rl RouteLog) Decorate(h Handler) Handler {
 }
 
 // getFunc builds the route handler function for RouteLog.Decorate.
-func (_ RouteLog) getFunc(hf HandlerFunc) HandlerFunc {
+func (RouteLog) getFunc(hf HandlerFunc) HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a Arguments) (status int, response interface{}) {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		rqd := getRequestLogData(r)
@@ -92,7 +92,7 @@ func getRequestLogData(r *http.Request) requestLogData {
 // getResponseLogData fills a responseLogData instance with information about
 // how a request was handled.
 func getResponseLogData(rqd requestLogData, status int, response interface{}) (rsd responseLogData) {
-	rsd.Nanoseconds = time.Now().Sub(rqd.Time)
+	rsd.Nanoseconds = time.Since(rqd.Time)
 	rsd.Status = status
 	return
 }

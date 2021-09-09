@@ -42,7 +42,7 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 			err = closeErr
 		}
 	}()
-	accounts = make(map[int]AwsAccountStatus, 0)
+	accounts = make(map[int]AwsAccountStatus)
 	for q.Next() {
 		var account AwsAccountStatus
 		var id int

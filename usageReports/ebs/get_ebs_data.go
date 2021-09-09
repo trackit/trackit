@@ -116,7 +116,7 @@ func GetEbsData(ctx context.Context, parsedParams EbsQueryParams, user users.Use
 	returnCode, monthlySnapshots, err := GetEbsMonthlySnapshots(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlySnapshots != nil && len(monthlySnapshots) > 0 {
+	} else if len(monthlySnapshots) > 0 { // Note: len(nil) is 0
 		return returnCode, monthlySnapshots, nil
 	}
 	returnCode, dailySnapshots, err := GetEbsDailySnapshots(ctx, parsedParams, user, tx)

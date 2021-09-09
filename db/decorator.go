@@ -25,7 +25,7 @@ import (
 	"github.com/trackit/trackit/routes"
 )
 
-// Transaction is a decorator which manages a transaction for an HTTP request.
+// RequestTransaction is a decorator which manages a transaction for an HTTP request.
 // It will Commit the transaction if the handler returns something other than
 // an error and it did not panic; it Rollbacks otherwise.
 type RequestTransaction struct {

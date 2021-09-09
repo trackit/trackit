@@ -264,11 +264,11 @@ func getRIStandardNoUpfrontCost(item aws.JSONValue, duration string) float64 {
 func FetchEc2Pricings(ctx context.Context) (EC2Pricing, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	parsingError := false
-	ec2Pricings := EC2Pricing{Region: make(map[string]EC2Platform, 0)}
+	ec2Pricings := EC2Pricing{Region: make(map[string]EC2Platform, len(EC2RegionCodeToPricingLocationName))}
 	svc := getPricingClient()
 	for regionCode, locationName := range EC2RegionCodeToPricingLocationName {
 		logger.Info("Fetching pricings for region", map[string]interface{}{"region": regionCode})
-		ec2Pricings.Region[regionCode] = EC2Platform{Platform: make(map[string]EC2Type, 0)}
+		ec2Pricings.Region[regionCode] = EC2Platform{Platform: make(map[string]EC2Type)}
 		input := getPricingProductInput(locationName)
 		err := svc.GetProductsPages(input,
 			func(page *pricing.GetProductsOutput, lastPage bool) bool {
@@ -288,7 +288,7 @@ func FetchEc2Pricings(ctx context.Context) (EC2Pricing, error) {
 						continue
 					}
 					if _, ok := ec2Pricings.Region[regionCode].Platform[platform]; !ok {
-						ec2Pricings.Region[regionCode].Platform[platform] = EC2Type{Type: make(map[string]*EC2Specs, 0)}
+						ec2Pricings.Region[regionCode].Platform[platform] = EC2Type{Type: make(map[string]*EC2Specs, 1)}
 					}
 					if _, ok := ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType]; !ok {
 						ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType] = &EC2Specs{}

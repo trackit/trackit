@@ -17,7 +17,6 @@ package tagginges
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
@@ -75,7 +74,7 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		ResourceID:   source.Instance.Id,
 		ResourceType: resourceTypeString,
 		Region:       source.Instance.Region,
-		URL:          fmt.Sprintf(urlFormat),
+		URL:          urlFormat,
 		Tags:         source.Instance.Tags,
 	}
 	return document, true

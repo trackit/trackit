@@ -163,5 +163,4 @@ func esUsageReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("N", 30),
 	}
 	columns.setValues(file, esUsageReportSheetName)
-	return
 }

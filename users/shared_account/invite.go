@@ -155,8 +155,8 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
-		mailBody := fmt.Sprintf("%s", "Hi, a new AWS account has been added to your Trackit Account. "+
-			"You can connect to your account to manage it : https://re.trackit.io/")
+		mailBody := "Hi, a new AWS account has been added to your Trackit Account. " +
+			"You can connect to your account to manage it : https://re.trackit.io/"
 		err := mail.SendMail(userMail, mailSubject, mailBody, ctx)
 		if err != nil {
 			logger.Error("Failed to send email.", err.Error())
@@ -164,6 +164,10 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 		}
 	} else {
 		dbForgottenPassword, token, err := resetPasswordGenerator(ctx, tx, newUserId)
+		if err != nil {
+			logger.Error("Failed to create reset password token.", err.Error())
+			return err
+		}
 		mailSubject := "You are invited to join Trackit"
 		mailBody := fmt.Sprintf("Hi, you have been invited to join trackit. Please follow this link to create"+
 			" your account: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
@@ -216,7 +220,7 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, acco
 	}
 }
 
-// inviteUserWithValidBody tries to share an account with a specific user
+// InviteUserWithValidBody tries to share an account with a specific user
 func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, accountId int, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	security, err := safetyCheckByAccountIdAndPermissionLevel(request.Context(), tx, accountId, body, user)

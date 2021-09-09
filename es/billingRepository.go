@@ -20,7 +20,7 @@ import (
 	"github.com/olivere/elastic"
 )
 
-// CleanBillByBillRepositoryId removes every bills information of a specific bill repository
+// CleanByBillRepositoryId removes every bills information of a specific bill repository
 func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	index := IndexNameForUserId(aaUId, IndexPrefixLineItems)
 	query := elastic.NewBoolQuery()

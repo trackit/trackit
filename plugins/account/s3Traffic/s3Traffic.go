@@ -50,9 +50,9 @@ func prepareResult(pluginRes *core.PluginResult) {
 // getBucketsWithNoTraffic searches for buckets with no traffic and fills the pluginRes struct
 func getBucketsWithNoTraffic(pluginRes *core.PluginResult, storage, bandwidth bucketsInfos) {
 	for bucketName := range storage {
-		pluginRes.Checked += 1
+		pluginRes.Checked++
 		if _, ok := bandwidth[bucketName]; ok {
-			pluginRes.Passed += 1
+			pluginRes.Passed++
 		} else {
 			pluginRes.Details = append(pluginRes.Details, bucketName)
 		}

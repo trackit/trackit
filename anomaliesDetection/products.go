@@ -88,7 +88,8 @@ func runAnomaliesDetectionForProducts(parsedParams AnomalyEsQueryParams, account
 	var res AnalyzedCosts
 	if res, err = productGetAnomaliesData(ctx, parsedParams); err != nil {
 	} else if err = productSaveAnomaliesData(ctx, res, account); err != nil {
-	} else if err = removeRecurrence(ctx, parsedParams, account); err != nil {
+	} else {
+		err = removeRecurrence(ctx, parsedParams, account)
 	}
 	return
 }
