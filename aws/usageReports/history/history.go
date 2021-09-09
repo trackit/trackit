@@ -42,7 +42,7 @@ const numPartition = 5
 var ErrBillingDataIncomplete = errors.New("Billing data are not completed")
 
 type (
-	// structures that allows to parse ES result
+	// EsRegionPerResourceResult allows us to parse ES results
 	EsRegionPerResourceResult struct {
 		Resources struct {
 			Buckets []struct {

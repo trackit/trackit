@@ -40,7 +40,7 @@ type User struct {
 	Email                  string `json:"email"`
 	NextExternal           string `json:"-"`
 	ParentId               *int   `json:"parentId,omitempty"`
-	AwsCustomerEntitlement bool   `json:aws_customer_entitlement`
+	AwsCustomerEntitlement bool   `json:"aws_customer_entitlement"`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
@@ -185,8 +185,8 @@ func (u User) UpdatePassword(db models.XODB, password string) error {
 	}
 	auth, err := getPasswordHash(password)
 	if err != nil {
- 		return err
- 	}
+		return err
+	}
 	dbUser.Auth = auth
 	return dbUser.Update(db)
 }

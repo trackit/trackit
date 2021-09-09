@@ -72,27 +72,27 @@ type createWithPasswordCase struct {
 }
 
 var createWithPasswordCases = [5]createWithPasswordCase{
-	createWithPasswordCase{
+	{
 		User{Email: "victor@example.trackit.io"},
 		"testPassword",
 		"badPassword",
 	},
-	createWithPasswordCase{
+	{
 		User{Email: "victor_g@example.trackit.io"},
 		"victor_gspassword",
 		"",
 	},
-	createWithPasswordCase{
+	{
 		User{Email: "lolwut@example.trackit.io"},
 		"123456789",
 		"321654987",
 	},
-	createWithPasswordCase{
+	{
 		User{Email: "auietsrn@example.trackit.io"},
 		"Pαßwòrd wìth Ûniķod€",
 		"BäÐ §asswŏrd",
 	},
-	createWithPasswordCase{
+	{
 		User{Email: "vdljqgh@example.trackit.io"},
 		"", // Not the responsibility of this function to check for bad passwords.
 		" ",
