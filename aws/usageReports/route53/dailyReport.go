@@ -34,11 +34,16 @@ import (
 func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, region string, hostedZoneChan chan HostedZone) error {
 	defer close(hostedZoneChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	// Make it so that the AWS session will automatically retry our requests if we get throttled. Especially important for Route53 since we'll get throttled if we do more than 5 requests per second
+	maxRetries := 20
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
+		MaxRetries:  &maxRetries,
 	}))
 	svc := route53.New(sess)
+
 	hostedZones, err := svc.ListHostedZones(nil)
 	if err != nil {
 		logger.Error("Error when describing Route53 HostedZones", err.Error())
