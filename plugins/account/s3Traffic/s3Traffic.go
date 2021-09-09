@@ -70,13 +70,13 @@ func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResu
 	res, err := searchService.Do(pluginParams.Context)
 	if err != nil {
 		pluginRes.Status = "red"
-		pluginRes.Error = fmt.Sprintln("Unable to retrieve S3 storage usage : %s", err.Error())
+		pluginRes.Error = fmt.Sprintln("Unable to retrieve S3 storage usage : ", err.Error())
 		return
 	}
 	storage, err := parseESResult(pluginParams, res)
 	if err != nil {
 		pluginRes.Status = "red"
-		pluginRes.Error = fmt.Sprintln("Unable to parse S3 storage usage: %s", err.Error())
+		pluginRes.Error = fmt.Sprintln("Unable to parse S3 storage usage: ", err.Error())
 		return
 	}
 
@@ -84,13 +84,13 @@ func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResu
 	res, err = searchService.Do(pluginParams.Context)
 	if err != nil {
 		pluginRes.Status = "red"
-		pluginRes.Error = fmt.Sprintln("Unable to retrieve S3 bandwidth usage : %s", err.Error())
+		pluginRes.Error = fmt.Sprintln("Unable to retrieve S3 bandwidth usage : ", err.Error())
 		return
 	}
 	bandwidth, err := parseESResult(pluginParams, res)
 	if err != nil {
 		pluginRes.Status = "red"
-		pluginRes.Error = fmt.Sprintln("Unable to parse S3 bandwidth usage: %s", err.Error())
+		pluginRes.Error = fmt.Sprintln("Unable to parse S3 bandwidth usage: ", err.Error())
 		return
 	}
 	getBucketsWithNoTraffic(pluginRes, storage, bandwidth)
