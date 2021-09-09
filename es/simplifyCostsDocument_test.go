@@ -34,14 +34,14 @@ func TestToJsonableSimpleSingleLevelResults(t *testing.T) {
 		HasValue: false,
 		Value:    0,
 		Children: []SimplifiedCostsDocument{
-			SimplifiedCostsDocument{
+			{
 				Key:          "AmazonRDS",
 				HasValue:     true,
 				Value:        12,
 				Children:     []SimplifiedCostsDocument{},
 				ChildrenKind: "",
 			},
-			SimplifiedCostsDocument{
+			{
 				Key:          "AmazonSimpleDB",
 				HasValue:     true,
 				Value:        13,
@@ -69,12 +69,12 @@ func TestToJsonableSimpleTwoLevelsResults(t *testing.T) {
 		HasValue: false,
 		Value:    0,
 		Children: []SimplifiedCostsDocument{
-			SimplifiedCostsDocument{
+			{
 				Key:      "AmazonS3",
 				HasValue: false,
 				Value:    0,
 				Children: []SimplifiedCostsDocument{
-					SimplifiedCostsDocument{
+					{
 						Key:          "123456789",
 						HasValue:     true,
 						Value:        42,
@@ -84,19 +84,19 @@ func TestToJsonableSimpleTwoLevelsResults(t *testing.T) {
 				},
 				ChildrenKind: "account",
 			},
-			SimplifiedCostsDocument{
+			{
 				Key:      "AmazonEC2",
 				HasValue: false,
 				Value:    0,
 				Children: []SimplifiedCostsDocument{
-					SimplifiedCostsDocument{
+					{
 						Key:          "123456789",
 						HasValue:     true,
 						Value:        24,
 						Children:     []SimplifiedCostsDocument{},
 						ChildrenKind: "",
 					},
-					SimplifiedCostsDocument{
+					{
 						Key:          "987654321",
 						HasValue:     true,
 						Value:        25,

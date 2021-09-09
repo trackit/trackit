@@ -44,7 +44,7 @@ const (
 )
 
 var (
-	ErrPasswordTooShort = errors.New(fmt.Sprintf("Password must be at least %u characters.", passwordMaxLength))
+	ErrPasswordTooShort = errors.New(fmt.Sprintf("Password must be at least %v characters.", passwordMaxLength))
 )
 
 func init() {
@@ -52,10 +52,10 @@ func init() {
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{createUserRequestBody{
-				Email:      "example@example.com",
-				Password:   "pa55w0rd",
-				AwsToken:   "marketplacetoken",
-				Origin:     "trackit",
+				Email:    "example@example.com",
+				Password: "pa55w0rd",
+				AwsToken: "marketplacetoken",
+				Origin:   "trackit",
 			}},
 			routes.Documentation{
 				Summary:     "register a new user",
@@ -66,10 +66,10 @@ func init() {
 			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{createUserRequestBody{
-				Email:      "example@example.com",
-				Password:   "pa55w0rd",
-				AwsToken:   "marketplacetoken",
-				Origin:     "trackit",
+				Email:    "example@example.com",
+				Password: "pa55w0rd",
+				AwsToken: "marketplacetoken",
+				Origin:   "trackit",
 			}},
 			routes.Documentation{
 				Summary:     "edit the current user",
@@ -204,9 +204,9 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 		logger.Info("User created.", user)
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":   body.Email,
-				"origin":  body.Origin,
-				"err":     err.Error(),
+				"email":  body.Email,
+				"origin": body.Origin,
+				"err":    err.Error(),
 			})
 		}
 		return 200, user
@@ -232,9 +232,9 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		}
 		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
 			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":   body.Email,
-				"origin":  body.Origin,
-				"err":     err.Error(),
+				"email":  body.Email,
+				"origin": body.Origin,
+				"err":    err.Error(),
 			})
 		}
 		return 200, user

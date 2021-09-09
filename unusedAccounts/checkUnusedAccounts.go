@@ -28,7 +28,9 @@ func CheckUnusedAccounts(ctx context.Context) error {
 		if user == nil || len((*user).AwsCustomerIdentifier) > 0 {
 			continue
 		}
-		checkUnusedAccount(ctx, *user)
+		if checkErr := checkUnusedAccount(ctx, *user); err == nil {
+			err = checkErr
+		}
 	}
 
 	return nil
@@ -53,7 +55,9 @@ func checkUnusedAccount(ctx context.Context, user models.User) error {
 		err = sendReminder(ctx, user, timeBeforeDeletion)
 
 		user.LastUnusedReminder = time.Now()
-		user.Update(db.Db)
+		if updateErr := user.Update(db.Db); err == nil {
+			err = updateErr
+		}
 	}
 
 	return err

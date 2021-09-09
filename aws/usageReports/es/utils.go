@@ -109,8 +109,10 @@ func importDomainsToEs(ctx context.Context, aa taws.AwsAccount, domains []Domain
 		}
 		bp = utils.AddDocToBulkProcessor(bp, domain, TypeESReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put ES domains in ES", err.Error())
 		return err

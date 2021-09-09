@@ -138,7 +138,12 @@ func getAnomalyLevel(typedDocument esProductAnomalyTypedResult) (int, string) {
 	percent := (typedDocument.Cost.Value * 100) / typedDocument.Cost.MaxExpected
 	levels := strings.Split(config.AnomalyDetectionLevels, ",")
 	for i, level := range levels[1:] {
-		l, _ := strconv.ParseFloat(level, 64)
+		l, err := strconv.ParseFloat(level, 64)
+		if err != nil {
+			jsonlog.DefaultLogger.Error("Failed to parse one of the numbers from anomaly-detection-levels option", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 		if percent < l {
 			return i, prettyLevels[i]
 		}

@@ -49,7 +49,7 @@ type (
 	// Stack contains all the information of an Cloud Formation Stack
 	Stack struct {
 		StackBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 
@@ -74,8 +74,10 @@ func importStacksToEs(ctx context.Context, aa taws.AwsAccount, stacks []StackRep
 		}
 		bp = utils.AddDocToBulkProcessor(bp, stack, TypeCloudFormationReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put CloudFormation Stacks in ES", err.Error())
 		return err

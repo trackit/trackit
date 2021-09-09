@@ -30,12 +30,12 @@ const TemplateNameOdToRiEC2Report = "od-to-ri-ec2-reports"
 // put the ElasticSearch index for *-od-to-ri-ec2-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameOdToRiEC2Report).BodyString(TemplateOdToRiEc2Report).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index OdToRiEC2Report.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index OdToRiEC2Report.", res)
-		ctxCancel()
 	}
 }
 

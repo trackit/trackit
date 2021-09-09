@@ -85,7 +85,11 @@ func downloadFile(url string) (data []byte, err error) {
 	if err != nil {
 		return
 	}
-	defer res.Body.Close()
+	defer func() {
+		if closeErr := res.Body.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	if res.StatusCode != http.StatusOK {
 		return nil, errors.New(res.Status)
 	}

@@ -21,9 +21,7 @@ import (
 )
 
 // GetLatestAccountsBillRepositoriesStatus retrieves the most recent job row from 'trackit.aws_bill_update_job' as a AwsAccountStatus.
-func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int) (map[int]AwsAccountStatus, error) {
-	var err error
-
+func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int) (accounts map[int]AwsAccountStatus, err error) {
 	// sql query
 	const sqlstr = `SELECT ` +
 		`aws_bill_repository_id, completed, error ` +
@@ -34,13 +32,17 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 
 	// run query
 	XOLog(sqlstr, formattedIds)
-	accounts := make(map[int]AwsAccountStatus, 0)
 
 	q, err := db.Query(sqlstr, formattedIds)
 	if err != nil {
-		return nil, err
+		return
 	}
-	defer q.Close()
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+	accounts = make(map[int]AwsAccountStatus, 0)
 	for q.Next() {
 		var account AwsAccountStatus
 		var id int
@@ -53,5 +55,5 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 		}
 		accounts[id] = account
 	}
-	return accounts, nil
+	return
 }

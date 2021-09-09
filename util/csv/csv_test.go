@@ -36,10 +36,10 @@ newline
 `)
 	var dn DefaultNames
 	var dne = []DefaultNames{
-		DefaultNames{"foo val", "bar val", "baz val"},
-		DefaultNames{"foo \" quote", "bar \"quote", "baz \" quote"},
-		DefaultNames{"1", "3", "2"},
-		DefaultNames{",", "", "\nnewline\n"},
+		{"foo val", "bar val", "baz val"},
+		{"foo \" quote", "bar \"quote", "baz \" quote"},
+		{"1", "3", "2"},
+		{",", "", "\nnewline\n"},
 	}
 	d := NewDecoder(buf)
 	d.ReadHeader()
@@ -71,10 +71,10 @@ newline
 `)
 	var dn TaggedNames
 	var dne = []TaggedNames{
-		TaggedNames{"foo val", "bar val", "baz val"},
-		TaggedNames{"foo \" quote", "bar \"quote", "baz \" quote"},
-		TaggedNames{"1", "3", "2"},
-		TaggedNames{",", "", "\nnewline\n"},
+		{"foo val", "bar val", "baz val"},
+		{"foo \" quote", "bar \"quote", "baz \" quote"},
+		{"1", "3", "2"},
+		{",", "", "\nnewline\n"},
 	}
 	d := NewDecoder(buf)
 	d.ReadHeader()
@@ -106,10 +106,10 @@ newline
 `)
 	var dn IgnoredNames
 	var dne = []IgnoredNames{
-		IgnoredNames{"foo val", "bar val", ""},
-		IgnoredNames{"foo \" quote", "bar \"quote", ""},
-		IgnoredNames{"1", "3", ""},
-		IgnoredNames{",", "", ""},
+		{"foo val", "bar val", ""},
+		{"foo \" quote", "bar \"quote", ""},
+		{"1", "3", ""},
+		{",", "", ""},
 	}
 	d := NewDecoder(buf)
 	d.ReadHeader()
@@ -140,10 +140,10 @@ newline
 `)
 	var dn AnyNames
 	var dne = []AnyNames{
-		AnyNames{"foo val", map[string]string{"Bar": "bar val", "Baz": "baz val"}},
-		AnyNames{"foo \" quote", map[string]string{"Bar": "bar \"quote", "Baz": "baz \" quote"}},
-		AnyNames{"1", map[string]string{"Bar": "3", "Baz": "2"}},
-		AnyNames{",", map[string]string{"Bar": "", "Baz": "\nnewline\n"}},
+		{"foo val", map[string]string{"Bar": "bar val", "Baz": "baz val"}},
+		{"foo \" quote", map[string]string{"Bar": "bar \"quote", "Baz": "baz \" quote"}},
+		{"1", map[string]string{"Bar": "3", "Baz": "2"}},
+		{",", map[string]string{"Bar": "", "Baz": "\nnewline\n"}},
 	}
 	d := NewDecoder(buf)
 	d.ReadHeader()
