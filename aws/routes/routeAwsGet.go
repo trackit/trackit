@@ -174,8 +174,7 @@ func intArrayToSqlSet(integers []int) string {
 func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) (res []aws.AwsAccount, err error) {
 
 	// gen account_id
-	stringAccountIDs := intArrayToStringArray(accountIDs)
-	accountID := "(" + strings.Join(stringAccountIDs, ",") + ")"
+	accountID := intArrayToSqlSet(accountIDs)
 
 	// sql query
 	var sqlstr = `SELECT ` +

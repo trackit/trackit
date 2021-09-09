@@ -18,7 +18,6 @@ import (
 // circumvent a limitation of the AWS SDK described here:
 //   https://stackoverflow.com/questions/48285381/how-to-use-getobject-when-key-has-leading-slashes
 type dumbS3Manager struct {
-	creds  *credentials.Credentials
 	signer *v4.Signer
 }
 
@@ -43,7 +42,7 @@ func (dm dumbS3Manager) rawS3GetObjectToBuffer(
 	if err != nil {
 		return nil, err
 	}
-	bufWrapper := bytes.NewBuffer(make([]byte, 0, 0x8000))
+	bufWrapper := bytes.NewBuffer(make([]byte, 0, maxManifestSize))
 	err = readToWriter(body, bufWrapper)
 	if err != nil {
 		return nil, err
