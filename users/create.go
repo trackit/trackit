@@ -38,8 +38,8 @@ import (
 )
 
 const (
-	passwordMaxLength = 12
-	tagbotFreeTrialDaysDuration = 14
+	passwordMaxLength                     = 12
+	tagbotFreeTrialDaysDuration           = 14
 	tagbotDiscountCodeTrialMonthsDuration = 2
 )
 
