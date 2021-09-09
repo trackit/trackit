@@ -89,8 +89,8 @@ func getPricingProductInput(locationName string) *pricing.GetProductsInput {
 // getItemAttributes takes an item from the aws json pricing and returns its
 // "attributes" attribute
 func getItemAttributes(item aws.JSONValue) map[string]interface{} {
-	if product, ok := item["product"]; ok == false {
-	} else if attributes, ok := product.(map[string]interface{})["attributes"]; ok == false {
+	if product, ok := item["product"]; !ok {
+	} else if attributes, ok := product.(map[string]interface{})["attributes"]; !ok {
 	} else {
 		return attributes.(map[string]interface{})
 	}
@@ -101,7 +101,7 @@ func getItemAttributes(item aws.JSONValue) map[string]interface{} {
 // its normalized platform name
 func getNormalizedPlatform(item aws.JSONValue) string {
 	if attributes := getItemAttributes(item); attributes == nil {
-	} else if os, ok := attributes["operatingSystem"]; ok == false {
+	} else if os, ok := attributes["operatingSystem"]; !ok {
 	} else {
 		if os.(string) == "Linux" {
 			return "Linux/UNIX"
@@ -114,7 +114,7 @@ func getNormalizedPlatform(item aws.JSONValue) string {
 // getInstanceType takes an item from the aws json pricing and returns its instance type
 func getInstanceType(item aws.JSONValue) string {
 	if attributes := getItemAttributes(item); attributes == nil {
-	} else if instanceType, ok := attributes["instanceType"]; ok == false {
+	} else if instanceType, ok := attributes["instanceType"]; !ok {
 	} else {
 		return instanceType.(string)
 	}
@@ -126,7 +126,7 @@ func getInstanceType(item aws.JSONValue) string {
 func isCurrentGeneration(item aws.JSONValue) bool {
 	isCurrentGen := false
 	if attributes := getItemAttributes(item); attributes == nil {
-	} else if currentGen, ok := attributes["currentGeneration"]; ok == false {
+	} else if currentGen, ok := attributes["currentGeneration"]; !ok {
 	} else {
 		isCurrentGen = currentGen.(string) == "Yes"
 	}
@@ -137,7 +137,7 @@ func isCurrentGeneration(item aws.JSONValue) bool {
 // the item is a "BoxUsage" (an hourly instance cost)
 func isBoxUsage(item aws.JSONValue) bool {
 	if attributes := getItemAttributes(item); attributes == nil {
-	} else if usageType, ok := attributes["usagetype"]; ok == false {
+	} else if usageType, ok := attributes["usagetype"]; !ok {
 	} else {
 		// The usage type is not formated the same way in all regions
 		return strings.HasPrefix(usageType.(string), "BoxUsage") ||
@@ -150,7 +150,7 @@ func isBoxUsage(item aws.JSONValue) bool {
 // BYOL don't have reservations so we don't want to parse them
 func isBYOL(item aws.JSONValue) bool {
 	if attributes := getItemAttributes(item); attributes == nil {
-	} else if licenseModel, ok := attributes["licenseModel"]; ok == false {
+	} else if licenseModel, ok := attributes["licenseModel"]; !ok {
 	} else {
 		return licenseModel.(string) == "Bring your own license"
 	}
@@ -159,7 +159,7 @@ func isBYOL(item aws.JSONValue) bool {
 
 // getTerms takes an item fron the aws json pricing and returns its terms
 func getTerms(item aws.JSONValue) map[string]interface{} {
-	if terms, ok := item["terms"]; ok == false {
+	if terms, ok := item["terms"]; !ok {
 	} else {
 		return terms.(map[string]interface{})
 	}
@@ -168,7 +168,7 @@ func getTerms(item aws.JSONValue) map[string]interface{} {
 
 // getPriceDimensions takes an itemPricing and returns its priceDimensions
 func getPriceDimensions(itemPricing map[string]interface{}) map[string]interface{} {
-	if priceDimensions, ok := itemPricing["priceDimensions"]; ok == false {
+	if priceDimensions, ok := itemPricing["priceDimensions"]; !ok {
 	} else {
 		return priceDimensions.(map[string]interface{})
 	}
@@ -178,8 +178,8 @@ func getPriceDimensions(itemPricing map[string]interface{}) map[string]interface
 // getUSDPricePerUnit takes a priceDimension and returns it's USD pricePerUnit
 // it returns -1.0 in case of error
 func getUSDPricePerUnit(priceDimention map[string]interface{}) float64 {
-	if pricePerUnit, ok := priceDimention["pricePerUnit"]; ok == false {
-	} else if usdStr, ok := pricePerUnit.(map[string]interface{})["USD"]; ok == false {
+	if pricePerUnit, ok := priceDimention["pricePerUnit"]; !ok {
+	} else if usdStr, ok := pricePerUnit.(map[string]interface{})["USD"]; !ok {
 	} else {
 		usd, err := strconv.ParseFloat(usdStr.(string), 64)
 		if err == nil {
@@ -193,7 +193,7 @@ func getUSDPricePerUnit(priceDimention map[string]interface{}) float64 {
 // on demand cost. It returns -1.0 in case of error
 func getOnDemandCost(item aws.JSONValue) float64 {
 	if terms := getTerms(item); terms == nil {
-	} else if onDemand, ok := terms["OnDemand"]; ok == false {
+	} else if onDemand, ok := terms["OnDemand"]; !ok {
 	} else {
 		for _, onDemandItem := range onDemand.(map[string]interface{}) {
 			if priceDimensions := getPriceDimensions(onDemandItem.(map[string]interface{})); priceDimensions != nil {
@@ -209,7 +209,7 @@ func getOnDemandCost(item aws.JSONValue) float64 {
 // getReserved takes the terms of an item from the aws json pricing as a parameter
 // and returns the reserved attribute
 func getReserved(terms aws.JSONValue) map[string]interface{} {
-	if reserved, ok := terms["Reserved"]; ok == false {
+	if reserved, ok := terms["Reserved"]; !ok {
 	} else {
 		return reserved.(map[string]interface{})
 	}
@@ -218,7 +218,7 @@ func getReserved(terms aws.JSONValue) map[string]interface{} {
 
 // getTermAttributes takes a reservationType parameter and returns its term attributes
 func getTermAttributes(reservationType map[string]interface{}) map[string]interface{} {
-	if termAttributes, ok := reservationType["termAttributes"]; ok == false {
+	if termAttributes, ok := reservationType["termAttributes"]; !ok {
 	} else {
 		return termAttributes.(map[string]interface{})
 	}
@@ -243,7 +243,7 @@ func getRIStandardNoUpfrontCost(item aws.JSONValue, duration string) float64 {
 	} else {
 		for _, reservationType := range reserved {
 			if termAttributes := getTermAttributes(reservationType.(map[string]interface{})); termAttributes == nil {
-			} else if isStandardNoUpfront(termAttributes, duration) == false {
+			} else if !isStandardNoUpfront(termAttributes, duration) {
 			} else {
 				if priceDimensions := getPriceDimensions(reservationType.(map[string]interface{})); priceDimensions != nil {
 					for _, priceDimension := range priceDimensions {
@@ -309,7 +309,7 @@ func FetchEc2Pricings(ctx context.Context) (EC2Pricing, error) {
 			return ec2Pricings, err
 		}
 	}
-	if parsingError == true {
+	if parsingError {
 		logger.Error("Parsing error while retrieving EC2 pricings", nil)
 		return ec2Pricings, errors.New("Parsing error while retrieving EC2 pricings")
 	}

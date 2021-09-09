@@ -57,7 +57,7 @@ func patchAwsSubaccountWithValidBody(r *http.Request, tx *sql.Tx, user users.Use
 	}
 	awsAccount.RoleArn = body.RoleArn
 	awsAccount.External = body.External
-	if awsAccount.ParentId.Valid == false {
+	if !awsAccount.ParentId.Valid {
 		logger.Info("tried to edit an AWS account as a sub-account", awsAccount)
 		return 400, errors.New("not a sub-account.")
 	}

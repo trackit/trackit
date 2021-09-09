@@ -93,7 +93,7 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccount) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, plugin := range core.RegisteredAccountPlugins {
-		if plugin.BillingDataOnly == false && strings.TrimSpace(aa.RoleArn) == "" {
+		if !plugin.BillingDataOnly && strings.TrimSpace(aa.RoleArn) == "" {
 			continue
 		}
 		accountId := aa.AwsIdentity
@@ -111,7 +111,7 @@ func runPluginsForAccount(ctx context.Context, user users.User, aa aws.AwsAccoun
 			AccountId:  accountId,
 			ESClient:   es.Client,
 		}
-		if plugin.BillingDataOnly == false {
+		if !plugin.BillingDataOnly {
 			creds, err := aws.GetTemporaryCredentials(aa, fmt.Sprintf("trackit-%s-plugin", plugin.Name))
 			if err != nil {
 				logger.Error("Error when getting temporary credentials", err.Error())

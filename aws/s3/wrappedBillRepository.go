@@ -137,12 +137,12 @@ func WrapAwsAccountsWithBillRepositories(awsAccounts []aws.AwsAccount, tx *sql.T
 func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillRepositoriesWithPending) ([]AwsAccountWithBillRepositoriesWithPending, error) {
 	accounts := make([]AwsAccountWithBillRepositoriesWithPending, 0)
 	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
+		if !aa.ParentId.Valid {
 			accounts = append(accounts, aa)
 		}
 	}
 	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
+		if !aa.ParentId.Valid {
 			continue
 		}
 		foundMatch := false
@@ -157,7 +157,7 @@ func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillReposit
 				continue AccountsLoop
 			}
 		}
-		if foundMatch == false {
+		if !foundMatch {
 			accounts = append(accounts, aa)
 		}
 	}
