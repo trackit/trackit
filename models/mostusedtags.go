@@ -19,10 +19,10 @@ func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Ti
 		return nil, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// load results
 	res = []*MostUsedTag{}
@@ -59,10 +59,10 @@ func MostUsedTagsInUseByUser(db XODB, awsAccountID int) (result *MostUsedTag, er
 		return nil, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// load results
 	res := []*MostUsedTag{}

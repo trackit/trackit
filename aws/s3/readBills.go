@@ -213,7 +213,7 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp Mani
 func readBill(ctx context.Context, ctxCancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {
-		defer func () {
+		defer func() {
 			if err := reader.Close(); err != nil {
 				jsonlog.LoggerFromContextOrDefault(ctx).Error("Error while closing bill file reader", map[string]interface{}{
 					"error": err.Error(),

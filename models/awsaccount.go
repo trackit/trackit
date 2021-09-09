@@ -26,10 +26,10 @@ func AwsAccounts(db XODB) (res []*AwsAccount, err error) {
 		return nil, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	for q.Next() {
 		aa := AwsAccount{
 			_exists: true,
@@ -54,10 +54,10 @@ func AwsAccountsByParentId(db XODB, parentID int) (res []*AwsAccount, err error)
 		return nil, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	for q.Next() {
 		aa := AwsAccount{
 			_exists: true,

@@ -19,10 +19,10 @@ func GetUnusedAccounts(db XODB, unseenFor time.Duration) (res []*User, err error
 		return nil, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// load results
 	res = []*User{}

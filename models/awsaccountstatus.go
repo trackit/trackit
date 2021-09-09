@@ -38,10 +38,10 @@ func GetLatestAccountsBillRepositoriesStatus(db XODB, billRepositoriesIds []int)
 		return
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	accounts = make(map[int]AwsAccountStatus, 0)
 	for q.Next() {
 		var account AwsAccountStatus

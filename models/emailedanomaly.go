@@ -29,10 +29,10 @@ func IsAnomalyAlreadyEmailed(db XODB, awsAccountId int, product string, date tim
 		return false, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	if q.Next() {
 		return true, nil
 	}

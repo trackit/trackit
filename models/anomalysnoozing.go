@@ -26,10 +26,10 @@ func AnomalySnoozingsByUserID(db XODB, userID int) (res []*AnomalySnoozing, err 
 		return nil, err
 	}
 	defer func() {
-                if closeErr := q.Close(); err == nil {
-                        err = closeErr
-                }
-        }()
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	for q.Next() {
 		as := AnomalySnoozing{
 			_exists: true,
