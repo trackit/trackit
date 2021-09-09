@@ -36,7 +36,7 @@ const (
 
 // nextExternalResponseBody is the body to be returned upon successful
 // execution of a request on /aws/next. It gives the client all necessary
-// informrations to setup an IAM role we can assume.
+// information to setup an IAM role we can assume.
 type nextExternalResponseBody struct {
 	External  string `json:"external"`
 	AccountId string `json:"accountId"`

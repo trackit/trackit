@@ -41,13 +41,13 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService
 // used to retrieve the cost by usageType for each week/month in the time range
-// It takes as paramters :
+// It takes as parameters :
 // 	- accountList []string : A slice of string representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
+//	- durationBeing time.Time : A time.Time struct representing the beginning of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :

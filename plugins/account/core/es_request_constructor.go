@@ -30,11 +30,11 @@ func createQueryAccountFilterPlugins(accountList []string) *elastic.TermsQuery {
 }
 
 // GetElasticSearchPluginsParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
+// It takes as parameters :
 // 	- accountList []string : A slice of strings representing aws account ids
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query.
+//	- index string : The Elastic Search index on which to execute the query.
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
 //	- If the client is nil or malconfigured, it will crash

@@ -16,7 +16,7 @@ package pricings
 
 var (
 	// EC2RegionCodeToPricingLocationName maps EC2 region codes to pricing locations
-	// There is no AWS call to retrieve this programaticaly
+	// There is no AWS call to retrieve this programmatically
 	// From https://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region
 	EC2RegionCodeToPricingLocationName = map[string]string{
 		"us-east-2":      "US East (Ohio)",

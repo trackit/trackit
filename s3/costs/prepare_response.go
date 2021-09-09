@@ -65,32 +65,32 @@ func getBucketInfoByName(buckets BucketsInfo, bucketName string) *S3BucketCost {
 	return buckets[bucketName]
 }
 
-// getBucketStorage gets the storage informations from the bucketData
-// and returns an *S3BucketCost filled with these data
+// getBucketStorage gets the storage information from the bucketData
+// and returns an *S3BucketCost filled with this data
 func getBucketStorage(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCost {
 	bucketInfo.GbMonth = bucketData["usage"].(bucket)["value"].(float64)
 	bucketInfo.StorageCost = bucketData["cost"].(bucket)["value"].(float64)
 	return bucketInfo
 }
 
-// getBucketRequests gets the requests informations from the bucketData
-// and returns an *S3BucketCost filled with these data
+// getBucketRequests gets the requests information from the bucketData
+// and returns an *S3BucketCost filled with this data
 func getBucketRequests(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCost {
 	bucketInfo.Requests = bucketData["usage"].(bucket)["value"].(float64)
 	bucketInfo.RequestsCost = bucketData["cost"].(bucket)["value"].(float64)
 	return bucketInfo
 }
 
-// getBucketBandwidthIn gets the bandwidthIn informations from the bucketData
-// and returns an *S3BucketCost filled with these data
+// getBucketBandwidthIn gets the bandwidthIn information from the bucketData
+// and returns an *S3BucketCost filled with this data
 func getBucketBandwidthIn(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCost {
 	bucketInfo.DataIn = bucketData["usage"].(bucket)["value"].(float64)
 	bucketInfo.BandwidthCost += bucketData["cost"].(bucket)["value"].(float64)
 	return bucketInfo
 }
 
-// getBucketBandwidthOut gets the bandwidthOut informations from the bucketData
-// and returns an *S3BucketCost filled with these data
+// getBucketBandwidthOut gets the bandwidthOut information from the bucketData
+// and returns an *S3BucketCost filled with this data
 func getBucketBandwidthOut(bucketInfo *S3BucketCost, bucketData bucket) *S3BucketCost {
 	bucketInfo.DataOut = bucketData["usage"].(bucket)["value"].(float64)
 	bucketInfo.BandwidthCost += bucketData["cost"].(bucket)["value"].(float64)
@@ -114,7 +114,7 @@ func parseBuckets(buckets BucketsInfo, parsedDocument bucket, resultType string)
 	return buckets
 }
 
-// parseESResult parses an *elastic.SearchResult according to it's resultType
+// parseESResult parses an *elastic.SearchResult according to its resultType
 func parseESResult(ctx context.Context, buckets BucketsInfo, res *elastic.SearchResult, resultType string) (BucketsInfo, error) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
 	var parsedDocument bucket
@@ -127,7 +127,7 @@ func parseESResult(ctx context.Context, buckets BucketsInfo, res *elastic.Search
 	return buckets, nil
 }
 
-// prepareResponse parses the results from elasticsearch and returns a map of buckets with their usage informations
+// prepareResponse parses the results from elasticsearch and returns a map of buckets with their usage information
 func prepareResponse(ctx context.Context, resStorage, resRequests, resBandwidthIn, resBandwidthOut *elastic.SearchResult) (BucketsInfo, error) {
 	buckets := make(BucketsInfo)
 	var err error

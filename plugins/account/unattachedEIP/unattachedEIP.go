@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package plugins_account_anattached_eip
+package plugins_account_unattached_eip
 
 import (
 	"fmt"

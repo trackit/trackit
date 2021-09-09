@@ -45,7 +45,7 @@ func generateTemplateSheet(ctx context.Context, _ []aws.AwsAccount, _ time.Time,
 	imageFile := strings.Split(imageUrlSplit[len(imageUrlSplit)-1], ".")
 	image, err := downloadFile(config.ReportsCover)
 	if err != nil {
-		logger.Error("An error occured while downloading cover for report", map[string]interface{}{
+		logger.Error("An error occurred while downloading cover for report", map[string]interface{}{
 			"error": err,
 			"cover": config.ReportsCover,
 		})
@@ -53,7 +53,7 @@ func generateTemplateSheet(ctx context.Context, _ []aws.AwsAccount, _ time.Time,
 	file.NewSheet(templateSheetName)
 	err = file.AddPictureFromBytes(templateSheetName, "A1", `{"x_scale": 0.95, "y_scale": 1}`, imageFile[0], "."+imageFile[len(imageFile)-1], image)
 	if err != nil {
-		logger.Error("An error occured while generating template for report", map[string]interface{}{
+		logger.Error("An error occurred while generating template for report", map[string]interface{}{
 			"error": err,
 		})
 	}

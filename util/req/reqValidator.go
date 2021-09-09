@@ -119,7 +119,7 @@ func createValidatorForField(typ reflect.Type, fld reflect.StructField) (interna
 }
 
 // aggregateValidators creates a single validator from a collection of
-// validators. When called it will allways run all child validators, returning
+// validators. When called it will always run all child validators, returning
 // all errors.
 func aggregateValidators(fvs []internalValidator) internalValidator {
 	if len(fvs) == 0 {

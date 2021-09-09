@@ -45,7 +45,7 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // used to retrieve the anomalies.
 // It takes as parameters :
 // 	- accountList []string : A slice of string representing aws account number
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
+//	- durationBeing time.Time : A time.Time struct representing the beginning of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	- index string : The Elastic Search index on which to execute the query.

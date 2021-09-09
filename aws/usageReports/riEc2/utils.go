@@ -62,7 +62,7 @@ type (
 		Tags []utils.Tag `json:"tags"`
 	}
 
-	//RecurringCharges contains recurring charges informations of a reservation
+	// RecurringCharges contains recurring charges information for a reservation
 	RecurringCharges struct {
 		Amount    float64
 		Frequency string

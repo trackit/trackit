@@ -88,7 +88,7 @@ type (
 		Domain Domain `json:"domain"`
 	}
 
-	// Domain represents all the informations of an ES domain.
+	// Domain represents all the information for an ES domain.
 	Domain struct {
 		es.DomainBase
 		Tags  map[string]string  `json:"tags"`
