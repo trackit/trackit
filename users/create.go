@@ -176,53 +176,49 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier, body.Origin)
-	if err == nil {
-		logger.Info("User created.", user)
-		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
-			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":  body.Email,
-				"origin": body.Origin,
-				"err":    err.Error(),
-			})
-		}
-		return 200, user
-	} else {
+	if err != nil {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
 			return 409, errors.New("Account already exists.")
-		} else {
-			return 500, errors.New("Failed to create user.")
 		}
+		return 500, errors.New("Failed to create user.")
 	}
+	logger.Info("User created.", user)
+	if err = entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
+		logger.Error("Could not check new user's entitlements", map[string]interface{}{
+			"email":  body.Email,
+			"origin": body.Origin,
+			"err":    err.Error(),
+		})
+	}
+	return 200, user
 }
 
 func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "", body.Origin)
-	if err == nil {
-		logger.Info("User created.", user)
-		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
-			return 500, errors.New("Failed to create user.")
-		}
-		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
-			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":  body.Email,
-				"origin": body.Origin,
-				"err":    err.Error(),
-			})
-		}
-		return 200, user
-	} else {
+	if err != nil {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
 			return 409, errors.New("Account already exists.")
-		} else {
-			return 500, errors.New("Failed to create user.")
 		}
+		return 500, errors.New("Failed to create user.")
 	}
+	logger.Info("User created.", user)
+	if err = CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
+		return 500, errors.New("Failed to create user.")
+	}
+	if err = entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
+		logger.Error("Could not check new user's entitlements", map[string]interface{}{
+			"email":  body.Email,
+			"origin": body.Origin,
+			"err":    err.Error(),
+		})
+	}
+	return 200, user
 }
 
 type createViewerUserRequestBody struct {

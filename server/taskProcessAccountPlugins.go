@@ -60,9 +60,10 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer utilsUsualTxFinalize(&tx, &err, &logger, "process-account-plugins")
 
+	var trackitUser *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if trackitUser, err := models.UserByID(db.Db, aa.UserId); err != nil || trackitUser.AccountType != "trackit" {
+	} else if trackitUser, err = models.UserByID(db.Db, aa.UserId); err != nil || trackitUser.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'ProcessAccountPlugins' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": trackitUser.AccountType,

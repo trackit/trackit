@@ -181,7 +181,7 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 		dbAwsAccount.Pretty = a.Pretty
 		dbAwsAccount.Payer = a.Payer
 		dbAwsAccount.RoleArn = a.RoleArn
-		err := dbAwsAccount.Update(tx)
+		err = dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
 		}
@@ -223,7 +223,7 @@ func (a *AwsAccount) UpdateRoleAndExternalAwsAccount(ctx context.Context, tx *sq
 	} else {
 		dbAwsAccount.RoleArn = a.RoleArn
 		dbAwsAccount.External = a.External
-		err := dbAwsAccount.Update(tx)
+		err = dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
 		}

@@ -50,16 +50,16 @@ func checkParametersError(endpointMetaData []string, creds *credentials.Credenti
 //		- endpoint: The endpoint URI gettable from AWS.
 //		- creds: Credentials from AWS/Credentials.
 func NewSignedElasticClient(endpoint string, creds *credentials.Credentials) (*elastic.Client, error) {
-	if cofs, err := NewSignedElasticClientOptions(endpoint, creds); err == nil {
-		cof := configEach(cofs...)
-		if ec, err := elastic.NewClient(elastic.SetURL(endpoint), cof); err == nil {
-			return ec, nil
-		} else {
-			return nil, err
-		}
-	} else {
+	cofs, err := NewSignedElasticClientOptions(endpoint, creds)
+	if err != nil {
 		return nil, err
 	}
+	cof := configEach(cofs...)
+	ec, err := elastic.NewClient(elastic.SetURL(endpoint), cof)
+	if err != nil {
+		return nil, err
+	}
+	return ec, nil
 }
 
 // NewSignedElasticClientOptions builds elastic client option funcs which
