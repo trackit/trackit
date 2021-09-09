@@ -31,14 +31,19 @@ import (
 )
 
 // fetchDailyRoute53List sends in hostedZoneInfoChan the Hosted Zones fetched from ListHostedZones
-func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, region string, hostedZoneChan chan HostedZone) error {
-	defer close(hostedZoneChan)
+func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, region string, hostedZonesChan chan HostedZone) error {
+	defer close(hostedZonesChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
+	// Make it so that the AWS session will automatically retry our requests if we get throttled. Especially important for Route53 since we'll get throttled if we do more than 5 requests per second
+	maxRetries := 20
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
+		MaxRetries:  &maxRetries,
 	}))
 	svc := route53.New(sess)
+
 	hostedZones, err := svc.ListHostedZones(nil)
 	if err != nil {
 		logger.Error("Error when describing Route53 HostedZones", err.Error())
@@ -46,8 +51,8 @@ func fetchDailyRoute53List(ctx context.Context, creds *credentials.Credentials, 
 	}
 	for _, hostedZone := range hostedZones.HostedZones {
 		ss := strings.Split(aws.StringValue(hostedZone.Id), "/")
-		hostedZoneId := ss[len(ss) - 1]
-		hostedZoneChan <- HostedZone{
+		hostedZoneId := ss[len(ss)-1]
+		hostedZonesChan <- HostedZone{
 			HostedZoneBase: HostedZoneBase{
 				Name:   aws.StringValue(hostedZone.Name),
 				Id:     hostedZoneId,
@@ -80,19 +85,12 @@ func FetchDailyRoute53Stats(ctx context.Context, awsAccount taws.AwsAccount) err
 		logger.Error("Error when getting account id", err.Error())
 		return err
 	}
-	regions, err := utils.FetchRegionsList(ctx, defaultSession)
-	if err != nil {
-		logger.Error("Error when fetching regions list", err.Error())
-		return err
-	}
-	hostedZonesChans := make([]<-chan HostedZone, 0, len(regions))
-	for _, region := range regions {
-		hostedZoneChan := make(chan HostedZone)
-		go fetchDailyRoute53List(ctx, creds, region, hostedZoneChan)
-		hostedZonesChans = append(hostedZonesChans, hostedZoneChan)
-	}
+
+	hostedZonesChan := make(chan HostedZone)
+	go fetchDailyRoute53List(ctx, creds, "", hostedZonesChan)
+
 	hostedZones := make([]HostedZoneReport, 0)
-	for hostedZone := range merge(hostedZonesChans...) {
+	for hostedZone := range hostedZonesChan {
 		hostedZones = append(hostedZones, HostedZoneReport{
 			ReportBase: utils.ReportBase{
 				Account:    account,

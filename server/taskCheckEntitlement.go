@@ -31,16 +31,9 @@ func taskCheckEntitlement(ctx context.Context) (err error) {
 	var tx *sql.Tx
 	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
-	logger.Debug("Running task 'checkuserentitlement'.", map[string]interface{}{
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "check-user-entitlement")
+
+	logger.Debug("Running task 'check-user-entitlement'.", map[string]interface{}{
 		"args": args,
 	})
 	if len(args) != 1 {

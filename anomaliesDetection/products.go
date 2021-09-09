@@ -124,8 +124,10 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 		}
 		bp = addDocToBulkProcessor(bp, doc, TypeProductAnomaliesDetection, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed when putting anomalies in ES", err.Error())
 		return err

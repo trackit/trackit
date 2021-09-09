@@ -54,15 +54,8 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 	var dbaa *models.AwsAccount
 	var lastUpdate time.Time
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "anomalies-detection")
+
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if dbaa, err = models.AwsAccountByID(tx, aaId); err != nil {
 	} else if aa = aws.AwsAccountFromDbAwsAccount(*dbaa); err != nil {
@@ -88,7 +81,7 @@ func processAnomaliesForAccount(ctx context.Context, aaId int) (err error) {
 		"/costs/anomalies/snooze",
 		"/costs/anomalies/unsnooze",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
+	err = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 

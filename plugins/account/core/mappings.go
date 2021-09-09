@@ -30,12 +30,12 @@ const TemplateNameAccountPlugin = "account-plugins"
 // put the ElasticSearch index for *-account-plugins indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameAccountPlugin).BodyString(TemplateAccountPlugin).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index account-plugins.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index account-plugins.", res)
-		ctxCancel()
 	}
 }
 

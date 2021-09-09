@@ -241,12 +241,19 @@ func postBillRepositoryWithValidBody(
 	body postBillRepositoryBody,
 ) (int, interface{}) {
 	br, err := CreateBillRepository(aa, BillRepository{Bucket: body.Bucket, Prefix: body.Prefix}, tx)
+	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 	if err == nil {
-		go UpdateReport(context.Background(), aa, br)
+		go func() {
+			if _, err := UpdateReport(context.Background(), aa, br); err != nil {
+				logger.Error("Failed to update ES database with the new usage/costs reports", map[string]interface{}{
+					"billRepository": br,
+					"error":          err.Error(),
+				})
+			}
+		}()
 		return http.StatusOK, br
 	} else {
-		l := jsonlog.LoggerFromContextOrDefault(r.Context())
-		l.Error("Failed to create bill repository.", map[string]interface{}{
+		logger.Error("Failed to create bill repository.", map[string]interface{}{
 			"billRepository": br,
 			"error":          err.Error(),
 		})
@@ -294,7 +301,13 @@ func patchBillRepositoryWithValidBody(
 					"error":          err.Error(),
 				})
 			}
-			UpdateReport(context.Background(), aa, br)
+			_, err = UpdateReport(context.Background(), aa, br)
+			if err != nil {
+				l.Error("Failed to update ES database with the new usage/costs reports", map[string]interface{}{
+					"billRepository": br,
+					"error":          err.Error(),
+				})
+			}
 		}()
 		return http.StatusOK, br
 	} else {
@@ -390,9 +403,9 @@ func deleteBillRepository(r *http.Request, a routes.Arguments) (int, interface{}
 func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	tx := a[db.Transaction].(*sql.Tx)
+	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 	if brs, err := GetBillRepositoryWithPendingForAwsAccount(tx, aa.Id); err != nil {
-		l := jsonlog.LoggerFromContextOrDefault(r.Context())
-		l.Error("Failed to get aws account's bill repositories.", map[string]interface{}{
+		logger.Error("Failed to get aws account's bill repositories.", map[string]interface{}{
 			"user":       a[users.AuthenticatedUser].(users.User),
 			"awsAccount": aa,
 			"error":      err.Error(),
@@ -401,7 +414,12 @@ func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	} else {
 		var brwss []BillRepositoryWithStatus
 		for _, br := range brs {
-			brws, _ := WrapBillRepositoriesWithPendingWithStatus(tx, br)
+			brws, err := WrapBillRepositoriesWithPendingWithStatus(tx, br)
+			if err != nil {
+				logger.Error("Failed to wrap one of the bill repositories with its status", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 			brwss = append(brwss, brws)
 		}
 		return http.StatusOK, brwss
