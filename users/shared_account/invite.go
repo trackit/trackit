@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	ErrorInviteNewUser = errors.New("An error occured while inviting a new user. Please, try again.")
-	ErrorInviteUser    = errors.New("An error occured while inviting a user. Please, try again.")
+	ErrorInviteNewUser = errors.New("An error occurred while inviting a new user. Please, try again.")
+	ErrorInviteUser    = errors.New("An error occurred while inviting a user. Please, try again.")
 	ErrorAlreadyShared = errors.New("You are already sharing this account with this user.")
 )
 
@@ -115,11 +115,11 @@ func createAccountForGuest(ctx context.Context, db *sql.Tx, body InviteUserReque
 	if err == nil {
 		sharedAccount, err = addAccountToGuest(ctx, db, accountId, body.PermissionLevel, usr.Id)
 		if err != nil {
-			logger.Error("Error occured while adding account to an newly created user.", err.Error())
+			logger.Error("Error occurred while adding account to an newly created user.", err.Error())
 			return 0, models.SharedAccount{}, err
 		}
 	} else {
-		logger.Error("Error occured while creating an automatic new account.", err.Error())
+		logger.Error("Error occurred while creating an automatic new account.", err.Error())
 		return 0, models.SharedAccount{}, err
 	}
 	return usr.Id, sharedAccount, nil
@@ -193,12 +193,12 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email, true, 0)
 		if err != nil {
-			logger.Error("Error occured while sending an email to an existing user.", err.Error())
+			logger.Error("Error occurred while sending an email to an existing user.", err.Error())
 			return http.StatusForbidden, ErrorInviteUser
 		}
 		return http.StatusOK, sharedAccount
 	} else {
-		logger.Error("Error occured while adding account to an existing user.", err.Error())
+		logger.Error("Error occurred while adding account to an existing user.", err.Error())
 		return http.StatusForbidden, ErrorInviteUser
 	}
 }
@@ -210,12 +210,12 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, acco
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email, false, newUserId)
 		if err != nil {
-			logger.Error("Error occured while sending an email to a new user.", err.Error())
+			logger.Error("Error occurred while sending an email to a new user.", err.Error())
 			return http.StatusForbidden, ErrorInviteNewUser
 		}
 		return http.StatusOK, newUser
 	} else {
-		logger.Error("Error occured while creating new account for a guest.", err.Error())
+		logger.Error("Error occurred while creating new account for a guest.", err.Error())
 		return http.StatusForbidden, ErrorInviteNewUser
 	}
 }
@@ -243,7 +243,7 @@ func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, acco
 			return code, res
 		}
 	} else {
-		logger.Error("Error occured while checking body elements.", err.Error())
+		logger.Error("Error occurred while checking body elements.", err.Error())
 		return http.StatusForbidden, ErrorInviteNewUser
 	}
 }

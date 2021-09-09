@@ -98,7 +98,7 @@ func routeCreateSubscription(request *http.Request, a routes.Arguments) (int, in
 	subscriptionParams.AddExpand("latest_invoice.payment_intent")
 	s, err := sub.New(subscriptionParams)
 	if err != nil {
-		l.Error("Stripe failed to create subscritpion", err)
+		l.Error("Stripe failed to create subscription", err)
 		return http.StatusInternalServerError, err
 	}
 	if s.Status == "active" {

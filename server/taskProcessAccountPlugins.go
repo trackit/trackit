@@ -50,7 +50,7 @@ func taskProcessAccountPlugins(ctx context.Context) error {
 	}
 }
 
-// preparePluginsProcessingForAccount retrieves all the informations needed to
+// preparePluginsProcessingForAccount retrieves all the information needed to
 // run the plugins for a given account
 func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx

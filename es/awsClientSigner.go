@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	// The URI contains 5 mendatory parts split by '.'
+	// The URI contains 5 mandatory parts split by '.'
 	// domainname.region.service.amazonaws.com
 	endpointMetaDataLengthRequirement = 5
 )

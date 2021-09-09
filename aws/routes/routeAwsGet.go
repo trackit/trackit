@@ -82,7 +82,7 @@ func getBillRepositoryUpdates(r *http.Request, a routes.Arguments) (int, interfa
 }
 
 func BillRepositoryUpdates(db dbAccessor, userId int) (res []BillRepositoryUpdateInfo, err error) {
-	// for each seleced bill repository, find data about the last and
+	// for each selected bill repository, find data about the last and
 	// next/current update and join it all
 	var sqlstr = `
 		SELECT

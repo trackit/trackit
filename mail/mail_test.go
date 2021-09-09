@@ -39,6 +39,6 @@ func TestSendMail(t *testing.T) {
 			"test body!",
 	)
 	if !bytes.Equal(msg, template) {
-		t.Fatalf("Unexcepted message: (%s) instead of (%s)", msg, template)
+		t.Fatalf("Unexpected message: (%s) instead of (%s)", msg, template)
 	}
 }

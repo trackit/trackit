@@ -170,7 +170,7 @@ func createAggregationPerYear(_ []string) []paramAggrAndName {
 	}
 }
 
-// createAggregationPerTag creates and returns a new []paramAggrAndName of size 2 which consits
+// createAggregationPerTag creates and returns a new []paramAggrAndName of size 2 which consists
 // of two aggregations that are required for the tag param.
 // The first aggregation is a FilterAggregation on the field 'tag.key', and with a value of
 // the tag key passed in the parameter 'paramSplit' in the form "user:<TAG_KEY_VALUE>".
@@ -237,10 +237,10 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 }
 
 // GetElasticSearchParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
+// It takes as parameters :
 // 	- accountList []string : A slice of strings representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
+//	- durationBeing time.Time : A time.Time struct representing the beginning of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //	- param []string : A slice of strings representing the different parameters, in the nesting order,
 //	that will create aggregations.
@@ -256,7 +256,7 @@ func nestAggregation(allAggrSlice []paramAggrAndName) elastic.Aggregation {
 //		the field 'usage_start_date'
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
