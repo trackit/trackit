@@ -53,7 +53,7 @@ var (
 	rdsUnusedQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
-		routes.QueryArg{
+		{
 			Name:        "count",
 			Type:        routes.QueryArgInt{},
 			Description: "Number of element in the response, all if not precised or negative",

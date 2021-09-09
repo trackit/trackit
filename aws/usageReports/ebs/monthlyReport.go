@@ -218,7 +218,7 @@ func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, a
 
 //get the region of the ressource for ebs snapshot
 func getResourceRegion(cost utils.CostPerResource) string {
-	reg, err := regexp.Compile("^arn:aws:ec2:([\\w\\d\\-]+):\\d+:snapshot")
+	reg, err := regexp.Compile(`^arn:aws:ec2:([\w\d\-]+):\d+:snapshot`)
 	if err != nil {
 		return ""
 	}
@@ -227,7 +227,7 @@ func getResourceRegion(cost utils.CostPerResource) string {
 
 //get the id of the ressource for ebs snapshot
 func getResourceId(cost utils.CostPerResource) string {
-	reg, err := regexp.Compile("^arn:aws:ec2:[\\w\\d\\-]+:\\d+:snapshot/([\\w\\d\\-]+)")
+	reg, err := regexp.Compile(`^arn:aws:ec2:[\w\d\-]+:\d+:snapshot/([\w\d\-]+)`)
 	if err != nil {
 		return ""
 	}

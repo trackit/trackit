@@ -76,7 +76,7 @@ func processNetworkEc2(params core.PluginParams) (res core.PluginResult) {
 	tx, err := db.Db.Begin()
 	if err != nil {
 		res.Status = "red"
-		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : %s", err.Error())
+		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : ", err.Error())
 		return
 	}
 	_, instances, err := ec2.GetEc2Data(params.Context,
@@ -84,7 +84,7 @@ func processNetworkEc2(params core.PluginParams) (res core.PluginResult) {
 		params.User, tx)
 	if err != nil {
 		res.Status = "red"
-		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : %s", err.Error())
+		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : ", err.Error())
 		return
 	}
 	getUnusedEc2Recommendation(&res, instances)

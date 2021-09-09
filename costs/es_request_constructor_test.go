@@ -247,23 +247,23 @@ func TestAggregationPerTag(t *testing.T) {
 
 func TestReverseAggregationArray(t *testing.T) {
 	sliceTobeReversed := []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "first",
 			aggr: nil},
-		paramAggrAndName{
+		{
 			name: "second",
 			aggr: nil},
-		paramAggrAndName{
+		{
 			name: "thrice",
 			aggr: nil}}
 	expectedReversedSlice := []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "thrice",
 			aggr: nil},
-		paramAggrAndName{
+		{
 			name: "second",
 			aggr: nil},
-		paramAggrAndName{
+		{
 			name: "first",
 			aggr: nil}}
 	reversedSlice := reverseAggregationArray(sliceTobeReversed)
