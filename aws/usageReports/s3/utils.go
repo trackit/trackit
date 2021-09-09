@@ -73,8 +73,10 @@ func importS3ToEs(ctx context.Context, aa taws.AwsAccount, buckets []BucketRepor
 		}
 		bp = utils.AddDocToBulkProcessor(bp, bucket, TypeS3Report, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put S3 in ES", err.Error())
 		return err

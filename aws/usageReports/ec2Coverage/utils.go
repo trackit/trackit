@@ -71,8 +71,10 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []Re
 		}
 		bp = utils.AddDocToBulkProcessor(bp, reservation, TypeEC2CoverageReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed to put EC2 Coverage report in ES", err.Error())
 		return false, err
