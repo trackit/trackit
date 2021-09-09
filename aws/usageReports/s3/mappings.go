@@ -30,12 +30,12 @@ const TemplateNameS3Report = "s3-reports"
 // put the ElasticSearch index for *-s3-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameS3Report).BodyString(TemplateS3Report).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index s3-reports.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index s3-reports.", res)
-		ctxCancel()
 	}
 }
 

@@ -30,12 +30,12 @@ const TemplateNameRoute53Report = "route53-reports"
 // put the ElasticSearch index for *-route53-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameRoute53Report).BodyString(TemplateRoute53Report).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index route53-reports.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index route53-reports.", res)
-		ctxCancel()
 	}
 }
 
