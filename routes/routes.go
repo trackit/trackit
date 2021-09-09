@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/config"
 )
 
