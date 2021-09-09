@@ -30,12 +30,12 @@ const TemplateNameSQSReport = "sqs-reports"
 // put the ElasticSearch index for *-sqs-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameSQSReport).BodyString(TemplateSQSReport).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index sqs-reports.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index sqs-reports.", res)
-		ctxCancel()
 	}
 }
 

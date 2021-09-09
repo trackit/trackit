@@ -53,17 +53,17 @@ type esFilters = []esFilter
 // queryDataTypeToEsFilters represents the different types of data
 // that can be requested from ES and their associated slice of filters
 var queryDataTypeToEsFilters = map[string]esFilters{
-	"storage": esFilters{
+	"storage": {
 		esFilter{"usageType", "*TimedStorage*"},
 	},
-	"requests": esFilters{
+	"requests": {
 		esFilter{"usageType", "*Requests*"},
 	},
-	"bandwidthIn": esFilters{
+	"bandwidthIn": {
 		esFilter{"usageType", "*In*"},
 		esFilter{"serviceCode", "AWSDataTransfer"},
 	},
-	"bandwidthOut": esFilters{
+	"bandwidthOut": {
 		esFilter{"usageType", "*Out*"},
 		esFilter{"serviceCode", "AWSDataTransfer"},
 	},
@@ -99,7 +99,7 @@ func makeElasticSearchRequest(ctx context.Context, parsedParams S3QueryParams,
 	index := strings.Join(parsedParams.indexList, ",")
 
 	esFilters, ok := queryDataTypeToEsFilters[queryDataType]
-	if ok == false {
+	if !ok {
 		err := fmt.Errorf("QueryDataType '%s' not found", queryDataType)
 		l.Error("Failed to retrieve s3 costs", err)
 		return nil, http.StatusInternalServerError, err

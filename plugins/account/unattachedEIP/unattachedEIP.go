@@ -96,7 +96,7 @@ func getUnattachedEIP(pluginParams core.PluginParams, pluginRes *core.PluginResu
 	EIPChans := make([]<-chan EIP, 0, len(regionsOutput.Regions))
 	for _, region := range regionsOutput.Regions {
 		eipChan := make(chan EIP)
-		go fetchEIPInfos(pluginParams, region.RegionName, eipChan)
+		go fetchEIPInfos(pluginParams, region.RegionName, eipChan) // No need to handle the error here, it's sent down eipChan and thus handled in the next loop
 		EIPChans = append(EIPChans, eipChan)
 	}
 	for eip := range merge(EIPChans...) {

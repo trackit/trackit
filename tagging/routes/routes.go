@@ -33,7 +33,7 @@ var taggingComplianceQueryArgs = []routes.QueryArg{
 
 // suggestionsQueryArgs allows to get required queryArgs params
 var suggestionsQueryArgs = []routes.QueryArg{
-	routes.QueryArg{
+	{
 		Name:        "tagkey",
 		Type:        routes.QueryArgString{},
 		Description: "Tag key for suggestions",

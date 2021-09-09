@@ -51,15 +51,8 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 	var generation bool
 	forceGeneration := !date.IsZero()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "generate-master-spreadsheet")
+
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {

@@ -81,7 +81,7 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 				Region:            region,
 			},
 			Tags:  tags,
-			Costs: make(map[string]float64, 0),
+			Costs: make(map[string]float64),
 			Stats: stats,
 		}
 	}

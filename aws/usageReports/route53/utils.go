@@ -40,15 +40,15 @@ type (
 
 	// HostedZoneBase contains basics information of a Route53 Hosted Zone
 	HostedZoneBase struct {
-		Name         string    `json:"name"`
-		Id           string    `json:"id"`
-		Region       string    `json:"region"`
+		Name   string `json:"name"`
+		Id     string `json:"id"`
+		Region string `json:"region"`
 	}
 
 	// HostedZone contains all the information of an Route53 Hosted Zone
 	HostedZone struct {
 		HostedZoneBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 
@@ -73,8 +73,10 @@ func importRoute53ToEs(ctx context.Context, aa taws.AwsAccount, hostedZones []Ho
 		}
 		bp = utils.AddDocToBulkProcessor(bp, hostedZone, TypeRoute53Report, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put hostedZone in ES", err.Error())
 		return err

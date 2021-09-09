@@ -57,15 +57,8 @@ func prepareCheckCostForAccount(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx
 	var aa taws.AwsAccount
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "check-cost")
+
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = taws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {

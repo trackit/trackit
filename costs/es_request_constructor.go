@@ -78,7 +78,7 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // bucket aggregation on the field 'product_name'
 func createAggregationPerProduct(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-product",
 			aggr: elastic.NewTermsAggregation().
 				Field("productCode").Size(aggregationMaxSize),
@@ -90,7 +90,7 @@ func createAggregationPerProduct(_ []string) []paramAggrAndName {
 // bucket aggregation on the field 'availability_zone'
 func createAggregationPerAvailabilityZone(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-availabilityzone",
 			aggr: elastic.NewTermsAggregation().
 				Field("availabilityZone").Size(aggregationMaxSize),
@@ -102,7 +102,7 @@ func createAggregationPerAvailabilityZone(_ []string) []paramAggrAndName {
 // bucket aggregation on the field 'region'
 func createAggregationPerRegion(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-region",
 			aggr: elastic.NewTermsAggregation().
 				Field("region").Size(aggregationMaxSize),
@@ -114,7 +114,7 @@ func createAggregationPerRegion(_ []string) []paramAggrAndName {
 // bucket aggregation on the field 'linked_account_id'
 func createAggregationPerAccount(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-account",
 			aggr: elastic.NewTermsAggregation().
 				Field("usageAccountId").Size(aggregationMaxSize),
@@ -126,7 +126,7 @@ func createAggregationPerAccount(_ []string) []paramAggrAndName {
 // date histogram aggregation on the field 'usage_start_date' with a time range of a day
 func createAggregationPerDay(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-day",
 			aggr: elastic.NewDateHistogramAggregation().
 				Field("usageStartDate").MinDocCount(0).Interval("day"),
@@ -138,7 +138,7 @@ func createAggregationPerDay(_ []string) []paramAggrAndName {
 // date histogram aggregation on the field 'usage_start_date' with a time range of a week
 func createAggregationPerWeek(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-week",
 			aggr: elastic.NewDateHistogramAggregation().
 				Field("usageStartDate").MinDocCount(0).Interval("week"),
@@ -150,7 +150,7 @@ func createAggregationPerWeek(_ []string) []paramAggrAndName {
 // date histogram aggregation on the field 'usage_start_date' with a time range of a month
 func createAggregationPerMonth(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-month",
 			aggr: elastic.NewDateHistogramAggregation().
 				Field("usageStartDate").MinDocCount(0).Interval("month"),
@@ -162,7 +162,7 @@ func createAggregationPerMonth(_ []string) []paramAggrAndName {
 // date histogram aggregation on the field 'usage_start_date' with a time range of a year
 func createAggregationPerYear(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-year",
 			aggr: elastic.NewDateHistogramAggregation().
 				Field("usageStartDate").MinDocCount(0).Interval("year"),
@@ -179,11 +179,11 @@ func createAggregationPerYear(_ []string) []paramAggrAndName {
 // No SubAggregation is created in this function, as it needs to be created in the nestAggregation function
 func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "by-tag_key",
 			aggr: elastic.NewFilterAggregation().
 				Filter(elastic.NewTermQuery("tag.key", fmt.Sprintf("user:%v", paramSplit[1])))},
-		paramAggrAndName{
+		{
 			name: "tag_value",
 			aggr: elastic.NewTermsAggregation().
 				Field("tag.value").Size(aggregationMaxSize)},
@@ -194,7 +194,7 @@ func createAggregationPerTag(paramSplit []string) []paramAggrAndName {
 // SumAggregation on the field 'cost'
 func createCostSumAggregation(_ []string) []paramAggrAndName {
 	return []paramAggrAndName{
-		paramAggrAndName{
+		{
 			name: "value",
 			aggr: elastic.NewSumAggregation().Field("unblendedCost"),
 		},
