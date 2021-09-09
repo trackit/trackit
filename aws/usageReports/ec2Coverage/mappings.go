@@ -30,12 +30,12 @@ const TemplateNameEC2CoverageReport = "ec2-coverage-reports"
 // put the ElasticSearch index for *-ec2-coverage-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameEC2CoverageReport).BodyString(TemplateEc2CoverageReport).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index EC2 Coverage Report.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index EC2 Coverage Report.", res)
-		ctxCancel()
 	}
 }
 

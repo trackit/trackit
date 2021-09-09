@@ -41,7 +41,7 @@ type columnWidth struct {
 
 type columnsWidth []columnWidth
 
-func newCell(value interface {}, location string) cell {
+func newCell(value interface{}, location string) cell {
 	return cell{value, "", location, "", []string{}, conditionalFormats{}}
 }
 
@@ -116,7 +116,7 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 		} else {
 			jsonlog.DefaultLogger.Warning("Error while applying style to a cell", map[string]interface{}{
 				"error": err,
-				"cell": c,
+				"cell":  c,
 			})
 		}
 	}
@@ -127,13 +127,13 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 			if err != nil {
 				jsonlog.DefaultLogger.Warning("Error while applying conditional formatting to a cell", map[string]interface{}{
 					"error": err,
-					"cell": c,
+					"cell":  c,
 				})
 			}
 		} else {
 			jsonlog.DefaultLogger.Warning("Error while getting conditional formatting", map[string]interface{}{
 				"error": err,
-				"cell": c,
+				"cell":  c,
 			})
 		}
 	}

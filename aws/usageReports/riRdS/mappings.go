@@ -30,12 +30,12 @@ const TemplateNameReservedRDSReport = "rds-ri-reports"
 // put the ElasticSearch index for *-rds-reports indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameReservedRDSReport).BodyString(TemplateReservedRdsReport).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index rds-ri-reports.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index rds-ri-reports.", res)
-		ctxCancel()
 	}
 }
 

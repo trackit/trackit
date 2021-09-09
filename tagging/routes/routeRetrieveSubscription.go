@@ -15,9 +15,9 @@
 package routes
 
 import (
-	"net/http"
 	"database/sql"
 	"errors"
+	"net/http"
 
 	"github.com/stripe/stripe-go/v72/sub"
 	"github.com/trackit/jsonlog"
@@ -53,7 +53,7 @@ func routeRetrieveSubscription(request *http.Request, a routes.Arguments) (int, 
 		return http.StatusInternalServerError, err
 	}
 
-	if (s.Status == "active") {
+	if s.Status == "active" {
 		dbUser.StripeSubscriptionIdentifier = s.ID
 		dbUser.StripeCustomerEntitlement = true
 	}

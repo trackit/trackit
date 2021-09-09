@@ -15,9 +15,9 @@
 package routes
 
 import (
-	"net/http"
 	"database/sql"
 	"errors"
+	"net/http"
 
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/customer"
@@ -74,7 +74,7 @@ func routeHandleRetryInvoice(request *http.Request, a routes.Arguments) (int, in
 	// Update invoice settings default
 	customerParams := &stripe.CustomerParams{
 		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
-		DefaultPaymentMethod: stripe.String(pm.ID),
+			DefaultPaymentMethod: stripe.String(pm.ID),
 		},
 	}
 	c, err := customer.Update(
