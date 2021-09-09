@@ -174,12 +174,7 @@ func (QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 // QueryParse parses a []string. Since it does not do any type conversion,
 // it cannot fail. With this func, QueryArgStringSlice fulfills QueryArgType.
 func (QueryArgStringSlice) QueryParse(val string) (interface{}, error) {
-	vals := strings.Split(val, ",")
-	res := make([]string, 0, len(vals))
-	for _, v := range vals {
-		res = append(res, v)
-	}
-	return res, nil
+	return strings.Split(val, ","), nil
 }
 
 // QueryParse parses a time.Time in the ISO8601 format. With this func,

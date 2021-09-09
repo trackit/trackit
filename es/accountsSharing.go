@@ -96,7 +96,7 @@ func getAllAccountsAndIndexes(user users.User, tx *sql.Tx, indexPrefix string) (
 	return accountsAndIndexes, http.StatusOK, nil
 }
 
-// GetAccountsAndIndexesreturns an AccountsAndIndexes struct, a status code and an error
+// GetAccountsAndIndexes returns an AccountsAndIndexes struct, a status code and an error
 // if the accountList parameter is empty the function will call getAllAccountsAndIndexes
 // if the accountList parameter is not empty the function will validate the accounts and
 // find their indexes

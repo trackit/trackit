@@ -33,7 +33,7 @@ type (
 		Date        time.Time
 	}
 
-	// Ec2UnusedQueryParams will store the parsed query params
+	// EsUnusedQueryParams will store the parsed query params
 	EsUnusedQueryParams struct {
 		AccountList []string
 		IndexList   []string

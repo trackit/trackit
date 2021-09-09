@@ -148,5 +148,4 @@ func rdsUsageReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("L", 12.5).toColumn("M"),
 	}
 	columns.setValues(file, rdsUsageReportSheetName)
-	return
 }

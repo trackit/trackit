@@ -88,7 +88,8 @@ func runAnomaliesDetectionForProducts(parsedParams AnomalyEsQueryParams, account
 	var res AnalyzedCosts
 	if res, err = productGetAnomaliesData(ctx, parsedParams); err != nil {
 	} else if err = productSaveAnomaliesData(ctx, res, account); err != nil {
-	} else if err = removeRecurrence(ctx, parsedParams, account); err != nil {
+	} else {
+		err = removeRecurrence(ctx, parsedParams, account)
 	}
 	return
 }
@@ -236,7 +237,7 @@ func productGetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams) (
 		return nil, err
 	}
 	var typedDocument esProductTypedResult
-	if err := json.Unmarshal(*sr.Aggregations["products"], &typedDocument.Products); err != nil {
+	if err = json.Unmarshal(*sr.Aggregations["products"], &typedDocument.Products); err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
 		return nil, err
 	}
@@ -262,8 +263,5 @@ func productGetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams) (
 		totalAnalyzedCosts = append(totalAnalyzedCosts, aCosts...)
 	}
 	totalAnalyzedCosts = productClearDisturbances(totalAnalyzedCosts, totalCostsByDay, highestSpendersByDay)
-	if err != nil {
-		return nil, err
-	}
 	return totalAnalyzedCosts, nil
 }

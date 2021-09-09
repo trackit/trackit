@@ -61,9 +61,10 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer utilsUsualTxFinalize(&tx, &err, &logger, "injest")
 
+	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+	} else if user, err = models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'Ingest' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": user.AccountType,

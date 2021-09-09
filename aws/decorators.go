@@ -12,7 +12,7 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-// RequireAwsAccount decorates handler to require that an AwsAccount be
+// RequireAwsAccountId decorates handler to require that an AwsAccount be
 // selected using RequiredQueryArgs{AwsAccountIdQueryArg}. The decorator will
 // panic if no AwsAccountIdQueryArg query argument is found.
 type RequireAwsAccountId struct{}
@@ -28,7 +28,7 @@ func (d RequireAwsAccountId) Decorate(h routes.Handler) routes.Handler {
 	return h
 }
 
-func (_ RequireAwsAccountId) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
+func (RequireAwsAccountId) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, a routes.Arguments) (int, interface{}) {
 		l := jsonlog.LoggerFromContextOrDefault(r.Context())
 		user, tx, err := getUserAndTransactionFromArguments(a)

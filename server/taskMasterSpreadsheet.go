@@ -53,9 +53,11 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	defer utilsUsualTxFinalize(&tx, &err, &logger, "generate-master-spreadsheet")
 
+	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
+	var dbAccounts []*models.AwsAccount
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+	} else if user, err = models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'MasterSpreadSheet' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": user.AccountType,
@@ -64,7 +66,7 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 		}
 	} else if generation, err = checkMasterReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerMasterAccountReportGeneration(db.Db, aa); err != nil {
-	} else if dbAccounts, err := getAccounts(ctx, db.Db, aa); err != nil {
+	} else if dbAccounts, err = getAccounts(ctx, db.Db, aa); err != nil {
 	} else {
 		accounts := make([]aws.AwsAccount, 0)
 		for _, dbAccount := range dbAccounts {
@@ -187,7 +189,8 @@ func registerMasterAccountReportGenerationCompletion(db *sql.DB, aaId int, updat
 		return err
 	}
 	if !forceGeneration {
-		dbAccount, err := models.AwsAccountByID(db, aaId)
+		var dbAccount *models.AwsAccount // We can't use := because then there would be a new err which would shadow the returned value
+		dbAccount, err = models.AwsAccountByID(db, aaId)
 		if err != nil {
 			return err
 		}

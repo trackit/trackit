@@ -116,7 +116,7 @@ func GetRdsData(ctx context.Context, parsedParams RdsQueryParams, user users.Use
 	returnCode, monthlyInstances, err := GetRdsMonthlyInstances(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyInstances != nil && len(monthlyInstances) > 0 {
+	} else if len(monthlyInstances) > 0 { // Note: len(nil) is 0
 		return returnCode, monthlyInstances, nil
 	}
 	returnCode, dailyInstances, err := GetRdsDailyInstances(ctx, parsedParams, user, tx)

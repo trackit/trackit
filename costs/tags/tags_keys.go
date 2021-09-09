@@ -38,7 +38,7 @@ type (
 		} `json:"keys"`
 	}
 
-	// result format of the endpoint
+	// TagsKeys is the result format of the endpoint
 	TagsKeys []string
 )
 

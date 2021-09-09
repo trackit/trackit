@@ -30,12 +30,15 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 		l.Error("failed to get AWS accounts' bill repositories", err.Error())
 		return http.StatusInternalServerError, errors.New("failed to retrieve bill repositories")
 	}
-	billRepositoriesIds := make([]int, 0)
-	for _, awsAccount := range awsAccountsWithBillRepositories {
-		for _, billRepository := range awsAccount.BillRepositories {
-			billRepositoriesIds = append(billRepositoriesIds, billRepository.Id)
+	// Code unneeded for now considering all it does is create an array and fill it with all the id data from the AWS stuff before proceeding to do nothing with it
+	/*
+		billRepositoriesIds := make([]int, 0)
+		for _, awsAccount := range awsAccountsWithBillRepositories {
+			for _, billRepository := range awsAccount.BillRepositories {
+				billRepositoriesIds = append(billRepositoriesIds, billRepository.Id)
+			}
 		}
-	}
+	*/
 	result := s3.WrapAwsAccountsWithBillRepositoriesWithPendingWithStatus(awsAccountsWithBillRepositories, tx)
 	return http.StatusOK, result
 }

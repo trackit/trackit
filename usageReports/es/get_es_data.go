@@ -116,7 +116,7 @@ func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User,
 	returnCode, monthlyDomains, err := GetEsMonthlyDomains(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyDomains != nil && len(monthlyDomains) > 0 {
+	} else if len(monthlyDomains) > 0 { // Note: len(nil) is 0
 		return returnCode, monthlyDomains, nil
 	}
 	returnCode, dailyDomains, err := GetEsDailyDomains(ctx, parsedParams, user, tx)
