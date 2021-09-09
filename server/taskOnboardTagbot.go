@@ -59,7 +59,11 @@ func taskOnboardTagbot(ctx context.Context) error {
 
 	job, err := registerOnboardTagbotTask(db.Db, userId)
 	err = onboardTagbotUser(ctx, userId)
-	updateOnboardTagbotTask(db.Db, job, err)
+	if dbUpdateErr := updateOnboardTagbotTask(db.Db, job, err); dbUpdateErr != nil {
+		logger.Error("Failed to update DB for TagBot onboarding", map[string]interface{}{
+			"error": dbUpdateErr.Error(),
+		})
+	}
 
 	if err == nil {
 		logger.Info("Task 'onboard-tagbot' done.", map[string]interface{}{

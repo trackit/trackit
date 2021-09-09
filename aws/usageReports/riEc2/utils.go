@@ -90,8 +90,10 @@ func importReservationsToEs(ctx context.Context, aa taws.AwsAccount, reservation
 		}
 		bp = utils.AddDocToBulkProcessor(bp, reservation, TypeReservedInstancesReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put reserved instances in ES", err.Error())
 		return err

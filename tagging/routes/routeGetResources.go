@@ -23,12 +23,12 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/users"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
-	"github.com/trackit/trackit/tagging/utils"
+	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/tagging"
+	"github.com/trackit/trackit/tagging/utils"
+	"github.com/trackit/trackit/users"
 )
 
 type Tag struct {
@@ -67,7 +67,7 @@ func GetResources(ctx context.Context, params ResourcesRequestBody, user users.U
 	}
 	resources, err := prepareResponseResources(ctx, res)
 	if err != nil {
-		return  http.StatusInternalServerError, nil, err
+		return http.StatusInternalServerError, nil, err
 	}
 	return http.StatusOK, resources, nil
 }

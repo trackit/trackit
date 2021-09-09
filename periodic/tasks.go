@@ -154,7 +154,13 @@ func (t *taskRegistration) tick() {
 	for {
 		select {
 		case d := <-t.getTickerChan():
-			go t.run(d)
+			go func() {
+				if err := t.run(d); err != nil {
+					jsonlog.DefaultLogger.Error("Error while running periodic task", map[string]interface{}{
+						"error": err.Error(),
+					})
+				}
+			}()
 		case s := <-t.control:
 			switch s {
 			case taskStop:

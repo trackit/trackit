@@ -29,16 +29,9 @@ func taskUpdateAwsIdentity(ctx context.Context) error {
 	var tx *sql.Tx
 	var err error
 	var aas []*models.AwsAccount
-	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "update-aws-identity")
+
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aas, err = models.AwsAccounts(tx); err == nil {
 		for _, dbAa := range aas {
@@ -50,9 +43,9 @@ func taskUpdateAwsIdentity(ctx context.Context) error {
 		}
 	}
 	if err == nil {
-		l.Info("Aws identity updated for all accounts", nil)
+		logger.Info("Aws identity updated for all accounts", nil)
 	} else {
-		l.Error("Error while updating aws identity", err.Error())
+		logger.Error("Error while updating aws identity", err.Error())
 	}
 	return err
 }

@@ -30,12 +30,12 @@ const TemplateNameLineItem = "lineitems"
 // put the ElasticSearch index for *-lineitems indices at startup.
 func init() {
 	ctx, ctxCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer ctxCancel()
 	res, err := es.Client.IndexPutTemplate(TemplateNameLineItem).BodyString(TemplateLineItem).Do(ctx)
 	if err != nil {
 		jsonlog.DefaultLogger.Error("Failed to put ES index lineitems.", err)
 	} else {
 		jsonlog.DefaultLogger.Info("Put ES index lineitems.", res)
-		ctxCancel()
 	}
 }
 

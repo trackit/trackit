@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/config"
 )
 
@@ -73,6 +75,7 @@ func resetRegisteredHandlers() {
 // Only a single type without quality factor should be specified in the Accept header
 // Example : "Accept: text/csv"
 // If an unsupported type is specified an empty body will be returned
+// If there's an error during the HTTP transfer, we just log the error. The client should know about the error if there was one during the transfer, so this is just so the error is logged server-side too
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	arguments := make(Arguments)
 	status, output := h.Func(w, r, arguments)
@@ -92,13 +95,21 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if config.PrettyJsonResponses {
 			e.SetIndent("", "\t")
 		}
-		e.Encode(output)
+		if err := e.Encode(output); err != nil {
+			jsonlog.LoggerFromContextOrDefault(r.Context()).Error("Failed to encode JSON HTTP response", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 	case "text/csv":
 		w.Header().Set("Content-Disposition", "attachment; filename=trackit.csv")
 		w.WriteHeader(status)
 		if outputGen, ok := output.(csvGenerator); ok {
 			csvWriter := csv.NewWriter(w)
-			csvWriter.WriteAll(outputGen.ToCSVable())
+			if err := csvWriter.WriteAll(outputGen.ToCSVable()); err != nil {
+				jsonlog.LoggerFromContextOrDefault(r.Context()).Error("Failed to encode CSV HTTP response", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 		} else {
 			// TODO: if the data do not implement the csvGenerator interface, try to generate it by reflection
 		}
@@ -106,7 +117,11 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if outputGen, ok := output.(xlsGenerator); ok {
 			w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", outputGen.GetFileName()))
 			w.WriteHeader(status)
-			w.Write(outputGen.GetFileContent())
+			if _, err := w.Write(outputGen.GetFileContent()); err != nil {
+				jsonlog.LoggerFromContextOrDefault(r.Context()).Error("Failed to encode CSV HTTP response", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 		} else {
 			if status == http.StatusOK {
 				w.WriteHeader(http.StatusNotImplemented)

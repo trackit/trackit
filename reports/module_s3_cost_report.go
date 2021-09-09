@@ -94,15 +94,15 @@ func s3CostReportInsertDataInSheet(file *excelize.File, data map[aws.AwsAccount]
 			}
 			totalCostFormula := fmt.Sprintf("SUM(%s)", strings.Join(costCols, ","))
 			cells := cells{
-				newCell(formatAwsAccount(acc), "A" + strconv.Itoa(line)),
-				newCell(name, "B" + strconv.Itoa(line)),
-				newCell(values.GbMonth, "C" + strconv.Itoa(line)),
-				newCell(values.StorageCost, "D" + strconv.Itoa(line)).addStyles("price"),
-				newCell(values.BandwidthCost, "E" + strconv.Itoa(line)).addStyles("price"),
-				newCell(values.RequestsCost, "F" + strconv.Itoa(line)).addStyles("price"),
-				newFormula(totalCostFormula, "G" + strconv.Itoa(line)).addStyles("price"),
-				newCell(values.DataIn, "H" + strconv.Itoa(line)),
-				newCell(values.DataOut, "I" + strconv.Itoa(line)),
+				newCell(formatAwsAccount(acc), "A"+strconv.Itoa(line)),
+				newCell(name, "B"+strconv.Itoa(line)),
+				newCell(values.GbMonth, "C"+strconv.Itoa(line)),
+				newCell(values.StorageCost, "D"+strconv.Itoa(line)).addStyles("price"),
+				newCell(values.BandwidthCost, "E"+strconv.Itoa(line)).addStyles("price"),
+				newCell(values.RequestsCost, "F"+strconv.Itoa(line)).addStyles("price"),
+				newFormula(totalCostFormula, "G"+strconv.Itoa(line)).addStyles("price"),
+				newCell(values.DataIn, "H"+strconv.Itoa(line)),
+				newCell(values.DataOut, "I"+strconv.Itoa(line)),
 			}
 			cells.addStyles("borders", "centerText").setValues(file, s3CostReportSheetName)
 			line++

@@ -62,7 +62,7 @@ var costsQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
-	routes.QueryArg{
+	{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation, comma separated. Possible values are year, month, week, day, account, product, region, tag(soon)",
 		Type:        routes.QueryArgStringSlice{},
