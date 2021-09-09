@@ -101,6 +101,10 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	dbAwsAccount, err := models.AwsAccountByID(tx, dbShareAccount.AccountID)
+	if err != nil {
+		logger.Error("Error while retrieving AWS account", err)
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
+	}
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
 	}
@@ -129,6 +133,10 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
 	}
 	dbAwsAccount, err := models.AwsAccountByID(tx, dbShareAccount.AccountID)
+	if err != nil {
+		logger.Error("Error while retrieving AWS account", err)
+		return false, errors.GetErrorMessage(ctx, &errors.DatabaseError{errors.DatabaseGenericError, err.Error()})
+	}
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
 	}

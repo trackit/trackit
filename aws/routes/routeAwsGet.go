@@ -172,10 +172,9 @@ func intArrayToSqlSet(integers []int) string {
 // AwsAccountsFromUserIDByAccountID retrieves rows from 'trackit.aws_account' as AwsAccount.
 // The result is filtered by a slice of accountID
 func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) (res []aws.AwsAccount, err error) {
-	var stringAccountIDs []string
 
 	// gen account_id
-	stringAccountIDs = intArrayToStringArray(accountIDs)
+	stringAccountIDs := intArrayToStringArray(accountIDs)
 	accountID := "(" + strings.Join(stringAccountIDs, ",") + ")"
 
 	// sql query

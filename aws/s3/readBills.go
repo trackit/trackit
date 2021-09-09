@@ -422,7 +422,7 @@ func listBillsFromRepositoryPage(
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
 			if brr.LastImportedManifest.Before((*o.LastModified).AddDate(0, 1, 0)) {
-				count += 1
+				count++
 				select {
 				case c <- BillKey{
 					Key:          *o.Key,
@@ -458,7 +458,7 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 	})
 	if output, err := s3svc.GetBucketLocationWithContext(ctx, &input); err == nil {
 		region := getBucketRegionFromGetBucketLocationOutput(output)
-		logger.Debug(fmt.Sprintf("Found bucket region."), map[string]string{
+		logger.Debug("Found bucket region.", map[string]string{
 			"bucket": r.Bucket,
 			"region": region,
 		})

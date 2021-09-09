@@ -51,9 +51,9 @@ func prepareResult(pluginRes *core.PluginResult) {
 func processEIP(pluginRes *core.PluginResult, region *string, eipRes *ec2.DescribeAddressesOutput) {
 	if eipRes.Addresses != nil {
 		for _, eip := range eipRes.Addresses {
-			pluginRes.Checked += 1
+			pluginRes.Checked++
 			if eip.AssociationId != nil {
-				pluginRes.Passed += 1
+				pluginRes.Passed++
 			} else {
 				eipDesc := aws.StringValue(eip.PublicIp)
 				if eipDesc == "" {

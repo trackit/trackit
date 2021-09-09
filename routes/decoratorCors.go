@@ -46,7 +46,7 @@ func (c Cors) Decorate(h Handler) Handler {
 }
 
 // getFunc builds a handler function for Cors.Decorate.
-func (_ Cors) getFunc(
+func (Cors) getFunc(
 	hf HandlerFunc,
 	hd HandlerDocumentation,
 	acaMethods []string,

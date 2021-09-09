@@ -50,16 +50,16 @@ func checkParametersError(endpointMetaData []string, creds *credentials.Credenti
 //		- endpoint: The endpoint URI gettable from AWS.
 //		- creds: Credentials from AWS/Credentials.
 func NewSignedElasticClient(endpoint string, creds *credentials.Credentials) (*elastic.Client, error) {
-	if cofs, err := NewSignedElasticClientOptions(endpoint, creds); err == nil {
-		cof := configEach(cofs...)
-		if ec, err := elastic.NewClient(elastic.SetURL(endpoint), cof); err == nil {
-			return ec, nil
-		} else {
-			return nil, err
-		}
-	} else {
+	cofs, err := NewSignedElasticClientOptions(endpoint, creds)
+	if err != nil {
 		return nil, err
 	}
+	cof := configEach(cofs...)
+	ec, err := elastic.NewClient(elastic.SetURL(endpoint), cof)
+	if err != nil {
+		return nil, err
+	}
+	return ec, nil
 }
 
 // NewSignedElasticClientOptions builds elastic client option funcs which
@@ -87,7 +87,7 @@ func NewSignedHttpClientForElasticSearch(endpoint string, creds *credentials.Cre
 	return NewSignedHttpClient(creds, region, "es")
 }
 
-// NewSignedHttpCilent returns an http.Client which signs its requests with AWS
+// NewSignedHttpClient returns an http.Client which signs its requests with AWS
 // v4 signatures for the provided service name and region.
 func NewSignedHttpClient(creds *credentials.Credentials, region, service string) (*http.Client, error) {
 	signer := v4.NewSigner(creds)

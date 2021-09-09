@@ -164,7 +164,6 @@ func ec2UsageReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("O", 30),
 	}
 	columns.setValues(file, ec2UsageReportSheetName)
-	return
 }
 
 func ec2SizingRecommendationInsertData(file *excelize.File, instance ec2.Instance, name, formattedAccount string, line int) {
@@ -203,5 +202,4 @@ func ec2SizingRecommendationsHeader(file *excelize.File) {
 		newColumnWidth("H", 35),
 	}
 	columns.setValues(file, ec2SizingRecommendationsSheetName)
-	return
 }

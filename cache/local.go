@@ -107,9 +107,7 @@ func initialiseCacheInfos(url string, args routes.Arguments, logger jsonlog.Logg
 			return
 		}
 	}
-	for _, val := range allAcc {
-		rtn.awsAccount = append(rtn.awsAccount, val)
-	}
+	rtn.awsAccount = append(rtn.awsAccount, allAcc...)
 	sort.Strings(rtn.awsAccount)
 	formatKey(&rtn)
 	return

@@ -15,7 +15,6 @@
 package reports
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -63,7 +62,7 @@ func (c conditionalFormat) getConditionalFormatting(file *excelize.File) (string
 	if !c.custom {
 		value, ok := conditionsRaw[c.value]
 		if !ok {
-			return "", errors.New(fmt.Sprintf("Condition %s not found", c.value))
+			return "", fmt.Errorf("Condition %s not found", c.value)
 		}
 		condition = value
 	}
