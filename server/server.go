@@ -33,6 +33,7 @@ import (
 	_ "github.com/trackit/trackit/costs/anomalies"
 	_ "github.com/trackit/trackit/costs/diff"
 	_ "github.com/trackit/trackit/costs/tags"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/periodic"
 	_ "github.com/trackit/trackit/plugins"
 	_ "github.com/trackit/trackit/reports"
@@ -85,6 +86,13 @@ var dockerHostnameRe = regexp.MustCompile(`[0-9a-z]{12}`)
 func main() {
 	ctx := context.Background()
 	logger := jsonlog.DefaultLogger
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error("Could not close connection to database.", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
+	}()
 	logger.Info("Started.", struct {
 		BackendId string `json:"backendId"`
 	}{backendId})

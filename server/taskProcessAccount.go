@@ -51,7 +51,7 @@ type processAccount func(ctx context.Context, aa aws.AwsAccount) error
 
 type accountProcessor struct {
 	ErrName string
-	Run  processAccount
+	Run     processAccount
 }
 
 // Every processor of accountProcessors will be run and will fetch those services.

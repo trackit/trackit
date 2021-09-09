@@ -20,6 +20,7 @@ import (
 
 	"github.com/trackit/trackit/awsSession"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 )
 
@@ -87,6 +88,14 @@ func taskWorker(ctx context.Context) error {
 			continue
 		}
 
+		if err := db.OpenWorker(); err != nil {
+			logger.Error("Database is not reachable.", map[string]interface{}{
+				"error": err.Error(),
+			})
+			_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*visibilityTimeoutTaskFailedInMinutes)
+			continue
+		}
+
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
 		if task, ok := tasks[message.TaskName]; ok {
@@ -113,6 +122,11 @@ func taskWorker(ctx context.Context) error {
 			})
 			logsBuffer.Reset()
 			_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
+		}
+		if err := db.Close(); err != nil {
+			logger.Error("Could not close connection to database.", map[string]interface{}{
+				"error": err.Error(),
+			})
 		}
 	}
 }

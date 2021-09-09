@@ -40,15 +40,15 @@ type (
 
 	// QueueBase contains basics information of a SQS Queue
 	QueueBase struct {
-		Name         string    `json:"name"`
-		Url          string    `json:"url"`
-		Region       string    `json:"region"`
+		Name   string `json:"name"`
+		Url    string `json:"url"`
+		Region string `json:"region"`
 	}
 
 	// Queue contains all the information of an SQS Queue
 	Queue struct {
 		QueueBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 

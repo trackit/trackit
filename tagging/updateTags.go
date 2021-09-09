@@ -79,16 +79,16 @@ var processors = []processor{
 		Run:  stepfunction.Process,
 	}, {
 		Name: "s3",
-		Run: s3.Process,
+		Run:  s3.Process,
 	}, {
 		Name: "sqs",
-		Run: sqs.Process,
+		Run:  sqs.Process,
 	}, {
 		Name: "cloudformation",
-		Run: cloudformation.Process,
+		Run:  cloudformation.Process,
 	}, {
 		Name: "route53",
-		Run: route53.Process,
+		Run:  route53.Process,
 	},
 }
 

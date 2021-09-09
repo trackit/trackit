@@ -29,7 +29,7 @@ import (
 )
 
 type (
-	// InstanceCount is saved in ES to have all the information of an InstanceCount
+	// InstanceCountReport is saved in ES to have all the information of an InstanceCount
 	InstanceCountReport struct {
 		utils.ReportBase
 		InstanceCount InstanceCount `json:"instanceCount"`

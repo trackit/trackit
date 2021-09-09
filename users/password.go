@@ -53,7 +53,7 @@ func init() {
 		http.MethodPost: routes.H(forgottenPassword).With(
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{forgottenPasswordRequestBody{
-				Email: "example@example.com",
+				Email:  "example@example.com",
 				Origin: "trackit",
 			}},
 			db.RequestTransaction{db.Db},
@@ -140,8 +140,8 @@ func createForgottenPasswordEntry(request *http.Request, body forgottenPasswordR
 		return 500, errors.New("Failed to create token hash")
 	}
 	dbForgottenPassword := models.ForgottenPassword{
-		UserID: user.Id,
-		Token:  tokenHash,
+		UserID:  user.Id,
+		Token:   tokenHash,
 		Created: time.Now(),
 	}
 	err = dbForgottenPassword.Insert(tx)

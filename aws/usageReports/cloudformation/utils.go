@@ -49,7 +49,7 @@ type (
 	// Stack contains all the information of an Cloud Formation Stack
 	Stack struct {
 		StackBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 

@@ -49,7 +49,7 @@ type (
 	// Step contains all the information of an StepFunction
 	Step struct {
 		StepBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 

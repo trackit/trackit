@@ -48,7 +48,7 @@ type (
 	// Bucket contains all the information of an S3 Bucket
 	Bucket struct {
 		BucketBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 

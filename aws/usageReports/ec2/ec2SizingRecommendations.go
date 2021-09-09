@@ -42,7 +42,7 @@ var (
 		{288, "9xlarge", []string{"c5"}},
 		{320, "10xlarge", []string{"m4"}},
 		{384, "12xlarge", []string{"m5", "m5d", "m5a", "m5ad"}},
-		{512, "16xlarge", []string{"m4",  "m5", "m5d", "m5a", "p2", "p3", "g3", "x1", "x1e", "r4", "i3", "h1"}},
+		{512, "16xlarge", []string{"m4", "m5", "m5d", "m5a", "p2", "p3", "g3", "x1", "x1e", "r4", "i3", "h1"}},
 		{576, "18xlarge", []string{"c5"}},
 		{768, "24xlarge", []string{"m5", "m5d", "m5a", "m5ad"}},
 		{1024, "32xlarge", []string{"x1", "x1e"}},
