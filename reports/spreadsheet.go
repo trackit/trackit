@@ -90,7 +90,13 @@ func saveSpreadsheet(ctx context.Context, file spreadsheet, reportType spreadshe
 	reader, writer := io.Pipe()
 
 	go func() {
-		defer writer.Close()
+		defer func() {
+			if err := writer.Close(); err != nil {
+				logger.Error("Error while closing write end of pipe in spreadsheet upload", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}()
 		err := file.File.Write(writer)
 		if err != nil {
 			logger.Error("Error while saving report", map[string]interface{}{

@@ -74,8 +74,10 @@ func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, re
 		}
 		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, TypeProductAnomaliesDetection, index, recurrentAnomaly.Id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed when putting recurrent anomalies in ES", err.Error())
 		return err

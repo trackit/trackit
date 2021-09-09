@@ -155,7 +155,7 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
-		mailBody := "Hi, a new AWS account has been added to your Trackit Account. "+
+		mailBody := "Hi, a new AWS account has been added to your Trackit Account. " +
 			"You can connect to your account to manage it : https://re.trackit.io/"
 		err := mail.SendMail(userMail, mailSubject, mailBody, ctx)
 		if err != nil {

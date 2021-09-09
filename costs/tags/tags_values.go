@@ -116,7 +116,7 @@ func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryPa
 	}
 
 	var response TagsValuesResponse
-	if params.Detailed == true {
+	if params.Detailed {
 		response = getTagsResponseDetailed(typedDocument, params)
 	} else {
 		response = getTagsResponse(typedDocument, params)
@@ -179,7 +179,7 @@ func getTagsResponse(typedDocument esTagsValuesDetailedResult, params TagsValues
 
 //getAggregationForTagsValues get NewReversedNestedAggregation if detailed is true or false
 func getAggregationForTagsValues(params TagsValuesQueryParams, filter FilterType) (aggregation *elastic.ReverseNestedAggregation) {
-	if params.Detailed == true {
+	if params.Detailed {
 		aggregation = elastic.NewReverseNestedAggregation().
 			SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
 				SubAggregation("type", elastic.NewTermsAggregation().Field("usageType").Size(maxAggregationSize).

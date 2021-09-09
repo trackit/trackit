@@ -89,7 +89,11 @@ func updateTagsForUser(ctx context.Context, userId int) (err error) {
 	} else {
 		err = tagging.UpdateTaggingComplianceForUser(ctx, userId)
 	}
-	updateUpdateTagsTask(db.Db, job, err)
+	if updateErr := updateUpdateTagsTask(db.Db, job, err); updateErr != nil {
+		logger.Error("Failed to update tags task in the database", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
 			"userId": userId,

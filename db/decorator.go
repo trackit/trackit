@@ -53,7 +53,11 @@ func (d RequestTransaction) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 			defer func() {
 				rec := recover()
 				if rec != nil {
-					transaction.Rollback()
+					if err = transaction.Rollback(); err != nil {
+						logger.Error("Failed to rollback potential transaction after route handler panic", map[string]interface{}{
+							"error": err.Error(),
+						})
+					}
 					status = http.StatusInternalServerError
 					output = errors.New("server suffered irrecoverable error")
 					logger.Error("Route handler panicked.", map[string]interface{}{
@@ -62,9 +66,19 @@ func (d RequestTransaction) getFunc(hf routes.HandlerFunc) routes.HandlerFunc {
 						"stackTrace":    string(debug.Stack()),
 					})
 				} else if _, ok := output.(error); ok {
-					transaction.Rollback()
+					if err = transaction.Rollback(); err != nil {
+						logger.Error("Failed to rollback potential transaction after route handler error", map[string]interface{}{
+							"error": err.Error(),
+						})
+					}
 				} else {
-					transaction.Commit()
+					if err = transaction.Commit(); err != nil {
+						status = http.StatusInternalServerError
+						output = errors.New("server failed to commit transaction")
+						logger.Error("Failed to commit route handler transaction", map[string]interface{}{
+							"error": err.Error(),
+						})
+					}
 				}
 			}()
 			return hf(w, r, a)

@@ -13,21 +13,21 @@
 --   limitations under the License.
 
 CREATE TABLE aws_account_master_reports_job (
-	id                          INTEGER      NOT NULL AUTO_INCREMENT,
-	created                     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	aws_account_id              INTEGER      NOT NULL,
-	completed                   TIMESTAMP    NOT NULL DEFAULT 0,
-	worker_id                   VARCHAR(255) NOT NULL,
-	jobError                    VARCHAR(255) NOT NULL DEFAULT "",
-	spreadsheetError            VARCHAR(255) NOT NULL DEFAULT "",
-	costDiffError               VARCHAR(255) NOT NULL DEFAULT "",
-	ec2UsageReportError         VARCHAR(255) NOT NULL DEFAULT "",
-	rdsUsageReportError         VARCHAR(255) NOT NULL DEFAULT "",
-	esUsageReportError          VARCHAR(255) NOT NULL DEFAULT "",
-	elasticacheUsageReportError VARCHAR(255) NOT NULL DEFAULT "",
-	lambdaUsageReportError      VARCHAR(255) NOT NULL DEFAULT "",
-	CONSTRAINT PRIMARY KEY (id),
-	CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
+       id                          INTEGER      NOT NULL AUTO_INCREMENT,
+       created                     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+       aws_account_id              INTEGER      NOT NULL,
+       completed                   TIMESTAMP    NOT NULL DEFAULT 0,
+       worker_id                   VARCHAR(255) NOT NULL,
+       jobError                    VARCHAR(255) NOT NULL DEFAULT "",
+       spreadsheetError            VARCHAR(255) NOT NULL DEFAULT "",
+       costDiffError               VARCHAR(255) NOT NULL DEFAULT "",
+       ec2UsageReportError         VARCHAR(255) NOT NULL DEFAULT "",
+       rdsUsageReportError         VARCHAR(255) NOT NULL DEFAULT "",
+       esUsageReportError          VARCHAR(255) NOT NULL DEFAULT "",
+       elasticacheUsageReportError VARCHAR(255) NOT NULL DEFAULT "",
+       lambdaUsageReportError      VARCHAR(255) NOT NULL DEFAULT "",
+       CONSTRAINT PRIMARY KEY (id),
+       CONSTRAINT foreign_aws_account FOREIGN KEY (aws_account_id) REFERENCES aws_account(id) ON DELETE CASCADE
 );
 
 ALTER TABLE aws_account ADD last_master_spreadsheet_report_generation DATETIME NOT NULL DEFAULT "1970-01-01 00:00:00";

@@ -35,15 +35,7 @@ func checkUnusedAccounts(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "check-unused-accounts")
 
 	job, err := registerCheckUnusedAccountsTask(db.Db)
 	if err != nil {

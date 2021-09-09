@@ -32,12 +32,12 @@ func getAwsAccountsStatus(r *http.Request, a routes.Arguments) (int, interface{}
 	}
 	// Code unneeded for now considering all it does is create an array and fill it with all the id data from the AWS stuff before proceeding to do nothing with it
 	/*
-	billRepositoriesIds := make([]int, 0)
-	for _, awsAccount := range awsAccountsWithBillRepositories {
-		for _, billRepository := range awsAccount.BillRepositories {
-			billRepositoriesIds = append(billRepositoriesIds, billRepository.Id)
+		billRepositoriesIds := make([]int, 0)
+		for _, awsAccount := range awsAccountsWithBillRepositories {
+			for _, billRepository := range awsAccount.BillRepositories {
+				billRepositoriesIds = append(billRepositoriesIds, billRepository.Id)
+			}
 		}
-	}
 	*/
 	result := s3.WrapAwsAccountsWithBillRepositoriesWithPendingWithStatus(awsAccountsWithBillRepositories, tx)
 	return 200, result
