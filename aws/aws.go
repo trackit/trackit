@@ -12,6 +12,8 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package aws manages methods directly generally relating to an AWS account.
+// It also includes a few utilities relating to AWS accounts (ID stuff, sub-accounts, etc.)
 package aws
 
 import (

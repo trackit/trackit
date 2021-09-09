@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package awsSession exists for the purpose of containing and initializing the AWS API session in Session
 package awsSession
 
 import (
