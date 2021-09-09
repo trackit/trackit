@@ -57,7 +57,7 @@ func NewSignedElasticClient(endpoint string, creds *credentials.Credentials) (*e
 	cof := configEach(cofs...)
 	ec, err := elastic.NewClient(elastic.SetURL(endpoint), cof)
 	if err != nil {
- 		return nil, err
+		return nil, err
 	}
 	return ec, nil
 }

@@ -38,7 +38,7 @@ import (
 func taskProcessAccountPlugins(ctx context.Context) error {
 	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	logger.Debug("Running task 'process-account-plugin'.", map[string]interface{}{
+	logger.Debug("Running task 'process-account-plugins'.", map[string]interface{}{
 		"args": args,
 	})
 	if len(args) != 1 {
@@ -58,15 +58,7 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 	var user users.User
 	var updateId int64
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "process-account-plugins")
 
 	var trackitUser *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
@@ -94,7 +86,7 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 	var affectedRoutes = []string{
 		"/plugins/results",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
+	err = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 
@@ -155,15 +147,19 @@ func registerAccountPluginsProcessing(db *sql.DB, aa aws.AwsAccount) (int64, err
 }
 
 func updateAccountPluginsCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error) {
-	updateNextUpdateAccountPlugins(db, aaId)
-	rErr := registerAccountPluginsCompletion(db, updateId, jobErr)
-	if rErr != nil {
-		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Failed to register account plugins completion.", map[string]interface{}{
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	doErr := func(errorText string, err error) {
+		logger.Error(errorText, map[string]interface{}{
 			"awsAccountId": aaId,
-			"error":        rErr.Error(),
+			"error":        err.Error(),
 			"updateId":     updateId,
 		})
+	}
+	if uErr := updateNextUpdateAccountPlugins(db, aaId); uErr != nil {
+		doErr("Failed to update the account next plugin update date", uErr)
+	}
+	if rErr := registerAccountPluginsCompletion(db, updateId, jobErr); rErr != nil {
+		doErr("Failed to register account plugins completion", rErr)
 	}
 }
 

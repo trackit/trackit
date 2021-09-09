@@ -57,15 +57,7 @@ func prepareCheckCostForAccount(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx
 	var aa taws.AwsAccount
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "check-cost")
 
 	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {

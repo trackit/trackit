@@ -70,15 +70,7 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 	var latestManifest time.Time
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("In ingest billing 1", nil)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "injest-limit")
 
 	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
@@ -95,7 +87,11 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 	} else if latestManifest, err = s3.UpdateReportLimit(ctx, aa, br, dateUpperLimit); err != nil {
 		if billError, castok := err.(awserr.Error); castok {
 			br.Error = billError.Message()
-			s3.UpdateBillRepositoryWithoutContext(br, db.Db)
+			if updateBillErr := s3.UpdateBillRepositoryWithoutContext(br, db.Db); updateBillErr != nil {
+				logger.Error("Failed to update bill repository", map[string]interface{}{
+					"error": updateBillErr.Error(),
+				})
+			}
 		}
 	} else {
 		logger.Info("In ingest billing else error", nil)
@@ -118,6 +114,6 @@ func ingestBillingDataForBillRepositoryLimit(ctx context.Context, aaId, brId int
 		"/costs/tags/values",
 		"/s3/costs",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
+	err = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }

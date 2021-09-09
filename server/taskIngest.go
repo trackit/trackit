@@ -59,15 +59,7 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	var updateId int64
 	var latestManifest time.Time
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "injest")
 
 	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
@@ -84,7 +76,11 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 	} else if latestManifest, err = s3.UpdateReport(ctx, aa, br); err != nil {
 		if billError, castok := err.(awserr.Error); castok {
 			br.Error = billError.Message()
-			s3.UpdateBillRepositoryWithoutContext(br, db.Db)
+			if updateBillErr := s3.UpdateBillRepositoryWithoutContext(br, db.Db); updateBillErr != nil {
+				logger.Error("Failed to update bill repository", map[string]interface{}{
+					"error": updateBillErr.Error(),
+				})
+			}
 		}
 	} else {
 		br.Error = ""
@@ -106,7 +102,7 @@ func ingestBillingDataForBillRepository(ctx context.Context, aaId, brId int) (er
 		"/costs/tags/values",
 		"/s3/costs",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
+	err = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 
@@ -114,15 +110,8 @@ func updateSubAccounts(ctx context.Context, aa aws.AwsAccount) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var tx *sql.Tx
 	var err error
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "sub-account injestion")
+
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 		logger.Error("Failed to get DB Tx", err.Error())
 	} else if err = aws.PutSubAccounts(ctx, aa, tx); err != nil {
