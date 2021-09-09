@@ -21,8 +21,8 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/tagging/utils"
 	terrors "github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/tagging/utils"
 )
 
 type (

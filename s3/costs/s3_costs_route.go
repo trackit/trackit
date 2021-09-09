@@ -53,17 +53,17 @@ type esFilters = []esFilter
 // queryDataTypeToEsFilters represents the different types of data
 // that can be requested from ES and their associated slice of filters
 var queryDataTypeToEsFilters = map[string]esFilters{
-	"storage": esFilters{
+	"storage": {
 		esFilter{"usageType", "*TimedStorage*"},
 	},
-	"requests": esFilters{
+	"requests": {
 		esFilter{"usageType", "*Requests*"},
 	},
-	"bandwidthIn": esFilters{
+	"bandwidthIn": {
 		esFilter{"usageType", "*In*"},
 		esFilter{"serviceCode", "AWSDataTransfer"},
 	},
-	"bandwidthOut": esFilters{
+	"bandwidthOut": {
 		esFilter{"usageType", "*Out*"},
 		esFilter{"serviceCode", "AWSDataTransfer"},
 	},
