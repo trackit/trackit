@@ -94,4 +94,4 @@ request. We are working on an actual viewer for this.
 ## Recommendation plugins
 
 Trackit uses a plugin system to easily implement new recommendation checks.
-Informations on how to write plugins are available in a README in the `plugins` directory.
+Information on how to write plugins is available in a README in the `plugins` directory.

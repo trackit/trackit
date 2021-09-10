@@ -133,7 +133,7 @@ func isCurrentGeneration(item aws.JSONValue) bool {
 	return isCurrentGen
 }
 
-// isBoxUsage takes an item from the aws json pricing and returs true if
+// isBoxUsage takes an item from the aws json pricing and returns true if
 // the item is a "BoxUsage" (an hourly instance cost)
 func isBoxUsage(item aws.JSONValue) bool {
 	if attributes := getItemAttributes(item); attributes == nil {
@@ -257,7 +257,7 @@ func getRIStandardNoUpfrontCost(item aws.JSONValue, duration string) float64 {
 }
 
 // FetchEc2Pricings fetches the EC2 pricings for all regions
-// The informations that are retrieved are the instance size, the platform,
+// The information that is retrieved is the instance size, the platform,
 // the hourly costs for on demand, one year no upfront and 3 years no upfront
 // If one of the buying options is not available, its cost is set to -1.0
 // FetchEc2Pricings returns an EC2Pricing struct and an error
@@ -295,7 +295,7 @@ func FetchEc2Pricings(ctx context.Context) (EC2Pricing, error) {
 					}
 					ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType].CurrentGeneration = currentGen
 					ec2Pricings.Region[regionCode].Platform[platform].Type[instanceType].OnDemandHourlyCost = onDemandCost
-					// We do not verify that RI costs where extracted successfuly because
+					// We do not verify that RI costs where extracted successfully because
 					// some instance types don't have reservations
 					oneYearNoUpfrontCost := getRIStandardNoUpfrontCost(item, "1yr")
 					threeYearsNoUpfrontCost := getRIStandardNoUpfrontCost(item, "3yr")

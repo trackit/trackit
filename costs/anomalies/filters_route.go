@@ -152,7 +152,7 @@ func postAnomaliesFiltersWithValidFilters(r *http.Request, tx *sql.Tx, dbUser *m
 						"error":  err.Error(),
 					})
 				} else {
-					return 200, filters
+					return http.StatusOK, filters
 				}
 			}
 		}

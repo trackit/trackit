@@ -60,7 +60,7 @@ func getBucketsWithNoTraffic(pluginRes *core.PluginResult, storage, bandwidth bu
 	prepareResult(pluginRes)
 }
 
-// processS3Traffic retrieves storage and bandwidth informations from ES
+// processS3Traffic retrieves storage and bandwidth information from ES
 func processS3Traffic(pluginParams core.PluginParams, pluginRes *core.PluginResult) {
 	beginDate := time.Now().AddDate(0, -1, 0).UTC()
 	endDate := time.Now().UTC()

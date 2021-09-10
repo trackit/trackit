@@ -71,7 +71,7 @@ func resetRegisteredHandlers() {
 	RegisteredHandlers = RegisteredHandlers[:0]
 }
 
-// BUG(zanchi-r): We do not support content type negociation
+// BUG(zanchi-r): We do not support content type negotiation
 // Only a single type without quality factor should be specified in the Accept header
 // Example : "Accept: text/csv"
 // If an unsupported type is specified an empty body will be returned

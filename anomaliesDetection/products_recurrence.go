@@ -14,11 +14,6 @@ import (
 )
 
 type (
-	// esProductRecurrentAnomaly is a partial document for ElasticSearch.
-	esProductRecurrentAnomaly struct {
-		Recurrent bool `json:"recurrent"`
-	}
-
 	// esProductAnomalyWithId is used to get anomalies from ElasticSearch.
 	esProductAnomalyWithId struct {
 		Source esProductAnomaly `json:"source"`

@@ -84,7 +84,7 @@ const testRegistrationPattern = "/foo"
 
 func TestRegistration(t *testing.T) {
 	var handlerRun bool
-	f := func(_ *http.Request, _ Arguments) (int, interface{}) { handlerRun = true; return 200, nil }
+	f := func(_ *http.Request, _ Arguments) (int, interface{}) { handlerRun = true; return http.StatusOK, nil }
 	h := H(f)
 	h.Register(testRegistrationPattern)
 	if l := len(RegisteredHandlers); l != 1 {

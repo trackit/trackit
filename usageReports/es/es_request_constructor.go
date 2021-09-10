@@ -23,7 +23,7 @@ import (
 
 const maxAggregationSize = 0x7FFFFFFF
 
-// getDateForDailyReport returns the end and the begining of the date of the report based on a date
+// getDateForDailyReport returns the end and the beginning of the date of the report based on a date
 func getDateForDailyReport(date time.Time) (begin, end time.Time) {
 	now := time.Now().UTC()
 	if date.Year() == now.Year() && date.Month() == now.Month() {
@@ -47,11 +47,11 @@ func createQueryAccountFilterEs(accountList []string) *elastic.TermsQuery {
 }
 
 // getElasticSearchEsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
+// It takes as parameters :
 // 	- params EsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "es-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
@@ -107,11 +107,11 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 }
 
 // getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
+// It takes as parameters :
 // 	- params rdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "es-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :

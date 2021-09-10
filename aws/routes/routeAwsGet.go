@@ -82,7 +82,7 @@ func getBillRepositoryUpdates(r *http.Request, a routes.Arguments) (int, interfa
 }
 
 func BillRepositoryUpdates(db dbAccessor, userId int) (res []BillRepositoryUpdateInfo, err error) {
-	// for each seleced bill repository, find data about the last and
+	// for each selected bill repository, find data about the last and
 	// next/current update and join it all
 	var sqlstr = `
 		SELECT
@@ -174,8 +174,7 @@ func intArrayToSqlSet(integers []int) string {
 func AwsAccountsFromUserIDByAccountID(db models.DB, userID int, accountIDs []int) (res []aws.AwsAccount, err error) {
 
 	// gen account_id
-	stringAccountIDs := intArrayToStringArray(accountIDs)
-	accountID := "(" + strings.Join(stringAccountIDs, ",") + ")"
+	accountID := intArrayToSqlSet(accountIDs)
 
 	// sql query
 	var sqlstr = `SELECT ` +
@@ -228,9 +227,9 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 		awsAccounts, awsErr = aws.GetAwsAccountsFromUser(u, tx)
 	}
 	if awsErr == nil {
-		return 200, awsAccounts
+		return http.StatusOK, awsAccounts
 	} else {
 		l.Error("failed to get user's AWS accounts", awsErr.Error())
-		return 500, errors.New("failed to retrieve AWS accounts")
+		return http.StatusInternalServerError, errors.New("failed to retrieve AWS accounts")
 	}
 }

@@ -46,9 +46,6 @@ type (
 		Cost      esProductAnomalyCost `json:"cost"`
 	}
 
-	// esProductAnomalies is used to get anomalies from ElasticSearch.
-	esProductAnomalies []esProductAnomaly
-
 	// esProductDatesBucket is used to store the raw ElasticSearch response.
 	esProductDatesBucket struct {
 		Key  string `json:"key_as_string"`

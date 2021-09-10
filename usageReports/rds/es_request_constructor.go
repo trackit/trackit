@@ -48,11 +48,11 @@ func createQueryAccountFilterRds(accountList []string) *elastic.TermsQuery {
 }
 
 // getElasticSearchRdsDailyParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
+// It takes as parameters :
 // 	- params RdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "rds-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
@@ -108,11 +108,11 @@ func createQueryAccountFilterBill(accountList []string) *elastic.TermsQuery {
 }
 
 // getElasticSearchCostParams is used to construct an ElasticSearch *elastic.SearchService used to perform a request on ES
-// It takes as paramters :
+// It takes as parameters :
 // 	- params RdsQueryParams : contains the list of accounts and the date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	It needs to be fully configured and ready to execute a client.Search()
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "rds-reports"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
