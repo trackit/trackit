@@ -3,7 +3,7 @@ package models
 import "time"
 
 // GetUnusedAccounts returns all user not seen for the duration passed in arguments
-func GetUnusedAccounts(db XODB, unseenFor time.Duration) (res []*User, err error) {
+func GetUnusedAccounts(db DB, unseenFor time.Duration) (res []*User, err error) {
 	limitTime := time.Now().Add(-unseenFor)
 
 	// sql query
@@ -13,7 +13,7 @@ func GetUnusedAccounts(db XODB, unseenFor time.Duration) (res []*User, err error
 		`WHERE last_seen < ?`
 
 	// run query
-	XOLog(sqlstr, limitTime.Format(time.RFC3339))
+	logf(sqlstr, limitTime.Format(time.RFC3339))
 	q, err := db.Query(sqlstr, limitTime.Format(time.RFC3339))
 	if err != nil {
 		return nil, err

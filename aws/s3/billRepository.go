@@ -148,7 +148,7 @@ func UpdateBillRepository(br BillRepository, tx *sql.Tx) error {
 
 // UpdateBillRepositoryWithoutContext updates a BillRepository in the database.
 // No checks are performed.
-func UpdateBillRepositoryWithoutContext(br BillRepository, db models.XODB) error {
+func UpdateBillRepositoryWithoutContext(br BillRepository, db models.DB) error {
 	dbAwsBillRepository := dbBillRepoFromBillRepo(br)
 	return dbAwsBillRepository.UpdateUnsafe(db)
 }

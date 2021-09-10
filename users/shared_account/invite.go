@@ -47,7 +47,7 @@ func getPasswordHash(password string) (string, error) {
 
 // checkUserWithEmailAndAccountType checks if user already exist.
 // true is returned if invited user already exist.
-func checkUserWithEmailAndAccountType(ctx context.Context, db models.XODB, userEmail string, accountType string, user users.User) (bool, int, error) {
+func checkUserWithEmailAndAccountType(ctx context.Context, db models.DB, userEmail string, accountType string, user users.User) (bool, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser, err := models.UserByEmailAccountType(db, userEmail, accountType)
 	if err == sql.ErrNoRows {
@@ -67,7 +67,7 @@ func checkUserWithEmailAndAccountType(ctx context.Context, db models.XODB, userE
 
 // checkSharedAccount checks if an account is already shared with a user.
 // true is returned if invited user already have an access to this account.
-func checkSharedAccount(ctx context.Context, db models.XODB, accountId int, guestId int) (bool, error) {
+func checkSharedAccount(ctx context.Context, db models.DB, accountId int, guestId int) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbAwsAccount, err := models.AwsAccountByID(db, accountId)
 	if err != nil {
