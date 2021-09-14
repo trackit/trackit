@@ -73,7 +73,7 @@ func initAccountId(s *sts.STS) string {
 // AccountId returns the server's AWS account ID.
 func AccountId() string { return accountId }
 
-// GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
+// GetAwsAccountsFromUser returns a slice of all AWS accounts configured by a
 // given user.
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	var res []AwsAccount
@@ -183,7 +183,7 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 		dbAwsAccount.Pretty = a.Pretty
 		dbAwsAccount.Payer = a.Payer
 		dbAwsAccount.RoleArn = a.RoleArn
-		err := dbAwsAccount.Update(tx)
+		err = dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
 		}
@@ -225,7 +225,7 @@ func (a *AwsAccount) UpdateRoleAndExternalAwsAccount(ctx context.Context, tx *sq
 	} else {
 		dbAwsAccount.RoleArn = a.RoleArn
 		dbAwsAccount.External = a.External
-		err := dbAwsAccount.Update(tx)
+		err = dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
 		}

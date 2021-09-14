@@ -51,24 +51,18 @@ func taskCheckCost(ctx context.Context) error {
 	}
 }
 
-// prepareCheckCostForAccount retrieves all the informations needed to
+// prepareCheckCostForAccount retrieves all the information needed to
 // run a cost check for a given account
 func prepareCheckCostForAccount(ctx context.Context, aaId int) (err error) {
 	var tx *sql.Tx
 	var aa taws.AwsAccount
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "check-cost")
+
+	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = taws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+	} else if user, err = models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'CheckCost' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": user.AccountType,

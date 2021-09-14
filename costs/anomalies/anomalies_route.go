@@ -82,7 +82,7 @@ func init() {
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequest(ctx context.Context, parsedParams anomalyType.AnomalyEsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -138,7 +138,12 @@ func getAnomalyLevel(typedDocument esProductAnomalyTypedResult) (int, string) {
 	percent := (typedDocument.Cost.Value * 100) / typedDocument.Cost.MaxExpected
 	levels := strings.Split(config.AnomalyDetectionLevels, ",")
 	for i, level := range levels[1:] {
-		l, _ := strconv.ParseFloat(level, 64)
+		l, err := strconv.ParseFloat(level, 64)
+		if err != nil {
+			jsonlog.DefaultLogger.Error("Failed to parse one of the numbers from anomaly-detection-levels option", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 		if percent < l {
 			return i, prettyLevels[i]
 		}

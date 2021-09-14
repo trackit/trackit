@@ -33,7 +33,7 @@ type (
 		Date        time.Time
 	}
 
-	// Ec2UnusedQueryParams will store the parsed query params
+	// EsUnusedQueryParams will store the parsed query params
 	EsUnusedQueryParams struct {
 		AccountList []string
 		IndexList   []string
@@ -53,7 +53,7 @@ var (
 	esUnusedQueryArgs = []routes.QueryArg{
 		routes.AwsAccountsOptionalQueryArg,
 		routes.DateQueryArg,
-		routes.QueryArg{
+		{
 			Name:        "count",
 			Type:        routes.QueryArgInt{},
 			Description: "Number of element in the response, all if not specified or negative",

@@ -40,15 +40,15 @@ type (
 
 	// QueueBase contains basics information of a SQS Queue
 	QueueBase struct {
-		Name         string    `json:"name"`
-		Url          string    `json:"url"`
-		Region       string    `json:"region"`
+		Name   string `json:"name"`
+		Url    string `json:"url"`
+		Region string `json:"region"`
 	}
 
 	// Queue contains all the information of an SQS Queue
 	Queue struct {
 		QueueBase
-		Tags   []utils.Tag `json:"tags"`
+		Tags []utils.Tag `json:"tags"`
 	}
 )
 
@@ -73,8 +73,10 @@ func importSQSToEs(ctx context.Context, aa taws.AwsAccount, queues []QueueReport
 		}
 		bp = utils.AddDocToBulkProcessor(bp, queue, TypeSQSReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put SQS in ES", err.Error())
 		return err

@@ -69,11 +69,11 @@ func getUnusedEBsRecommendation(pluginParams core.PluginParams, pluginRes *core.
 		err = svc.DescribeVolumesPages(&ec2.DescribeVolumesInput{},
 			func(page *ec2.DescribeVolumesOutput, lastPage bool) bool {
 				for _, volume := range page.Volumes {
-					pluginRes.Checked += 1
+					pluginRes.Checked++
 					if volume != nil && *volume.State == "available" {
 						unusedByAZ[*volume.AvailabilityZone] = unusedByAZ[*volume.AvailabilityZone] + 1
 					} else {
-						pluginRes.Passed += 1
+						pluginRes.Passed++
 					}
 				}
 				return lastPage

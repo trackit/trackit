@@ -3,9 +3,7 @@ package models
 import "time"
 
 // MostUsedTagsByUserInRange returns most used tags of a user in a specified range.
-func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Time) ([]*MostUsedTag, error) {
-	var err error
-
+func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Time) (res []*MostUsedTag, err error) {
 	// sql query
 	sqlstr := `SELECT ` +
 		`id, report_date, user_id, tags ` +
@@ -20,10 +18,14 @@ func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Ti
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// load results
-	res := []*MostUsedTag{}
+	res = []*MostUsedTag{}
 	for q.Next() {
 		mut := MostUsedTag{
 			_exists: true,
@@ -42,9 +44,7 @@ func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Ti
 }
 
 // MostUsedTagsInUseByUser returns the currently used most used tags of a user
-func MostUsedTagsInUseByUser(db XODB, awsAccountID int) (*MostUsedTag, error) {
-	var err error
-
+func MostUsedTagsInUseByUser(db XODB, awsAccountID int) (result *MostUsedTag, err error) {
 	// sql query
 	sqlstr := `SELECT ` +
 		`id, report_date, user_id, tags ` +
@@ -58,7 +58,11 @@ func MostUsedTagsInUseByUser(db XODB, awsAccountID int) (*MostUsedTag, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 
 	// load results
 	res := []*MostUsedTag{}

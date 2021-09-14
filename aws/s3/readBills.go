@@ -145,9 +145,9 @@ func ReadBills(ctx context.Context, aa taws.AwsAccount, br BillRepository, oli O
 	mck = getManifestKeys(ctx, mck)
 	mc := getManifests(ctx, s3svc, mck)
 	mc, lastManifestPromise := selectManifests(mp, mc)
-	es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
+	err = es.CleanCurrentMonthBillByBillRepositoryId(ctx, aa.UserId, br.Id)
 	importBills(ctx, s3svc, mc, oli, mp)
-	return <-lastManifestPromise, nil
+	return <-lastManifestPromise, err
 }
 
 // selectManifests returns a channel of all AWS manifest files which match
@@ -196,24 +196,31 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp Mani
 	outs, out := mergecdLineItem()
 	go func() {
 		defer close(outs)
-		ctx, cancel := context.WithCancel(ctx)
+		ctx, ctxCancel := context.WithCancel(ctx)
 		l := jsonlog.LoggerFromContextOrDefault(ctx)
 		reader, err := getBillReader(ctx, s3svc, s, m)
 		if err != nil {
 			l.Error("Failed to read bill.", err.Error())
+			ctxCancel()
 		} else {
 			l.Debug("Reading bill.", map[string]interface{}{"key": s, "manifest": m})
-			outs <- readBill(ctx, cancel, reader, s, m, mp)
+			outs <- readBill(ctx, ctxCancel, reader, s, m, mp)
 		}
 	}()
 	return out
 }
 
 // readBill returns a channel of all LineItems in a single bill file.
-func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
+func readBill(ctx context.Context, ctxCancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
 	out := make(chan LineItem)
 	go func() {
-		defer reader.Close()
+		defer func() {
+			if err := reader.Close(); err != nil {
+				jsonlog.LoggerFromContextOrDefault(ctx).Error("Error while closing bill file reader", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}()
 		defer close(out)
 		csvDecoder := csv.NewDecoder(reader)
 		for r := range records(ctx, &csvDecoder) {
@@ -221,6 +228,7 @@ func readBill(ctx context.Context, cancel context.CancelFunc, reader io.ReadClos
 				out <- r
 			}
 		}
+		ctxCancel()
 	}()
 	return out
 }
@@ -415,7 +423,7 @@ func listBillsFromRepositoryPage(
 	return func(page *s3.ListObjectsV2Output, last bool) bool {
 		for _, o := range page.Contents {
 			if brr.LastImportedManifest.Before((*o.LastModified).AddDate(0, 1, 0)) {
-				count += 1
+				count++
 				select {
 				case c <- BillKey{
 					Key:          *o.Key,
@@ -451,7 +459,7 @@ func getBucketRegion(ctx context.Context, sess *session.Session, r BillRepositor
 	})
 	if output, err := s3svc.GetBucketLocationWithContext(ctx, &input); err == nil {
 		region := getBucketRegionFromGetBucketLocationOutput(output)
-		logger.Debug(fmt.Sprintf("Found bucket region."), map[string]string{
+		logger.Debug("Found bucket region.", map[string]string{
 			"bucket": r.Bucket,
 			"region": region,
 		})

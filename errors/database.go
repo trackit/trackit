@@ -46,10 +46,8 @@ func getDatabaseErrorMessage(ctx context.Context, err *DatabaseError) error {
 		} else {
 			formattedErr = errors.New("Error while getting data from database")
 		}
-		break
 	case DatabaseItemNotFound:
 		formattedErr = errors.New(err.Message)
-		break
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
 			"type":  fmt.Sprintf("%T", err),

@@ -32,8 +32,8 @@ import (
 )
 
 var (
-	ErrorInviteNewUser = errors.New("An error occured while inviting a new user. Please, try again.")
-	ErrorInviteUser    = errors.New("An error occured while inviting a user. Please, try again.")
+	ErrorInviteNewUser = errors.New("An error occurred while inviting a new user. Please, try again.")
+	ErrorInviteUser    = errors.New("An error occurred while inviting a user. Please, try again.")
 	ErrorAlreadyShared = errors.New("You are already sharing this account with this user.")
 )
 
@@ -115,11 +115,11 @@ func createAccountForGuest(ctx context.Context, db *sql.Tx, body InviteUserReque
 	if err == nil {
 		sharedAccount, err = addAccountToGuest(ctx, db, accountId, body.PermissionLevel, usr.Id)
 		if err != nil {
-			logger.Error("Error occured while adding account to an newly created user.", err.Error())
+			logger.Error("Error occurred while adding account to an newly created user.", err.Error())
 			return 0, models.SharedAccount{}, err
 		}
 	} else {
-		logger.Error("Error occured while creating an automatic new account.", err.Error())
+		logger.Error("Error occurred while creating an automatic new account.", err.Error())
 		return 0, models.SharedAccount{}, err
 	}
 	return usr.Id, sharedAccount, nil
@@ -155,8 +155,8 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	if userNew {
 		mailSubject := "An AWS account has been added to your Trackit account"
-		mailBody := fmt.Sprintf("%s", "Hi, a new AWS account has been added to your Trackit Account. "+
-			"You can connect to your account to manage it : https://re.trackit.io/")
+		mailBody := "Hi, a new AWS account has been added to your Trackit Account. " +
+			"You can connect to your account to manage it : https://re.trackit.io/"
 		err := mail.SendMail(userMail, mailSubject, mailBody, ctx)
 		if err != nil {
 			logger.Error("Failed to send email.", err.Error())
@@ -164,6 +164,10 @@ func sendMailNotification(ctx context.Context, tx *sql.Tx, userMail string, user
 		}
 	} else {
 		dbForgottenPassword, token, err := resetPasswordGenerator(ctx, tx, newUserId)
+		if err != nil {
+			logger.Error("Failed to create reset password token.", err.Error())
+			return err
+		}
 		mailSubject := "You are invited to join Trackit"
 		mailBody := fmt.Sprintf("Hi, you have been invited to join trackit. Please follow this link to create"+
 			" your account: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
@@ -181,7 +185,7 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	isAlreadyShared, err := checkSharedAccount(ctx, tx, accountId, guestId)
 	if err != nil {
-		return 403, ErrorInviteUser
+		return http.StatusForbidden, ErrorInviteUser
 	} else if isAlreadyShared {
 		return http.StatusBadRequest, ErrorAlreadyShared
 	}
@@ -189,13 +193,13 @@ func inviteUserAlreadyExist(ctx context.Context, tx *sql.Tx, body InviteUserRequ
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email, true, 0)
 		if err != nil {
-			logger.Error("Error occured while sending an email to an existing user.", err.Error())
-			return 403, ErrorInviteUser
+			logger.Error("Error occurred while sending an email to an existing user.", err.Error())
+			return http.StatusForbidden, ErrorInviteUser
 		}
 		return http.StatusOK, sharedAccount
 	} else {
-		logger.Error("Error occured while adding account to an existing user.", err.Error())
-		return 403, ErrorInviteUser
+		logger.Error("Error occurred while adding account to an existing user.", err.Error())
+		return http.StatusForbidden, ErrorInviteUser
 	}
 }
 
@@ -206,17 +210,17 @@ func inviteNewUser(ctx context.Context, tx *sql.Tx, body InviteUserRequest, acco
 	if err == nil {
 		err = sendMailNotification(ctx, tx, body.Email, false, newUserId)
 		if err != nil {
-			logger.Error("Error occured while sending an email to a new user.", err.Error())
-			return 403, ErrorInviteNewUser
+			logger.Error("Error occurred while sending an email to a new user.", err.Error())
+			return http.StatusForbidden, ErrorInviteNewUser
 		}
 		return http.StatusOK, newUser
 	} else {
-		logger.Error("Error occured while creating new account for a guest.", err.Error())
-		return 403, ErrorInviteNewUser
+		logger.Error("Error occurred while creating new account for a guest.", err.Error())
+		return http.StatusForbidden, ErrorInviteNewUser
 	}
 }
 
-// inviteUserWithValidBody tries to share an account with a specific user
+// InviteUserWithValidBody tries to share an account with a specific user
 func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, accountId int, tx *sql.Tx, user users.User) (int, interface{}) {
 	logger := jsonlog.LoggerFromContextOrDefault(request.Context())
 	security, err := safetyCheckByAccountIdAndPermissionLevel(request.Context(), tx, accountId, body, user)
@@ -239,7 +243,7 @@ func InviteUserWithValidBody(request *http.Request, body InviteUserRequest, acco
 			return code, res
 		}
 	} else {
-		logger.Error("Error occured while checking body elements.", err.Error())
-		return 403, ErrorInviteNewUser
+		logger.Error("Error occurred while checking body elements.", err.Error())
+		return http.StatusForbidden, ErrorInviteNewUser
 	}
 }

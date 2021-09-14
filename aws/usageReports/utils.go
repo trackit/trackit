@@ -39,7 +39,7 @@ type (
 		Region   string
 	}
 
-	// BaseReport contains basic information for any kin of usage report
+	// ReportBase contains basic information for any kin of usage report
 	ReportBase struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -129,7 +129,7 @@ func GetAccountId(ctx context.Context, sess *session.Session) (string, error) {
 	return aws.StringValue(res.Account), nil
 }
 
-// GetCurrentCheckDay returns the actual date at midnight and this date the month before
+// GetCurrentCheckedDay returns the actual date at midnight and this date the month before
 func GetCurrentCheckedDay() (start time.Time, end time.Time) {
 	now := time.Now().UTC()
 	end = time.Date(now.Year(), now.Month(), now.Day()-1, 24, 0, 0, 0, now.Location())

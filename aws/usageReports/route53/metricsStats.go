@@ -32,7 +32,7 @@ func getRoute53Tags(ctx context.Context, hostedZone *route53.HostedZone, svc *ro
 
 	// It could be possible to optimise this to divide the amount of API calls by 10, by using ListTagsForResources which can list tags for up to 10 health checks or hosted zones at once
 	tags, err := svc.ListTagsForResource(&route53.ListTagsForResourceInput{
-		ResourceId: hostedZone.Id,
+		ResourceId:   hostedZone.Id,
 		ResourceType: &tagResourceType,
 	})
 

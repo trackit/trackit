@@ -40,6 +40,9 @@ func taskSpreadsheet(ctx context.Context) error {
 
 	aaId, date, err := checkArguments(args)
 	if err != nil {
+		logger.Error("Failed to parse arguments", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return err
 	} else {
 		return generateReport(ctx, aaId, date)
@@ -77,18 +80,12 @@ func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	var generation bool
 	forceGeneration := !date.IsZero()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "generate-spreadsheet")
+
+	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+	} else if user, err = models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'SpreadSheet' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": user.AccountType,
@@ -220,7 +217,8 @@ func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId in
 		return err
 	}
 	if !forceGeneration {
-		dbAccount, err := models.AwsAccountByID(db, aaId)
+		var dbAccount *models.AwsAccount // We can't use := because then there would be a new err which would shadow the returned value
+		dbAccount, err = models.AwsAccountByID(db, aaId)
 		if err != nil {
 			return err
 		}

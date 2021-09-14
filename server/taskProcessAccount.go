@@ -51,7 +51,7 @@ type processAccount func(ctx context.Context, aa aws.AwsAccount) error
 
 type accountProcessor struct {
 	ErrName string
-	Run  processAccount
+	Run     processAccount
 }
 
 // Every processor of accountProcessors will be run and will fetch those services.
@@ -147,15 +147,8 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 	var aa aws.AwsAccount
 	var updateId int64
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "account data injestion")
+
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
 	} else if updateId, err = registerAccountProcessing(db.Db, aa); err != nil {
@@ -190,7 +183,7 @@ func ingestDataForAccount(ctx context.Context, aaId int, date time.Time) (err er
 		"/ri/ec2",
 		"/ri/rds",
 	}
-	_ = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
+	err = cache.RemoveMatchingCache(affectedRoutes, []string{aa.AwsIdentity}, logger)
 	return
 }
 
@@ -207,15 +200,19 @@ func registerAccountProcessing(db *sql.DB, aa aws.AwsAccount) (int64, error) {
 }
 
 func updateAccountProcessingCompletion(ctx context.Context, aaId int, db *sql.DB, updateId int64, jobErr error, processAccountErrors map[string]error, historyErr error, historyCreated bool) {
-	updateNextUpdateAccount(db, aaId)
-	rErr := registerAccountProcessingCompletion(db, updateId, jobErr, processAccountErrors, historyErr, historyCreated)
-	if rErr != nil {
-		logger := jsonlog.LoggerFromContextOrDefault(ctx)
-		logger.Error("Failed to register account processing completion.", map[string]interface{}{
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+	doErr := func(errorText string, err error) {
+		logger.Error(errorText, map[string]interface{}{
 			"awsAccountId": aaId,
-			"error":        rErr.Error(),
+			"error":        err.Error(),
 			"updateId":     updateId,
 		})
+	}
+	if uErr := updateNextUpdateAccount(db, aaId); uErr != nil {
+		doErr("Failed to update the account next update date", uErr)
+	}
+	if rErr := registerAccountProcessingCompletion(db, updateId, jobErr, processAccountErrors, historyErr, historyCreated); rErr != nil {
+		doErr("Failed to register account processing completion", rErr)
 	}
 }
 
@@ -305,7 +302,7 @@ func processAccountS3(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountCloudFormation processes all the S3 data for an AwsAccount
+// processAccountCloudFormation processes all the CloudFormation data for an AwsAccount
 func processAccountCloudFormation(ctx context.Context, aa aws.AwsAccount) error {
 	err := cloudformation.FetchDailyCloudFormationStats(ctx, aa)
 	if err != nil {
@@ -357,7 +354,7 @@ func processAccountES(ctx context.Context, aa aws.AwsAccount) error {
 	return err
 }
 
-// processAccountRoute53 processes all the StepFunctions data for an AwsAccount
+// processAccountRoute53 processes all the Route53 data for an AwsAccount
 func processAccountRoute53(ctx context.Context, aa aws.AwsAccount) error {
 	err := route53.FetchDailyRoute53Stats(ctx, aa)
 	if err != nil {

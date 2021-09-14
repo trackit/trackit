@@ -117,7 +117,10 @@ func makeElasticSearchDateRangeRequest(ctx context.Context, begin bool, account 
 		return time.Time{}, err
 	}
 	var elem elasticSearchDateElem
-	json.Unmarshal(raw, &elem)
+	err = json.Unmarshal(raw, &elem)
+	if err != nil {
+		return time.Time{}, err
+	}
 	return time.Parse("2006-01-02T15:04:05Z", elem.UsageStartDate)
 }
 

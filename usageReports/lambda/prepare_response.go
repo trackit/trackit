@@ -26,7 +26,7 @@ import (
 )
 
 type (
-	// Structure that allow to parse ES response for Lambda Daily functions
+	// ResponseLambdaDaily allows us to parse an ES response for Lambda Daily functions
 	ResponseLambdaDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -61,7 +61,7 @@ type (
 )
 
 func getLambdaFunctionReportResponse(oldFunction lambda.FunctionReport) FunctionReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string, len(oldFunction.Function.Tags))
 	for _, tag := range oldFunction.Function.Tags {
 		tags[tag.Key] = tag.Value
 	}

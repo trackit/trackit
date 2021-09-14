@@ -148,8 +148,8 @@ func TestCorsMethods(t *testing.T) {
 func TestCorsDocumentation(t *testing.T) {
 	var testCorsDocumentationExpected = HandlerDocumentation{
 		Components: map[string]HandlerDocumentation{
-			"method:GET":  HandlerDocumentation{},
-			"method:POST": HandlerDocumentation{},
+			"method:GET":  {},
+			"method:POST": {},
 		},
 	}
 	h := MethodMuxer{

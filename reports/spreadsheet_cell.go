@@ -41,7 +41,7 @@ type columnWidth struct {
 
 type columnsWidth []columnWidth
 
-func newCell(value interface {}, location string) cell {
+func newCell(value interface{}, location string) cell {
 	return cell{value, "", location, "", []string{}, conditionalFormats{}}
 }
 
@@ -55,9 +55,7 @@ func (c cell) mergeTo(merge string) cell {
 }
 
 func (c cell) addStyles(styles ...string) cell {
-	for _, style := range styles {
-		c.styles = append(c.styles, style)
-	}
+	c.styles = append(c.styles, styles...)
 	return c
 }
 
@@ -73,6 +71,7 @@ func (c cell) addConditionalFormat(name string, styles ...string) cell {
 	return c
 }
 
+/*
 func (c cell) addCustomConditionalFormat(condition string, styles ...string) cell {
 	c.conditionalFormats = append(c.conditionalFormats, conditionalFormat{condition, true, styles})
 	return c
@@ -91,6 +90,7 @@ func (cs cells) addCustomConditionalFormat(condition string, styles ...string) c
 	}
 	return cs
 }
+*/
 
 func (cs cells) setValues(file *excelize.File, sheet string) {
 	for _, cell := range cs {
@@ -116,7 +116,7 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 		} else {
 			jsonlog.DefaultLogger.Warning("Error while applying style to a cell", map[string]interface{}{
 				"error": err,
-				"cell": c,
+				"cell":  c,
 			})
 		}
 	}
@@ -127,13 +127,13 @@ func (c cell) setValue(file *excelize.File, sheet string) {
 			if err != nil {
 				jsonlog.DefaultLogger.Warning("Error while applying conditional formatting to a cell", map[string]interface{}{
 					"error": err,
-					"cell": c,
+					"cell":  c,
 				})
 			}
 		} else {
 			jsonlog.DefaultLogger.Warning("Error while getting conditional formatting", map[string]interface{}{
 				"error": err,
-				"cell": c,
+				"cell":  c,
 			})
 		}
 	}

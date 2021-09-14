@@ -14,7 +14,7 @@
 
 package routes
 
-// constError is a string which fullfils the error interface.
+// constError is a string which fulfills the error interface.
 type constError string
 
 func (ce constError) Error() string {

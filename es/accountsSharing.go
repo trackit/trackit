@@ -44,7 +44,7 @@ func (ai *AccountsAndIndexes) isAccountDuplicate(account string) bool {
 // addAccount adds a new account in the AccountsAndIndexes if it is not already
 // in the list of accounts
 func (ai *AccountsAndIndexes) addAccount(account string) {
-	if ai.isAccountDuplicate(account) == false {
+	if !ai.isAccountDuplicate(account) {
 		ai.Accounts = append(ai.Accounts, account)
 	}
 }
@@ -84,7 +84,7 @@ func getAllAccountsAndIndexes(user users.User, tx *sql.Tx, indexPrefix string) (
 	// Add all the non duplicate shared accounts
 	for _, sharedAccount := range sharedAccounts {
 		// Do not add the account if the user already own the same account
-		if accountsAndIndexes.isAccountDuplicate(sharedAccount.AwsIdentity) == false {
+		if !accountsAndIndexes.isAccountDuplicate(sharedAccount.AwsIdentity) {
 			accountsAndIndexes.addAccount(sharedAccount.AwsIdentity)
 			accountsAndIndexes.addIndex(IndexNameForUserId(sharedAccount.OwnerID, indexPrefix))
 		}
@@ -96,7 +96,7 @@ func getAllAccountsAndIndexes(user users.User, tx *sql.Tx, indexPrefix string) (
 	return accountsAndIndexes, http.StatusOK, nil
 }
 
-// GetAccountsAndIndexesreturns an AccountsAndIndexes struct, a status code and an error
+// GetAccountsAndIndexes returns an AccountsAndIndexes struct, a status code and an error
 // if the accountList parameter is empty the function will call getAllAccountsAndIndexes
 // if the accountList parameter is not empty the function will validate the accounts and
 // find their indexes
@@ -129,18 +129,18 @@ func GetAccountsAndIndexes(accountList []string, user users.User, tx *sql.Tx, in
 			}
 		}
 		// If no match is found in the user's accounts, try in the shared accounts
-		if found_match == false {
+		if !found_match {
 			for _, sharedAccount := range sharedAccounts {
 				if sharedAccount.AwsIdentity == account {
 					found_match = true
-					if accountsAndIndexes.isAccountDuplicate(sharedAccount.AwsIdentity) == false {
+					if !accountsAndIndexes.isAccountDuplicate(sharedAccount.AwsIdentity) {
 						accountsAndIndexes.addAccount(sharedAccount.AwsIdentity)
 						accountsAndIndexes.addIndex(IndexNameForUserId(sharedAccount.OwnerID, indexPrefix))
 					}
 				}
 			}
 		}
-		if found_match == false {
+		if !found_match {
 			return accountsAndIndexes, http.StatusBadRequest, fmt.Errorf("Unable to access account %s", account)
 		}
 	}

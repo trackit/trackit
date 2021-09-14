@@ -71,7 +71,7 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 	}
 	if account.External != user.NextExternal {
 		logger.Warning("tried to add AWS account with bad external", account)
-		return 400, errors.New("incorrect external. Use /aws/next to get expected external")
+		return http.StatusBadRequest, errors.New("incorrect external. Use /aws/next to get expected external")
 	} else if err := testAndCreateAwsAccount(ctx, tx, &account, &user); err == nil {
 		err = setNeedsTagbotOnboarding(tx, body, account)
 		if err != nil {
@@ -80,13 +80,13 @@ func postAwsAccountWithValidBody(r *http.Request, tx *sql.Tx, user users.User, b
 				"err":     err.Error(),
 			})
 		}
-		return 200, account
+		return http.StatusOK, account
 	} else {
 		switch err {
 		case errInvalidAccount:
-			return 400, err
+			return http.StatusBadRequest, err
 		default:
-			return 500, err
+			return http.StatusInternalServerError, err
 		}
 	}
 }

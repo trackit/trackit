@@ -82,7 +82,7 @@ var (
 	DateBeginQueryArg = QueryArg{
 		Name:        "begin",
 		Type:        QueryArgDate{},
-		Description: "Begining of date interval. Format is ISO8601",
+		Description: "Beginning of date interval. Format is ISO8601",
 		Optional:    false,
 	}
 
@@ -100,10 +100,10 @@ var (
 	// Parameters with routes.QueryArgs. This type will be a
 	// bool stored in the routes.Arguments map with itself for key.
 	DetailedQueryArg = QueryArg{
-		Name: "detailed",
-		Type:  QueryArgBool{},
+		Name:        "detailed",
+		Type:        QueryArgBool{},
 		Description: "The detailed arg",
-		Optional: false,
+		Optional:    false,
 	}
 
 	// ReportTypeQueryArg allows to get the report type in the URL

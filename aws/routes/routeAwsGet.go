@@ -81,8 +81,8 @@ func getBillRepositoryUpdates(r *http.Request, a routes.Arguments) (int, interfa
 	return http.StatusOK, updateInfo
 }
 
-func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInfo, error) {
-	// for each seleced bill repository, find data about the last and
+func BillRepositoryUpdates(db dbAccessor, userId int) (res []BillRepositoryUpdateInfo, err error) {
+	// for each selected bill repository, find data about the last and
 	// next/current update and join it all
 	var sqlstr = `
 		SELECT
@@ -129,8 +129,11 @@ func BillRepositoryUpdates(db dbAccessor, userId int) ([]BillRepositoryUpdateInf
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
-	var res []BillRepositoryUpdateInfo
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	var i int
 	for i = 0; q.Next(); i++ {
 		res = append(res, BillRepositoryUpdateInfo{})
@@ -168,13 +171,10 @@ func intArrayToSqlSet(integers []int) string {
 
 // AwsAccountsFromUserIDByAccountID retrieves rows from 'trackit.aws_account' as AwsAccount.
 // The result is filtered by a slice of accountID
-func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) ([]aws.AwsAccount, error) {
-	var err error
-	var stringAccountIDs []string
+func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) (res []aws.AwsAccount, err error) {
 
 	// gen account_id
-	stringAccountIDs = intArrayToStringArray(accountIDs)
-	accountID := "(" + strings.Join(stringAccountIDs, ",") + ")"
+	accountID := intArrayToSqlSet(accountIDs)
 
 	// sql query
 	var sqlstr = `SELECT ` +
@@ -189,9 +189,13 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	// load results
-	res := []aws.AwsAccount{}
+	res = []aws.AwsAccount{}
 	for q.Next() {
 		aa := aws.AwsAccount{}
 
@@ -222,9 +226,9 @@ func getAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 		awsAccounts, awsErr = aws.GetAwsAccountsFromUser(u, tx)
 	}
 	if awsErr == nil {
-		return 200, awsAccounts
+		return http.StatusOK, awsAccounts
 	} else {
 		l.Error("failed to get user's AWS accounts", awsErr.Error())
-		return 500, errors.New("failed to retrieve AWS accounts")
+		return http.StatusInternalServerError, errors.New("failed to retrieve AWS accounts")
 	}
 }

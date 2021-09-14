@@ -31,7 +31,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -48,7 +48,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for RDS Monthly instances
+	// ResponseRdsMonthly allows us to parse an ES response for RDS Monthly instances
 	ResponseRdsMonthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -63,7 +63,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for RDS Daily instances
+	// ResponseRdsDaily to parse an ES response for RDS Daily instances
 	ResponseRdsDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -118,7 +118,7 @@ func getRdsInstanceReportResponse(oldInstance rds.InstanceReport) InstanceReport
 // addCostToInstance adds cost for an instance based on billing data
 func addCostToInstance(instance rds.InstanceReport, costs ResponseCost) rds.InstanceReport {
 	if instance.Instance.Costs == nil {
-		instance.Instance.Costs = make(map[string]float64, 0)
+		instance.Instance.Costs = make(map[string]float64, 1)
 	}
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != instance.Account {

@@ -48,7 +48,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	}
 	for _, cluster := range instances.CacheClusters {
 		stats := getInstanceStats(ctx, cluster, sess, start, end)
-		costs := make(map[string]float64, 0)
+		costs := make(map[string]float64)
 		tags := getClusterTags(ctx, cluster, svc, account, region)
 		instanceChan <- Instance{
 			InstanceBase: InstanceBase{
