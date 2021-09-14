@@ -54,15 +54,7 @@ func taskGenerateDiscountCode(ctx context.Context) (err error) {
 	}
 
 	var tx *sql.Tx
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "generate-discount-code")
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 		logger.Error("Failed to initiate sql transaction", err.Error())
 		return
