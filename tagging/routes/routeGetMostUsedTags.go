@@ -68,17 +68,20 @@ func routeGetMostUsedTagsHistory(r *http.Request, a routes.Arguments) (int, inte
 	}
 
 	if dbRes == nil {
-		return http.StatusInternalServerError, errors.New("no history reports available")
+		return http.StatusNotFound, errors.New("no history reports available")
 	}
 	history := make([]map[string]interface{}, 0)
 	for _, mut := range dbRes {
+		if mut == nil {
+			continue
+		}
 		tagsList := []string{}
 		err = json.Unmarshal([]byte(mut.Tags), &tagsList)
 		if err != nil {
 			logger.Error("Could not unmarshal most used tags.", err.Error())
-			return http.StatusInternalServerError, err
+			continue
 		}
-		if mut == nil || len(tagsList) == 0 {
+		if len(tagsList) == 0 {
 			continue
 		}
 		history = append(history, map[string]interface{}{
