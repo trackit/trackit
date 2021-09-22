@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package taggings3 implements the generation of tagging reports from S3 reports
 package taggings3
 
 import (

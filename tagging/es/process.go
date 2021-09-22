@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package tagginges implements the generation of tagging reports from ES reports
 package tagginges
 
 import (

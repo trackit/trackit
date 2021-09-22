@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package ebs implements the generation of EBS usage reports and of the corresponding /ebs route
 package ebs
 
 import (

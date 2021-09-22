@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package taggingsqs implements the generation of tagging reports from SQS reports
 package taggingsqs
 
 import (

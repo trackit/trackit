@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package reports implements the generation of spreadsheet reports to be uploaded on S3
 package reports
 
 import (

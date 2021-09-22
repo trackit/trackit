@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package onDemandToRiEc2 implements the reporting of unreserved instances and of the savings that can be made by buying reservations
 package onDemandToRiEc2
 
 import (

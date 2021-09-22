@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package routes implements all /tagging/* API routes for the server
 package routes
 
 import (

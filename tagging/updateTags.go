@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package tagging implements the generation of tagging reports for all implemented types of resources
 package tagging
 
 import (

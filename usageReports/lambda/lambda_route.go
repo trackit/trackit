@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package lambda implements the generation of Lambda usage reports and of the corresponding /lambda route
 package lambda
 
 import (

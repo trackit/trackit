@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package users implements the creation, usage and management of TrackIt user accounts
 package users
 
 import (

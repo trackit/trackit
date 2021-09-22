@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package riRds implements the generation of RDS reserved instances usage reports and of the corresponding /ri/rds route
 package riRds
 
 import (

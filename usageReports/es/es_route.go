@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package es implements the generation of ES usage reports and of the corresponding /es routes
 package es
 
 import (

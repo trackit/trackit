@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package shared_account implements the creation, usage and management of TrackIt shared user accounts
 package shared_account
 
 import (

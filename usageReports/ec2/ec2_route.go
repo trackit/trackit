@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package ec2 implements the generation of EC2 usage reports and of the corresponding /ec2 routes
 package ec2
 
 import (

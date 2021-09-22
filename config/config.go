@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package config manages all the command line options (along with their parsing)
 package config
 
 import (

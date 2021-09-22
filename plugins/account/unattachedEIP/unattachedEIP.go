@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package plugins_account_unattached_eip implements listing unattached EIP
 package plugins_account_unattached_eip
 
 import (

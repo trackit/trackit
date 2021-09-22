@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package elasticache implements usage reports for Amazon ElastiCache
 package elasticache
 
 import (

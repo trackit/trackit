@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package diff implements the /costs/diff/ routes and provides methods for querying ES about cost differentiator data
 package diff
 
 import (

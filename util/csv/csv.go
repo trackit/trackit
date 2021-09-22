@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package csv implements the reading/decoding of csv files through the io.Reader interface
 package csv
 
 import (

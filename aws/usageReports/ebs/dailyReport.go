@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package ebs implements usage reports for Amazon EBS
 package ebs
 
 import (

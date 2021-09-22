@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package plugins_account_s3_traffic implements listing S3 buckets with no traffic over the last month
 package plugins_account_s3_traffic
 
 import (

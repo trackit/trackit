@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package plugins_account_network_ec2 implements the listing of EC2 instances with low network activity
 package plugins_account_network_ec2
 
 import (
