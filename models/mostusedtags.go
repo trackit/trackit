@@ -44,7 +44,9 @@ func MostUsedTagsByUserInRange(db DB, userId int, begin time.Time, end time.Time
 }
 
 // MostUsedTagsInUseByUser returns the currently used most used tags of a user
-func MostUsedTagsInUseByUser(db DB, awsAccountID int) (result *MostUsedTag, err error) {
+func MostUsedTagsInUseByUser(db DB, userID int) (*MostUsedTag, error) {
+	var err error
+
 	// sql query
 	sqlstr := `SELECT ` +
 		`id, report_date, user_id, tags ` +
@@ -53,8 +55,8 @@ func MostUsedTagsInUseByUser(db DB, awsAccountID int) (result *MostUsedTag, err 
 		`ORDER BY report_date DESC LIMIT 1`
 
 	// run query
-	logf(sqlstr, awsAccountID)
-	q, err := db.Query(sqlstr, awsAccountID)
+	logf(sqlstr, userID)
+	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -85,4 +87,41 @@ func MostUsedTagsInUseByUser(db DB, awsAccountID int) (result *MostUsedTag, err 
 	}
 
 	return res[0], nil
+}
+
+// MostUsedTagsHistoryInUseByUser returns the currently used most used tags history of a user
+func MostUsedTagsHistoryByUser(db DB, userID int) ([]*MostUsedTag, error) {
+	var err error
+
+	// sql query
+	sqlstr := `SELECT ` +
+		`id, report_date, user_id, tags ` +
+		`FROM trackit.most_used_tags ` +
+		`WHERE user_id = ? ` +
+		`ORDER BY report_date`
+
+	// run query
+	logf(sqlstr, userID)
+	q, err := db.Query(sqlstr, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer q.Close()
+	res := []*MostUsedTag{}
+	for q.Next() {
+		mut := MostUsedTag{
+			_exists: true,
+		}
+		err = q.Scan(&mut.ID, &mut.ReportDate, &mut.UserID, &mut.Tags)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, &mut)
+	}
+
+	if len(res) <= 0 {
+		return nil, nil
+	}
+
+	return res, nil
 }

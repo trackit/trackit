@@ -41,7 +41,7 @@ func init() {
 const templateTaggingCompliance = `
 {
     "template":"*-tagging-compliance",
-    "version":1,
+    "version":2,
     "mappings":{
         "tagging-compliance":{
             "properties":{
@@ -62,6 +62,9 @@ const templateTaggingCompliance = `
                 },
                 "mostUsedTagsId":{
                     "type":"keyword"
+                },
+                "mostUsedTags":{
+                    "type":"text"
                 }
             },
             "_all": {
