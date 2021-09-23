@@ -90,12 +90,6 @@ func init() {
 	).Register("/aws/billrepository")
 }
 
-const (
-	reportUpdateInterval        = 12 * time.Hour
-	reportUpdateVariationAfter  = 6 * time.Hour
-	reportUpdateVariationBefore = 2 * time.Hour
-)
-
 // BillRepository is a location where the server may look for bill objects.
 type BillRepository struct {
 	Id                   int       `json:"id"`
@@ -123,7 +117,7 @@ func CreateBillRepository(aa aws.AwsAccount, br BillRepository, tx *sql.Tx) (Bil
 	return out, err
 }
 
-// UpdateBillRepository updates a BillRepository in the database
+// UpdateBillRepositorySafe updates a BillRepository in the database
 func UpdateBillRepositorySafe(dbBr *models.AwsBillRepository, br BillRepository, tx *sql.Tx) (BillRepository, error) {
 	dbBr.Prefix = br.Prefix
 	dbBr.Bucket = br.Bucket
@@ -148,7 +142,7 @@ func UpdateBillRepository(br BillRepository, tx *sql.Tx) error {
 
 // UpdateBillRepositoryWithoutContext updates a BillRepository in the database.
 // No checks are performed.
-func UpdateBillRepositoryWithoutContext(br BillRepository, db models.XODB) error {
+func UpdateBillRepositoryWithoutContext(br BillRepository, db models.DB) error {
 	dbAwsBillRepository := dbBillRepoFromBillRepo(br)
 	return dbAwsBillRepository.UpdateUnsafe(db)
 }
@@ -156,7 +150,7 @@ func UpdateBillRepositoryWithoutContext(br BillRepository, db models.XODB) error
 // GetBillRepositoriesForAwsAccount retrieves from the database all the
 // BillRepositories for an AwsAccount.
 func GetBillRepositoriesForAwsAccount(aa aws.AwsAccount, tx *sql.Tx) ([]BillRepository, error) {
-	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
+	dbAwsBillRepositories, err := models.AwsBillRepositoryByAwsAccountID(tx, aa.Id)
 	if err == nil {
 		out := make([]BillRepository, len(dbAwsBillRepositories))
 		for i := range out {
@@ -230,7 +224,7 @@ func postBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) 
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
 	if err := isBillRepositoryValid(body); err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
+		return http.StatusBadRequest, fmt.Errorf("Body is invalid (%s).", err.Error())
 	}
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
@@ -247,12 +241,19 @@ func postBillRepositoryWithValidBody(
 	body postBillRepositoryBody,
 ) (int, interface{}) {
 	br, err := CreateBillRepository(aa, BillRepository{Bucket: body.Bucket, Prefix: body.Prefix}, tx)
+	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 	if err == nil {
-		go UpdateReport(context.Background(), aa, br)
+		go func() {
+			if _, err := UpdateReport(context.Background(), aa, br); err != nil {
+				logger.Error("Failed to update ES database with the new usage/costs reports", map[string]interface{}{
+					"billRepository": br,
+					"error":          err.Error(),
+				})
+			}
+		}()
 		return http.StatusOK, br
 	} else {
-		l := jsonlog.LoggerFromContextOrDefault(r.Context())
-		l.Error("Failed to create bill repository.", map[string]interface{}{
+		logger.Error("Failed to create bill repository.", map[string]interface{}{
 			"billRepository": br,
 			"error":          err.Error(),
 		})
@@ -264,7 +265,7 @@ func patchBillRepository(r *http.Request, a routes.Arguments) (int, interface{})
 	var body postBillRepositoryBody
 	routes.MustRequestBody(a, &body)
 	if err := isBillRepositoryValid(body); err != nil {
-		return http.StatusBadRequest, errors.New(fmt.Sprintf("Body is invalid (%s).", err.Error()))
+		return http.StatusBadRequest, fmt.Errorf("Body is invalid (%s).", err.Error())
 	}
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	if err := isBillRepositoryAccessible(r.Context(), aa, body); err != nil {
@@ -300,7 +301,13 @@ func patchBillRepositoryWithValidBody(
 					"error":          err.Error(),
 				})
 			}
-			UpdateReport(context.Background(), aa, br)
+			_, err = UpdateReport(context.Background(), aa, br)
+			if err != nil {
+				l.Error("Failed to update ES database with the new usage/costs reports", map[string]interface{}{
+					"billRepository": br,
+					"error":          err.Error(),
+				})
+			}
 		}()
 		return http.StatusOK, br
 	} else {
@@ -332,7 +339,7 @@ func isBucketNameValid(bn string) error {
 	} else if l > 63 {
 		return errors.New("bucket name shall be no longer than 63 chars")
 	} else if !noTwoDotsInBucketName.MatchString(bn) {
-		return errors.New(fmt.Sprintf("bucket name shall satisfy the regexp /%s/", noTwoDotsInBucketNameRegex))
+		return fmt.Errorf("bucket name shall satisfy the regexp /%s/", noTwoDotsInBucketNameRegex)
 	} else {
 		return nil
 	}
@@ -396,9 +403,9 @@ func deleteBillRepository(r *http.Request, a routes.Arguments) (int, interface{}
 func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	tx := a[db.Transaction].(*sql.Tx)
+	logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 	if brs, err := GetBillRepositoryWithPendingForAwsAccount(tx, aa.Id); err != nil {
-		l := jsonlog.LoggerFromContextOrDefault(r.Context())
-		l.Error("Failed to get aws account's bill repositories.", map[string]interface{}{
+		logger.Error("Failed to get aws account's bill repositories.", map[string]interface{}{
 			"user":       a[users.AuthenticatedUser].(users.User),
 			"awsAccount": aa,
 			"error":      err.Error(),
@@ -407,7 +414,12 @@ func getBillRepository(r *http.Request, a routes.Arguments) (int, interface{}) {
 	} else {
 		var brwss []BillRepositoryWithStatus
 		for _, br := range brs {
-			brws, _ := WrapBillRepositoriesWithPendingWithStatus(tx, br)
+			brws, err := WrapBillRepositoriesWithPendingWithStatus(tx, br)
+			if err != nil {
+				logger.Error("Failed to wrap one of the bill repositories with its status", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 			brwss = append(brwss, brws)
 		}
 		return http.StatusOK, brwss

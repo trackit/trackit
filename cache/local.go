@@ -58,7 +58,7 @@ func parseRouteFromUrl(url string, rc *redisCache) {
 // Then the AWS identity, from each respective account, is added to the list of
 // AWS identities concerned by the cache.
 func getAwsIdentityFromSharedAcc(user users.User, identities *[]string, context *sql.Tx, logger jsonlog.Logger) error {
-	sharedAcc, err := models.SharedAccountsByUserID(db.Db, user.Id)
+	sharedAcc, err := models.SharedAccountByUserID(db.Db, user.Id)
 	if err != nil {
 		logger.Error("Unable to retrieve AWS' shared accounts by user id.", map[string]interface{}{
 			"error":  err.Error(),
@@ -91,7 +91,7 @@ func initialiseCacheInfos(url string, args routes.Arguments, logger jsonlog.Logg
 	} else {
 		tx := args[db.Transaction].(*sql.Tx)
 		user := args[users.AuthenticatedUser].(users.User)
-		awsAccs, awsAccsErr := models.AwsAccountsByUserID(tx, user.Id)
+		awsAccs, awsAccsErr := models.AwsAccountByUserID(tx, user.Id)
 		if awsAccsErr != nil {
 			logger.Error("Unable to retrieve AWS' accounts by user id.", map[string]interface{}{
 				"error":  awsAccsErr.Error(),
@@ -107,9 +107,7 @@ func initialiseCacheInfos(url string, args routes.Arguments, logger jsonlog.Logg
 			return
 		}
 	}
-	for _, val := range allAcc {
-		rtn.awsAccount = append(rtn.awsAccount, val)
-	}
+	rtn.awsAccount = append(rtn.awsAccount, allAcc...)
 	sort.Strings(rtn.awsAccount)
 	formatKey(&rtn)
 	return

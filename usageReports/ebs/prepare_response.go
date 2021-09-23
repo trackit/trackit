@@ -28,7 +28,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -45,7 +45,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EBS Monthly snapshots
+	// ResponseEbsMonthly allows us to parse an ES response for EBS Monthly snapshots
 	ResponseEbsMonthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -60,7 +60,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EBS Daily snapshots
+	// ResponseEbsDaily allows us to parse an ES response for EBS Daily snapshots
 	ResponseEbsDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -102,7 +102,7 @@ type (
 )
 
 func getEbsSnapshotReportResponse(oldSnapshot ebs.SnapshotReport) SnapshotReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string, len(oldSnapshot.Snapshot.Tags))
 	for _, tag := range oldSnapshot.Snapshot.Tags {
 		tags[tag.Key] = tag.Value
 	}

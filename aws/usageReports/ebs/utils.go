@@ -84,8 +84,10 @@ func importSnapshotsToEs(ctx context.Context, aa taws.AwsAccount, snapshots []Sn
 		}
 		bp = utils.AddDocToBulkProcessor(bp, snapshot, TypeEBSReport, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put EBS snapshots in ES", err.Error())
 		return err

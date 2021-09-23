@@ -29,7 +29,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -46,7 +46,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for InstanceCount Monthly
+	// ResponseInstanceCountMonthly allows us to parse an ES response for InstanceCount Monthly
 	ResponseInstanceCountMonthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -61,7 +61,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for InstanceCount Daily
+	// ResponseInstanceCountDaily allows us to parse an ES response for InstanceCount Daily
 	ResponseInstanceCountDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -81,7 +81,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// InstanceCount is saved in ES to have all the information of an InstanceCount
+	// InstanceCountReport is saved in ES to have all the information of an InstanceCount
 	InstanceCountReport struct {
 		utils.ReportBase
 		InstanceCount InstanceCount `json:"instanceCount"`
@@ -119,33 +119,7 @@ func getInstanceCountSnapshotReportResponse(oldInstanceCount instanceCount.Insta
 	return newInstance
 }
 
-// prepareResponseInstanceCountDaily parses the results from elasticsearch and returns an array of InstanceCount daily instanceCount report
-func prepareResponseInstanceCountDaily(ctx context.Context, resInstanceCount *elastic.SearchResult, resCost *elastic.SearchResult) ([]InstanceCountReport, error) {
-	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var parsedInstanceCount ResponseInstanceCountDaily
-	reports := make([]InstanceCountReport, 0)
-	err := json.Unmarshal(*resInstanceCount.Aggregations["accounts"], &parsedInstanceCount)
-	if err != nil {
-		logger.Error("Error while unmarshaling ES InstanceCount response", err)
-		return nil, err
-	}
-	for _, account := range parsedInstanceCount.Accounts.Buckets {
-		var lastDate = ""
-		for _, date := range account.Dates.Buckets {
-			if date.Time > lastDate {
-				lastDate = date.Time
-			}
-		}
-		for _, date := range account.Dates.Buckets {
-			if date.Time == lastDate {
-				for _, report := range date.In.Hits.Hits {
-					reports = append(reports, getInstanceCountSnapshotReportResponse(report.InstanceCount))
-				}
-			}
-		}
-	}
-	return reports, nil
-}
+// There is a (likely out of date) prepareResponseInstanceCountDaily method left in source control but it's unused, so I've removed it
 
 // prepareResponseInstanceCountMonthly parses the results from elasticsearch and returns an array of InstanceCount monthly report
 func prepareResponseInstanceCountMonthly(ctx context.Context, resInstanceCount *elastic.SearchResult) ([]InstanceCountReport, error) {

@@ -27,15 +27,15 @@ import (
 func GetErrorMessage(ctx context.Context, err error) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var formattedErr error
-	switch err.(type) {
+	switch err := err.(type) {
 	case *elastic.Error:
-		formattedErr = getElasticSearchErrorMessage(ctx, err.(*elastic.Error))
+		formattedErr = getElasticSearchErrorMessage(ctx, err)
 	case *json.InvalidUnmarshalError, *json.UnmarshalTypeError, *json.SyntaxError:
 		formattedErr = getJsonErrorMessage(ctx, err)
 	case *DatabaseError:
-		formattedErr = getDatabaseErrorMessage(ctx, err.(*DatabaseError))
+		formattedErr = getDatabaseErrorMessage(ctx, err)
 	case *SharedAccountError:
-		formattedErr = getSharedAccountErrorMessage(ctx, err.(*SharedAccountError))
+		formattedErr = getSharedAccountErrorMessage(ctx, err)
 	default:
 		logger.Error("Error not handled", map[string]interface{}{
 			"type":  fmt.Sprintf("%T", err),

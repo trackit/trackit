@@ -59,10 +59,10 @@ func getUnusedEc2Recommendation(pluginRes *core.PluginResult, instances []ec2.In
 		if instance.Instance.Stats.Network.In == -1 || instance.Instance.Stats.Network.Out == -1 {
 			continue
 		}
-		pluginRes.Checked += 1
+		pluginRes.Checked++
 		network := instance.Instance.Stats.Network.In + instance.Instance.Stats.Network.Out
 		if network > networkLimit {
-			pluginRes.Passed += 1
+			pluginRes.Passed++
 		} else {
 			pluginRes.Details = append(pluginRes.Details, fmt.Sprintf("%s %s", instance.Instance.Id, instance.Instance.Tags["Name"]))
 		}
@@ -76,7 +76,7 @@ func processNetworkEc2(params core.PluginParams) (res core.PluginResult) {
 	tx, err := db.Db.Begin()
 	if err != nil {
 		res.Status = "red"
-		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : %s", err.Error())
+		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : ", err.Error())
 		return
 	}
 	_, instances, err := ec2.GetEc2Data(params.Context,
@@ -84,7 +84,7 @@ func processNetworkEc2(params core.PluginParams) (res core.PluginResult) {
 		params.User, tx)
 	if err != nil {
 		res.Status = "red"
-		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : %s", err.Error())
+		res.Error = fmt.Sprintln("Unable to retrieve EC2 instances : ", err.Error())
 		return
 	}
 	getUnusedEc2Recommendation(&res, instances)

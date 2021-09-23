@@ -15,6 +15,7 @@
 package plugins
 
 import (
+	// This is solely for the side effects of importation, i.e. registration of the plugins
 	_ "github.com/trackit/trackit/plugins/account/networkEc2"
 	_ "github.com/trackit/trackit/plugins/account/s3Traffic"
 	_ "github.com/trackit/trackit/plugins/account/unattachedEIP"

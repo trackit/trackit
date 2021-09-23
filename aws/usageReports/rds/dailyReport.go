@@ -58,14 +58,14 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 				MultiAZ:              aws.BoolValue(DBInstance.MultiAZ),
 			},
 			Tags:  tags,
-			Costs: make(map[string]float64, 0),
+			Costs: make(map[string]float64),
 			Stats: stats,
 		}
 	}
 	return nil
 }
 
-// FetchDailyInstanceStats retrieves RDS information from the AWS API and generates a report
+// FetchDailyInstancesStats retrieves RDS information from the AWS API and generates a report
 func FetchDailyInstancesStats(ctx context.Context, aa taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching RDS instance stats", map[string]interface{}{"awsAccountId": aa.Id})

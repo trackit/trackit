@@ -15,18 +15,31 @@
 package utils
 
 import (
+	"fmt"
 	"time"
 
 	utils "github.com/trackit/trackit/aws/usageReports"
 )
 
+const urlFormat = "https://console.aws.amazon.com/cloudformation/home?region=%s#/stacks/stackinfo?stackId=%s"
+const stackId = "aws:cloudformation:stack-id"
+
+func (doc *TaggingReportDocument) GenCloudFormationUrl() {
+	for _, tag := range doc.Tags {
+		if tag.Key == stackId && tag.Value != "" {
+			doc.CloudFormationURL = fmt.Sprintf(urlFormat, doc.Region, tag.Value)
+		}
+	}
+}
+
 // TaggingReportDocument is an entry in ES' tagging index
 type TaggingReportDocument struct {
-	Account      string      `json:"account"`
-	ReportDate   time.Time   `json:"reportDate"`
-	ResourceID   string      `json:"resourceId"`
-	ResourceType string      `json:"resourceType"`
-	Region       string      `json:"region"`
-	URL          string      `json:"url"`
-	Tags         []utils.Tag `json:"tags"`
+	Account           string      `json:"account"`
+	ReportDate        time.Time   `json:"reportDate"`
+	ResourceID        string      `json:"resourceId"`
+	ResourceType      string      `json:"resourceType"`
+	Region            string      `json:"region"`
+	URL               string      `json:"url"`
+	Tags              []utils.Tag `json:"tags"`
+	CloudFormationURL string      `json:"cloudFormationUrl,omitempty"`
 }

@@ -16,7 +16,7 @@
 package models
 
 // GetLatestAccountUpdateJob retrieves the most recent completed row from 'trackit.aws_account_update_job' as a AwsAccountUpdateJob.
-func GetLatestAccountUpdateJob(db XODB, accountId int) (*AwsAccountUpdateJob, error) {
+func GetLatestAccountUpdateJob(db DB, accountId int) (*AwsAccountUpdateJob, error) {
 	var err error
 
 	// sql query
@@ -26,12 +26,12 @@ func GetLatestAccountUpdateJob(db XODB, accountId int) (*AwsAccountUpdateJob, er
 		`WHERE aws_account_id = ? ORDER BY completed DESC LIMIT 1`
 
 	// run query
-	XOLog(sqlstr, accountId)
+	logf(sqlstr, accountId)
 	aauj := AwsAccountUpdateJob{
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, accountId).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.Joberror, &aauj.Rdserror, &aauj.MonthlyReportsGenerated)
+	err = db.QueryRow(sqlstr, accountId).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.JobError, &aauj.RdsError, &aauj.MonthlyReportsGenerated)
 	if err != nil {
 		return nil, err
 	}

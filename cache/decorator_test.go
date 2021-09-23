@@ -37,8 +37,8 @@ func TestGetUserKey(test *testing.T) {
 		awsAccount: []string{testAwsAcc},
 	}
 	formatKey(&result)
-	excepted := fmt.Sprintf("%x-%x-%v-", md5.Sum([]byte(testRoute)), md5.Sum([]byte(testArgs)), testAwsAcc)
-	if result.key != excepted {
-		test.Errorf("Execepted '%v' but got '%v'", excepted, result)
+	expected := fmt.Sprintf("%x-%x-%v-", md5.Sum([]byte(testRoute)), md5.Sum([]byte(testArgs)), testAwsAcc)
+	if result.key != expected {
+		test.Errorf("Expected '%v' but got '%v'", expected, result)
 	}
 }

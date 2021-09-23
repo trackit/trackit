@@ -33,10 +33,10 @@ import (
 // DeleteAwsAccountFromAccountID delete an AWS account based on the
 // accountID passed to it. It does not perform any check, especially
 // on authorizations, which needs to be done by the caller
-func DeleteAwsAccountFromAccountID(db models.XODB, userID int, accountID int) (int, error) {
+func DeleteAwsAccountFromAccountID(db models.DB, userID int, accountID int) (int, error) {
 	var sqlstr = `DELETE FROM trackit.aws_account WHERE id = ? and user_id = ?`
 
-	models.XOLog(sqlstr, accountID, userID)
+	models.Logf(sqlstr, accountID, userID)
 	buff, err := db.Exec(sqlstr, accountID, userID)
 	if err != nil {
 		return -1, err
@@ -53,7 +53,7 @@ func deleteAwsAccount(r *http.Request, a routes.Arguments) (int, interface{}) {
 	l := jsonlog.LoggerFromContextOrDefault(r.Context())
 	aa := a[aws.AwsAccountSelection].(aws.AwsAccount)
 	accountToDeleteID := aa.Id
-	dbAwsBillRepositories, err := models.AwsBillRepositoriesByAwsAccountID(tx, aa.Id)
+	dbAwsBillRepositories, err := models.AwsBillRepositoryByAwsAccountID(tx, aa.Id)
 	if err != nil {
 		l.Error("unable to retrieve bill repositories", err.Error())
 	}

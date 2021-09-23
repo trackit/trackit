@@ -23,12 +23,12 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/users"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
-	"github.com/trackit/trackit/tagging/utils"
+	"github.com/trackit/trackit/routes"
 	"github.com/trackit/trackit/tagging"
+	"github.com/trackit/trackit/tagging/utils"
+	"github.com/trackit/trackit/users"
 )
 
 type Tag struct {
@@ -67,7 +67,7 @@ func GetResources(ctx context.Context, params ResourcesRequestBody, user users.U
 	}
 	resources, err := prepareResponseResources(ctx, res)
 	if err != nil {
-		return  http.StatusInternalServerError, nil, err
+		return http.StatusInternalServerError, nil, err
 	}
 	return http.StatusOK, resources, nil
 }
@@ -77,7 +77,7 @@ func GetResources(ctx context.Context, params ResourcesRequestBody, user users.U
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequest(ctx context.Context, params ResourcesRequestBody, user users.User,
 	esSearchParams func(ResourcesRequestBody, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {

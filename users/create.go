@@ -38,11 +38,13 @@ import (
 )
 
 const (
-	passwordMaxLength = 12
+	passwordMaxLength                     = 12
+	tagbotFreeTrialDaysDuration           = 14
+	tagbotDiscountCodeTrialMonthsDuration = 2
 )
 
 var (
-	ErrPasswordTooShort = errors.New(fmt.Sprintf("Password must be at least %u characters.", passwordMaxLength))
+	ErrPasswordTooShort = fmt.Errorf("Password must be at least %v characters.", passwordMaxLength)
 )
 
 func init() {
@@ -50,10 +52,10 @@ func init() {
 		http.MethodPost: routes.H(createUser).With(
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{createUserRequestBody{
-				Email:      "example@example.com",
-				Password:   "pa55w0rd",
-				AwsToken:   "marketplacetoken",
-				Origin:     "trackit",
+				Email:    "example@example.com",
+				Password: "pa55w0rd",
+				AwsToken: "marketplacetoken",
+				Origin:   "trackit",
 			}},
 			routes.Documentation{
 				Summary:     "register a new user",
@@ -64,10 +66,10 @@ func init() {
 			RequireAuthenticatedUser{ViewerAsSelf},
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{createUserRequestBody{
-				Email:      "example@example.com",
-				Password:   "pa55w0rd",
-				AwsToken:   "marketplacetoken",
-				Origin:     "trackit",
+				Email:    "example@example.com",
+				Password: "pa55w0rd",
+				AwsToken: "marketplacetoken",
+				Origin:   "trackit",
 			}},
 			routes.Documentation{
 				Summary:     "edit the current user",
@@ -111,10 +113,11 @@ func init() {
 }
 
 type createUserRequestBody struct {
-	Email      string `json:"email"       req:"nonzero"`
-	Password   string `json:"password"    req:"nonzero"`
-	Origin     string `json:"origin"      req:"nonzero"`
-	AwsToken   string `json:"awsToken"`
+	Email        string `json:"email"       req:"nonzero"`
+	Password     string `json:"password"    req:"nonzero"`
+	Origin       string `json:"origin"      req:"nonzero"`
+	AwsToken     string `json:"awsToken"`
+	DiscountCode string `json:"discountCode"`
 }
 
 //checkAwsTokenLegitimacy checks if the AWS Token exists. It returns the product code and
@@ -137,6 +140,17 @@ func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemet
 	return result, nil
 }
 
+func handleDiscountCode(discountCode string, tx *sql.Tx) (*models.TagbotDiscountCode, error) {
+	if discountCode == "" {
+		return nil, nil
+	}
+	dbResult, err := models.TagbotDiscountCodeByCode(tx, discountCode)
+	if err != nil {
+		return nil, err
+	}
+	return dbResult, nil
+}
+
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
 	var result *marketplacemetering.ResolveCustomerOutput
@@ -144,28 +158,38 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var code int
 	var resp interface{}
 	ctx := request.Context()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
-	//Check legitimacy of the AWS Token and get user registration token
+	// Check legitimacy of the AWS Token and get user registration token
 	if body.AwsToken != "" {
 		var err error
 		result, err = checkAwsTokenLegitimacy(ctx, body.AwsToken)
 		if err != nil {
-			return 409, errors.New("Fail to check the AWS token")
+			return http.StatusConflict, errors.New("Fail to check the AWS token")
 		}
 		awsCustomer := result.CustomerIdentifier
 		awsCustomerConvert = *awsCustomer
 	}
 	if body.Origin == "tagbot" {
-		code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert)
+		discountCodeInfo, err := handleDiscountCode(body.DiscountCode, tx)
+		if err != nil {
+			logger.Error("Invalid discount code given", map[string]interface{}{
+				"error": err.Error(),
+			})
+			code, resp = http.StatusUnprocessableEntity, errors.New("Invalid discount code")
+		} else {
+			code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert, discountCodeInfo)
+		}
 	} else if body.Origin == "trackit" {
 		code, resp = createUserWithValidBody(request, body, tx, awsCustomerConvert)
 	} else {
-		return 400, errors.New("Can't create a user with " + body.Origin + " as AccountType. Unknown Origin.")
+		return http.StatusBadRequest, errors.New("Can't create a user with " + body.Origin + " as AccountType. Unknown Origin.")
 	}
 	// Add the default role to the new account. No error is returned in case of failure
 	// The billing repository is not processed instantly
-	if code == 200 && config.DefaultRole != "" && config.DefaultRoleName != "" &&
+	if code == http.StatusOK && config.DefaultRole != "" && config.DefaultRoleName != "" &&
 		config.DefaultRoleExternal != "" && config.DefaultRoleBucket != "" {
 		addDefaultRole(request, resp.(User), tx)
 	}
@@ -176,53 +200,49 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, customerIdentifier, body.Origin)
-	if err == nil {
-		logger.Info("User created.", user)
-		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
-			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":   body.Email,
-				"origin":  body.Origin,
-				"err":     err.Error(),
-			})
-		}
-		return 200, user
-	} else {
+	if err != nil {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
-			return 409, errors.New("Account already exists.")
-		} else {
-			return 500, errors.New("Failed to create user.")
+			return http.StatusConflict, errors.New("Account already exists.")
 		}
+		return http.StatusInternalServerError, errors.New("Failed to create user.")
 	}
+	logger.Info("User created.", user)
+	if err = entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
+		logger.Error("Could not check new user's entitlements", map[string]interface{}{
+			"email":  body.Email,
+			"origin": body.Origin,
+			"err":    err.Error(),
+		})
+	}
+	return http.StatusOK, user
 }
 
-func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
+func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string, discountCodeInfo *models.TagbotDiscountCode) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "", body.Origin)
-	if err == nil {
-		logger.Info("User created.", user)
-		if err := CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
-			return 500, errors.New("Failed to create user.")
-		}
-		if err := entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
-			logger.Error("Could not check new user's entitlements", map[string]interface{}{
-				"email":   body.Email,
-				"origin":  body.Origin,
-				"err":     err.Error(),
-			})
-		}
-		return 200, user
-	} else {
+	if err != nil {
 		logger.Error(err.Error(), nil)
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
-			return 409, errors.New("Account already exists.")
-		} else {
-			return 500, errors.New("Failed to create user.")
+			return http.StatusConflict, errors.New("Account already exists.")
 		}
+		return http.StatusInternalServerError, errors.New("Failed to create user.")
 	}
+	logger.Info("User created.", user)
+	if err = CreateTagbotUser(ctx, tx, user.Id, customerIdentifier, discountCodeInfo); err != nil {
+		return http.StatusInternalServerError, errors.New("Failed to create user.")
+	}
+	if err = entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {
+		logger.Error("Could not check new user's entitlements", map[string]interface{}{
+			"email":  body.Email,
+			"origin": body.Origin,
+			"err":    err.Error(),
+		})
+	}
+	return http.StatusOK, user
 }
 
 type createViewerUserRequestBody struct {
@@ -245,15 +265,15 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	tokenHash, err := getPasswordHash(token)
 	if err != nil {
 		logger.Error("Failed to create token hash.", err.Error())
-		return 500, errors.New("Failed to create token hash")
+		return http.StatusInternalServerError, errors.New("Failed to create token hash")
 	}
 	viewerUser, viewerUserPassword, err := CreateUserWithParent(ctx, tx, body.Email, currentUser)
 	if err != nil {
 		errSplit := strings.Split(err.Error(), ":")
 		if len(errSplit) >= 1 && errSplit[0] == "Error 1062" {
-			return 409, errors.New("Email already taken.")
+			return http.StatusConflict, errors.New("Email already taken.")
 		} else {
-			return 500, errors.New("Failed to create viewer user.")
+			return http.StatusInternalServerError, errors.New("Failed to create viewer user.")
 		}
 	}
 	response := createViewerUserResponseBody{
@@ -268,14 +288,14 @@ func createViewerUser(request *http.Request, a routes.Arguments) (int, interface
 	err = dbForgottenPassword.Insert(tx)
 	if err != nil {
 		logger.Error("Failed to insert viewer password token in database.", err.Error())
-		return 500, errors.New("Failed to create viewer password token")
+		return http.StatusInternalServerError, errors.New("Failed to create viewer password token")
 	}
 	mailSubject := "Your TrackIt viewer password"
 	mailBody := fmt.Sprintf("Please follow this link to create your password: https://re.trackit.io/reset/%d/%s.", dbForgottenPassword.ID, token)
 	err = mail.SendMail(viewerUser.Email, mailSubject, mailBody, request.Context())
 	if err != nil {
 		logger.Error("Failed to send viewer password email.", err.Error())
-		return 500, errors.New("Failed to send viewer password email")
+		return http.StatusInternalServerError, errors.New("Failed to send viewer password email")
 	}
 	return http.StatusOK, response
 }

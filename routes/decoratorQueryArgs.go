@@ -174,12 +174,7 @@ func (QueryArgUintSlice) QueryParse(val string) (interface{}, error) {
 // QueryParse parses a []string. Since it does not do any type conversion,
 // it cannot fail. With this func, QueryArgStringSlice fulfills QueryArgType.
 func (QueryArgStringSlice) QueryParse(val string) (interface{}, error) {
-	vals := strings.Split(val, ",")
-	res := make([]string, 0, len(vals))
-	for _, v := range vals {
-		res = append(res, v)
-	}
-	return res, nil
+	return strings.Split(val, ","), nil
 }
 
 // QueryParse parses a time.Time in the ISO8601 format. With this func,
@@ -208,7 +203,7 @@ func parseArg(arg QueryArg, r *http.Request, a Arguments) (int, error) {
 }
 
 // Decorate is the function called to apply the decorators to an endpoint. It returns
-// a function. This function produces a 400 error code with a json error message or
+// a function. This function produces a 400 Bad Request error code with a json error message or
 // calls the next IntermediateHandler.
 // The goal of this function is to get the URL parameters to store them in
 // the Arguments.

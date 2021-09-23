@@ -33,7 +33,7 @@ var taggingComplianceQueryArgs = []routes.QueryArg{
 
 // suggestionsQueryArgs allows to get required queryArgs params
 var suggestionsQueryArgs = []routes.QueryArg{
-	routes.QueryArg{
+	{
 		Name:        "tagkey",
 		Type:        routes.QueryArgString{},
 		Description: "Tag key for suggestions",
@@ -55,6 +55,17 @@ func init() {
 			},
 		),
 	}.H().Register("/tagging/mostusedtags")
+
+	routes.MethodMuxer{
+		http.MethodGet: routes.H(routeGetMostUsedTagsHistory).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.Documentation{
+				Summary:     "get most used tags history",
+				Description: "Responds with most used tags history of a user.",
+			},
+		),
+	}.H().Register("/tagging/mostusedtags-history")
 
 	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetTaggingCompliance).With(
@@ -111,7 +122,7 @@ func init() {
 			routes.RequestBody{CreateCustomerRequestBody{"example@example.com"}},
 			routes.Documentation{
 				Summary:     "Create a stripe customer",
-				Description: "Responds with customer informations",
+				Description: "Responds with customer information",
 			},
 		),
 	}.H().Register("/tagging/create-customer")
@@ -124,7 +135,7 @@ func init() {
 			routes.RequestBody{CreateSubscriptionRequestBody{"pm_1HL9NKHPvmk5HTchutPljt1d", "cus_HuzN2Ie7ZFLvHC", "tagbot"}},
 			routes.Documentation{
 				Summary:     "Create stripe payment method",
-				Description: "Responds with payment method informations",
+				Description: "Responds with payment method information",
 			},
 		),
 	}.H().Register("/tagging/create-subscription")

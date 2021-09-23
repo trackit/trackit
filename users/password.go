@@ -53,7 +53,7 @@ func init() {
 		http.MethodPost: routes.H(forgottenPassword).With(
 			routes.RequestContentType{"application/json"},
 			routes.RequestBody{forgottenPasswordRequestBody{
-				Email: "example@example.com",
+				Email:  "example@example.com",
 				Origin: "trackit",
 			}},
 			db.RequestTransaction{db.Db},
@@ -77,19 +77,35 @@ func init() {
 }
 
 func cleanExpiredTokens() {
+	var err error
+	logger := jsonlog.DefaultLogger
+	doErr := func(errString string) {
+		logger.Error(errString, map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
+
 	transaction, err := db.Db.BeginTx(context.Background(), nil)
-	if err == nil {
-		now := time.Now()
-		expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
-		models.DeleteExpiredForgottenPassword(transaction, expire)
-		defer func() {
-			rec := recover()
-			if rec != nil {
-				transaction.Rollback()
-			} else {
-				transaction.Commit()
+	if err != nil {
+		doErr("Failed to begin expired forgotten password transaction")
+		return
+	}
+	defer func() {
+		rec := recover()
+		if rec != nil || err != nil {
+			if err = transaction.Rollback(); err != nil {
+				doErr("Failed to rollback expired forgotten password transaction")
 			}
-		}()
+		} else {
+			if err = transaction.Commit(); err != nil {
+				doErr("Failed to commit expired forgotten password transaction")
+			}
+		}
+	}()
+	now := time.Now()
+	expire := now.Add(time.Hour * time.Duration(-1*int64(nbHoursValidityForgottenToken)))
+	if err = models.DeleteExpiredForgottenPassword(transaction, expire); err != nil {
+		doErr("Failed to delete expired forgotten passwords")
 	}
 }
 
@@ -110,7 +126,7 @@ func forgottenPasswordWithValidBody(request *http.Request, body forgottenPasswor
 			Email string `json:"user"`
 			Error string `json:"error"`
 		}{body.Email, err.Error()})
-		return 404, errors.New("User not found")
+		return http.StatusNotFound, errors.New("User not found")
 	}
 	return createForgottenPasswordEntry(request, body, tx, user)
 }
@@ -121,26 +137,26 @@ func createForgottenPasswordEntry(request *http.Request, body forgottenPasswordR
 	tokenHash, err := getPasswordHash(token)
 	if err != nil {
 		logger.Error("Failed to create token hash.", err.Error())
-		return 500, errors.New("Failed to create token hash")
+		return http.StatusInternalServerError, errors.New("Failed to create token hash")
 	}
 	dbForgottenPassword := models.ForgottenPassword{
-		UserID: user.Id,
-		Token:  tokenHash,
+		UserID:  user.Id,
+		Token:   tokenHash,
 		Created: time.Now(),
 	}
 	err = dbForgottenPassword.Insert(tx)
 	if err != nil {
 		logger.Error("Failed to insert forgotten password token in database.", err.Error())
-		return 500, errors.New("Failed to create forgotten password token")
+		return http.StatusInternalServerError, errors.New("Failed to create forgotten password token")
 	}
 	mailSubject := "Reset your Trackit password"
 	mailBody := fmt.Sprintf("Please follow this link to recover your password: https://re.trackit.io/reset/%d/%s. This link is valid for an hour.", dbForgottenPassword.ID, token)
 	err = mail.SendMail(user.Email, mailSubject, mailBody, request.Context())
 	if err != nil {
 		logger.Error("Failed to send password recovery email.", err.Error())
-		return 500, errors.New("Failed to send password recovery email")
+		return http.StatusInternalServerError, errors.New("Failed to send password recovery email")
 	}
-	return 200, nil
+	return http.StatusOK, nil
 }
 
 // forgottenPassword handles users attempting to reset a forgotten password
@@ -159,16 +175,16 @@ func resetPasswordWithValidBody(request *http.Request, body resetPasswordRequest
 			Token string `json:"token"`
 			Error string `json:"error"`
 		}{body.Token, err.Error()})
-		return 404, errors.New("Reset token not found")
+		return http.StatusNotFound, errors.New("Reset token not found")
 	}
 	err = passwordMatchesHash(body.Token, forgottenPassword.Token)
-	delta := time.Now().Sub(forgottenPassword.Created)
+	delta := time.Since(forgottenPassword.Created)
 	expired := delta.Hours() > nbHoursValidityForgottenToken
-	if err != nil || expired == true {
+	if err != nil || expired {
 		logger.Warning("Invalid token", struct {
 			Token string `json:"token"`
 		}{body.Token})
-		return 400, errors.New("Invalid token")
+		return http.StatusBadRequest, errors.New("Invalid token")
 	}
 	return updatePasswordFromForgottenToken(request, body, tx, forgottenPassword)
 }
@@ -181,16 +197,16 @@ func updatePasswordFromForgottenToken(request *http.Request, body resetPasswordR
 			Token string `json:"token"`
 			Error string `json:"error"`
 		}{forgottenPassword.Token, err.Error()})
-		return 404, errors.New("Unable to retrieve user")
+		return http.StatusNotFound, errors.New("Unable to retrieve user")
 	}
 	err = user.UpdatePassword(tx, body.Password)
 	if err != nil {
 		logger.Warning("Unable to update user password", err.Error())
-		return 500, errors.New("Unable to update user")
+		return http.StatusInternalServerError, errors.New("Unable to update user")
 	}
 	err = forgottenPassword.Delete(tx)
 	if err != nil {
 		logger.Warning("Unable to delete forgotten password token", err.Error())
 	}
-	return 200, nil
+	return http.StatusOK, nil
 }
