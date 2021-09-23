@@ -55,7 +55,6 @@ func checkUnusedAccounts(ctx context.Context) error {
 func registerCheckUnusedAccountsTask(db *sql.DB) (models.CheckUnusedAccountsJob, error) {
 	job := models.CheckUnusedAccountsJob{
 		WorkerID: backendId,
-		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)

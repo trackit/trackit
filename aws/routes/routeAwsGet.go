@@ -171,7 +171,7 @@ func intArrayToSqlSet(integers []int) string {
 
 // AwsAccountsFromUserIDByAccountID retrieves rows from 'trackit.aws_account' as AwsAccount.
 // The result is filtered by a slice of accountID
-func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []int) (res []aws.AwsAccount, err error) {
+func AwsAccountsFromUserIDByAccountID(db models.DB, userID int, accountIDs []int) (res []aws.AwsAccount, err error) {
 
 	// gen account_id
 	accountID := intArrayToSqlSet(accountIDs)
@@ -184,7 +184,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 		`AND id IN ` + accountID
 
 	// run query
-	models.XOLog(sqlstr, userID)
+	models.Logf(sqlstr, userID)
 	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err
@@ -194,6 +194,7 @@ func AwsAccountsFromUserIDByAccountID(db models.XODB, userID int, accountIDs []i
 			err = closeErr
 		}
 	}()
+
 	// load results
 	res = []aws.AwsAccount{}
 	for q.Next() {

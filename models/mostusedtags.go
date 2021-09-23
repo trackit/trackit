@@ -3,7 +3,7 @@ package models
 import "time"
 
 // MostUsedTagsByUserInRange returns most used tags of a user in a specified range.
-func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Time) (res []*MostUsedTag, err error) {
+func MostUsedTagsByUserInRange(db DB, userId int, begin time.Time, end time.Time) (res []*MostUsedTag, err error) {
 	// sql query
 	sqlstr := `SELECT ` +
 		`id, report_date, user_id, tags ` +
@@ -13,7 +13,7 @@ func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Ti
 		`AND report_date < '` + end.String() + `'`
 
 	// run query
-	XOLog(sqlstr, userId)
+	logf(sqlstr, userId)
 	q, err := db.Query(sqlstr, userId)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func MostUsedTagsByUserInRange(db XODB, userId int, begin time.Time, end time.Ti
 }
 
 // MostUsedTagsInUseByUser returns the currently used most used tags of a user
-func MostUsedTagsInUseByUser(db XODB, userID int) (*MostUsedTag, error) {
+func MostUsedTagsInUseByUser(db DB, userID int) (*MostUsedTag, error) {
 	var err error
 
 	// sql query
@@ -55,7 +55,7 @@ func MostUsedTagsInUseByUser(db XODB, userID int) (*MostUsedTag, error) {
 		`ORDER BY report_date DESC LIMIT 1`
 
 	// run query
-	XOLog(sqlstr, userID)
+	logf(sqlstr, userID)
 	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func MostUsedTagsInUseByUser(db XODB, userID int) (*MostUsedTag, error) {
 }
 
 // MostUsedTagsHistoryInUseByUser returns the currently used most used tags history of a user
-func MostUsedTagsHistoryByUser(db XODB, userID int) ([]*MostUsedTag, error) {
+func MostUsedTagsHistoryByUser(db DB, userID int) ([]*MostUsedTag, error) {
 	var err error
 
 	// sql query
@@ -101,7 +101,7 @@ func MostUsedTagsHistoryByUser(db XODB, userID int) ([]*MostUsedTag, error) {
 		`ORDER BY report_date`
 
 	// run query
-	XOLog(sqlstr, userID)
+	logf(sqlstr, userID)
 	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err

@@ -17,13 +17,13 @@ package models
 
 // AwsBillRepositoriesWithDueUpdate returns the set of bill repositories with a
 // due update.
-func AwsBillRepositoriesWithDueUpdate(db XODB) ([]*AwsBillRepository, error) {
+func AwsBillRepositoriesWithDueUpdate(db DB) ([]*AwsBillRepository, error) {
 	var err error
 	const sqlstr = `SELECT ` +
 		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE next_update <= NOW()`
-	XOLog(sqlstr)
+	logf(sqlstr)
 	q, err := db.Query(sqlstr)
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func AwsBillRepositoriesWithDueUpdate(db XODB) ([]*AwsBillRepository, error) {
 }
 
 // UpdateUnsafe updates the BillRepository but doesn't do XO's usual checks.
-func (abr *AwsBillRepository) UpdateUnsafe(db XODB) error {
+func (abr *AwsBillRepository) UpdateUnsafe(db DB) error {
 	var err error
 
 	// sql query
@@ -52,7 +52,7 @@ func (abr *AwsBillRepository) UpdateUnsafe(db XODB) error {
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
+	logf(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
 	_, err = db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
 	return err
 }

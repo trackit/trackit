@@ -75,11 +75,11 @@ func AccountId() string { return accountId }
 // given user.
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	var res []AwsAccount
-	dbAwsAccounts, err := models.AwsAccountsByUserID(tx, u.Id)
+	dbAwsAccounts, err := models.AwsAccountByUserID(tx, u.Id)
 	if err != nil {
 		return nil, err
 	}
-	dbShareAccounts, err := models.SharedAccountsByUserID(tx, u.Id)
+	dbShareAccounts, err := models.SharedAccountByUserID(tx, u.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount
 // CreateAwsAccount registers a new AWS account for a user. It does no error
 // checking: the caller should check themselves that the role ARN exists and is
 // correctly configured.
-func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error {
+func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.DB) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	identity, err := a.GetAwsAccountIdentity()
 	if err != nil {

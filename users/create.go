@@ -38,7 +38,9 @@ import (
 )
 
 const (
-	passwordMaxLength = 12
+	passwordMaxLength                     = 12
+	tagbotFreeTrialDaysDuration           = 14
+	tagbotDiscountCodeTrialMonthsDuration = 2
 )
 
 var (
@@ -111,10 +113,11 @@ func init() {
 }
 
 type createUserRequestBody struct {
-	Email    string `json:"email"       req:"nonzero"`
-	Password string `json:"password"    req:"nonzero"`
-	Origin   string `json:"origin"      req:"nonzero"`
-	AwsToken string `json:"awsToken"`
+	Email        string `json:"email"       req:"nonzero"`
+	Password     string `json:"password"    req:"nonzero"`
+	Origin       string `json:"origin"      req:"nonzero"`
+	AwsToken     string `json:"awsToken"`
+	DiscountCode string `json:"discountCode"`
 }
 
 //checkAwsTokenLegitimacy checks if the AWS Token exists. It returns the product code and
@@ -137,6 +140,17 @@ func checkAwsTokenLegitimacy(ctx context.Context, token string) (*marketplacemet
 	return result, nil
 }
 
+func handleDiscountCode(discountCode string, tx *sql.Tx) (*models.TagbotDiscountCode, error) {
+	if discountCode == "" {
+		return nil, nil
+	}
+	dbResult, err := models.TagbotDiscountCodeByCode(tx, discountCode)
+	if err != nil {
+		return nil, err
+	}
+	return dbResult, nil
+}
+
 func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var body createUserRequestBody
 	var result *marketplacemetering.ResolveCustomerOutput
@@ -144,6 +158,8 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 	var code int
 	var resp interface{}
 	ctx := request.Context()
+	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
 	routes.MustRequestBody(a, &body)
 	tx := a[db.Transaction].(*sql.Tx)
 	// Check legitimacy of the AWS Token and get user registration token
@@ -157,7 +173,15 @@ func createUser(request *http.Request, a routes.Arguments) (int, interface{}) {
 		awsCustomerConvert = *awsCustomer
 	}
 	if body.Origin == "tagbot" {
-		code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert)
+		discountCodeInfo, err := handleDiscountCode(body.DiscountCode, tx)
+		if err != nil {
+			logger.Error("Invalid discount code given", map[string]interface{}{
+				"error": err.Error(),
+			})
+			code, resp = http.StatusUnprocessableEntity, errors.New("Invalid discount code")
+		} else {
+			code, resp = createTagbotUserWithValidBody(request, body, tx, awsCustomerConvert, discountCodeInfo)
+		}
 	} else if body.Origin == "trackit" {
 		code, resp = createUserWithValidBody(request, body, tx, awsCustomerConvert)
 	} else {
@@ -195,7 +219,7 @@ func createUserWithValidBody(request *http.Request, body createUserRequestBody, 
 	return http.StatusOK, user
 }
 
-func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string) (int, interface{}) {
+func createTagbotUserWithValidBody(request *http.Request, body createUserRequestBody, tx *sql.Tx, customerIdentifier string, discountCodeInfo *models.TagbotDiscountCode) (int, interface{}) {
 	ctx := request.Context()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	user, err := CreateUserWithPassword(ctx, tx, body.Email, body.Password, "", body.Origin)
@@ -208,7 +232,7 @@ func createTagbotUserWithValidBody(request *http.Request, body createUserRequest
 		return http.StatusInternalServerError, errors.New("Failed to create user.")
 	}
 	logger.Info("User created.", user)
-	if err = CreateTagbotUser(ctx, tx, user.Id, customerIdentifier); err != nil {
+	if err = CreateTagbotUser(ctx, tx, user.Id, customerIdentifier, discountCodeInfo); err != nil {
 		return http.StatusInternalServerError, errors.New("Failed to create user.")
 	}
 	if err = entitlement.CheckUserEntitlements(request.Context(), tx, user.Id); err != nil {

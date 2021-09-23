@@ -15,12 +15,12 @@
 // Package models contains the types for schema 'trackit'.
 package models
 
-func AnomalySnoozingsByUserID(db XODB, userID int) (res []*AnomalySnoozing, err error) {
+func AnomalySnoozingsByUserID(db DB, userID int) (res []*AnomalySnoozing, err error) {
 	const sqlstr = `SELECT ` +
 		`id, user_id, anomaly_id ` +
 		`FROM trackit.anomaly_snoozing ` +
 		`WHERE user_id = ?`
-	XOLog(sqlstr)
+	logf(sqlstr)
 	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err
