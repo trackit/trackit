@@ -42,6 +42,7 @@ type (
 	ResponseRiEc2Reports struct {
 		Accounts struct {
 			Buckets []struct {
+				Key string `json:"key"`
 				Reports struct {
 					Hits struct {
 						Hits []struct {
@@ -133,6 +134,7 @@ func getElasticSearchRiEc2Params(params RiEc2QueryParams, client *elastic.Client
 // prepareResponseRiEc2 parses the results from elasticsearch and returns an array of RI EC2 report
 func prepareResponseRiEc2(ctx context.Context, resEc2 *elastic.SearchResult) ([]OdToRiEc2Report, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
+
 	var response ResponseRiEc2Reports
 	reports := make([]OdToRiEc2Report, 0)
 	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &response.Accounts)
