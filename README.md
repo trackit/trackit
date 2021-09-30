@@ -1,7 +1,7 @@
 ![TrackIt](https://s3-us-west-2.amazonaws.com/trackit-public-artifacts/github-page/logo.png)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/msolution/trackit2-api.svg)](https://hub.docker.com/r/msolution/trackit2-api)
-[![CircleCI](https://img.shields.io/circleci/build/github/trackit/trackit-server.svg)](https://circleci.com/gh/trackit/trackit-server)
+[![CircleCI](https://img.shields.io/circleci/build/github/trackit/trackit.svg)](https://circleci.com/gh/trackit/trackit)
 [![GitHub](https://img.shields.io/github/license/trackit/trackit-server.svg)](LICENSE)
 
 TrackIt is a tool to optimize your AWS cloud usage and spending.
