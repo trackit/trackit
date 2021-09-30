@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -32,19 +31,29 @@ import (
 const invalidUserID = -1
 
 func taskUpdateTags(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-
 	logger.Info("Running task 'update-tags'.", map[string]interface{}{
 		"args": args,
 	})
-
 	userId, err := checkUpdateTagsArguments(args)
 	if err != nil {
 		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
 			"err": err.Error(),
 		})
 		return err
+	}
+	if user, err := models.UserByID(db.Db, userId); err != nil {
+		logger.Error("Failed to execute task 'update-tags'.", map[string]interface{}{
+			"err": err.Error(),
+		})
+		return err
+	} else if user.AccountType != "tagbot" {
+		logger.Info("Task 'UpdateTags' has been skipped because the user has the wrong account type.", map[string]interface{}{
+			"userAccountType": user.AccountType,
+			"requiredAccount": "tagbot",
+		})
+		return nil
 	}
 
 	err = updateTagsForUser(ctx, userId)

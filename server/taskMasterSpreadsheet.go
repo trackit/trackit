@@ -17,7 +17,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"flag"
 	"time"
 
 	"github.com/trackit/jsonlog"
@@ -31,7 +30,7 @@ import (
 
 // taskMasterSpreadsheet generates Spreadsheet with reports for a master AwsAccount including subaccounts.
 func taskMasterSpreadsheet(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'Master Spreadsheet'.", map[string]interface{}{
 		"args": args,
@@ -63,6 +62,13 @@ func generateMasterReport(ctx context.Context, aaId int, date time.Time) (err er
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'MasterSpreadSheet' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": user.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if generation, err = checkMasterReportGeneration(ctx, db.Db, aa, forceGeneration); err != nil || !generation {
 	} else if updateId, err = registerMasterAccountReportGeneration(db.Db, aa); err != nil {
 	} else if dbAccounts, err := getAccounts(ctx, db.Db, aa); err != nil {

@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"fmt"
 	"strconv"
 	"strings"
@@ -31,13 +30,14 @@ import (
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/accountPlugins"
+	"github.com/trackit/trackit/models"
 	core "github.com/trackit/trackit/plugins/account/core"
 	"github.com/trackit/trackit/users"
 )
 
 // taskProcessAccountPlugins is the entry point for account plugins processing
 func taskProcessAccountPlugins(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Debug("Running task 'process-account-plugin'.", map[string]interface{}{
 		"args": args,
@@ -70,6 +70,13 @@ func preparePluginsProcessingForAccount(ctx context.Context, aaId int) (err erro
 	}()
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
+	} else if trackitUser, err := models.UserByID(db.Db, aa.UserId); err != nil || trackitUser.AccountType != "trackit" {
+		if err == nil {
+			logger.Info("Task 'ProcessAccountPlugins' has been skipped because the user has the wrong account type.", map[string]interface{}{
+				"userAccountType": trackitUser.AccountType,
+				"requiredAccount": "trackit",
+			})
+		}
 	} else if user, err = users.GetUserWithId(tx, aa.UserId); err != nil {
 	} else if updateId, err = registerAccountPluginsProcessing(db.Db, aa); err != nil {
 	} else {

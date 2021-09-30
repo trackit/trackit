@@ -18,7 +18,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"strconv"
 	"time"
 
@@ -31,7 +30,7 @@ import (
 var zeroDate = time.Date(0001, 1, 1, 00, 00, 00, 00, time.UTC)
 
 func taskOnboardTagbot(ctx context.Context) error {
-	args := flag.Args()
+	args := paramsFromContextOrArgs(ctx)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	logger.Info("Running task 'onboard-tagbot'.", map[string]interface{}{
@@ -44,6 +43,18 @@ func taskOnboardTagbot(ctx context.Context) error {
 			"err": err.Error(),
 		})
 		return err
+	}
+	if user, err := models.UserByID(db.Db, userId); err != nil {
+		logger.Error("Failed to execute task 'onboard-tagbot'.", map[string]interface{}{
+			"err": err.Error(),
+		})
+		return err
+	} else if user.AccountType != "tagbot" {
+		logger.Info("Task 'OnBoardTagbot' has been skipped because the user has the wrong account type.", map[string]interface{}{
+			"userAccountType": user.AccountType,
+			"requiredAccount": "tagbot",
+		})
+		return nil
 	}
 
 	job, err := registerOnboardTagbotTask(db.Db, userId)
