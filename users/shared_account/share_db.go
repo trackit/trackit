@@ -33,10 +33,10 @@ type SharedResults struct {
 }
 
 // GetSharingList returns a list of users who have access to a specific AWS account
-func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]SharedResults, error) {
+func GetSharingList(ctx context.Context, db models.DB, accountId int) ([]SharedResults, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	response := []SharedResults{}
-	dbSharedAccounts, err := models.SharedAccountsByAccountID(db, accountId)
+	dbSharedAccounts, err := models.SharedAccountByAccountID(db, accountId)
 	if err == sql.ErrNoRows {
 		return response, nil
 	} else if err != nil {
@@ -56,7 +56,7 @@ func GetSharingList(ctx context.Context, db models.XODB, accountId int) ([]Share
 }
 
 // UpdateSharedUser updates user permission level
-func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissionLevel int) (interface{}, error) {
+func UpdateSharedUser(ctx context.Context, db models.DB, shareId int, permissionLevel int) (interface{}, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccount, err := models.SharedAccountByID(db, shareId)
 	if err != nil {
@@ -73,7 +73,7 @@ func UpdateSharedUser(ctx context.Context, db models.XODB, shareId int, permissi
 }
 
 // DeleteSharedUser deletes a user access to an AWS account by removing entry in shared_account database table.
-func DeleteSharedUser(ctx context.Context, db models.XODB, shareId int) error {
+func DeleteSharedUser(ctx context.Context, db models.DB, shareId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbSharedAccount, err := models.SharedAccountByID(db, shareId)
 	if err != nil {

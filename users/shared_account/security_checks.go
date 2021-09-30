@@ -32,7 +32,7 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
 	}
-	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
+	dbSharedAccount, err := models.SharedAccountByAccountID(tx, AccountId)
 	if err == nil {
 		for _, key := range dbSharedAccount {
 			if key.UserID == user.Id && (key.UserPermission == AdminLevel || key.UserPermission == StandardLevel) {
@@ -74,7 +74,7 @@ func safetyCheckByAccountIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, A
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
 	}
-	dbSharedAccount, err := models.SharedAccountsByAccountID(tx, AccountId)
+	dbSharedAccount, err := models.SharedAccountByAccountID(tx, AccountId)
 	if err == nil {
 		for _, key := range dbSharedAccount {
 			if key.UserID == user.Id && checkLevel(body.PermissionLevel, key.UserPermission) {
@@ -108,7 +108,7 @@ func safetyCheckByShareId(ctx context.Context, tx *sql.Tx, shareId int, user use
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
 	}
-	dbShareAccountByAccountId, err := models.SharedAccountsByAccountID(tx, dbShareAccount.AccountID)
+	dbShareAccountByAccountId, err := models.SharedAccountByAccountID(tx, dbShareAccount.AccountID)
 	if err == nil {
 		for _, key := range dbShareAccountByAccountId {
 			if key.UserID == user.Id && checkLevel(dbShareAccount.UserPermission, key.UserPermission) {
@@ -140,7 +140,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 	if dbAwsAccount.UserID == user.Id {
 		return true, nil
 	}
-	dbShareAccountByAccountId, err := models.SharedAccountsByAccountID(tx, dbShareAccount.AccountID)
+	dbShareAccountByAccountId, err := models.SharedAccountByAccountID(tx, dbShareAccount.AccountID)
 	if err == nil {
 		for _, key := range dbShareAccountByAccountId {
 			if key.UserID == user.Id && checkLevel(newPermissionLevel, key.UserPermission) {

@@ -58,6 +58,17 @@ func init() {
 	}.H().Register("/tagging/mostusedtags")
 
 	routes.MethodMuxer{
+		http.MethodGet: routes.H(routeGetMostUsedTagsHistory).With(
+			db.RequestTransaction{db.Db},
+			users.RequireAuthenticatedUser{users.ViewerAsParent},
+			routes.Documentation{
+				Summary:     "get most used tags history",
+				Description: "Responds with most used tags history of a user.",
+			},
+		),
+	}.H().Register("/tagging/mostusedtags-history")
+
+	routes.MethodMuxer{
 		http.MethodGet: routes.H(routeGetTaggingCompliance).With(
 			db.RequestTransaction{db.Db},
 			users.RequireAuthenticatedUser{users.ViewerAsParent},

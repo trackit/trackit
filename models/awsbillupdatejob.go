@@ -16,7 +16,7 @@
 package models
 
 // LastAwsBillUpdateJobsByAwsBillRepositoryID returns the last bill update job.
-func LastAwsBillUpdateJobsByAwsBillRepositoryID(db XODB, awsBillRepositoryID int) (*AwsBillUpdateJob, error) {
+func LastAwsBillUpdateJobsByAwsBillRepositoryID(db DB, awsBillRepositoryID int) (*AwsBillUpdateJob, error) {
 	var err error
 
 	// sql query
@@ -27,7 +27,7 @@ func LastAwsBillUpdateJobsByAwsBillRepositoryID(db XODB, awsBillRepositoryID int
 		`ORDER BY id DESC LIMIT 1`
 
 	// run query
-	XOLog(sqlstr, awsBillRepositoryID)
+	logf(sqlstr, awsBillRepositoryID)
 	abuj := AwsBillUpdateJob{
 		_exists: true,
 	}

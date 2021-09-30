@@ -16,11 +16,11 @@
 package models
 
 // AwsAccounts returns the set of aws account
-func AwsAccounts(db XODB) (res []*AwsAccount, err error) {
+func AwsAccounts(db DB) (res []*AwsAccount, err error) {
 	const sqlstr = `SELECT ` +
 		`id, user_id, pretty, role_arn, external, next_update, aws_identity ` +
 		`FROM trackit.aws_account`
-	XOLog(sqlstr)
+	logf(sqlstr)
 	q, err := db.Query(sqlstr)
 	if err != nil {
 		return nil, err
@@ -43,12 +43,12 @@ func AwsAccounts(db XODB) (res []*AwsAccount, err error) {
 	return res, nil
 }
 
-func AwsAccountsByParentId(db XODB, parentID int) (res []*AwsAccount, err error) {
+func AwsAccountsByParentId(db DB, parentID int) (res []*AwsAccount, err error) {
 	const sqlstr = `SELECT ` +
 		`id, user_id, pretty, role_arn, external, next_update, aws_identity, last_spreadsheet_report_generation ` +
 		`FROM trackit.aws_account ` +
 		`WHERE parent_id = ?`
-	XOLog(sqlstr)
+	logf(sqlstr)
 	q, err := db.Query(sqlstr, parentID)
 	if err != nil {
 		return nil, err

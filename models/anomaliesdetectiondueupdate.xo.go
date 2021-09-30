@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// AwsAccountDueUpdate represents a row from 'trackit.aws_account_due_update'.
-type AwsAccountDueUpdate struct {
+// AnomaliesDetectionDueUpdate represents a row from 'trackit.anomalies_detection_due_update'.
+type AnomaliesDetectionDueUpdate struct {
 	ID                              int           `json:"id"`                                 // id
 	UserID                          int           `json:"user_id"`                            // user_id
 	Pretty                          string        `json:"pretty"`                             // pretty
@@ -22,5 +22,4 @@ type AwsAccountDueUpdate struct {
 	LastSpreadsheetReportGeneration time.Time     `json:"last_spreadsheet_report_generation"` // last_spreadsheet_report_generation
 	NextSpreadsheetReportGeneration time.Time     `json:"next_spreadsheet_report_generation"` // next_spreadsheet_report_generation
 	NextUpdateAnomaliesDetection    time.Time     `json:"next_update_anomalies_detection"`    // next_update_anomalies_detection
-	LastAnomaliesUpdate             time.Time     `json:"last_anomalies_update"`              // last_anomalies_update
 }
