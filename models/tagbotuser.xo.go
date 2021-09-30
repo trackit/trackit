@@ -9,12 +9,14 @@ import (
 
 // TagbotUser represents a row from 'trackit.tagbot_user'.
 type TagbotUser struct {
-	ID                        int    `json:"id"`                          // id
-	UserID                    int    `json:"user_id"`                     // user_id
-	AwsCustomerIdentifier     string `json:"aws_customer_identifier"`     // aws_customer_identifier
-	AwsCustomerEntitlement    bool   `json:"aws_customer_entitlement"`    // aws_customer_entitlement
-	StripeCustomerIdentifier  string `json:"stripe_customer_identifier"`  // stripe_customer_identifier
-	StripeCustomerEntitlement bool   `json:"stripe_customer_entitlement"` // stripe_customer_entitlement
+	ID                            int    `json:"id"`                               // id
+	UserID                        int    `json:"user_id"`                          // user_id
+	AwsCustomerIdentifier         string `json:"aws_customer_identifier"`          // aws_customer_identifier
+	AwsCustomerEntitlement        bool   `json:"aws_customer_entitlement"`         // aws_customer_entitlement
+	StripeCustomerIdentifier      string `json:"stripe_customer_identifier"`       // stripe_customer_identifier
+	StripeCustomerEntitlement     bool   `json:"stripe_customer_entitlement"`      // stripe_customer_entitlement
+	StripeSubscriptionIdentifier  string `json:"stripe_subscription_identifier"`   // stripe_subscription_identifier
+	StripePaymentMethodIdentifier string `json:"stripe_payment_method_identifier"` // stripe_payment_method_identifier
 
 	// xo fields
 	_exists, _deleted bool
@@ -41,14 +43,14 @@ func (tu *TagbotUser) Insert(db XODB) error {
 
 	// sql insert query, primary key provided by autoincrement
 	const sqlstr = `INSERT INTO trackit.tagbot_user (` +
-		`user_id, aws_customer_identifier, aws_customer_entitlement, stripe_customer_identifier, stripe_customer_entitlement` +
+		`user_id, aws_customer_identifier, aws_customer_entitlement, stripe_customer_identifier, stripe_customer_entitlement, stripe_subscription_identifier, stripe_payment_method_identifier` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)`
 
 	// run query
-	XOLog(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement)
-	res, err := db.Exec(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement)
+	XOLog(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier)
+	res, err := db.Exec(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier)
 	if err != nil {
 		return err
 	}
@@ -82,12 +84,12 @@ func (tu *TagbotUser) Update(db XODB) error {
 
 	// sql query
 	const sqlstr = `UPDATE trackit.tagbot_user SET ` +
-		`user_id = ?, aws_customer_identifier = ?, aws_customer_entitlement = ?, stripe_customer_identifier = ?, stripe_customer_entitlement = ?` +
+		`user_id = ?, aws_customer_identifier = ?, aws_customer_entitlement = ?, stripe_customer_identifier = ?, stripe_customer_entitlement = ?, stripe_subscription_identifier = ?, stripe_payment_method_identifier = ?` +
 		` WHERE id = ?`
 
 	// run query
-	XOLog(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.ID)
-	_, err = db.Exec(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.ID)
+	XOLog(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier, tu.ID)
+	_, err = db.Exec(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier, tu.ID)
 	return err
 }
 
@@ -145,7 +147,7 @@ func TagbotUserByID(db XODB, id int) (*TagbotUser, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, aws_customer_identifier, aws_customer_entitlement, stripe_customer_identifier, stripe_customer_entitlement ` +
+		`id, user_id, aws_customer_identifier, aws_customer_entitlement, stripe_customer_identifier, stripe_customer_entitlement, stripe_subscription_identifier, stripe_payment_method_identifier ` +
 		`FROM trackit.tagbot_user ` +
 		`WHERE id = ?`
 
@@ -155,7 +157,7 @@ func TagbotUserByID(db XODB, id int) (*TagbotUser, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, id).Scan(&tu.ID, &tu.UserID, &tu.AwsCustomerIdentifier, &tu.AwsCustomerEntitlement, &tu.StripeCustomerIdentifier, &tu.StripeCustomerEntitlement)
+	err = db.QueryRow(sqlstr, id).Scan(&tu.ID, &tu.UserID, &tu.AwsCustomerIdentifier, &tu.AwsCustomerEntitlement, &tu.StripeCustomerIdentifier, &tu.StripeCustomerEntitlement, &tu.StripeSubscriptionIdentifier, &tu.StripePaymentMethodIdentifier)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +173,7 @@ func TagbotUserByUserID(db XODB, userID int) (*TagbotUser, error) {
 
 	// sql query
 	const sqlstr = `SELECT ` +
-		`id, user_id, aws_customer_identifier, aws_customer_entitlement, stripe_customer_identifier, stripe_customer_entitlement ` +
+		`id, user_id, aws_customer_identifier, aws_customer_entitlement, stripe_customer_identifier, stripe_customer_entitlement, stripe_subscription_identifier, stripe_payment_method_identifier ` +
 		`FROM trackit.tagbot_user ` +
 		`WHERE user_id = ?`
 
@@ -181,7 +183,7 @@ func TagbotUserByUserID(db XODB, userID int) (*TagbotUser, error) {
 		_exists: true,
 	}
 
-	err = db.QueryRow(sqlstr, userID).Scan(&tu.ID, &tu.UserID, &tu.AwsCustomerIdentifier, &tu.AwsCustomerEntitlement, &tu.StripeCustomerIdentifier, &tu.StripeCustomerEntitlement)
+	err = db.QueryRow(sqlstr, userID).Scan(&tu.ID, &tu.UserID, &tu.AwsCustomerIdentifier, &tu.AwsCustomerEntitlement, &tu.StripeCustomerIdentifier, &tu.StripeCustomerEntitlement, &tu.StripeSubscriptionIdentifier, &tu.StripePaymentMethodIdentifier)
 	if err != nil {
 		return nil, err
 	}
