@@ -16,16 +16,16 @@ package routes
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/db"
+	"github.com/trackit/trackit/routes"
+	"github.com/trackit/trackit/users"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/taggingReports"
@@ -41,27 +41,27 @@ type (
 		Regions       []string
 		ResourceTypes []string
 	}
+
+	Tag struct {
+		Key   string `json:"key"   req:"nonzero"`
+		Value string `json:"value" req:"nonzero"`
+	}
+
+	ResourcesRequestBody struct {
+		Accounts      []string `json:"accounts"      req:"nonzero"`
+		Regions       []string `json:"regions"       req:"nonzero"`
+		ResourceTypes []string `json:"resourceTypes" req:"nonzero"`
+		Tags          []Tag    `json:"tags"          req:"nonzero"`
+		MissingTags   []Tag    `json:"missingTags"   req:"nonzero"`
+	}
 )
 
-// routeGetResources returns the list of resources based on the query params, in JSON format.
+// routeGetResources returns the list of resources based on the request body, in JSON format.
 func routeGetResources(request *http.Request, a routes.Arguments) (int, interface{}) {
+	var body ResourcesRequestBody
+	routes.MustRequestBody(a, &body)
 	user := a[users.AuthenticatedUser].(users.User)
-	tx := a[db.Transaction].(*sql.Tx)
-	parsedParams := ResourcesQueryParams{
-		AccountsList:  []string{},
-		Regions:       []string{},
-		ResourceTypes: []string{},
-	}
-	if a[routes.AwsAccountsOptionalQueryArg] != nil {
-		parsedParams.AccountsList = a[routes.AwsAccountsOptionalQueryArg].([]string)
-	}
-	if a[resourcesQueryArgs[1]] != nil {
-		parsedParams.Regions = a[resourcesQueryArgs[1]].([]string)
-	}
-	if a[resourcesQueryArgs[2]] != nil {
-		parsedParams.ResourceTypes = a[resourcesQueryArgs[2]].([]string)
-	}
-	returnCode, report, err := GetResourcesData(request.Context(), parsedParams, user, tx)
+	returnCode, report, err := GetResources(request.Context(), body, user)
 	if err != nil {
 		return returnCode, err
 	} else {
@@ -84,9 +84,9 @@ func GetResourcesData(ctx context.Context, parsedParams ResourcesQueryParams, us
 	return returnCode, resources, nil
 }
 
-// GetResources does an elastic request and returns an array of resources report based on query params
-func GetResources(ctx context.Context, params ResourcesQueryParams) (int, []taggingReports.TaggingReportDocument, error) {
-	res, returnCode, err := makeElasticSearchRequest(ctx, params, getElasticSeachResourcesParams)
+// GetResources does an elastic request and returns an array of resources report based on the request body
+func GetResources(ctx context.Context, params ResourcesQueryParams, user users.User) (int, []taggingReports.TaggingReportDocument, error) {
+	res, returnCode, err := makeElasticSearchRequest(ctx, params, user, getElasticSeachResourcesParams)
 	if err != nil {
 		return returnCode, nil, err
 	} else if res == nil {
@@ -100,18 +100,18 @@ func GetResources(ctx context.Context, params ResourcesQueryParams) (int, []tagg
 }
 
 // makeElasticSearchRequest prepares and run an ES request
-// based on the ResourcesQueryParams and search params
+// based on the ResourcesRequestBody and search params
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
 // be returned, but instead of having a 500 status code, it will return the provided status code
 // with empty data
-func makeElasticSearchRequest(ctx context.Context, parsedParams ResourcesQueryParams,
-	esSearchParams func(ResourcesQueryParams, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
+func makeElasticSearchRequest(ctx context.Context, params ResourcesRequestBody, user users.User,
+	esSearchParams func(ResourcesRequestBody, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := strings.Join(parsedParams.IndexesList, ",")
+	index := es.IndexNameForUser(user, tagging.IndexPrefixTaggingReport)
 	searchService := esSearchParams(
-		parsedParams,
+		params,
 		es.Client,
 		index,
 	)
