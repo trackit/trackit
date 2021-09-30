@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package history handles history w.r.t. usage reports
 package history
 
 import (

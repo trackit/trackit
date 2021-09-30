@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package routes implements numerours utilities relating to the usage, registration and decoration of routes
 package routes
 
 import (

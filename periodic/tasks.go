@@ -12,8 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-// periodic runs periodic tasks. Tasks can be registered to a Scheduler which
-// may or may not be "ticking", i.e. running its tasks.
+// Package periodic implements running periodic tasks. Tasks can be registered to a Scheduler which may or may not be "ticking", i.e. running its tasks.
 package periodic
 
 import (

@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package s3 implements usage reports for Amazon S3
 package s3
 
 import (

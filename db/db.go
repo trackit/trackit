@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package db provides and initializes the database connection (at Db), along with a decorator which will automatically handle constructing and destructing a transaction around a route handler
 package db
 
 import (
@@ -32,6 +33,7 @@ const (
 	retrySeconds = 2
 )
 
+// Db is the database connection used by the server
 var Db *sql.DB
 
 // OpenWorker setups the database connection for a worker and verifies it

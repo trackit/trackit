@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package s3 manages stuff related to AWS's S3, like a client's AWS account's S3 data, providing types relating to it and functions for interacting with the SQL database and ES w.r.t. them
 package s3
 
 import (

@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package instanceCount implements the generation of InstanceCount usage reports and of the corresponding /instanceCount route
 package instanceCount
 
 import (

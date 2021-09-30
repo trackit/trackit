@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package taggingec2ri implements the generation of tagging reports from EC2 reserved instances reports
 package taggingec2ri
 
 import (

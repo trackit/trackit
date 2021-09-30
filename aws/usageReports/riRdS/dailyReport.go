@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package riRdS implements usage reports for Amazon RDS reserved instances
 package riRdS
 
 import (

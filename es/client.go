@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package es implements utilities and types for interacting with the ElasticSearch search engine, including utilities for removing, adding and querying information of a bunch of different types
 package es
 
 import (

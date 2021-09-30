@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package plugins_utils implements common utilities to help with implementing plugins
 package plugins_utils
 
 import (

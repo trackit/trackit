@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-// Package s3/costs gets billing information from an ElasticSearch.
+// Package costs gets billing information from an ElasticSearch.
 package costs
 
 import (

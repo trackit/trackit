@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package ec2 implements usage reports for Amazon EC2
 package ec2
 
 import (

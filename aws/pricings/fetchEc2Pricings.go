@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package pricings implements the fetching of pricings from AWS services (currently just exports FetchEC2Pricings for this) using the AWS Price List Service API
 package pricings
 
 import (

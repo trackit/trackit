@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package taggingroute53 implements the generation of tagging reports from Route53 reports
 package taggingroute53
 
 import (

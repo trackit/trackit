@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package riEc2 implements usage reports for Amazon EC2 reserved instances
 package riEc2
 
 import (

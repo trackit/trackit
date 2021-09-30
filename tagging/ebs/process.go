@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package taggingebs implements the generation of tagging reports from EBS reports
 package taggingebs
 
 import (

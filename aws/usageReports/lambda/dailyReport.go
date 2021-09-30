@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package lambda implements usage reports for AWS Lambda
 package lambda
 
 import (

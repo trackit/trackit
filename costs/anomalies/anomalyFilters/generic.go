@@ -1,3 +1,4 @@
+// Package anomalyFilters implements anomaly filters for for the anomalies and filters routes
 package anomalyFilters
 
 import (

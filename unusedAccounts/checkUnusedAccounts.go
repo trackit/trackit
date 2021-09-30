@@ -1,3 +1,4 @@
+// Package unusedaccounts implements the checking of unused accounts, along with the sending of reminders and the deletion of unused data
 package unusedaccounts
 
 import (

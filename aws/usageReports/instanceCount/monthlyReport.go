@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package instanceCount implements usage reports for Instance Counts
 package instanceCount
 
 import (

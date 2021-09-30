@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package cloudformation implements usage reports for AWS CloudFormation
 package cloudformation
 
 import (

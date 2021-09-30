@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package plugins_account_core implements the core types and functions used by all plugins to implement them
 package plugins_account_core
 
 import (

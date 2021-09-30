@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package route53 implements usage reports for Amazon Route 53
 package route53
 
 import (

@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package anomalies handles detecting anomalies in trackit, providing a function to run the anomalies detection algorithms and all the types necessary to inspect detected anomalies
 package anomalies
 
 import (

@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package routes adds a bunch of routes that interact with a user's AWS accounts/sub-accounts
 package routes
 
 import (

@@ -1,3 +1,4 @@
+// Package anomalyType declares all the types used for anomaly-related code
 package anomalyType
 
 import (

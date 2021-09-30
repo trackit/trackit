@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package taggingcloudformation implements the generation of tagging reports from CloudFormation reports
 package taggingcloudformation
 
 import (

@@ -12,6 +12,6 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-// package req provides request body validation facilities. Using struct tags
+// Package req provides request body validation facilities. Using struct tags
 // you may define rules in order to validate structured user input.
 package req

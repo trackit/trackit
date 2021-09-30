@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package elasticache implements the generation of ElastiCache usage reports and of the corresponding /elasticache routes
 package elasticache
 
 import (

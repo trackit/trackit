@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package errors provides a few error types and utilities relating to errors
 package errors
 
 import (

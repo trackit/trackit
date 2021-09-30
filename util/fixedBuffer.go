@@ -12,6 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
+// Package util implements a few generic utilities that are widely useful for the entire server code
 package util
 
 import (
