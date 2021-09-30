@@ -36,7 +36,9 @@ type (
 	}
 )
 
-const visibilityTimeoutInHours = 12
+const visibilityTimeoutInHours = 10
+const visibilityTimeoutTaskFailedInMinutes = 20
+const retryTaskOnFailure = true
 const waitTimeInSeconds = 20
 const esHealthcheckTimeoutInMinutes = 10
 const esHealthcheckWaitTimeRetryInMinutes = 10
@@ -84,23 +86,27 @@ func taskWorker(ctx context.Context) error {
 			time.Sleep(time.Minute * esHealthcheckWaitTimeRetryInMinutes)
 			continue
 		}
-		_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, visibilityTimeoutInHours)
 
 		ctx = context.WithValue(ctx, "taskParameters", message.Parameters)
 
 		if task, ok := tasks[message.TaskName]; ok {
 			err = executeTask(ctx, task)
 			if err != nil {
-				logger.Error("Error while executing task. Resetting visibility timeout to 0.", map[string]interface{}{
-					"message": message,
-					"error":   err.Error(),
+				logger.Error("Error while executing task. Setting visibility timeout to task failed timeout.", map[string]interface{}{
+					"message":                    message,
+					"taskFailedTimeoutInMinutes": 60 * visibilityTimeoutTaskFailedInMinutes,
+					"error":                      err.Error(),
 				})
-				_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 0)
+				if retryTaskOnFailure {
+					_ = changeMessageVisibility(ctx, sqsq, queueUrl, receiptHandle, 60*visibilityTimeoutTaskFailedInMinutes)
+				} else {
+					_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
+				}
 			} else {
 				logger.Info("Task done, acknowledging.", nil)
 				_ = acknowledgeMessage(ctx, sqsq, queueUrl, receiptHandle)
 			}
-			_ = flushCloudwatchLogEvents(ctx, cwl, message, &logsBuffer)
+			_ = flushCloudwatchLogEvents(ctx, cwl, message, &logsBuffer, err == nil)
 		} else {
 			logger.Error("Unable to find requested task.", map[string]interface{}{
 				"task_name": message.TaskName,
@@ -111,7 +117,7 @@ func taskWorker(ctx context.Context) error {
 	}
 }
 
-func executeTask(ctx context.Context, task func (context.Context) error) (err error) {
+func executeTask(ctx context.Context, task func(context.Context) error) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	defer func() {
@@ -162,7 +168,7 @@ func getNextMessage(ctx context.Context, sqsq *sqs.SQS, queueUrl *string) (Messa
 	return messageData, msgResult.Messages[0].ReceiptHandle, nil
 }
 
-func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatchLogs, message MessageData, logsBuffer *bytes.Buffer) error {
+func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatchLogs, message MessageData, logsBuffer *bytes.Buffer, success bool) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	defer func() {
@@ -174,7 +180,18 @@ func flushCloudwatchLogEvents(ctx context.Context, cwl *cloudwatchlogs.CloudWatc
 	}
 
 	logGroup := config.Environment + "/task-logs/" + message.TaskName
-	logStream := message.LogStream + "/" + uuid.New().String()
+
+	logStreamPrefix := message.LogStream
+	if len(logStreamPrefix) == 0 {
+		logStreamPrefix = "generic"
+	}
+	var logStreamSuffix string
+	if success {
+		logStreamSuffix = "succeeded"
+	} else {
+		logStreamSuffix = "failed"
+	}
+	logStream := logStreamPrefix + "/" + uuid.New().String() + "/" + logStreamSuffix
 
 	_, err := cwl.CreateLogStream(&cloudwatchlogs.CreateLogStreamInput{
 		LogGroupName:  aws.String(logGroup),
@@ -260,7 +277,6 @@ func changeMessageVisibility(ctx context.Context, sqsq *sqs.SQS, queueUrl *strin
 		VisibilityTimeout: aws.Int64(timeout),
 	})
 
-	sqsq.SendMessage(&sqs.SendMessageInput{})
 	if err != nil {
 		logger.Error("Unable to reset timeout.", map[string]interface{}{
 			"messageHandle": *receiptHandle,
@@ -291,7 +307,7 @@ func acknowledgeMessage(ctx context.Context, sqsq *sqs.SQS, queueUrl *string, re
 func retrieveQueueUrl(ctx context.Context, sqsq *sqs.SQS) (queueUrl *string, err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	urlResult, err := sqsq.GetQueueUrl(&sqs.GetQueueUrlInput{
-		QueueName: &config.SQSQueueName,
+		QueueName: aws.String(config.SQSQueueName),
 	})
 	if err != nil {
 		logger.Error("Unable to get queue URL from name.", map[string]interface{}{

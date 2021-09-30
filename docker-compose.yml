@@ -12,13 +12,17 @@ services:
     ports:
       - '127.0.0.1:3306:3306'
   es:
-    image: docker.elastic.co/elasticsearch/elasticsearch:5.5.3
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.7.2
     environment:
       - "ES_JAVA_OPTS=-Xms3g -Xmx3g"
     networks:
       - app
     ports:
       - '127.0.0.1:9200:9200'
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
   redis:
     image: redis:latest
     command: ["redis-server", "--requirepass changeme"]

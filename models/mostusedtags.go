@@ -50,7 +50,7 @@ func MostUsedTagsInUseByUser(db XODB, awsAccountID int) (*MostUsedTag, error) {
 		`id, report_date, user_id, tags ` +
 		`FROM trackit.most_used_tags ` +
 		`WHERE user_id = ? ` +
-		`ORDER BY report_date ASC LIMIT 1`
+		`ORDER BY report_date DESC LIMIT 1`
 
 	// run query
 	XOLog(sqlstr, awsAccountID)

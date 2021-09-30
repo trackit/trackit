@@ -16,6 +16,7 @@ package taggingReports
 
 import (
 	"time"
+	"fmt"
 
 	"github.com/trackit/trackit/es/indexes/common"
 )
@@ -30,13 +31,25 @@ var Model = common.VersioningData{
 
 // TaggingReportDocument is an entry in ES' tagging index
 type TaggingReportDocument struct {
-	Account      string       `json:"account"`
-	ReportDate   time.Time    `json:"reportDate"`
-	ResourceID   string       `json:"resourceId"`
-	ResourceType string       `json:"resourceType"`
-	Region       string       `json:"region"`
-	URL          string       `json:"url"`
-	Tags         []common.Tag `json:"tags"`
+	Account           string       `json:"account"`
+	ReportDate        time.Time    `json:"reportDate"`
+	ResourceID        string       `json:"resourceId"`
+	ResourceType      string       `json:"resourceType"`
+	Region            string       `json:"region"`
+	URL               string       `json:"url"`
+	Tags              []common.Tag `json:"tags"`
+	CloudFormationURL string       `json:"cloudFormationUrl,omitempty"`
+}
+
+const urlFormat = "https://console.aws.amazon.com/cloudformation/home?region=%s#/stacks/stackinfo?stackId=%s"
+const stackId = "aws:cloudformation:stack-id"
+
+func (doc *TaggingReportDocument) GenCloudFormationUrl() {
+	for _, tag := range doc.Tags {
+		if tag.Key == stackId && tag.Value != "" {
+			doc.CloudFormationURL = fmt.Sprintf(urlFormat, doc.Region, tag.Value)
+		}
+	}
 }
 
 const properties = `
