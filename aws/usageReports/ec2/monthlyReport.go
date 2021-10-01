@@ -80,7 +80,7 @@ func getInstanceInfoFromES(ctx context.Context, instance common.CostPerResource,
 			Platform:   "Linux/UNIX",
 		},
 		Tags:  make([]common.Tag, 0),
-		Costs: make(map[string]float64, 0),
+		Costs: make(map[string]float64),
 		Stats: ec2Reports.Stats{
 			Cpu: ec2Reports.Cpu{
 				Average: -1,
@@ -129,7 +129,7 @@ func fetchMonthlyInstancesList(ctx context.Context, creds *credentials.Credentia
 	for _, reservation := range instances.Reservations {
 		for _, instance := range reservation.Instances {
 			stats := getInstanceStats(ctx, instance, sess, startDate, endDate)
-			costs := make(map[string]float64, 0)
+			costs := make(map[string]float64, 1)
 			costs["instance"] = inst.Cost
 			instanceChan <- ec2Reports.Instance{
 				InstanceBase: ec2Reports.InstanceBase{

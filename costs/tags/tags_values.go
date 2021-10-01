@@ -71,7 +71,7 @@ type (
 		} `json:"buckets"`
 	}
 
-	// contain a product and his cost
+	// TagValue contains a product and its cost
 	TagValue struct {
 		Item string  `json:"item"`
 		Cost float64 `json:"cost"`
@@ -87,20 +87,19 @@ type (
 		UsageTypes []ValueDetailed `json:"usagetypes"`
 	}
 
-	// contain a tag and the list of products associated
+	// TagsValues contains a tag and the list of products associated
 	TagsValues struct {
 		Tag   string             `json:"tag"`
 		Costs []TagValue         `json:"costs,omitempty"`
 		Items []TagValueDetailed `json:"items,omitempty"`
 	}
 
-	// response format of the endpoint
+	// TagsValuesResponse is the response format of the endpoint
 	TagsValuesResponse map[string][]TagsValues
 )
 
 // GetTagsValuesWithParsedParams will parse the data from ElasticSearch and return it
 func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryParams) (int, TagsValuesResponse, error) {
-	response := TagsValuesResponse{}
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
 	var typedDocument esTagsValuesDetailedResult
 	res, returnCode, err := makeElasticSearchRequestForTagsValues(ctx, params, es.Client)
@@ -115,7 +114,9 @@ func GetTagsValuesWithParsedParams(ctx context.Context, params TagsValuesQueryPa
 		l.Error("Error while unmarshaling", err)
 		return http.StatusInternalServerError, nil, errors.GetErrorMessage(ctx, err)
 	}
-	if params.Detailed == true {
+
+	var response TagsValuesResponse
+	if params.Detailed {
 		response = getTagsResponseDetailed(typedDocument, params)
 	} else {
 		response = getTagsResponse(typedDocument, params)
@@ -178,7 +179,7 @@ func getTagsResponse(typedDocument esTagsValuesDetailedResult, params TagsValues
 
 //getAggregationForTagsValues get NewReversedNestedAggregation if detailed is true or false
 func getAggregationForTagsValues(params TagsValuesQueryParams, filter FilterType) (aggregation *elastic.ReverseNestedAggregation) {
-	if params.Detailed == true {
+	if params.Detailed {
 		aggregation = elastic.NewReverseNestedAggregation().
 			SubAggregation("filter", elastic.NewTermsAggregation().Field(filter.Filter).Size(maxAggregationSize).
 				SubAggregation("type", elastic.NewTermsAggregation().Field("usageType").Size(maxAggregationSize).
@@ -209,7 +210,7 @@ func getAggregationForTagsValues(params TagsValuesQueryParams, filter FilterType
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequestForTagsValues(ctx context.Context, params TagsValuesQueryParams, client *elastic.Client) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)

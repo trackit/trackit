@@ -45,8 +45,8 @@ type usageType = map[string]interface{}
 // validAggregationPeriodMap is a map that defines the aggregation period
 // accepted by the diff route
 var validAggregationPeriodMap = map[string]struct{}{
-	"month": struct{}{},
-	"week":  struct{}{},
+	"month": {},
+	"week":  {},
 }
 
 // esQueryParams will store the parsed query params
@@ -63,7 +63,7 @@ var diffQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
-	routes.QueryArg{
+	{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation. Possible values are month, week",
 		Type:        routes.QueryArgString{},
@@ -90,7 +90,7 @@ func init() {
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empy data
 func makeElasticSearchRequest(ctx context.Context, parsedParams esQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -146,7 +146,7 @@ func convertDiffData(ctx context.Context, diffData interface{}) (costDiff, error
 	if report, ok := diffData.(costDiff); ok {
 		return report, nil
 	}
-	logger.Error("An error occured while converting to diffData", nil)
+	logger.Error("An error occurred while converting to diffData", nil)
 	return nil, fmt.Errorf("Error when casting")
 }
 
@@ -187,7 +187,7 @@ func prepareGetDiffData(request *http.Request, a routes.Arguments) (int, interfa
 	if a[diffQueryArgs[0]] != nil {
 		parsedParams.accountList = a[diffQueryArgs[0]].([]string)
 	}
-	if _, ok := validAggregationPeriodMap[parsedParams.aggregationPeriod]; ok == false {
+	if _, ok := validAggregationPeriodMap[parsedParams.aggregationPeriod]; !ok {
 		return http.StatusBadRequest, fmt.Errorf("invalid aggregation period : %s", parsedParams.aggregationPeriod)
 	}
 	tx := a[db.Transaction].(*sql.Tx)

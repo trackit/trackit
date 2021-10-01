@@ -50,7 +50,7 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 	for _, reservation := range instances.Reservations {
 		for _, instance := range reservation.Instances {
 			stats := getInstanceStats(ctx, instance, sess, start, end)
-			costs := make(map[string]float64, 0)
+			costs := make(map[string]float64)
 			instanceChan <- ec2Reports.Instance{
 				InstanceBase: ec2Reports.InstanceBase{
 					Id:         aws.StringValue(instance.InstanceId),

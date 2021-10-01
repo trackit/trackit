@@ -23,11 +23,12 @@ import (
 
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es/indexes/taggingReports"
+	"github.com/trackit/trackit/tagging/utils"
 )
 
 type (
 
-	// Structure that allow to parse ES response for resources tagging
+	// ResponseResources allows us to parse an ES response for resources tagging
 	ResponseResources struct {
 		Accounts struct {
 			Buckets []struct {

@@ -71,15 +71,15 @@ func initAccountId(s *sts.STS) string {
 // AccountId returns the server's AWS account ID.
 func AccountId() string { return accountId }
 
-// GetAwsAccountFromUser returns a slice of all AWS accounts configured by a
+// GetAwsAccountsFromUser returns a slice of all AWS accounts configured by a
 // given user.
 func GetAwsAccountsFromUser(u users.User, tx *sql.Tx) ([]AwsAccount, error) {
 	var res []AwsAccount
-	dbAwsAccounts, err := models.AwsAccountsByUserID(tx, u.Id)
+	dbAwsAccounts, err := models.AwsAccountByUserID(tx, u.Id)
 	if err != nil {
 		return nil, err
 	}
-	dbShareAccounts, err := models.SharedAccountsByUserID(tx, u.Id)
+	dbShareAccounts, err := models.SharedAccountByUserID(tx, u.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func GetAwsAccountWithIdFromUser(u users.User, aaid int, tx *sql.Tx) (AwsAccount
 // CreateAwsAccount registers a new AWS account for a user. It does no error
 // checking: the caller should check themselves that the role ARN exists and is
 // correctly configured.
-func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.XODB) error {
+func (a *AwsAccount) CreateAwsAccount(ctx context.Context, db models.DB) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	identity, err := a.GetAwsAccountIdentity()
 	if err != nil {
@@ -181,7 +181,7 @@ func (a *AwsAccount) UpdatePrettyAwsAccount(ctx context.Context, tx *sql.Tx) err
 		dbAwsAccount.Pretty = a.Pretty
 		dbAwsAccount.Payer = a.Payer
 		dbAwsAccount.RoleArn = a.RoleArn
-		err := dbAwsAccount.Update(tx)
+		err = dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
 		}
@@ -223,7 +223,7 @@ func (a *AwsAccount) UpdateRoleAndExternalAwsAccount(ctx context.Context, tx *sq
 	} else {
 		dbAwsAccount.RoleArn = a.RoleArn
 		dbAwsAccount.External = a.External
-		err := dbAwsAccount.Update(tx)
+		err = dbAwsAccount.Update(tx)
 		if err != nil {
 			logger.Error("Failed to update AWS account in database.", err.Error())
 		}

@@ -61,8 +61,10 @@ func applyRecurrentAnomaliesToEs(ctx context.Context, account aws.AwsAccount, re
 		}
 		bp = addDocToBulkProcessor(bp, recurrentAnomaly.Source, anomaliesDetection.Model.Type, index, recurrentAnomaly.Id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed when putting recurrent anomalies in ES", err.Error())
 		return err
@@ -121,7 +123,9 @@ func getAnomaliesFromEs(ctx context.Context, params AnomalyEsQueryParams) (anoma
 	for i, h := range sr.Hits.Hits {
 		typedDocuments[i].Id = h.Id
 		if b, err := h.Source.MarshalJSON(); err != nil {
+			logger.Error("Failed to marshal one of the documents", map[string]interface{}{"document": h.Source})
 		} else if err := json.Unmarshal(b, &typedDocuments[i].Source); err != nil {
+			logger.Error("Failed to unmarshal one of the documents", map[string]interface{}{"document": string(b)})
 		}
 	}
 	return typedDocuments, nil

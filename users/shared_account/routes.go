@@ -9,7 +9,7 @@ import (
 	"github.com/trackit/trackit/users"
 )
 
-// inviteUserRequest is the expected request body for the invite user route handler.
+// InviteUserRequest is the expected request body for the invite user route handler.
 type InviteUserRequest struct {
 	Email           string `json:"email"            req:"nonzero"`
 	Origin          string `json:"origin"           req:"nonzero"`

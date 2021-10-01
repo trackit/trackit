@@ -24,7 +24,7 @@ var Model = common.VersioningData{
 	IndexSuffix:       "tagging-compliance",
 	Name:              "tagging-compliance",
 	Type:              "tagging-compliance",
-	Version:           1,
+	Version:           2,
 	MappingProperties: properties,
 }
 
@@ -35,6 +35,7 @@ type ComplianceReport struct {
 	PartiallyTagged int64     `json:"partiallyTagged"`
 	NotTagged       int64     `json:"notTagged"`
 	MostUsedTagsId  string    `json:"mostUsedTagsId"`
+	MostUsedTags    []string  `json:"mostUsedTags"`
 }
 
 const properties = `
@@ -56,6 +57,9 @@ const properties = `
 	},
 	"mostUsedTagsId":{
 		"type":"keyword"
+	},
+	"mostUsedTags":{
+		"type":"text"
 	}
 }
 `

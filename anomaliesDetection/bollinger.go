@@ -55,8 +55,7 @@ func sigma(aCosts AnalyzedCosts, avg float64) float64 {
 
 // deviation calculates the standard deviation.
 func deviation(sigma float64, period int) float64 {
-	var deviation float64
-	deviation = 1 / float64(period) * math.Pow(sigma, 0.5)
+	var deviation float64 = 1 / float64(period) * math.Pow(sigma, 0.5)
 	return deviation
 }
 

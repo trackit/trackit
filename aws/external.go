@@ -36,7 +36,7 @@ const (
 
 // nextExternalResponseBody is the body to be returned upon successful
 // execution of a request on /aws/next. It gives the client all necessary
-// informrations to setup an IAM role we can assume.
+// information to setup an IAM role we can assume.
 type nextExternalResponseBody struct {
 	External  string `json:"external"`
 	AccountId string `json:"accountId"`
@@ -55,10 +55,10 @@ func NextExternal(r *http.Request, a routes.Arguments) (int, interface{}) {
 		err := user.UpdateNextExternal(ctx, tx)
 		if err != nil {
 			logger.Error("Failed to update external ID.", err.Error())
-			return 500, "Failed get external ID."
+			return http.StatusInternalServerError, "Failed get external ID."
 		}
 	}
-	return 200, nextExternalResponseBody{
+	return http.StatusOK, nextExternalResponseBody{
 		External:  user.NextExternal,
 		AccountId: AccountId(),
 	}

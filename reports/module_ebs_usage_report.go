@@ -133,5 +133,4 @@ func ebsUsageReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("H", 30),
 	}
 	columns.setValues(file, ebsUsageReportSheetName)
-	return
 }

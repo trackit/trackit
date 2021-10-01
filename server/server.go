@@ -34,6 +34,7 @@ import (
 	_ "github.com/trackit/trackit/costs/diff"
 	_ "github.com/trackit/trackit/costs/tags"
 	_ "github.com/trackit/trackit/es/indexes"
+	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/periodic"
 	_ "github.com/trackit/trackit/plugins"
 	_ "github.com/trackit/trackit/reports"
@@ -78,6 +79,7 @@ var tasks = map[string]func(context.Context) error{
 	"update-es-mappings":          taskUpdateEsMappings,
 	"onboard-tagbot":              taskOnboardTagbot,
 	"check-unused-accounts":       taskCheckUnusedAccounts,
+	"generate-discount-code":      taskGenerateDiscountCode,
 }
 
 // dockerHostnameRe matches the value of the HOSTNAME environment variable when
@@ -87,13 +89,24 @@ var dockerHostnameRe = regexp.MustCompile(`[0-9a-z]{12}`)
 func main() {
 	ctx := context.Background()
 	logger := jsonlog.DefaultLogger
+	defer func() {
+		if err := db.Close(); err != nil {
+			logger.Error("Could not close connection to database.", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
+	}()
 	logger.Info("Started.", struct {
 		BackendId string `json:"backendId"`
 	}{backendId})
 	if config.Worker {
 		taskWorker(ctx)
 	} else if task, ok := tasks[config.Task]; ok {
-		task(ctx)
+		if err := task(ctx); err != nil {
+			logger.Error("Error while executing task", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 	} else {
 		knownTasks := make([]string, 0, len(tasks))
 		for k := range tasks {

@@ -24,6 +24,7 @@ import (
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/taggingReports"
+	cloudformation "github.com/trackit/trackit/tagging/cloudformation"
 	ebs "github.com/trackit/trackit/tagging/ebs"
 	ec2 "github.com/trackit/trackit/tagging/ec2"
 	ec2Ri "github.com/trackit/trackit/tagging/ec2Ri"
@@ -32,6 +33,10 @@ import (
 	lambda "github.com/trackit/trackit/tagging/lambda"
 	rds "github.com/trackit/trackit/tagging/rds"
 	rdsRi "github.com/trackit/trackit/tagging/rdsRi"
+	route53 "github.com/trackit/trackit/tagging/route53"
+	s3 "github.com/trackit/trackit/tagging/s3"
+	sqs "github.com/trackit/trackit/tagging/sqs"
+	stepfunction "github.com/trackit/trackit/tagging/stepfunction"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
@@ -43,37 +48,45 @@ type processor struct {
 }
 
 var processors = []processor{
-	processor{
+	{
 		Name: "ebs",
 		Run:  ebs.Process,
-	},
-	processor{
+	}, {
 		Name: "ec2",
 		Run:  ec2.Process,
-	},
-	processor{
+	}, {
 		Name: "ec2-ri",
 		Run:  ec2Ri.Process,
-	},
-	processor{
+	}, {
 		Name: "elasticache",
 		Run:  elasticache.Process,
-	},
-	processor{
+	}, {
 		Name: "es",
 		Run:  esProc.Process,
-	},
-	processor{
+	}, {
 		Name: "lambda",
 		Run:  lambda.Process,
-	},
-	processor{
+	}, {
 		Name: "rds",
 		Run:  rds.Process,
-	},
-	processor{
+	}, {
 		Name: "rds-ri",
 		Run:  rdsRi.Process,
+	}, {
+		Name: "stepfunction",
+		Run:  stepfunction.Process,
+	}, {
+		Name: "s3",
+		Run:  s3.Process,
+	}, {
+		Name: "sqs",
+		Run:  sqs.Process,
+	}, {
+		Name: "cloudformation",
+		Run:  cloudformation.Process,
+	}, {
+		Name: "route53",
+		Run:  route53.Process,
 	},
 }
 
@@ -121,8 +134,10 @@ func pushToEs(ctx context.Context, documents []taggingReports.TaggingReportDocum
 		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, taggingReports.Model.Type, destIndexName, documentID)
 	}
 
-	bulkProcessor.Flush()
-	err = bulkProcessor.Close()
+	err = bulkProcessor.Flush()
+	if closeErr := bulkProcessor.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed to put tagging reports in ES", err.Error())
 		return err

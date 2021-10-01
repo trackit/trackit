@@ -26,13 +26,17 @@ import (
 // GenerateBulkID generates a unique ID for a Tagging Report
 func GenerateBulkID(doc taggingReports.TaggingReportDocument) (string, error) {
 	ji, err := json.Marshal(struct {
-		Account    string    `json:"account"`
-		ReportDate time.Time `json:"reportDate"`
-		ID         string    `json:"id"`
+		Account      string    `json:"account"`
+		ReportDate   time.Time `json:"reportDate"`
+		ResourceID   string    `json:"resourceID"`
+		Region       string    `json:"region"`
+		ResourceType string    `json:"resourceType"`
 	}{
 		doc.Account,
 		doc.ReportDate,
 		doc.ResourceID,
+		doc.Region,
+		doc.ResourceType,
 	})
 	if err != nil {
 		return "", err

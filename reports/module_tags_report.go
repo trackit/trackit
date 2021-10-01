@@ -206,7 +206,6 @@ func tagsUsageReportGenerateHeader(file *excelize.File, key string) {
 		newColumnWidth("H", 30),
 	}
 	columns.setValues(file, key)
-	return
 }
 
 func generateLinearChart(ctx context.Context, file *excelize.File, sheetName, data string) error {

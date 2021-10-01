@@ -63,7 +63,7 @@ func init() {
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empy data
 func makeElasticSearchPluginsRequest(ctx context.Context, parsedParams pluginsQueryParams) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)

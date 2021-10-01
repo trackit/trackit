@@ -28,14 +28,16 @@ func CheckUnusedAccounts(ctx context.Context) error {
 		if user == nil || len((*user).AwsCustomerIdentifier) > 0 {
 			continue
 		}
-		checkUnusedAccount(ctx, *user)
+		if checkErr := checkUnusedAccount(ctx, *user); err == nil {
+			err = checkErr
+		}
 	}
 
 	return nil
 }
 
 func checkUnusedAccount(ctx context.Context, user models.User) error {
-	unusedTime := time.Now().Sub(user.LastSeen)
+	unusedTime := time.Since(user.LastSeen)
 
 	thresholdStage := 0
 	for i, reminderThreshold := range remindersThresholds {
@@ -49,11 +51,13 @@ func checkUnusedAccount(ctx context.Context, user models.User) error {
 	var err error = nil
 
 	if user.LastUnusedReminder.Sub(user.LastSeen) < remindersThresholds[thresholdStage] {
-		timeBeforeDeletion := user.LastSeen.Add(deleteThreshold).Sub(time.Now())
+		timeBeforeDeletion := time.Until(user.LastSeen.Add(deleteThreshold))
 		err = sendReminder(ctx, user, timeBeforeDeletion)
 
 		user.LastUnusedReminder = time.Now()
-		user.Update(db.Db)
+		if updateErr := user.Update(db.Db); err == nil {
+			err = updateErr
+		}
 	}
 
 	return err

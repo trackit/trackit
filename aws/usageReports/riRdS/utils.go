@@ -53,8 +53,10 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []rd
 		}
 		bp = utils.AddDocToBulkProcessor(bp, instance, rdsRiReports.Model.Type, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Fail to put RDS reserved instances in ES", err.Error())
 		return err

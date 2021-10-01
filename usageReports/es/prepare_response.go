@@ -30,7 +30,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -47,7 +47,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ES monthly domains
+	// ResponseEsMonthly allows us to parse an ES response for ES monthly domains
 	ResponseEsMonthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -62,7 +62,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for ES daily domains
+	// ResponseEsDaily allows us to parse an ES response for ES daily domains
 	ResponseEsDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -88,7 +88,7 @@ type (
 		Domain Domain `json:"domain"`
 	}
 
-	// Domain represents all the informations of an ES domain.
+	// Domain represents all the information for an ES domain.
 	Domain struct {
 		esReports.DomainBase
 		Tags  map[string]string  `json:"tags"`
@@ -98,7 +98,7 @@ type (
 )
 
 func getEsDomainReportResponse(oldDomain esReports.DomainReport) DomainReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string)
 	for _, tag := range oldDomain.Domain.Tags {
 		tags[tag.Key] = tag.Value
 	}
@@ -116,7 +116,7 @@ func getEsDomainReportResponse(oldDomain esReports.DomainReport) DomainReport {
 
 // addCostToDomain adds cost for each domain based on billing data
 func addCostToDomain(domain esReports.DomainReport, costs ResponseCost) esReports.DomainReport {
-	domain.Domain.Costs = make(map[string]float64, 0)
+	domain.Domain.Costs = make(map[string]float64, 1)
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != domain.Account {
 			continue

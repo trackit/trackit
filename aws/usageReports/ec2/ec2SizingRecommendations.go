@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/trackit/trackit/es/indexes/ec2Reports"
+	"github.com/trackit/jsonlog"
 )
 
 type InstanceSize struct {
@@ -155,10 +156,20 @@ func checkNewGenerationAvailable(size, family string, instanceSize InstanceSize)
 	if len(actualType) < 3 {
 		return
 	}
-	actualGen, _ := strconv.Atoi(actualType[2])
+	actualGen, err := strconv.Atoi(actualType[2])
+	if err != nil {
+		jsonlog.DefaultLogger.Error("checkNewGeneration first Atoi failed", map[string]interface{}{
+			"error": err.Error(),
+		})
+	}
 	for _, instanceType := range instanceSize.types {
 		newGenType := rgx.FindStringSubmatch(instanceType)
-		newGen, _ := strconv.Atoi(newGenType[2])
+		newGen, err := strconv.Atoi(newGenType[2])
+		if err != nil {
+			jsonlog.DefaultLogger.Error("checkNewGeneration loop Atoi failed", map[string]interface{}{
+				"error": err.Error(),
+			})
+		}
 		if len(newGenType) >= 3 && newGenType[1] == actualType[1] && actualGen <= newGen && actualType[0] != newGenType[0] {
 			recommendedType = append(recommendedType, instanceType+"."+size)
 			available = true

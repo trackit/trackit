@@ -40,18 +40,17 @@ type User struct {
 	Email                  string `json:"email"`
 	NextExternal           string `json:"-"`
 	ParentId               *int   `json:"parentId,omitempty"`
-	AwsCustomerEntitlement bool   `json:aws_customer_entitlement`
+	AwsCustomerEntitlement bool   `json:"aws_customer_entitlement"`
 }
 
 // CreateUserWithPassword creates a user with an email and a password. A nil
 // error indicates a success.
-func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, password string, customerIdentifier string, origin string) (User, error) {
+func CreateUserWithPassword(ctx context.Context, db models.DB, email string, password string, customerIdentifier string, origin string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
 		Email:                  email,
 		AwsCustomerIdentifier:  customerIdentifier,
 		AwsCustomerEntitlement: false,
-		Created:                time.Now(),
 		AccountType:            origin,
 	}
 	auth, err := getPasswordHash(password)
@@ -68,12 +67,23 @@ func CreateUserWithPassword(ctx context.Context, db models.XODB, email string, p
 }
 
 // CreateTagbotUser creates a tagbot user row associated with a trackit user
-func CreateTagbotUser(ctx context.Context, db models.XODB, userId int, awsCustomerIdentifier string) error {
+func CreateTagbotUser(ctx context.Context, db models.DB, userId int, awsCustomerIdentifier string, discountCodeInfo *models.TagbotDiscountCode) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.TagbotUser{
 		UserID:                 userId,
 		AwsCustomerIdentifier:  awsCustomerIdentifier,
 		AwsCustomerEntitlement: false,
+	}
+	if discountCodeInfo != nil {
+		dbUser.DiscountCodeID = sql.NullInt64{
+			Valid: true,
+			Int64: int64(discountCodeInfo.ID),
+		}
+	}
+	if dbUser.DiscountCodeID.Valid {
+		dbUser.FreeTierEndAt = time.Now().AddDate(0, tagbotDiscountCodeTrialMonthsDuration, 0)
+	} else {
+		dbUser.FreeTierEndAt = time.Now().AddDate(0, 0, tagbotFreeTrialDaysDuration)
 	}
 	err := dbUser.Insert(db)
 	if err != nil {
@@ -84,7 +94,7 @@ func CreateTagbotUser(ctx context.Context, db models.XODB, userId int, awsCustom
 
 // CreateUserWithParent creates a viewer user with an email and a parent. A nil
 // error indicates a success.
-func CreateUserWithParent(ctx context.Context, db models.XODB, email string, parent User) (User, string, error) {
+func CreateUserWithParent(ctx context.Context, db models.DB, email string, parent User) (User, string, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser := models.User{
 		Email:                  email,
@@ -115,8 +125,8 @@ func CreateUserWithParent(ctx context.Context, db models.XODB, email string, par
 	return user, string(passHuman[:]), nil
 }
 
-func GetUsersByParent(ctx context.Context, db models.XODB, parent User) ([]User, error) {
-	dbUsers, err := models.UsersByParentUserID(db, sql.NullInt64{int64(parent.Id), true})
+func GetUsersByParent(ctx context.Context, db models.DB, parent User) ([]User, error) {
+	dbUsers, err := models.UserByParentUserID(db, sql.NullInt64{Int64: int64(parent.Id), Valid: true})
 	if err != nil {
 		logger := jsonlog.LoggerFromContextOrDefault(ctx)
 		logger.Error("Failed to get viewer users by their parent.", err.Error())
@@ -129,7 +139,7 @@ func GetUsersByParent(ctx context.Context, db models.XODB, parent User) ([]User,
 	return res, nil
 }
 
-func GetUserParent(ctx context.Context, db models.XODB, user User) (parent User, err error) {
+func GetUserParent(ctx context.Context, db models.DB, user User) (parent User, err error) {
 	if user.ParentId == nil {
 		jsonlog.LoggerFromContextOrDefault(ctx).Error("Tried to get parent of orphan user.", user)
 		err = errors.New("Failed getting parent of orphan user.")
@@ -157,7 +167,7 @@ func UpdateUserWithPassword(ctx context.Context, tx *sql.Tx, dbUser *models.User
 	return UserFromDbUser(*dbUser), err
 }
 
-func (u User) UpdateNextExternal(ctx context.Context, db models.XODB) error {
+func (u User) UpdateNextExternal(ctx context.Context, db models.DB) error {
 	dbUser, err := models.UserByID(db, u.Id)
 	if err == nil {
 		if u.NextExternal == "" {
@@ -178,18 +188,17 @@ func (u User) Delete() error {
 }
 
 // UpdatePassword updates a user's password. A nil error indicates a success.
-func (u User) UpdatePassword(db models.XODB, password string) error {
+func (u User) UpdatePassword(db models.DB, password string) error {
 	dbUser, err := models.UserByID(db, u.Id)
-	if err == nil {
-		auth, err := getPasswordHash(password)
-		if err != nil {
-			return err
-		}
-		dbUser.Auth = auth
-		return dbUser.Update(db)
-	} else {
+	if err != nil {
 		return err
 	}
+	auth, err := getPasswordHash(password)
+	if err != nil {
+		return err
+	}
+	dbUser.Auth = auth
+	return dbUser.Update(db)
 }
 
 // PasswordMatches tests whether a password matches a user's stored hash. A nil
@@ -200,7 +209,7 @@ func (u User) PasswordMatches(password string) error {
 
 // GetUserWithId retrieves the user with the given unique Id. A nil error
 // indicates a success.
-func GetUserWithId(db models.XODB, id int) (User, error) {
+func GetUserWithId(db models.DB, id int) (User, error) {
 	dbUser, err := models.UserByID(db, id)
 	if err == sql.ErrNoRows {
 		user := User{}
@@ -216,7 +225,7 @@ func GetUserWithId(db models.XODB, id int) (User, error) {
 
 // GetUserWithEmailAndOrigin retrieves the user with the given unique pair (Email, AccountType). A nil error
 // indicates a success.
-func GetUserWithEmailAndOrigin(ctx context.Context, db models.XODB, email string, accountType string) (User, error) {
+func GetUserWithEmailAndOrigin(ctx context.Context, db models.DB, email string, accountType string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser, err := models.UserByEmailAccountType(db, email, accountType)
 	if err == sql.ErrNoRows {
@@ -231,7 +240,7 @@ func GetUserWithEmailAndOrigin(ctx context.Context, db models.XODB, email string
 
 // GetUserFromOriginWithEmailAndPassword retrieves the user with the given unique Email
 // and stored hash matching the given password. A nil eror indicates a success.
-func GetUserFromOriginWithEmailAndPassword(ctx context.Context, db models.XODB, email string, password string, origin string) (User, error) {
+func GetUserFromOriginWithEmailAndPassword(ctx context.Context, db models.DB, email string, password string, origin string) (User, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	dbUser, err := models.UserByEmailAccountType(db, email, origin)
 	if err == sql.ErrNoRows {

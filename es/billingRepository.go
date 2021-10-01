@@ -22,7 +22,7 @@ import (
 	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
-// CleanBillByBillRepositoryId removes every bills information of a specific bill repository
+// CleanByBillRepositoryId removes every bills information of a specific bill repository
 func CleanByBillRepositoryId(ctx context.Context, aaUId, brId int) error {
 	index := IndexNameForUserId(aaUId, lineItems.Model.IndexSuffix)
 	query := elastic.NewBoolQuery()

@@ -59,7 +59,11 @@ func taskOnboardTagbot(ctx context.Context) error {
 
 	job, err := registerOnboardTagbotTask(db.Db, userId)
 	err = onboardTagbotUser(ctx, userId)
-	updateOnboardTagbotTask(db.Db, job, err)
+	if dbUpdateErr := updateOnboardTagbotTask(db.Db, job, err); dbUpdateErr != nil {
+		logger.Error("Failed to update DB for TagBot onboarding", map[string]interface{}{
+			"error": dbUpdateErr.Error(),
+		})
+	}
 
 	if err == nil {
 		logger.Info("Task 'onboard-tagbot' done.", map[string]interface{}{
@@ -85,7 +89,7 @@ func checkOnboardTagbotArguments(args []string) (int, error) {
 func onboardTagbotUser(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
-	accounts, err := models.AwsAccountsByUserID(db.Db, userId)
+	accounts, err := models.AwsAccountByUserID(db.Db, userId)
 	if err != nil {
 		return err
 	}
@@ -109,7 +113,6 @@ func registerOnboardTagbotTask(db *sql.DB, userId int) (models.UserOnboardTagbot
 	job := models.UserOnboardTagbotJob{
 		UserID:   userId,
 		WorkerID: backendId,
-		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)

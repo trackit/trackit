@@ -204,8 +204,16 @@ func ingestLineItems(ctx context.Context, bp *elastic.BulkProcessor, index strin
 			rq = rq.Doc(li)
 			bp.Add(rq)
 		} else {
-			bp.Flush()
-			bp.Close()
+			var err error
+			err = bp.Flush()
+			if closeErr := bp.Close(); err == nil {
+				err = closeErr
+			}
+			if err != nil {
+				jsonlog.LoggerFromContextOrDefault(ctx).Error("Failure while flushing/closing ES bulk processor", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 		}
 	}
 }

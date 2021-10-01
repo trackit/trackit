@@ -53,9 +53,11 @@ func createSpreadsheet(aa taws.AwsAccount, date string) spreadsheet {
 	}
 }
 
+/*
 func getFilenameLocally(account taws.AwsAccount, date string, reportType spreadsheetType) string {
 	return fmt.Sprintf("/reports/%s", getFilename(account, date, reportType))
 }
+*/
 
 func getFilename(account taws.AwsAccount, date string, reportType spreadsheetType) string {
 	reportName := ""
@@ -67,6 +69,7 @@ func getFilename(account taws.AwsAccount, date string, reportType spreadsheetTyp
 	return fmt.Sprintf("TRACKIT_%s%s_%s.xlsx", reportName, account.Pretty, date)
 }
 
+/*
 func saveSpreadsheetLocally(ctx context.Context, file spreadsheet, reportType spreadsheetType) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
@@ -78,6 +81,7 @@ func saveSpreadsheetLocally(ctx context.Context, file spreadsheet, reportType sp
 	}
 	return
 }
+*/
 
 func saveSpreadsheet(ctx context.Context, file spreadsheet, reportType spreadsheetType) (err error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -90,7 +94,13 @@ func saveSpreadsheet(ctx context.Context, file spreadsheet, reportType spreadshe
 	reader, writer := io.Pipe()
 
 	go func() {
-		defer writer.Close()
+		defer func() {
+			if err := writer.Close(); err != nil {
+				logger.Error("Error while closing write end of pipe in spreadsheet upload", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
+		}()
 		err := file.File.Write(writer)
 		if err != nil {
 			logger.Error("Error while saving report", map[string]interface{}{

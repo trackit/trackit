@@ -40,6 +40,9 @@ func taskSpreadsheet(ctx context.Context) error {
 
 	aaId, date, err := checkArguments(args)
 	if err != nil {
+		logger.Error("Failed to parse arguments", map[string]interface{}{
+			"error": err.Error(),
+		})
 		return err
 	} else {
 		return generateReport(ctx, aaId, date)
@@ -77,18 +80,12 @@ func generateReport(ctx context.Context, aaId int, date time.Time) (err error) {
 	var generation bool
 	forceGeneration := !date.IsZero()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "generate-spreadsheet")
+
+	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+	} else if user, err = models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'SpreadSheet' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": user.AccountType,
@@ -146,7 +143,7 @@ func checkReportGeneration(ctx context.Context, db *sql.DB, aa aws.AwsAccount, f
 	if dbAccount.LastSpreadsheetReportGeneration.Before(endDate) {
 		return true, nil
 	}
-	dbProcessAccountJobs, err := models.AwsAccountUpdateJobsByAwsAccountID(db, aa.Id)
+	dbProcessAccountJobs, err := models.AwsAccountUpdateJobByAwsAccountID(db, aa.Id)
 	if err != nil {
 		logger.Info("Error while getting process account job", map[string]interface{}{
 			"awsAccountId": aa.Id,
@@ -207,20 +204,21 @@ func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId in
 	}
 	date := time.Now()
 	dbAccountReports.Completed = date
-	dbAccountReports.Joberror = errToStr(jobErr)
-	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
-	dbAccountReports.Costdifferror = errToStr(errs["costDiffError"])
-	dbAccountReports.Ec2usagereporterror = errToStr(errs["ec2UsageReportError"])
-	dbAccountReports.Rdsusagereporterror = errToStr(errs["rdsUsageReportError"])
-	dbAccountReports.Esusagereporterror = errToStr(errs["esUsageReportError"])
-	dbAccountReports.Elasticacheusagereporterror = errToStr(errs["elasticacheUsageReportError"])
-	dbAccountReports.Lambdausagereporterror = errToStr(errs["lambdaUsageReportError"])
+	dbAccountReports.JobError = errToStr(jobErr)
+	dbAccountReports.SpreadsheetError = errToStr(errs["speadsheetError"])
+	dbAccountReports.CostDiffError = errToStr(errs["costDiffError"])
+	dbAccountReports.Ec2usageReportError = errToStr(errs["ec2UsageReportError"])
+	dbAccountReports.RdsUsageReportError = errToStr(errs["rdsUsageReportError"])
+	dbAccountReports.EsUsageReportError = errToStr(errs["esUsageReportError"])
+	dbAccountReports.ElasticacheUsageReportError = errToStr(errs["elasticacheUsageReportError"])
+	dbAccountReports.LambdaUsageReportError = errToStr(errs["lambdaUsageReportError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err
 	}
 	if !forceGeneration {
-		dbAccount, err := models.AwsAccountByID(db, aaId)
+		var dbAccount *models.AwsAccount // We can't use := because then there would be a new err which would shadow the returned value
+		dbAccount, err = models.AwsAccountByID(db, aaId)
 		if err != nil {
 			return err
 		}

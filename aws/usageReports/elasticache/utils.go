@@ -53,8 +53,10 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []el
 		}
 		bp = utils.AddDocToBulkProcessor(bp, instance, elasticacheReports.Model.Type, index, id)
 	}
-	bp.Flush()
-	err = bp.Close()
+	err = bp.Flush()
+	if closeErr := bp.Close(); err == nil {
+		err = closeErr
+	}
 	if err != nil {
 		logger.Error("Failed to put ElastiCache instances in ES", err.Error())
 		return err

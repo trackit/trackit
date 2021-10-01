@@ -44,7 +44,7 @@ const numPartition = 5
 var ErrBillingDataIncomplete = errors.New("Billing data are not completed")
 
 type (
-	// structures that allows to parse ES result
+	// EsRegionPerResourceResult allows us to parse ES results
 	EsRegionPerResourceResult struct {
 		Resources struct {
 			Buckets []struct {
@@ -76,7 +76,7 @@ func GetHistoryDate() (time.Time, time.Time) {
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client, aa aws.AwsAccount,
 	startDate, endDate time.Time, product string, partition int) (*elastic.SearchResult, int, error) {
@@ -241,7 +241,7 @@ func FetchHistoryInfos(ctx context.Context, aa aws.AwsAccount, date time.Time) (
 	complete, err := CheckBillingDataCompleted(ctx, startDate, endDate, aa)
 	if err != nil {
 		return false, err
-	} else if complete == false {
+	} else if !complete {
 		logger.Info("Billing data are not completed", nil)
 		return false, ErrBillingDataIncomplete
 	}

@@ -54,7 +54,7 @@ func (d RequireAuthenticatedUser) getFunc(hf routes.HandlerFunc) routes.HandlerF
 		logger := jsonlog.LoggerFromContextOrDefault(r.Context())
 		auth := r.Header["Authorization"]
 		tx := a[db.Transaction].(*sql.Tx)
-		if auth != nil && len(auth) == 1 {
+		if len(auth) == 1 {
 			tokenString := auth[0]
 			if user, err := testToken(tx, tokenString); err == nil {
 				return d.handleWithAuthenticatedUser(user, tx, hf, w, r, a)
@@ -95,7 +95,7 @@ func (d RequireAuthenticatedUser) handleWithAuthenticatedUser(user User, tx *sql
 	return hf(w, r, a)
 }
 
-func (_ RequireAuthenticatedUser) getDocumentation(hd routes.HandlerDocumentation) routes.HandlerDocumentation {
+func (RequireAuthenticatedUser) getDocumentation(hd routes.HandlerDocumentation) routes.HandlerDocumentation {
 	if hd.Tags == nil {
 		hd.Tags = make(routes.Tags)
 	}

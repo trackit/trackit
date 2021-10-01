@@ -50,11 +50,11 @@ func createQueryTimeRange(durationBegin time.Time, durationEnd time.Time) *elast
 // It takes as parameters :
 // 	- account string : A string representing aws account number, in the format of the field
 //	'awsdetailedlineitem.linked_account_id'
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
+//	- durationBeing time.Time : A time.Time struct representing the beginning of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //  - aggregationPeriod string : An aggregation period, can be "day"
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
@@ -80,7 +80,7 @@ func getProductElasticSearchParams(account string, durationBegin time.Time,
 //	'awsdetailedlineitem.linked_account_id'
 //  - begin bool : Returns the begin date if true, else returns the end date
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
-//	- index string : The Elastic Search index on wich to execute the query. In this context the default value
+//	- index string : The Elastic Search index on which to execute the query. In this context the default value
 //	should be "awsdetailedlineitems"
 // This function excepts arguments passed to it to be sanitize. If they are not, the following cases will make
 // it crash :
@@ -97,7 +97,7 @@ func getDateRangeElasticSearchParams(account string, begin bool, client *elastic
 // used to retrieve the anomalies.
 // It takes as parameters :
 // 	- account string : A string representing aws account number
-//	- durationBeing time.Time : A time.Time struct representing the begining of the time range in the query
+//	- durationBeing time.Time : A time.Time struct representing the beginning of the time range in the query
 //	- durationEnd time.Time : A time.Time struct representing the end of the time range in the query
 //	- client *elastic.Client : an instance of *elastic.Client that represent an Elastic Search client.
 //	- index string : The Elastic Search index on which to execute the query.

@@ -60,20 +60,20 @@ var tagsValuesQueryArgs = []routes.QueryArg{
 	routes.AwsAccountsOptionalQueryArg,
 	routes.DateBeginQueryArg,
 	routes.DateEndQueryArg,
-	routes.QueryArg{
+	{
 		Name:        "keys",
 		Description: "keys of the tags to search",
 		Type:        routes.QueryArgStringSlice{},
 		Optional:    true,
 	},
-	routes.QueryArg{
+	{
 		Name:        "by",
 		Description: "Criteria for the ES aggregation: product, availabilityzone, region or account.",
 		Type:        routes.QueryArgString{},
 		Optional:    false,
 	},
 	routes.DetailedQueryArg,
-	routes.QueryArg{
+	{
 		Name:        "Detailed",
 		Description: "Specify if the report will be detailed or not",
 		Type:        routes.QueryArgBool{},

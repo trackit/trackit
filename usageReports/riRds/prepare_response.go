@@ -27,7 +27,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for ReservedInstances Daily reservations
+	// ResponseReservedInstancesDaily allows us to parse an ES response for ReservedInstances Daily reservations
 	ResponseReservedInstancesDaily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -61,7 +61,7 @@ type (
 )
 
 func getReservedInstancesReportResponse(oldReservation rdsRiReports.InstanceReport) ReservationReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string, len(oldReservation.Instance.Tags))
 	for _, tag := range oldReservation.Instance.Tags {
 		tags[tag.Key] = tag.Value
 	}
