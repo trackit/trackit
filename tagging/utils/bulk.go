@@ -19,10 +19,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"time"
+
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 )
 
 // GenerateBulkID generates a unique ID for a Tagging Report
-func GenerateBulkID(doc TaggingReportDocument) (string, error) {
+func GenerateBulkID(doc taggingReports.TaggingReportDocument) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account      string    `json:"account"`
 		ReportDate   time.Time `json:"reportDate"`

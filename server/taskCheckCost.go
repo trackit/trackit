@@ -28,10 +28,10 @@ import (
 
 	"github.com/trackit/jsonlog"
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/costs"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/models"
 )
 
@@ -109,7 +109,7 @@ func getCostFromExplorer(ctx context.Context, aa taws.AwsAccount, intervalBegin,
 func getCostFromES(ctx context.Context, aa taws.AwsAccount, intervalBegin, intervalEnd time.Time) (es.SimplifiedCostsDocument, int, error) {
 	accountList := []string{aa.AwsIdentity}
 	aggregationParams := []string{"month"}
-	indexList := []string{es.IndexNameForUserId(aa.UserId, s3.IndexPrefixLineItem)}
+	indexList := []string{es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)}
 	params := costs.EsQueryParams{
 		DateBegin:         intervalBegin,
 		DateEnd:           intervalEnd,

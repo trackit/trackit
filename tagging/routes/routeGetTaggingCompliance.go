@@ -25,8 +25,8 @@ import (
 
 	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/taggingCompliance"
 	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/tagging"
 	"github.com/trackit/trackit/users"
 )
 
@@ -51,7 +51,7 @@ func routeGetTaggingCompliance(r *http.Request, a routes.Arguments) (int, interf
 func getTaggingComplianceInRange(ctx context.Context, accountID int, begin time.Time, end time.Time) (map[string]interface{}, error) {
 	client := es.Client
 
-	res, err := client.Search().Index(es.IndexNameForUserId(accountID, "tagging-compliance")).Query(elastic.NewMatchAllQuery()).
+	res, err := client.Search().Index(es.IndexNameForUserId(accountID, taggingCompliance.Model.IndexSuffix)).Query(elastic.NewMatchAllQuery()).
 		Aggregation("range", elastic.NewDateRangeAggregation().Field("reportDate").AddRange(begin, end).
 			SubAggregation("topHits", elastic.NewTopHitsAggregation().Size(2147483647))).Do(ctx)
 	if err != nil {
@@ -79,7 +79,7 @@ func processTaggingComplianceInRangeResults(res *elastic.AggregationTopHitsMetri
 	output := map[string]interface{}{}
 
 	for _, hit := range res.Hits.Hits {
-		source := tagging.ComplianceReport{}
+		source := taggingCompliance.ComplianceReport{}
 		err := json.Unmarshal(*hit.Source, &source)
 		if err != nil {
 			return map[string]interface{}{}, err

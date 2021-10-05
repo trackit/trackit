@@ -30,10 +30,12 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ebsReports"
 )
 
 // getElasticSearchEbsSnapshot prepares and run the request to retrieve the report of a snapshot
@@ -67,25 +69,25 @@ func getElasticSearchEbsSnapshot(ctx context.Context, account, snapshot string, 
 }
 
 // getSnapshotInfoFromEs gets information about an snapshot from previous report to put it in the new report
-func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, account string, userId int) Snapshot {
-	var docType SnapshotReport
-	var snap = Snapshot{
-		SnapshotBase: SnapshotBase{
+func getSnapshotInfoFromES(ctx context.Context, snapshot common.CostPerResource, account string, userId int) ebsReports.Snapshot {
+	var docType ebsReports.SnapshotReport
+	var snap = ebsReports.Snapshot{
+		SnapshotBase: ebsReports.SnapshotBase{
 			Id:          snapshot.Resource,
 			Description: "N/A",
 			State:       "N/A",
 			Encrypted:   false,
 			StartTime:   time.Time{},
 		},
-		Tags: make([]utils.Tag, 0),
+		Tags: make([]common.Tag, 0),
 		Cost: 0,
-		Volume: Volume{
+		Volume: ebsReports.Volume{
 			Id:   "N/A",
 			Size: -1,
 		},
 	}
 	res, err := getElasticSearchEbsSnapshot(ctx, account, snapshot.Resource,
-		es.Client, es.IndexNameForUserId(userId, IndexPrefixEBSReport))
+		es.Client, es.IndexNameForUserId(userId, ebsReports.Model.IndexSuffix))
 	if err == nil && res.Hits.TotalHits > 0 && len(res.Hits.Hits) > 0 {
 		err = json.Unmarshal(*res.Hits.Hits[0].Source, &docType)
 		if err == nil {
@@ -102,8 +104,8 @@ func getSnapshotInfoFromES(ctx context.Context, snapshot utils.CostPerResource, 
 
 // fetchMonthlySnapshotsList sends in snapshotInfoChan the snapshots fetched from DescribeSnapshots
 // and filled by DescribeSnapshots and getSnapshotStats.
-func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentials, snap utils.CostPerResource,
-	account, region string, snapshotChan chan Snapshot, userId int) error {
+func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentials, snap common.CostPerResource,
+	account, region string, snapshotChan chan ebsReports.Snapshot, userId int) error {
 	defer close(snapshotChan)
 	sess := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
@@ -117,8 +119,8 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 		return err
 	}
 	for _, snapshot := range snapshots.Snapshots {
-		snapshotChan <- Snapshot{
-			SnapshotBase: SnapshotBase{
+		snapshotChan <- ebsReports.Snapshot{
+			SnapshotBase: ebsReports.SnapshotBase{
 				Id:          aws.StringValue(snapshot.SnapshotId),
 				Description: aws.StringValue(snapshot.Description),
 				State:       aws.StringValue(snapshot.State),
@@ -128,7 +130,7 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 			},
 			Tags: getSnapshotTag(snapshot.Tags),
 			Cost: snap.Cost,
-			Volume: Volume{
+			Volume: ebsReports.Volume{
 				Id:   aws.StringValue(snapshot.VolumeId),
 				Size: aws.Int64Value(snapshot.VolumeSize),
 			},
@@ -138,7 +140,7 @@ func fetchMonthlySnapshotsList(ctx context.Context, creds *credentials.Credentia
 }
 
 // fetchMonthlySnapshotsStats fetch EBS snapshots stats
-func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerResource, aa taws.AwsAccount, startDate time.Time) ([]SnapshotReport, error) {
+func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []common.CostPerResource, aa taws.AwsAccount, startDate time.Time) ([]ebsReports.SnapshotReport, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	creds, err := taws.GetTemporaryCredentials(aa, MonitorSnapshotStsSessionName)
 	if err != nil {
@@ -159,20 +161,20 @@ func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerRe
 		logger.Error("Error when fetching regions list", err.Error())
 		return nil, err
 	}
-	snapshotChans := make([]<-chan Snapshot, 0, len(regions))
+	snapshotChans := make([]<-chan ebsReports.Snapshot, 0, len(regions))
 	for _, snapshot := range snapshots {
 		for _, region := range regions {
 			if strings.Contains(snapshot.Region, region) {
-				snapshotChan := make(chan Snapshot)
+				snapshotChan := make(chan ebsReports.Snapshot)
 				go fetchMonthlySnapshotsList(ctx, creds, snapshot, account, region, snapshotChan, aa.UserId)
 				snapshotChans = append(snapshotChans, snapshotChan)
 			}
 		}
 	}
-	snapshotsList := make([]SnapshotReport, 0)
+	snapshotsList := make([]ebsReports.SnapshotReport, 0)
 	for snapshot := range merge(snapshotChans...) {
-		snapshotsList = append(snapshotsList, SnapshotReport{
-			ReportBase: utils.ReportBase{
+		snapshotsList = append(snapshotsList, ebsReports.SnapshotReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: startDate,
 				ReportType: "monthly",
@@ -184,21 +186,21 @@ func fetchMonthlySnapshotsStats(ctx context.Context, snapshots []utils.CostPerRe
 }
 
 // PutEbsMonthlyReport puts a monthly report of EBS snapshot in ES
-func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
+func PutEbsMonthlyReport(ctx context.Context, ec2Cost []common.CostPerResource, aa taws.AwsAccount, startDate, endDate time.Time) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Starting EBS monthly report", map[string]interface{}{
 		"awsAccountId": aa.Id,
 		"startDate":    startDate.Format("2006-01-02T15:04:05Z"),
 		"endDate":      endDate.Format("2006-01-02T15:04:05Z"),
 	})
-	ebsCost := make([]utils.CostPerResource, 0)
+	ebsCost := make([]common.CostPerResource, 0)
 	for _, cost := range ec2Cost {
 		if strings.Contains(cost.Resource, ":snapshot/") {
 			cost.Region = getResourceRegion(cost)
 			ebsCost = append(ebsCost, cost)
 		}
 	}
-	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, IndexPrefixEBSReport)
+	already, err := utils.CheckMonthlyReportExists(ctx, startDate, aa, ebsReports.Model.IndexSuffix)
 	if err != nil {
 		return false, err
 	} else if already {
@@ -217,7 +219,7 @@ func PutEbsMonthlyReport(ctx context.Context, ec2Cost []utils.CostPerResource, a
 }
 
 // Get the region of the resource for the ebs snapshot
-func getResourceRegion(cost utils.CostPerResource) string {
+func getResourceRegion(cost common.CostPerResource) string {
 	reg, err := regexp.Compile(`^arn:aws:ec2:([\w\d\-]+):\d+:snapshot`)
 	if err != nil {
 		return ""
@@ -226,7 +228,7 @@ func getResourceRegion(cost utils.CostPerResource) string {
 }
 
 // Get the id of the resource for the ebs snapshot
-func getResourceId(cost utils.CostPerResource) string {
+func getResourceId(cost common.CostPerResource) string {
 	reg, err := regexp.Compile(`^arn:aws:ec2:[\w\d\-]+:\d+:snapshot/([\w\d\-]+)`)
 	if err != nil {
 		return ""

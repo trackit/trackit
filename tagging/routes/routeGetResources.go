@@ -25,24 +25,33 @@ import (
 
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/tagging"
-	"github.com/trackit/trackit/tagging/utils"
 	"github.com/trackit/trackit/users"
 )
 
-type Tag struct {
-	Key   string `json:"key"   req:"nonzero"`
-	Value string `json:"value" req:"nonzero"`
-}
+type (
+	// ResourcesQueryParams will store the parsed query params
+	ResourcesQueryParams struct {
+		AccountsList  []string
+		IndexesList   []string
+		Regions       []string
+		ResourceTypes []string
+	}
 
-type ResourcesRequestBody struct {
-	Accounts      []string `json:"accounts"      req:"nonzero"`
-	Regions       []string `json:"regions"       req:"nonzero"`
-	ResourceTypes []string `json:"resourceTypes" req:"nonzero"`
-	Tags          []Tag    `json:"tags"          req:"nonzero"`
-	MissingTags   []Tag    `json:"missingTags"   req:"nonzero"`
-}
+	Tag struct {
+		Key   string `json:"key"   req:"nonzero"`
+		Value string `json:"value" req:"nonzero"`
+	}
+
+	ResourcesRequestBody struct {
+		Accounts      []string `json:"accounts"      req:"nonzero"`
+		Regions       []string `json:"regions"       req:"nonzero"`
+		ResourceTypes []string `json:"resourceTypes" req:"nonzero"`
+		Tags          []Tag    `json:"tags"          req:"nonzero"`
+		MissingTags   []Tag    `json:"missingTags"   req:"nonzero"`
+	}
+)
 
 // routeGetResources returns the list of resources based on the request body, in JSON format.
 func routeGetResources(request *http.Request, a routes.Arguments) (int, interface{}) {
@@ -58,7 +67,7 @@ func routeGetResources(request *http.Request, a routes.Arguments) (int, interfac
 }
 
 // GetResources does an elastic request and returns an array of resources report based on the request body
-func GetResources(ctx context.Context, params ResourcesRequestBody, user users.User) (int, []utils.TaggingReportDocument, error) {
+func GetResources(ctx context.Context, params ResourcesRequestBody, user users.User) (int, []taggingReports.TaggingReportDocument, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, user, getElasticSeachResourcesParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -82,7 +91,7 @@ func GetResources(ctx context.Context, params ResourcesRequestBody, user users.U
 func makeElasticSearchRequest(ctx context.Context, params ResourcesRequestBody, user users.User,
 	esSearchParams func(ResourcesRequestBody, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, tagging.IndexPrefixTaggingReport)
+	index := es.IndexNameForUser(user, taggingReports.Model.IndexSuffix)
 	searchService := esSearchParams(
 		params,
 		es.Client,

@@ -22,14 +22,15 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	indexSource "github.com/trackit/trackit/aws/usageReports/riRdS"
+	"github.com/trackit/trackit/es/indexes/rdsRiReports"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 	"github.com/trackit/trackit/tagging/utils"
 )
 
 const urlFormat = "https://console.aws.amazon.com/rds/home?region=%s#reserved-db-instance:ids=%s"
 
 // Process generates tagging reports from RDS reserved instances reports
-func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
+func Process(ctx context.Context, userId int, resourceTypeString string) ([]taggingReports.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Processing reports.", map[string]interface{}{
 		"type": resourceTypeString,
@@ -40,7 +41,7 @@ func Process(ctx context.Context, userId int, resourceTypeString string) ([]util
 		return nil, err
 	}
 
-	var documents []utils.TaggingReportDocument
+	var documents []taggingReports.TaggingReportDocument
 	for _, hit := range hits {
 		document, success := processHit(ctx, hit, resourceTypeString)
 		if success {
@@ -57,20 +58,20 @@ func Process(ctx context.Context, userId int, resourceTypeString string) ([]util
 
 // processHit converts an elasticSearch hit into a TaggingReportDocument
 // Second argument is true if operation is a success
-func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (utils.TaggingReportDocument, bool) {
+func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (taggingReports.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var source indexSource.InstanceReport
+	var source rdsRiReports.InstanceReport
 	err := json.Unmarshal(*hit.Source, &source)
 	if err != nil {
 		logger.Error("Could not process report.", map[string]interface{}{
 			"type": resourceTypeString,
 		})
-		return utils.TaggingReportDocument{}, false
+		return taggingReports.TaggingReportDocument{}, false
 	}
 
 	regionForURL := utils.GetRegionForURL(source.Instance.AvailabilityZone)
 
-	document := utils.TaggingReportDocument{
+	document := taggingReports.TaggingReportDocument{
 		Account:      source.Account,
 		ResourceID:   source.Instance.DBInstanceIdentifier,
 		ResourceType: resourceTypeString,

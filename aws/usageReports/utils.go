@@ -30,28 +30,6 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-type (
-	// CostPerResource associates a cost to an aws resourceId with a region
-	CostPerResource struct {
-		Resource string
-		Cost     float64
-		Region   string
-	}
-
-	// ReportBase contains basic information for any kin of usage report
-	ReportBase struct {
-		Account    string    `json:"account"`
-		ReportDate time.Time `json:"reportDate"`
-		ReportType string    `json:"reportType"`
-	}
-
-	// Tag contains the key of a tag and his value
-	Tag struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
-	}
-)
-
 const (
 	mebibyte = 1 << 20
 

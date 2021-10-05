@@ -26,6 +26,7 @@ import (
 
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 	"github.com/trackit/trackit/models"
 )
 
@@ -78,7 +79,7 @@ func UpdateMostUsedTagsForUser(ctx context.Context, userId int) error {
 
 func getMostUsedTagsForUser(ctx context.Context, userId int, ignoredTagsRegexp []string) ([]string, error) {
 	client := es.Client
-	indexName := es.IndexNameForUserId(userId, destIndexName)
+	indexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 
 	indexExists, err := client.IndexExists(indexName).Do(ctx)
 	if err != nil {

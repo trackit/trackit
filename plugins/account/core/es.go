@@ -23,12 +23,14 @@ import (
 	"time"
 
 	"github.com/trackit/jsonlog"
+
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/accountPlugins"
 )
 
 // IngestPluginResult saves a PluginResultES into elasticsearch
-func IngestPluginResult(ctx context.Context, aa aws.AwsAccount, pluginRes PluginResultES) error {
+func IngestPluginResult(ctx context.Context, aa aws.AwsAccount, pluginRes accountPlugins.PluginResultES) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Saving plugin result for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
@@ -47,12 +49,12 @@ func IngestPluginResult(ctx context.Context, aa aws.AwsAccount, pluginRes Plugin
 	}
 	hash := md5.Sum(ji)
 	hash64 := base64.URLEncoding.EncodeToString(hash[:])
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixAccountPlugin)
+	index := es.IndexNameForUserId(aa.UserId, accountPlugins.Model.IndexSuffix)
 	pluginRes.AccountPluginIdx = fmt.Sprintf("%s-%s", pluginRes.Account, pluginRes.PluginName)
 	if res, err := client.
 		Index().
 		Index(index).
-		Type(TypeAccountPlugins).
+		Type(accountPlugins.Model.Type).
 		BodyJson(pluginRes).
 		Id(hash64).
 		Do(context.Background()); err != nil {

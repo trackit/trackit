@@ -25,81 +25,21 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 )
 
 const MonitorInstanceStsSessionName = "monitor-instance"
 
-type (
-	// InstanceReport is saved in ES to have all the information of an EC2 instance
-	InstanceReport struct {
-		utils.ReportBase
-		Instance Instance `json:"instance"`
-	}
-
-	// InstanceBase contains basics information of an EC2 instance
-	InstanceBase struct {
-		Id         string `json:"id"`
-		Region     string `json:"region"`
-		State      string `json:"state"`
-		Purchasing string `json:"purchasing"`
-		KeyPair    string `json:"keyPair"`
-		Type       string `json:"type"`
-		Platform   string `json:"platform"`
-	}
-
-	// Instance contains all the information of an EC2 instance
-	Instance struct {
-		InstanceBase
-		Tags           []utils.Tag        `json:"tags"`
-		Costs          map[string]float64 `json:"costs"`
-		Stats          Stats              `json:"stats"`
-		Recommendation Recommendation     `json:"recommendation"`
-	}
-
-	// Recommendation contains all recommendation of an EC2 instance
-	Recommendation struct {
-		InstanceType  string `json:"instancetype"`
-		Reason        string `json:"reason"`
-		NewGeneration string `json:"newgeneration"`
-	}
-
-	// Stats contains statistics of an instance get on CloudWatch
-	Stats struct {
-		Cpu     Cpu      `json:"cpu"`
-		Network Network  `json:"network"`
-		Volumes []Volume `json:"volumes"`
-	}
-
-	// Cpu contains cpu statistics of an instance
-	Cpu struct {
-		Average float64 `json:"average"`
-		Peak    float64 `json:"peak"`
-	}
-
-	// Network contains network statistics of an instance
-	Network struct {
-		In  float64 `json:"in"`
-		Out float64 `json:"out"`
-	}
-
-	// Volume contains information about an EBS volume
-	Volume struct {
-		Id    string  `json:"id"`
-		Read  float64 `json:"read"`
-		Write float64 `json:"write"`
-	}
-)
-
 // importInstancesToEs imports EC2 instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
+func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []ec2Reports.InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EC2 instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2Report)
+	index := es.IndexNameForUserId(aa.UserId, ec2Reports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -111,7 +51,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeEC2Report, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, ec2Reports.Model.Type, index, id)
 	}
 	err = bp.Flush()
 	if closeErr := bp.Close(); err == nil {
@@ -125,7 +65,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 	return nil
 }
 
-func generateId(instance InstanceReport) (string, error) {
+func generateId(instance ec2Reports.InstanceReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -147,13 +87,13 @@ func generateId(instance InstanceReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Instance) <-chan Instance {
+func merge(cs ...<-chan ec2Reports.Instance) <-chan ec2Reports.Instance {
 	var wg sync.WaitGroup
-	out := make(chan Instance)
+	out := make(chan ec2Reports.Instance)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Instance) {
+	output := func(c <-chan ec2Reports.Instance) {
 		for n := range c {
 			out <- n
 		}

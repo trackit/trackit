@@ -27,61 +27,19 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lambdaReports"
 )
 
 const MonitorFunctionStsSessionName = "monitor-function"
 
-type (
-	// FunctionReport is saved in ES to have all the information of an Lambda function
-	FunctionReport struct {
-		utils.ReportBase
-		Function Function `json:"function"`
-	}
-
-	// FunctionBase contains basics information of an Lambda function
-	FunctionBase struct {
-		Name         string `json:"name"`
-		Description  string `json:"description"`
-		Version      string `json:"version"`
-		LastModified string `json:"lastModified"`
-		Runtime      string `json:"runtime"`
-		Size         int64  `json:"size"`
-		Memory       int64  `json:"memory"`
-		Region       string `json:"region"`
-	}
-
-	// Function contains all the information of an Lambda function
-	Function struct {
-		FunctionBase
-		Tags  []utils.Tag `json:"tags"`
-		Stats Stats       `json:"stats"`
-	}
-
-	// Stats contains statistics of an Lambda function
-	Stats struct {
-		Invocations Invocations `json:"invocations"`
-		Duration    Duration    `json:"duration"`
-	}
-
-	Invocations struct {
-		Total  float64 `json:"total"`
-		Failed float64 `json:"failed"`
-	}
-
-	Duration struct {
-		Average float64 `json:"average"`
-		Maximum float64 `json:"maximum"`
-	}
-)
-
 // importFunctionsToEs imports Lambda functions in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []FunctionReport) error {
+func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []lambdaReports.FunctionReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating Lambda functions for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixLambdaReport)
+	index := es.IndexNameForUserId(aa.UserId, lambdaReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -93,7 +51,7 @@ func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []Fu
 			logger.Error("Error when marshaling function var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, function, TypeLambdaReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, function, lambdaReports.Model.Type, index, id)
 	}
 	err = bp.Flush()
 	if closeErr := bp.Close(); err == nil {
@@ -107,7 +65,7 @@ func importFunctionsToEs(ctx context.Context, aa taws.AwsAccount, functions []Fu
 	return nil
 }
 
-func generateId(function FunctionReport) (string, error) {
+func generateId(function lambdaReports.FunctionReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -129,13 +87,13 @@ func generateId(function FunctionReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Function) <-chan Function {
+func merge(cs ...<-chan lambdaReports.Function) <-chan lambdaReports.Function {
 	var wg sync.WaitGroup
-	out := make(chan Function)
+	out := make(chan lambdaReports.Function)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Function) {
+	output := func(c <-chan lambdaReports.Function) {
 		for n := range c {
 			out <- n
 		}

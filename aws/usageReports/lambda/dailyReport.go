@@ -27,11 +27,13 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/lambdaReports"
 )
 
 // fetchDailyFunctionsList sends in functionInfoChan the functions fetched from DescribeFunctions
 // and filled by DescribeFunctions and getFunctionStats.
-func fetchDailyFunctionsList(ctx context.Context, creds *credentials.Credentials, region string, functionChan chan Function) error {
+func fetchDailyFunctionsList(ctx context.Context, creds *credentials.Credentials, region string, functionChan chan lambdaReports.Function) error {
 	defer close(functionChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -47,8 +49,8 @@ func fetchDailyFunctionsList(ctx context.Context, creds *credentials.Credentials
 	}
 	for _, function := range functions.Functions {
 		stats := getFunctionStats(ctx, function, sess, start, end)
-		functionChan <- Function{
-			FunctionBase: FunctionBase{
+		functionChan <- lambdaReports.Function{
+			FunctionBase: lambdaReports.FunctionBase{
 				Name:         aws.StringValue(function.FunctionName),
 				Description:  aws.StringValue(function.Description),
 				Version:      aws.StringValue(function.Version),
@@ -91,16 +93,16 @@ func FetchDailyFunctionsStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	functionChans := make([]<-chan Function, 0, len(regions))
+	functionChans := make([]<-chan lambdaReports.Function, 0, len(regions))
 	for _, region := range regions {
-		functionChan := make(chan Function)
+		functionChan := make(chan lambdaReports.Function)
 		go fetchDailyFunctionsList(ctx, creds, region, functionChan)
 		functionChans = append(functionChans, functionChan)
 	}
-	functions := make([]FunctionReport, 0)
+	functions := make([]lambdaReports.FunctionReport, 0)
 	for function := range merge(functionChans...) {
-		functions = append(functions, FunctionReport{
-			ReportBase: utils.ReportBase{
+		functions = append(functions, lambdaReports.FunctionReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

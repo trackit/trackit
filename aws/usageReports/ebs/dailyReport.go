@@ -25,13 +25,15 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ebsReports"
 )
 
 // fetchDailySnapshotsList sends in snapshotInfoChan the snapshots fetched from DescribeSnapshots
 // and filled by DescribeSnapshots and getSnapshotStats.
-func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, awsAccount taws.AwsAccount, region string, snapshotChan chan Snapshot) error {
+func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials, awsAccount taws.AwsAccount, region string, snapshotChan chan ebsReports.Snapshot) error {
 	defer close(snapshotChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -49,8 +51,8 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 		return err
 	}
 	for _, snapshot := range snapshots.Snapshots {
-		snapshotChan <- Snapshot{
-			SnapshotBase: SnapshotBase{
+		snapshotChan <- ebsReports.Snapshot{
+			SnapshotBase: ebsReports.SnapshotBase{
 				Id:          aws.StringValue(snapshot.SnapshotId),
 				Description: aws.StringValue(snapshot.Description),
 				State:       aws.StringValue(snapshot.State),
@@ -59,7 +61,7 @@ func fetchDailySnapshotsList(ctx context.Context, creds *credentials.Credentials
 				Region:      region,
 			},
 			Tags: getSnapshotTag(snapshot.Tags),
-			Volume: Volume{
+			Volume: ebsReports.Volume{
 				Id:   aws.StringValue(snapshot.VolumeId),
 				Size: aws.Int64Value(snapshot.VolumeSize),
 			},
@@ -95,16 +97,16 @@ func FetchDailySnapshotsStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	snapshotChans := make([]<-chan Snapshot, 0, len(regions))
+	snapshotChans := make([]<-chan ebsReports.Snapshot, 0, len(regions))
 	for _, region := range regions {
-		snapshotChan := make(chan Snapshot)
+		snapshotChan := make(chan ebsReports.Snapshot)
 		go fetchDailySnapshotsList(ctx, creds, awsAccount, region, snapshotChan)
 		snapshotChans = append(snapshotChans, snapshotChan)
 	}
-	snapshots := make([]SnapshotReport, 0)
+	snapshots := make([]ebsReports.SnapshotReport, 0)
 	for snapshot := range merge(snapshotChans...) {
-		snapshots = append(snapshots, SnapshotReport{
-			ReportBase: utils.ReportBase{
+		snapshots = append(snapshots, ebsReports.SnapshotReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

@@ -33,6 +33,7 @@ import (
 	_ "github.com/trackit/trackit/costs/anomalies"
 	_ "github.com/trackit/trackit/costs/diff"
 	_ "github.com/trackit/trackit/costs/tags"
+	_ "github.com/trackit/trackit/es/indexes"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/periodic"
 	_ "github.com/trackit/trackit/plugins"
@@ -75,6 +76,7 @@ var tasks = map[string]func(context.Context) error{
 	"fetch-pricings":              taskFetchPricings,
 	"ingest-limit":                taskIngestLimit,
 	"update-tags":                 taskUpdateTags,
+	"update-es-mappings":          taskUpdateEsMappings,
 	"onboard-tagbot":              taskOnboardTagbot,
 	"check-unused-accounts":       taskCheckUnusedAccounts,
 	"generate-discount-code":      taskGenerateDiscountCode,

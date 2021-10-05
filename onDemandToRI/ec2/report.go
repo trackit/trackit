@@ -26,84 +26,27 @@ import (
 
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/pricings"
-	awsEc2 "github.com/trackit/trackit/aws/usageReports/ec2"
-	awsriEc2 "github.com/trackit/trackit/aws/usageReports/riEc2"
 	"github.com/trackit/trackit/db"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
+	"github.com/trackit/trackit/es/indexes/odToRiEc2Reports"
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
 	"github.com/trackit/trackit/models"
 	"github.com/trackit/trackit/usageReports/ec2"
 	"github.com/trackit/trackit/usageReports/riEc2"
 	"github.com/trackit/trackit/users"
 )
 
-type (
-	Cost struct {
-		PerUnit float64 `json:"perUnit"`
-		Total   float64 `json:"total"`
-	}
-
-	OnDemandCost struct {
-		Monthly    Cost `json:"monthly"`
-		OneYear    Cost `json:"oneYear"`
-		ThreeYears Cost `json:"threeYears"`
-	}
-
-	ReservationCost struct {
-		Monthly Cost `json:"monthly"`
-		Global  Cost `json:"global"`
-		Saving  Cost `json:"saving"`
-	}
-
-	OnDemandTotalCost struct {
-		MonthlyTotal    float64 `json:"monthly"`
-		OneYearTotal    float64 `json:"oneYear"`
-		ThreeYearsTotal float64 `json:"threeYears"`
-	}
-
-	ReservationTotalCost struct {
-		MonthlyTotal float64 `json:"monthly"`
-		GlobalTotal  float64 `json:"global"`
-		SavingTotal  float64 `json:"saving"`
-	}
-
-	// InstancesSpecs stores the costs calculated for a given region/instance/platform
-	// combination
-	InstancesSpecs struct {
-		Region        string       `json:"region"`
-		Type          string       `json:"instanceType"`
-		Platform      string       `json:"platform"`
-		InstanceCount int          `json:"instanceCount"`
-		OnDemand      OnDemandCost `json:"onDemand"`
-		Reservation   struct {
-			Type      string          `json:"type"`
-			OneYear   ReservationCost `json:"oneYear"`
-			ThreeYear ReservationCost `json:"threeYears"`
-		} `json:"reservation"`
-	}
-
-	// OdToRiEc2Report stores all the on demand to RI EC2 report infos
-	OdToRiEc2Report struct {
-		Account     string            `json:"account"`
-		ReportDate  time.Time         `json:"reportDate"`
-		OnDemand    OnDemandTotalCost `json:"onDemand"`
-		Reservation struct {
-			OneYear   ReservationTotalCost `json:"oneYear"`
-			ThreeYear ReservationTotalCost `json:"threeYears"`
-		} `json:"reservation"`
-		Instances []InstancesSpecs `json:"instances"`
-	}
-)
-
 // addUnreservedInstance adds an instance from an ec2.InstanceReport to the list of
 // unreserved instances
-func addUnreservedInstance(unreservedInstances []InstancesSpecs, instanceReport ec2.InstanceReport) []InstancesSpecs {
+func addUnreservedInstance(unreservedInstances []odToRiEc2Reports.InstancesSpecs, instanceReport ec2.InstanceReport) []odToRiEc2Reports.InstancesSpecs {
 	for i, unreservedInstance := range unreservedInstances {
 		if instanceMatchSpecs(instanceReport, unreservedInstance) {
 			unreservedInstances[i].InstanceCount++
 			return unreservedInstances
 		}
 	}
-	unreservedInstance := InstancesSpecs{
+	unreservedInstance := odToRiEc2Reports.InstancesSpecs{
 		Region:        getRegionName(instanceReport.Instance.Region),
 		Type:          instanceReport.Instance.Type,
 		Platform:      instanceReport.Instance.Platform,
@@ -118,7 +61,7 @@ func getRIReport(ctx context.Context, aa aws.AwsAccount) ([]riEc2.ReservationRep
 	currentMonthBeginning := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	riReportParams := riEc2.ReservedInstancesQueryParams{
 		AccountList: []string{aa.AwsIdentity},
-		IndexList:   []string{es.IndexNameForUserId(aa.UserId, awsriEc2.IndexPrefixReservedInstancesReport)},
+		IndexList:   []string{es.IndexNameForUserId(aa.UserId, riEc2Reports.Model.IndexSuffix)},
 		Date:        currentMonthBeginning,
 	}
 	_, res, err := riEc2.GetReservedInstancesDaily(ctx, riReportParams)
@@ -139,7 +82,7 @@ func getEC2Report(ctx context.Context, aa aws.AwsAccount) ([]ec2.InstanceReport,
 	currentMonthBeginning := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.UTC)
 	ec2ReportParams := ec2.Ec2QueryParams{
 		AccountList: []string{aa.AwsIdentity},
-		IndexList:   []string{es.IndexNameForUserId(aa.UserId, awsEc2.IndexPrefixEC2Report)},
+		IndexList:   []string{es.IndexNameForUserId(aa.UserId, ec2Reports.Model.IndexSuffix)},
 		Date:        currentMonthBeginning,
 	}
 	_, res, err := ec2.GetEc2DailyInstances(ctx, ec2ReportParams, user, tx)
@@ -148,8 +91,8 @@ func getEC2Report(ctx context.Context, aa aws.AwsAccount) ([]ec2.InstanceReport,
 
 // getUnreservedInstances takes a list of instance reports and a list of reservation reports
 // It returns the list of instances without reservations
-func getUnreservedInstances(instancesReport []ec2.InstanceReport, reservationsReport []riEc2.ReservationReport) []InstancesSpecs {
-	unreservedInstances := []InstancesSpecs{}
+func getUnreservedInstances(instancesReport []ec2.InstanceReport, reservationsReport []riEc2.ReservationReport) []odToRiEc2Reports.InstancesSpecs {
+	unreservedInstances := []odToRiEc2Reports.InstancesSpecs{}
 	for _, instanceReport := range instancesReport {
 		if instanceReport.Instance.State != "running" {
 			continue
@@ -206,7 +149,7 @@ func getPricingForSpecs(region, platform, instanceType string, ec2Pricings prici
 
 // getCurrentGenerationPricingEquivalent takes a previous generation InstancesSpecs and returns an equivalent pricing from
 // the current generation
-func getCurrentGenerationPricingEquivalent(unreservedSpec InstancesSpecs, ec2Pricings pricings.EC2Pricing) (string, pricings.EC2Specs, error) {
+func getCurrentGenerationPricingEquivalent(unreservedSpec odToRiEc2Reports.InstancesSpecs, ec2Pricings pricings.EC2Pricing) (string, pricings.EC2Specs, error) {
 	equivalentType, ok := PreviousToCurrentGeneration[unreservedSpec.Type]
 	if !ok {
 		return "", pricings.EC2Specs{}, errors.New("Equivalent instance type not found")
@@ -219,7 +162,7 @@ func getCurrentGenerationPricingEquivalent(unreservedSpec InstancesSpecs, ec2Pri
 }
 
 // calculateCosts calculates the on demand cost and the savings by switching to RI
-func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec2Pricings pricings.EC2Pricing, report OdToRiEc2Report) OdToRiEc2Report {
+func calculateCosts(ctx context.Context, unreservedIntances []odToRiEc2Reports.InstancesSpecs, ec2Pricings pricings.EC2Pricing, report odToRiEc2Reports.OdToRiEc2Report) odToRiEc2Reports.OdToRiEc2Report {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for _, unreservedSpec := range unreservedIntances {
 		pricing, err := getPricingForSpecs(unreservedSpec.Region, unreservedSpec.Platform, unreservedSpec.Type, ec2Pricings)
@@ -236,14 +179,14 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 		odMonthlyPerUnit := getMonthlyCostPerUnit(pricing.OnDemandHourlyCost)
 		odMonthlyTotal := odMonthlyPerUnit * float64(unreservedSpec.InstanceCount)
 
-		odMonthly := Cost{odMonthlyPerUnit, odMonthlyTotal}
+		odMonthly := odToRiEc2Reports.Cost{odMonthlyPerUnit, odMonthlyTotal}
 		report.OnDemand.MonthlyTotal += odMonthlyTotal
-		od1yr := Cost{odMonthlyPerUnit * 12.0, odMonthlyTotal * 12.0}
+		od1yr := odToRiEc2Reports.Cost{odMonthlyPerUnit * 12.0, odMonthlyTotal * 12.0}
 		report.OnDemand.OneYearTotal += odMonthlyTotal * 12.0
-		od3yr := Cost{odMonthlyPerUnit * 36.0, odMonthlyTotal * 36.0}
+		od3yr := odToRiEc2Reports.Cost{odMonthlyPerUnit * 36.0, odMonthlyTotal * 36.0}
 		report.OnDemand.ThreeYearsTotal += odMonthlyTotal * 36.0
 
-		unreservedSpec.OnDemand = OnDemandCost{odMonthly, od1yr, od3yr}
+		unreservedSpec.OnDemand = odToRiEc2Reports.OnDemandCost{odMonthly, od1yr, od3yr}
 
 		var ri1yrMonthlyCostPerUnit, ri3yrMonthlyCostPerUnit float64
 		if pricing.CurrentGeneration {
@@ -268,26 +211,26 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 		}
 
 		ri1yrMonthlyCostTotal := ri1yrMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
-		ri1yrMonthly := Cost{ri1yrMonthlyCostPerUnit, ri1yrMonthlyCostTotal}
+		ri1yrMonthly := odToRiEc2Reports.Cost{ri1yrMonthlyCostPerUnit, ri1yrMonthlyCostTotal}
 		report.Reservation.OneYear.MonthlyTotal += ri1yrMonthlyCostTotal
-		ri1yrGlobal := Cost{ri1yrMonthlyCostPerUnit * 12.0, ri1yrMonthlyCostTotal * 12.0}
+		ri1yrGlobal := odToRiEc2Reports.Cost{ri1yrMonthlyCostPerUnit * 12.0, ri1yrMonthlyCostTotal * 12.0}
 		report.Reservation.OneYear.GlobalTotal += ri1yrMonthlyCostTotal * 12.0
 		ri1yrSavingPerUnit := (odMonthlyPerUnit * 12.0) - (ri1yrMonthlyCostPerUnit * 12.0)
 		ri1yrSavingTotal := (odMonthlyTotal * 12.0) - (ri1yrMonthlyCostTotal * 12.0)
-		ri1yrSaving := Cost{ri1yrSavingPerUnit, ri1yrSavingTotal}
+		ri1yrSaving := odToRiEc2Reports.Cost{ri1yrSavingPerUnit, ri1yrSavingTotal}
 		report.Reservation.OneYear.SavingTotal += ri1yrSavingTotal
-		unreservedSpec.Reservation.OneYear = ReservationCost{ri1yrMonthly, ri1yrGlobal, ri1yrSaving}
+		unreservedSpec.Reservation.OneYear = odToRiEc2Reports.ReservationCost{ri1yrMonthly, ri1yrGlobal, ri1yrSaving}
 
 		ri3yrMonthlyCostTotal := ri3yrMonthlyCostPerUnit * float64(unreservedSpec.InstanceCount)
-		ri3yrMonthly := Cost{ri3yrMonthlyCostPerUnit, ri3yrMonthlyCostTotal}
+		ri3yrMonthly := odToRiEc2Reports.Cost{ri3yrMonthlyCostPerUnit, ri3yrMonthlyCostTotal}
 		report.Reservation.ThreeYear.MonthlyTotal += ri3yrMonthlyCostTotal
-		ri3yrGlobal := Cost{ri3yrMonthlyCostPerUnit * 36.0, ri3yrMonthlyCostPerUnit * 36.0}
+		ri3yrGlobal := odToRiEc2Reports.Cost{ri3yrMonthlyCostPerUnit * 36.0, ri3yrMonthlyCostPerUnit * 36.0}
 		report.Reservation.ThreeYear.GlobalTotal += ri3yrMonthlyCostTotal * 36.0
 		ri3yrSavingPerUnit := (odMonthlyPerUnit * 12.0) - (ri3yrMonthlyCostPerUnit * 12.0)
 		ri3yrSavingTotal := (odMonthlyTotal * 12.0) - (ri3yrMonthlyCostTotal * 12.0)
-		ri3yrSaving := Cost{ri3yrSavingPerUnit, ri3yrSavingTotal}
+		ri3yrSaving := odToRiEc2Reports.Cost{ri3yrSavingPerUnit, ri3yrSavingTotal}
 		report.Reservation.ThreeYear.SavingTotal += ri3yrSavingTotal
-		unreservedSpec.Reservation.ThreeYear = ReservationCost{ri3yrMonthly, ri3yrGlobal, ri3yrSaving}
+		unreservedSpec.Reservation.ThreeYear = odToRiEc2Reports.ReservationCost{ri3yrMonthly, ri3yrGlobal, ri3yrSaving}
 
 		report.Instances = append(report.Instances, unreservedSpec)
 	}
@@ -299,7 +242,7 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 // The result is saved into ES
 func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	report := OdToRiEc2Report{
+	report := odToRiEc2Reports.OdToRiEc2Report{
 		Account:    aa.AwsIdentity,
 		ReportDate: time.Now().UTC(),
 	}
@@ -325,8 +268,8 @@ func RunOnDemandToRiEc2(ctx context.Context, aa aws.AwsAccount) error {
 }
 
 // GetRiEc2Report gets RI EC2 reports based on query params
-func GetRiEc2Report(ctx context.Context, parsedParams RiEc2QueryParams, user users.User, tx *sql.Tx) (int, []OdToRiEc2Report, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, IndexPrefixOdToRiEC2Report)
+func GetRiEc2Report(ctx context.Context, parsedParams RiEc2QueryParams, user users.User, tx *sql.Tx) (int, []odToRiEc2Reports.OdToRiEc2Report, error) {
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, odToRiEc2Reports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

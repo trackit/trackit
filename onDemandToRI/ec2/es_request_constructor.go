@@ -27,6 +27,7 @@ import (
 
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/odToRiEc2Reports"
 )
 
 type (
@@ -45,7 +46,7 @@ type (
 				Reports struct {
 					Hits struct {
 						Hits []struct {
-							Report OdToRiEc2Report `json:"_source"`
+							Report odToRiEc2Reports.OdToRiEc2Report `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"reports"`
@@ -131,10 +132,10 @@ func getElasticSearchRiEc2Params(params RiEc2QueryParams, client *elastic.Client
 }
 
 // prepareResponseRiEc2 parses the results from elasticsearch and returns an array of RI EC2 report
-func prepareResponseRiEc2(ctx context.Context, resEc2 *elastic.SearchResult) ([]OdToRiEc2Report, error) {
+func prepareResponseRiEc2(ctx context.Context, resEc2 *elastic.SearchResult) ([]odToRiEc2Reports.OdToRiEc2Report, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseRiEc2Reports
-	reports := make([]OdToRiEc2Report, 0)
+	reports := make([]odToRiEc2Reports.OdToRiEc2Report, 0)
 	err := json.Unmarshal(*resEc2.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES EC2 response", err)

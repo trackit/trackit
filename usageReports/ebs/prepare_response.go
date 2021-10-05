@@ -21,9 +21,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ebsReports"
 )
 
 type (
@@ -52,7 +52,7 @@ type (
 				Snapshots struct {
 					Hits struct {
 						Hits []struct {
-							Snapshot ebs.SnapshotReport `json:"_source"`
+							Snapshot ebsReports.SnapshotReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"snapshots"`
@@ -70,7 +70,7 @@ type (
 						Snapshots struct {
 							Hits struct {
 								Hits []struct {
-									Snapshot ebs.SnapshotReport `json:"_source"`
+									Snapshot ebsReports.SnapshotReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"snapshots"`
@@ -82,13 +82,13 @@ type (
 
 	// SnapshotReport has all the information of an EBS snapshot report
 	SnapshotReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Snapshot Snapshot `json:"snapshot"`
 	}
 
 	// Snapshot contains the information of an EBS snapshot
 	Snapshot struct {
-		ebs.SnapshotBase
+		ebsReports.SnapshotBase
 		Tags   map[string]string `json:"tags"`
 		Volume Volume            `json:"volume"`
 		Cost   float64           `json:"cost"`
@@ -101,7 +101,7 @@ type (
 	}
 )
 
-func getEbsSnapshotReportResponse(oldSnapshot ebs.SnapshotReport) SnapshotReport {
+func getEbsSnapshotReportResponse(oldSnapshot ebsReports.SnapshotReport) SnapshotReport {
 	tags := make(map[string]string, len(oldSnapshot.Snapshot.Tags))
 	for _, tag := range oldSnapshot.Snapshot.Tags {
 		tags[tag.Key] = tag.Value

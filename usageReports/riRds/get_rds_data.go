@@ -25,9 +25,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports/riRdS"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/rdsRiReports"
 	"github.com/trackit/trackit/users"
 )
 
@@ -85,7 +85,7 @@ func GetReservedInstancesDaily(ctx context.Context, params ReservedInstancesQuer
 
 // GetReservedInstancesData gets Reserved Instances daily reports
 func GetReservedInstancesData(ctx context.Context, parsedParams ReservedInstancesQueryParams, user users.User, tx *sql.Tx) (int, []ReservationReport, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, riRdS.IndexPrefixReservedRDSReport)
+	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, rdsRiReports.Model.IndexSuffix)
 	if err != nil {
 		return returnCode, nil, err
 	}

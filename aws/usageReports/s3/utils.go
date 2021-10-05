@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 const MonitorS3StsSessionName = "monitor-s3"
@@ -34,7 +35,7 @@ const MonitorS3StsSessionName = "monitor-s3"
 type (
 	// BucketReport is saved in ES to have all the information of a S3 Bucket
 	BucketReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Bucket Bucket `json:"bucket"`
 	}
 
@@ -48,7 +49,7 @@ type (
 	// Bucket contains all the information of an S3 Bucket
 	Bucket struct {
 		BucketBase
-		Tags []utils.Tag `json:"tags"`
+		Tags []common.Tag `json:"tags"`
 	}
 )
 

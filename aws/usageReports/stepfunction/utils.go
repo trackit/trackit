@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 const MonitorStepFunctionStsSessionName = "monitor-stepfunction"
@@ -34,7 +35,7 @@ const MonitorStepFunctionStsSessionName = "monitor-stepfunction"
 type (
 	// StepReport is saved in ES to have all the information of a StepFunction
 	StepReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Step Step `json:"step"`
 	}
 
@@ -49,7 +50,7 @@ type (
 	// Step contains all the information of an StepFunction
 	Step struct {
 		StepBase
-		Tags []utils.Tag `json:"tags"`
+		Tags []common.Tag `json:"tags"`
 	}
 )
 

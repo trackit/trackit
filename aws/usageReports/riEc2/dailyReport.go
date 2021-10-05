@@ -25,13 +25,15 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/riEc2Reports"
 )
 
 // fetchDailyReservationsList sends in reservationInfoChan the reservations fetched from DescribeReservations
 // and filled by DescribeReservations and getReservationStats.
-func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credentials, region string, reservationChan chan Reservation) error {
+func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credentials, region string, reservationChan chan riEc2Reports.Reservation) error {
 	defer close(reservationChan)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	sess := session.Must(session.NewSession(&aws.Config{
@@ -46,8 +48,8 @@ func fetchDailyReservationsList(ctx context.Context, creds *credentials.Credenti
 	}
 	for _, reservation := range reservations.ReservedInstances {
 		charges := getRecurringCharges(reservation)
-		reservationChan <- Reservation{
-			ReservationBase: ReservationBase{
+		reservationChan <- riEc2Reports.Reservation{
+			ReservationBase: riEc2Reports.ReservationBase{
 				Id:                 aws.StringValue(reservation.ReservedInstancesId),
 				Region:             region,
 				AvailabilityZone:   aws.StringValue(reservation.AvailabilityZone),
@@ -95,16 +97,16 @@ func FetchDailyReservationsStats(ctx context.Context, awsAccount taws.AwsAccount
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	reservationChans := make([]<-chan Reservation, 0, len(regions))
+	reservationChans := make([]<-chan riEc2Reports.Reservation, 0, len(regions))
 	for _, region := range regions {
-		reservationChan := make(chan Reservation)
+		reservationChan := make(chan riEc2Reports.Reservation)
 		go fetchDailyReservationsList(ctx, creds, region, reservationChan)
 		reservationChans = append(reservationChans, reservationChan)
 	}
-	reservations := make([]ReservationReport, 0)
+	reservations := make([]riEc2Reports.ReservationReport, 0)
 	for reservation := range merge(reservationChans...) {
-		reservations = append(reservations, ReservationReport{
-			ReportBase: utils.ReportBase{
+		reservations = append(reservations, riEc2Reports.ReservationReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

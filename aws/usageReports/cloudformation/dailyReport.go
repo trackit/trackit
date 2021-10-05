@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // fetchDailyCloudFormationList sends in stackInfoChan the stacks fetched from ListStacks (get only Stacks with a Create Complete Status)
@@ -94,7 +95,7 @@ func FetchDailyCloudFormationStats(ctx context.Context, awsAccount taws.AwsAccou
 	stacks := make([]StackReport, 0)
 	for stack := range merge(stackChans...) {
 		stacks = append(stacks, StackReport{
-			ReportBase: utils.ReportBase{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

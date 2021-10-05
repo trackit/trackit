@@ -22,8 +22,8 @@ import (
 	"github.com/olivere/elastic"
 
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/tagging"
 	"github.com/trackit/trackit/users"
 )
 
@@ -52,7 +52,7 @@ func routeGetTaggingSuggestions(r *http.Request, a routes.Arguments) (int, inter
 func getSuggestions(ctx context.Context, userId int, tagKey string) ([]suggestion, error) {
 	client := es.Client
 
-	res, err := client.Search().Index(es.IndexNameForUserId(userId, tagging.IndexPrefixTaggingReport)).Size(0).
+	res, err := client.Search().Index(es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)).Size(0).
 		Aggregation("byDate", elastic.NewTermsAggregation().Field("reportDate").Order("_term", false).Size(1).
 			SubAggregation("nested", elastic.NewNestedAggregation().Path("tags").
 				SubAggregation("byTagKey", elastic.NewFilterAggregation().Filter(elastic.NewTermQuery("tags.key", tagKey)).

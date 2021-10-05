@@ -23,13 +23,13 @@ import (
 	"github.com/trackit/jsonlog"
 
 	indexSource "github.com/trackit/trackit/aws/usageReports/route53"
-	"github.com/trackit/trackit/tagging/utils"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 )
 
 const urlFormat = "https://console.aws.amazon.com/route53/v2/hostedzones#ListRecordSets/%s"
 
 // Process generates tagging reports from Route53 reports
-func Process(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error) {
+func Process(ctx context.Context, userId int, resourceTypeString string) ([]taggingReports.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Processing reports.", map[string]interface{}{
 		"type": resourceTypeString,
@@ -40,7 +40,7 @@ func Process(ctx context.Context, userId int, resourceTypeString string) ([]util
 		return nil, err
 	}
 
-	var documents []utils.TaggingReportDocument
+	var documents []taggingReports.TaggingReportDocument
 	for _, hit := range hits {
 		document, success := processHit(ctx, hit, resourceTypeString)
 		if success {
@@ -57,7 +57,7 @@ func Process(ctx context.Context, userId int, resourceTypeString string) ([]util
 
 // processHit converts an elasticSearch hit into a TaggingReportDocument
 // Second argument is true if operation is a success
-func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (utils.TaggingReportDocument, bool) {
+func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString string) (taggingReports.TaggingReportDocument, bool) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var source indexSource.HostedZoneReport
 	err := json.Unmarshal(*hit.Source, &source)
@@ -65,10 +65,10 @@ func processHit(ctx context.Context, hit *elastic.SearchHit, resourceTypeString 
 		logger.Error("Could not process report.", map[string]interface{}{
 			"type": resourceTypeString,
 		})
-		return utils.TaggingReportDocument{}, false
+		return taggingReports.TaggingReportDocument{}, false
 	}
 
-	document := utils.TaggingReportDocument{
+	document := taggingReports.TaggingReportDocument{
 		Account:      source.Account,
 		ResourceID:   source.HostedZone.Name,
 		ResourceType: resourceTypeString,

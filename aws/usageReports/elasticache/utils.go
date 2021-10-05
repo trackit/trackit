@@ -25,71 +25,21 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/elasticacheReports"
 )
 
 const MonitorInstanceStsSessionName = "monitor-instance"
 
-type (
-	// InstanceReport is saved in ES to have all the information of an ElastiCache instance
-	InstanceReport struct {
-		utils.ReportBase
-		Instance Instance `json:"instance"`
-	}
-
-	// InstanceBase contains basics information of an ElastiCache instance
-	InstanceBase struct {
-		Id            string `json:"id"`
-		Status        string `json:"status"`
-		Region        string `json:"region"`
-		NodeType      string `json:"nodeType"`
-		Nodes         []Node `json:"nodes"`
-		Engine        string `json:"engine"`
-		EngineVersion string `json:"engineVersion"`
-	}
-
-	// Instance contains all the information of an ElastiCache instance
-	Instance struct {
-		InstanceBase
-		Tags  []utils.Tag        `json:"tags"`
-		Costs map[string]float64 `json:"costs"`
-		Stats Stats              `json:"stats"`
-	}
-
-	Node struct {
-		Id     string `json:"id"`
-		Status string `json:"status"`
-		Region string `json:"region"`
-	}
-
-	// Stats contains statistics of an instance get on CloudWatch
-	Stats struct {
-		Cpu     Cpu     `json:"cpu"`
-		Network Network `json:"network"`
-	}
-
-	// Cpu contains cpu statistics of an instance
-	Cpu struct {
-		Average float64 `json:"average"`
-		Peak    float64 `json:"peak"`
-	}
-
-	// Network contains network statistics of an instance
-	Network struct {
-		In  float64 `json:"in"`
-		Out float64 `json:"out"`
-	}
-)
-
 // importInstancesToEs imports ElastiCache instances in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []InstanceReport) error {
+func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []elasticacheReports.InstanceReport) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating ElastiCache instances for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixElastiCacheReport)
+	index := es.IndexNameForUserId(aa.UserId, elasticacheReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -101,7 +51,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 			logger.Error("Error when marshaling instance var", err.Error())
 			return err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, instance, TypeElastiCacheReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, instance, elasticacheReports.Model.Type, index, id)
 	}
 	err = bp.Flush()
 	if closeErr := bp.Close(); err == nil {
@@ -115,7 +65,7 @@ func importInstancesToEs(ctx context.Context, aa taws.AwsAccount, instances []In
 	return nil
 }
 
-func generateId(instance InstanceReport) (string, error) {
+func generateId(instance elasticacheReports.InstanceReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`
@@ -137,13 +87,13 @@ func generateId(instance InstanceReport) (string, error) {
 
 // merge function from https://blog.golang.org/pipelines#TOC_4
 // It allows to merge many chans to one.
-func merge(cs ...<-chan Instance) <-chan Instance {
+func merge(cs ...<-chan elasticacheReports.Instance) <-chan elasticacheReports.Instance {
 	var wg sync.WaitGroup
-	out := make(chan Instance)
+	out := make(chan elasticacheReports.Instance)
 
 	// Start an output goroutine for each input channel in cs. The output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan Instance) {
+	output := func(c <-chan elasticacheReports.Instance) {
 		for n := range c {
 			out <- n
 		}

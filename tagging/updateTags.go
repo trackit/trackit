@@ -23,6 +23,7 @@ import (
 
 	bulk "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 	cloudformation "github.com/trackit/trackit/tagging/cloudformation"
 	ebs "github.com/trackit/trackit/tagging/ebs"
 	ec2 "github.com/trackit/trackit/tagging/ec2"
@@ -39,15 +40,12 @@ import (
 	"github.com/trackit/trackit/tagging/utils"
 )
 
-type process func(ctx context.Context, userId int, resourceTypeString string) ([]utils.TaggingReportDocument, error)
+type process func(ctx context.Context, userId int, resourceTypeString string) ([]taggingReports.TaggingReportDocument, error)
 
 type processor struct {
 	Name string
 	Run  process
 }
-
-const destIndexName = "tagging-reports"
-const destTypeName = "tagging-reports"
 
 var processors = []processor{
 	{
@@ -95,7 +93,7 @@ var processors = []processor{
 // UpdateTagsForUser updates tags in ES for the specified user
 func UpdateTagsForUser(ctx context.Context, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	var documents []utils.TaggingReportDocument
+	var documents []taggingReports.TaggingReportDocument
 
 	for _, processor := range processors {
 		newDocuments, err := processor.Run(ctx, userId, processor.Name)
@@ -111,14 +109,14 @@ func UpdateTagsForUser(ctx context.Context, userId int) error {
 	return pushToEs(ctx, documents, userId)
 }
 
-func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, userId int) error {
+func pushToEs(ctx context.Context, documents []taggingReports.TaggingReportDocument, userId int) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 
 	reportDate := time.Now().UTC()
 	logger.Info("Pushing generated tagging reports to ES.", map[string]interface{}{
 		"reportDate": reportDate.String(),
 	})
-	destIndexName := es.IndexNameForUserId(userId, destIndexName)
+	destIndexName := es.IndexNameForUserId(userId, taggingReports.Model.IndexSuffix)
 	bulkProcessor, err := bulk.GetBulkProcessor(ctx)
 	if err != nil {
 		return err
@@ -133,7 +131,7 @@ func pushToEs(ctx context.Context, documents []utils.TaggingReportDocument, user
 			continue
 		}
 
-		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, destTypeName, destIndexName, documentID)
+		bulkProcessor = bulk.AddDocToBulkProcessor(bulkProcessor, document, taggingReports.Model.Type, destIndexName, documentID)
 	}
 
 	err = bulkProcessor.Flush()

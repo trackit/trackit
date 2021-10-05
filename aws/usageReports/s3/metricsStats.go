@@ -22,7 +22,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 func isErrorAwsNoSuchTagSet(err error) bool {
@@ -35,9 +35,9 @@ func isErrorAwsNoSuchTagSet(err error) bool {
 }
 
 // getS3Tags formats []*bucket.Tag to map[string]string
-func getS3Tags(ctx context.Context, bucket *s3.Bucket, svc *s3.S3) []utils.Tag {
+func getS3Tags(ctx context.Context, bucket *s3.Bucket, svc *s3.S3) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make([]utils.Tag, 0)
+	res := make([]common.Tag, 0)
 	tags, err := svc.GetBucketTagging(&s3.GetBucketTaggingInput{
 		Bucket: bucket.Name,
 	})
@@ -51,7 +51,7 @@ func getS3Tags(ctx context.Context, bucket *s3.Bucket, svc *s3.S3) []utils.Tag {
 	}
 
 	for _, tag := range tags.TagSet {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

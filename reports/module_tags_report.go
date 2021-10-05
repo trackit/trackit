@@ -27,10 +27,10 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/s3"
 	"github.com/trackit/trackit/aws/usageReports/history"
 	"github.com/trackit/trackit/costs/tags"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/users"
 )
 
@@ -97,7 +97,7 @@ func tagsUsageReportGetData(ctx context.Context, aas []aws.AwsAccount, date time
 		Detailed:    true,
 	}
 	parsedParams.AccountList = identities
-	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, s3.IndexPrefixLineItem)
+	accountsAndIndexes, _, err := es.GetAccountsAndIndexes(parsedParams.AccountList, user, tx, lineItems.Model.IndexSuffix)
 	if err != nil {
 		return nil, err
 	}

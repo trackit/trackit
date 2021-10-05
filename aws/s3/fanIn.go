@@ -16,15 +16,17 @@ package s3
 
 import (
 	"sync"
+
+	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
 // mergecLineItem implements the fan-in pattern by merging to the out
 // channel the input from the channels read on cs.
-func mergecLineItem(out chan<- LineItem, cs <-chan <-chan LineItem) {
+func mergecLineItem(out chan<- lineItems.LineItem, cs <-chan <-chan lineItems.LineItem) {
 	var wg sync.WaitGroup
 	for c := range cs {
 		wg.Add(1)
-		go func(c <-chan LineItem) {
+		go func(c <-chan lineItems.LineItem) {
 			defer wg.Done()
 			for u := range c {
 				out <- u
@@ -39,9 +41,9 @@ func mergecLineItem(out chan<- LineItem, cs <-chan <-chan LineItem) {
 
 // mergecdLineItem wraps mergecLineItem by making the channels and starting the
 // goroutine responsible for the fan-in.
-func mergecdLineItem() (chan<- <-chan LineItem, <-chan LineItem) {
-	in := make(chan (<-chan LineItem))
-	out := make(chan LineItem)
+func mergecdLineItem() (chan<- <-chan lineItems.LineItem, <-chan lineItems.LineItem) {
+	in := make(chan (<-chan lineItems.LineItem))
+	out := make(chan lineItems.LineItem)
 	go mergecLineItem(out, in)
 	return in, out
 }

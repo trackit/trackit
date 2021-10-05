@@ -24,48 +24,13 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/anomaliesDetection"
 )
 
 type (
-	// esProductAnomalyCost contains the cost data
-	esProductAnomalyCost struct {
-		Value       float64 `json:"value"`
-		MaxExpected float64 `json:"maxExpected"`
-	}
-
-	// esProductAnomaly is used to ingest in ElasticSearch.
-	esProductAnomaly struct {
-		Account   string               `json:"account"`
-		Date      string               `json:"date"`
-		Product   string               `json:"product"`
-		Abnormal  bool                 `json:"abnormal"`
-		Recurrent bool                 `json:"recurrent"`
-		Cost      esProductAnomalyCost `json:"cost"`
-	}
-
-	// esProductDatesBucket is used to store the raw ElasticSearch response.
-	esProductDatesBucket struct {
-		Key  string `json:"key_as_string"`
-		Cost struct {
-			Value float64 `json:"value"`
-		} `json:"cost"`
-	}
-
-	// esProductTypedResult is	used to store the raw ElasticSearch response.
-	esProductTypedResult struct {
-		Products struct {
-			Buckets []struct {
-				Key   string `json:"key"`
-				Dates struct {
-					Buckets []esProductDatesBucket `json:"buckets"`
-				} `json:"dates"`
-			} `json:"buckets"`
-		}
-	}
-
 	// costWithProduct is used when a cost has to be wrapped by a product name.
 	costWithProduct struct {
 		product string
@@ -100,20 +65,20 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 	logger.Info("Updating anomalies for AWS account.", map[string]interface{}{
 		"awsAccount": account,
 	})
-	index := es.IndexNameForUserId(account.UserId, IndexPrefixAnomaliesDetection)
+	index := es.IndexNameForUserId(account.UserId, anomaliesDetection.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
 		return err
 	}
 	for _, aCost := range aCosts {
-		doc := esProductAnomaly{
+		doc := anomaliesDetection.EsProductAnomaly{
 			Account:   account.AwsIdentity,
 			Date:      aCost.Meta.Date,
 			Product:   aCost.Meta.AdditionalMeta.(AnalyzedCostProductMeta).Product,
 			Abnormal:  aCost.Anomaly,
 			Recurrent: false,
-			Cost: esProductAnomalyCost{
+			Cost: anomaliesDetection.EsProductAnomalyCost{
 				Value:       aCost.Cost,
 				MaxExpected: aCost.UpperBand,
 			},
@@ -123,7 +88,7 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 			logger.Error("Error when marshaling anomalies var", err.Error())
 			return err
 		}
-		bp = addDocToBulkProcessor(bp, doc, TypeProductAnomaliesDetection, index, id)
+		bp = addDocToBulkProcessor(bp, doc, anomaliesDetection.Model.Type, index, id)
 	}
 	err = bp.Flush()
 	if closeErr := bp.Close(); err == nil {
@@ -140,7 +105,7 @@ func productSaveAnomaliesData(ctx context.Context, aCosts AnalyzedCosts, account
 // productGenerateElasticSearchDocumentId is used to generate the document id ingested in ElasticSearch.
 // The document id is not dependent on cost or upper band: if one of them change,
 // it will update the document in ElasticSearch instead of recreating one.
-func productGenerateElasticSearchDocumentId(doc esProductAnomaly) (id string, err error) {
+func productGenerateElasticSearchDocumentId(doc anomaliesDetection.EsProductAnomaly) (id string, err error) {
 	var ji []byte
 	ji, err = json.Marshal(struct {
 		Account string `json:"account"`
@@ -195,7 +160,7 @@ func productAddCostToCosts(product string, cost float64, costs []costWithProduct
 }
 
 // productGetHighestSpendersByDay gets a podium of the highest spenders.
-func productGetHighestSpendersByDay(typedDocument esProductTypedResult) highestSpendersByDay {
+func productGetHighestSpendersByDay(typedDocument anomaliesDetection.EsProductTypedResult) highestSpendersByDay {
 	costByDayByProduct := map[string][]costWithProduct{}
 	for _, product := range typedDocument.Products.Buckets {
 		for _, date := range product.Dates.Buckets {
@@ -215,7 +180,7 @@ func productGetHighestSpendersByDay(typedDocument esProductTypedResult) highestS
 }
 
 // productGetTotalCostByDay gets the total cost for each day.
-func productGetTotalCostByDay(typedDocument esProductTypedResult) totalCostByDay {
+func productGetTotalCostByDay(typedDocument anomaliesDetection.EsProductTypedResult) totalCostByDay {
 	totalCostByDay := totalCostByDay{}
 	for _, product := range typedDocument.Products.Buckets {
 		for _, date := range product.Dates.Buckets {
@@ -233,7 +198,7 @@ func productGetAnomaliesData(ctx context.Context, params AnomalyEsQueryParams) (
 		logger.Error("Failed to make elasticsearch request.", err.Error())
 		return nil, err
 	}
-	var typedDocument esProductTypedResult
+	var typedDocument anomaliesDetection.EsProductTypedResult
 	if err = json.Unmarshal(*sr.Aggregations["products"], &typedDocument.Products); err != nil {
 		logger.Error("Failed to parse elasticsearch document.", err.Error())
 		return nil, err

@@ -23,9 +23,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/es"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/esReports"
 )
 
 type (
@@ -54,7 +54,7 @@ type (
 				Domains struct {
 					Hits struct {
 						Hits []struct {
-							Domain es.DomainReport `json:"_source"`
+							Domain esReports.DomainReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"domains"`
@@ -72,7 +72,7 @@ type (
 						Domains struct {
 							Hits struct {
 								Hits []struct {
-									Domain es.DomainReport `json:"_source"`
+									Domain esReports.DomainReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"domains"`
@@ -84,20 +84,20 @@ type (
 
 	// DomainReport represents the report with all the information for an ES domain report
 	DomainReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Domain Domain `json:"domain"`
 	}
 
 	// Domain represents all the information for an ES domain.
 	Domain struct {
-		es.DomainBase
+		esReports.DomainBase
 		Tags  map[string]string  `json:"tags"`
 		Costs map[string]float64 `json:"costs"`
-		Stats es.Stats           `json:"stats"`
+		Stats esReports.Stats    `json:"stats"`
 	}
 )
 
-func getEsDomainReportResponse(oldDomain es.DomainReport) DomainReport {
+func getEsDomainReportResponse(oldDomain esReports.DomainReport) DomainReport {
 	tags := make(map[string]string)
 	for _, tag := range oldDomain.Domain.Tags {
 		tags[tag.Key] = tag.Value
@@ -115,7 +115,7 @@ func getEsDomainReportResponse(oldDomain es.DomainReport) DomainReport {
 }
 
 // addCostToDomain adds cost for each domain based on billing data
-func addCostToDomain(domain es.DomainReport, costs ResponseCost) es.DomainReport {
+func addCostToDomain(domain esReports.DomainReport, costs ResponseCost) esReports.DomainReport {
 	domain.Domain.Costs = make(map[string]float64, 1)
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != domain.Account {

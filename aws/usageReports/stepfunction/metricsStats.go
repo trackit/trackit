@@ -21,13 +21,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/sfn"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // getStepFunctionTags formats []*stepFunction.Tag to map[string]string
-func getStepFunctionTags(ctx context.Context, stepFunction *sfn.StateMachineListItem, svc *sfn.SFN) []utils.Tag {
+func getStepFunctionTags(ctx context.Context, stepFunction *sfn.StateMachineListItem, svc *sfn.SFN) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make([]utils.Tag, 0)
+	res := make([]common.Tag, 0)
 	tags, err := svc.ListTagsForResource(&sfn.ListTagsForResourceInput{
 		ResourceArn: stepFunction.StateMachineArn,
 	})
@@ -37,7 +37,7 @@ func getStepFunctionTags(ctx context.Context, stepFunction *sfn.StateMachineList
 	}
 
 	for _, tag := range tags.Tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

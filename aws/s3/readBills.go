@@ -19,7 +19,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -33,6 +32,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 	"github.com/trackit/trackit/util/csv"
 )
 
@@ -93,42 +93,7 @@ type billRepositoryWithRegion struct {
 	Region string `json:"region"`
 }
 
-type LineItem struct {
-	BillRepositoryId   int               `csv:"-"                            json:"billRepositoryId"`
-	LineItemId         string            `csv:"identity/LineItemId"          json:"lineItemId"`
-	TimeInterval       string            `csv:"identity/TimeInterval"        json:"-"`
-	InvoiceId          string            `csv:"bill/InvoiceId"               json:"invoiceId"`
-	BillingPeriodStart string            `csv:"bill/BillingPeriodStartDate"  json:"-"`
-	BillingPeriodEnd   string            `csv:"bill/BillingPeriodEndDate"    json:"-"`
-	UsageAccountId     string            `csv:"lineItem/UsageAccountId"      json:"usageAccountId"`
-	LineItemType       string            `csv:"lineItem/LineItemType"        json:"lineItemType"`
-	UsageStartDate     string            `csv:"lineItem/UsageStartDate"      json:"usageStartDate"`
-	UsageEndDate       string            `csv:"lineItem/UsageEndDate"        json:"usageEndDate"`
-	ProductCode        string            `csv:"lineItem/ProductCode"         json:"productCode"`
-	UsageType          string            `csv:"lineItem/UsageType"           json:"usageType"`
-	Operation          string            `csv:"lineItem/Operation"           json:"operation"`
-	AvailabilityZone   string            `csv:"lineItem/AvailabilityZone"    json:"availabilityZone"`
-	Region             string            `csv:"product/region"               json:"region"`
-	ResourceId         string            `csv:"lineItem/ResourceId"          json:"resourceId"`
-	UsageAmount        string            `csv:"lineItem/UsageAmount"         json:"usageAmount"`
-	ServiceCode        string            `csv:"product/servicecode"          json:"serviceCode"`
-	CurrencyCode       string            `csv:"lineItem/CurrencyCode"        json:"currencyCode"`
-	UnblendedCost      string            `csv:"lineItem/UnblendedCost"       json:"unblendedCost"`
-	TaxType            string            `csv:"lineItem/TaxType"             json:"taxType"`
-	Any                map[string]string `csv:",any"                         json:"-"`
-	Tags               []LineItemTags    `csv:"-"                            json:"tags,omitempty"`
-}
-
-type LineItemTags struct {
-	Key string `json:"key"`
-	Tag string `json:"tag"`
-}
-
-func (li LineItem) EsId() string {
-	return fmt.Sprintf("%s/%s", li.TimeInterval, li.LineItemId)
-}
-
-type OnLineItem func(LineItem, bool)
+type OnLineItem func(lineItems.LineItem, bool)
 type ManifestPredicate func(manifest, bool) bool
 
 // ReadBills reads all LineItems from new bills in a BillRepository, and runs
@@ -187,11 +152,11 @@ func importBills(ctx context.Context, s3svc *s3.S3, manifests <-chan manifest, o
 	for lineItem := range out {
 		oli(lineItem, true)
 	}
-	oli(LineItem{}, false)
+	oli(lineItems.LineItem{}, false)
 }
 
 // importBill imports LineItems for a single bill file.
-func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
+func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp ManifestPredicate) <-chan lineItems.LineItem {
 	outs, out := mergecdLineItem()
 	go func() {
 		defer close(outs)
@@ -210,8 +175,8 @@ func importBill(ctx context.Context, s3svc *s3.S3, s string, m manifest, mp Mani
 }
 
 // readBill returns a channel of all LineItems in a single bill file.
-func readBill(ctx context.Context, ctxCancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan LineItem {
-	out := make(chan LineItem)
+func readBill(ctx context.Context, ctxCancel context.CancelFunc, reader io.ReadCloser, s string, m manifest, mp ManifestPredicate) <-chan lineItems.LineItem {
+	out := make(chan lineItems.LineItem)
 	go func() {
 		defer func() {
 			if err := reader.Close(); err != nil {
@@ -232,8 +197,8 @@ func readBill(ctx context.Context, ctxCancel context.CancelFunc, reader io.ReadC
 	return out
 }
 
-func records(ctx context.Context, d *csv.Decoder) <-chan LineItem {
-	out := make(chan LineItem)
+func records(ctx context.Context, d *csv.Decoder) <-chan lineItems.LineItem {
+	out := make(chan lineItems.LineItem)
 	log := jsonlog.LoggerFromContextOrDefault(ctx)
 	go func() {
 		defer close(out)
@@ -261,8 +226,8 @@ func records(ctx context.Context, d *csv.Decoder) <-chan LineItem {
 }
 
 // decodeRecord decodes a LineItem from a csv.Reader.
-func decodeRecord(d *csv.Decoder) (LineItem, error) {
-	var record LineItem
+func decodeRecord(d *csv.Decoder) (lineItems.LineItem, error) {
+	var record lineItems.LineItem
 	err := d.ReadRecord(&record)
 	return record, err
 }

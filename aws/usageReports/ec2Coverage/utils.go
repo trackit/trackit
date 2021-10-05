@@ -21,43 +21,23 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
-)
-
-type (
-	// ReservationReport is saved in ES to have all the information of an EC2 reservation
-	ReservationReport struct {
-		utils.ReportBase
-		Reservation Reservation `json:"reservation"`
-	}
-
-	// Reservation contains basics information of an EC2 reservation
-	Reservation struct {
-		Type              string   `json:"type"`
-		Platform          string   `json:"platform"`
-		Tenancy           string   `json:"tenancy"`
-		Region            string   `json:"region"`
-		AverageCoverage   float64  `json:"averageCoverage"`
-		CoveredHours      float64  `json:"coveredHours"`
-		OnDemandHours     float64  `json:"onDemandHours"`
-		TotalRunningHours float64  `json:"totalRunningHours"`
-		InstancesNames    []string `json:"instancesNames"`
-	}
+	"github.com/trackit/trackit/es/indexes/ec2CoverageReports"
 )
 
 // importReportsToEs imports EC2 Coverage report in ElasticSearch.
 // It calls createIndexEs if the index doesn't exist.
-func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []ReservationReport) (bool, error) {
+func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []ec2CoverageReports.ReservationReport) (bool, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Updating EC2 Coverage report for AWS account.", map[string]interface{}{
 		"awsAccount": aa,
 	})
-	index := es.IndexNameForUserId(aa.UserId, IndexPrefixEC2CoverageReport)
+	index := es.IndexNameForUserId(aa.UserId, ec2CoverageReports.Model.IndexSuffix)
 	bp, err := utils.GetBulkProcessor(ctx)
 	if err != nil {
 		logger.Error("Failed to get bulk processor.", err.Error())
@@ -69,7 +49,7 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []Re
 			logger.Error("Error when marshaling reservation var", err.Error())
 			return false, err
 		}
-		bp = utils.AddDocToBulkProcessor(bp, reservation, TypeEC2CoverageReport, index, id)
+		bp = utils.AddDocToBulkProcessor(bp, reservation, ec2CoverageReports.Model.Type, index, id)
 	}
 	err = bp.Flush()
 	if closeErr := bp.Close(); err == nil {
@@ -83,7 +63,7 @@ func importReportsToEs(ctx context.Context, aa aws.AwsAccount, reservations []Re
 	return true, nil
 }
 
-func generateId(reservation ReservationReport) (string, error) {
+func generateId(reservation ec2CoverageReports.ReservationReport) (string, error) {
 	ji, err := json.Marshal(struct {
 		Account    string    `json:"account"`
 		ReportDate time.Time `json:"reportDate"`

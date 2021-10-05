@@ -25,13 +25,15 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 )
 
 // fetchDailyInstancesList sends in instanceInfoChan the instances fetched from DescribeInstances
 // and filled by DescribeInstances and getInstanceStats.
-func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan Instance) error {
+func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials, region string, instanceChan chan ec2Reports.Instance) error {
 	defer close(instanceChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -49,8 +51,8 @@ func fetchDailyInstancesList(ctx context.Context, creds *credentials.Credentials
 		for _, instance := range reservation.Instances {
 			stats := getInstanceStats(ctx, instance, sess, start, end)
 			costs := make(map[string]float64)
-			instanceChan <- Instance{
-				InstanceBase: InstanceBase{
+			instanceChan <- ec2Reports.Instance{
+				InstanceBase: ec2Reports.InstanceBase{
 					Id:         aws.StringValue(instance.InstanceId),
 					Region:     aws.StringValue(instance.Placement.AvailabilityZone),
 					State:      aws.StringValue(instance.State.Name),
@@ -94,16 +96,16 @@ func FetchDailyInstancesStats(ctx context.Context, awsAccount taws.AwsAccount) e
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	instanceChans := make([]<-chan Instance, 0, len(regions))
+	instanceChans := make([]<-chan ec2Reports.Instance, 0, len(regions))
 	for _, region := range regions {
-		instanceChan := make(chan Instance)
+		instanceChan := make(chan ec2Reports.Instance)
 		go fetchDailyInstancesList(ctx, creds, region, instanceChan)
 		instanceChans = append(instanceChans, instanceChan)
 	}
-	instances := make([]InstanceReport, 0)
+	instances := make([]ec2Reports.InstanceReport, 0)
 	for instance := range merge(instanceChans...) {
-		instances = append(instances, InstanceReport{
-			ReportBase: utils.ReportBase{
+		instances = append(instances, ec2Reports.InstanceReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

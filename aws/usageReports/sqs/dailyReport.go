@@ -28,6 +28,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // fetchDailySQSList sends in sqsChan the SQS fetched from ListQueues
@@ -94,7 +95,7 @@ func FetchDailySQSStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	queues := make([]QueueReport, 0)
 	for queue := range merge(sqsChans...) {
 		queues = append(queues, QueueReport{
-			ReportBase: utils.ReportBase{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

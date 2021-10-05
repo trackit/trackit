@@ -19,6 +19,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 	"github.com/trackit/jsonlog"
 )
 
@@ -51,12 +52,12 @@ var (
 	rgx = regexp.MustCompile(`([a-zA-Z]+)([0-9])+`)
 )
 
-func getEC2RecommendationTypeReason(instance Instance) Recommendation {
+func getEC2RecommendationTypeReason(instance ec2Reports.Instance) ec2Reports.Recommendation {
 	size, family := getInstanceSizeFamily(instance.Type)
 	cpuDelta := instance.Stats.Cpu.Average / 100 / 0.80
 	targetNormFactor := cpuDelta * getNormFactorFromSize(size)
 	if instance.Stats.Cpu.Average <= 0 || targetNormFactor == 0 {
-		return Recommendation{"", "", getNewGeneration(size, family)}
+		return ec2Reports.Recommendation{"", "", getNewGeneration(size, family)}
 	}
 	recommendedInstance := ""
 	finalSize := ""
@@ -71,18 +72,18 @@ func getEC2RecommendationTypeReason(instance Instance) Recommendation {
 		recommendedTemp = instanceSize.size
 	}
 	if recommendedInstance == instance.Type {
-		return Recommendation{"", "", getNewGeneration(size, family)}
+		return ec2Reports.Recommendation{"", "", getNewGeneration(size, family)}
 	} else if recommendedInstance == "" {
 		if recommendedTemp == "" {
-			return Recommendation{"", "", getNewGeneration(size, family)}
+			return ec2Reports.Recommendation{"", "", getNewGeneration(size, family)}
 		}
-		return Recommendation{
+		return ec2Reports.Recommendation{
 			InstanceType:  family + "." + recommendedTemp,
 			Reason:        getEC2RecommendationReason(getNormFactorFromSize(size), getNormFactorFromSize(recommendedTemp)),
 			NewGeneration: getNewGeneration(size, family)}
 	}
 	reason := getEC2RecommendationReason(getNormFactorFromSize(size), getNormFactorFromSize(finalSize))
-	return Recommendation{
+	return ec2Reports.Recommendation{
 		InstanceType:  recommendedInstance,
 		Reason:        reason,
 		NewGeneration: getNewGeneration(size, family)}

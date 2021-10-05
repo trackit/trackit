@@ -24,9 +24,9 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/errors"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/ec2Reports"
 )
 
 type (
@@ -55,7 +55,7 @@ type (
 				Instances struct {
 					Hits struct {
 						Hits []struct {
-							Instance ec2.InstanceReport `json:"_source"`
+							Instance ec2Reports.InstanceReport `json:"_source"`
 						} `json:"hits"`
 					} `json:"hits"`
 				} `json:"instances"`
@@ -73,7 +73,7 @@ type (
 						Instances struct {
 							Hits struct {
 								Hits []struct {
-									Instance ec2.InstanceReport `json:"_source"`
+									Instance ec2Reports.InstanceReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"instances"`
@@ -85,13 +85,13 @@ type (
 
 	// InstanceReport has all the information of an EC2 instance report
 	InstanceReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Instance Instance `json:"instance"`
 	}
 
 	// Instance contains the information of an EC2 instance
 	Instance struct {
-		ec2.InstanceBase
+		ec2Reports.InstanceBase
 		Tags           map[string]string  `json:"tags"`
 		Costs          map[string]float64 `json:"costs"`
 		Stats          Stats              `json:"stats"`
@@ -107,9 +107,9 @@ type (
 
 	// Stats contains statistics of an instance get on CloudWatch
 	Stats struct {
-		Cpu     ec2.Cpu     `json:"cpu"`
-		Network ec2.Network `json:"network"`
-		Volumes Volumes     `json:"volumes"`
+		Cpu     ec2Reports.Cpu     `json:"cpu"`
+		Network ec2Reports.Network `json:"network"`
+		Volumes Volumes            `json:"volumes"`
 	}
 
 	// Volumes contains information about EBS volumes
@@ -119,7 +119,7 @@ type (
 	}
 )
 
-func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport {
+func getEc2InstanceReportResponse(oldInstance ec2Reports.InstanceReport) InstanceReport {
 	tags := make(map[string]string, len(oldInstance.Instance.Tags))
 	for _, tag := range oldInstance.Instance.Tags {
 		tags[tag.Key] = tag.Value
@@ -155,7 +155,7 @@ func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport
 }
 
 // addCostToInstance adds a cost for an instance based on billing data
-func addCostToInstance(instance ec2.InstanceReport, costs ResponseCost) ec2.InstanceReport {
+func addCostToInstance(instance ec2Reports.InstanceReport, costs ResponseCost) ec2Reports.InstanceReport {
 	if instance.Instance.Costs == nil {
 		instance.Instance.Costs = make(map[string]float64)
 	}

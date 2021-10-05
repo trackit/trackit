@@ -22,7 +22,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	terrors "github.com/trackit/trackit/errors"
-	"github.com/trackit/trackit/tagging/utils"
+	"github.com/trackit/trackit/es/indexes/taggingReports"
 )
 
 type (
@@ -37,7 +37,7 @@ type (
 						Resources struct {
 							Hits struct {
 								Hits []struct {
-									Resource utils.TaggingReportDocument `json:"_source"`
+									Resource taggingReports.TaggingReportDocument `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"resources"`
@@ -49,10 +49,10 @@ type (
 )
 
 // prepareResponseResources parses the results from elasticsearch and returns an array of resources report
-func prepareResponseResources(ctx context.Context, resResources *elastic.SearchResult) ([]utils.TaggingReportDocument, error) {
+func prepareResponseResources(ctx context.Context, resResources *elastic.SearchResult) ([]taggingReports.TaggingReportDocument, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	var response ResponseResources
-	resources := make([]utils.TaggingReportDocument, 0)
+	resources := make([]taggingReports.TaggingReportDocument, 0)
 	err := json.Unmarshal(*resResources.Aggregations["accounts"], &response.Accounts)
 	if err != nil {
 		logger.Error("Error while unmarshaling ES resources response", err)

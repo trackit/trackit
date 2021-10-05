@@ -25,13 +25,15 @@ import (
 	"github.com/trackit/jsonlog"
 
 	taws "github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/esReports"
 )
 
 // fetchDailyDomainsList fetches the list of domains for a specific region
-func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, region string, domainChan chan Domain) error {
-	var tags []utils.Tag
+func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, region string, domainChan chan esReports.Domain) error {
+	var tags []common.Tag
 	defer close(domainChan)
 	start, end := utils.GetCurrentCheckedDay()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
@@ -65,13 +67,13 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 	for _, domain := range domainsStatus {
 		if esTags, err := svc.ListTags(&elasticsearchservice.ListTagsInput{ARN: domain.ARN}); err != nil {
 			logger.Error("Error while listing Tags for domain", err.Error())
-			tags = make([]utils.Tag, 0)
+			tags = make([]common.Tag, 0)
 		} else {
 			tags = getDomainTag(esTags.TagList)
 		}
 		stats := getDomainStats(ctx, *domain.DomainName, sess, start, end)
-		domainChan <- Domain{
-			DomainBase: DomainBase{
+		domainChan <- esReports.Domain{
+			DomainBase: esReports.DomainBase{
 				Arn:               aws.StringValue(domain.ARN),
 				InstanceType:      aws.StringValue(domain.ElasticsearchClusterConfig.InstanceType),
 				InstanceCount:     aws.Int64Value(domain.ElasticsearchClusterConfig.InstanceCount),
@@ -112,16 +114,16 @@ func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 		logger.Error("Error when fetching regions list", err.Error())
 		return err
 	}
-	domainChans := make([]<-chan Domain, 0, len(regions))
+	domainChans := make([]<-chan esReports.Domain, 0, len(regions))
 	for _, region := range regions {
-		domainChan := make(chan Domain)
+		domainChan := make(chan esReports.Domain)
 		go fetchDailyDomainsList(ctx, creds, region, domainChan)
 		domainChans = append(domainChans, domainChan)
 	}
-	domains := make([]DomainReport, 0)
+	domains := make([]esReports.DomainReport, 0)
 	for domain := range merge(domainChans...) {
-		domains = append(domains, DomainReport{
-			ReportBase: utils.ReportBase{
+		domains = append(domains, esReports.DomainReport{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

@@ -26,7 +26,7 @@ import (
 	"github.com/trackit/jsonlog"
 
 	"github.com/trackit/trackit/aws"
-	"github.com/trackit/trackit/aws/usageReports"
+	utils "github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/aws/usageReports/ebs"
 	"github.com/trackit/trackit/aws/usageReports/ec2"
 	"github.com/trackit/trackit/aws/usageReports/ec2Coverage"
@@ -35,6 +35,8 @@ import (
 	"github.com/trackit/trackit/aws/usageReports/instanceCount"
 	"github.com/trackit/trackit/aws/usageReports/rds"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/lineItems"
 )
 
 const numPartition = 5
@@ -79,7 +81,7 @@ func GetHistoryDate() (time.Time, time.Time) {
 func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client, aa aws.AwsAccount,
 	startDate, endDate time.Time, product string, partition int) (*elastic.SearchResult, int, error) {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
+	index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 	query := elastic.NewBoolQuery()
 	query = query.Filter(elastic.NewTermQuery("usageAccountId", aa.AwsIdentity))
 	query = query.Filter(elastic.NewTermQuery("productCode", product))
@@ -110,9 +112,9 @@ func makeElasticSearchRequestForCost(ctx context.Context, client *elastic.Client
 // getCostPerResource returns the parsed result of ES
 // This response contains the list of the resources of the specified product with the cost and region associated
 func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.Time, endDate time.Time,
-	product string) ([]utils.CostPerResource, error) {
+	product string) ([]common.CostPerResource, error) {
 	var parsedResult EsRegionPerResourceResult
-	response := make([]utils.CostPerResource, 0)
+	response := make([]common.CostPerResource, 0)
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	for i := 0; i < numPartition; i++ {
 		result, returnCode, err := makeElasticSearchRequestForCost(ctx, es.Client, aa, startDate, endDate, product, i)
@@ -129,7 +131,7 @@ func getCostPerResource(ctx context.Context, aa aws.AwsAccount, startDate time.T
 			return response, errors.New("Internal server error")
 		}
 		for _, resource := range parsedResult.Resources.Buckets {
-			element := utils.CostPerResource{resource.Resource, 0, ""}
+			element := common.CostPerResource{resource.Resource, 0, ""}
 			for _, region := range resource.Regions.Buckets {
 				if region.Region != "" {
 					element.Region = region.Region
@@ -198,7 +200,7 @@ func CheckBillingDataCompleted(ctx context.Context, startDate time.Time, endDate
 	query = query.Filter(elastic.NewTermQuery("invoiceId", ""))
 	query = query.Filter(elastic.NewRangeQuery("usageStartDate").
 		From(startDate).To(endDate))
-	index := es.IndexNameForUserId(aa.UserId, es.IndexPrefixLineItems)
+	index := es.IndexNameForUserId(aa.UserId, lineItems.Model.IndexSuffix)
 	result, err := es.Client.Search().Index(index).Size(1).Query(query).Do(ctx)
 	if err != nil {
 		if elastic.IsNotFound(err) {

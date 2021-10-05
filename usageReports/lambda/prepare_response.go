@@ -21,8 +21,8 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
-	"github.com/trackit/trackit/aws/usageReports/lambda"
+	"github.com/trackit/trackit/es/indexes/common"
+	"github.com/trackit/trackit/es/indexes/lambdaReports"
 )
 
 type (
@@ -36,7 +36,7 @@ type (
 						Functions struct {
 							Hits struct {
 								Hits []struct {
-									Function lambda.FunctionReport `json:"_source"`
+									Function lambdaReports.FunctionReport `json:"_source"`
 								} `json:"hits"`
 							} `json:"hits"`
 						} `json:"functions"`
@@ -48,19 +48,19 @@ type (
 
 	// FunctionReport has all the information of an Lambda function report
 	FunctionReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Function Function `json:"function"`
 	}
 
 	// Function contains the information of an Lambda function
 	Function struct {
-		lambda.FunctionBase
-		Tags  map[string]string `json:"tags"`
-		Stats lambda.Stats      `json:"stats"`
+		lambdaReports.FunctionBase
+		Tags  map[string]string   `json:"tags"`
+		Stats lambdaReports.Stats `json:"stats"`
 	}
 )
 
-func getLambdaFunctionReportResponse(oldFunction lambda.FunctionReport) FunctionReport {
+func getLambdaFunctionReportResponse(oldFunction lambdaReports.FunctionReport) FunctionReport {
 	tags := make(map[string]string, len(oldFunction.Function.Tags))
 	for _, tag := range oldFunction.Function.Tags {
 		tags[tag.Key] = tag.Value
