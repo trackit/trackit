@@ -2,7 +2,7 @@
 package models
 
 // OutdatedEsMappings retrieves a row from 'trackit.es_versioning' as a EsVersioning which is outdated
-func OutdatedEsMappings(db XODB, templateName string, latestVersion int) ([]*EsVersioning, error) {
+func OutdatedEsMappings(db DB, templateName string, latestVersion int) ([]*EsVersioning, error) {
 	var err error
 
 	// sql query
@@ -12,7 +12,7 @@ func OutdatedEsMappings(db XODB, templateName string, latestVersion int) ([]*EsV
 		`WHERE current_version < ? AND template_name = ?`
 
 	// run query
-	XOLog(sqlstr, latestVersion, templateName)
+	Logf(sqlstr, latestVersion, templateName)
 	q, err := db.Query(sqlstr, latestVersion, templateName)
 	if err != nil {
 		return nil, err
@@ -36,4 +36,22 @@ func OutdatedEsMappings(db XODB, templateName string, latestVersion int) ([]*EsV
 	}
 
 	return res, nil
+}
+
+// EsVersioningByIndexName retrieves a row from 'trackit.es_versioning' as a EsVersioning (no ID required)
+func EsVersioningByIndexName(db DB, indexName string) (*EsVersioning, error) {
+	// query
+	const sqlstr = `SELECT ` +
+		`id, current_version, template_name, index_name ` +
+		`FROM trackit.es_versioning ` +
+		`WHERE index_name = ?`
+	// run
+	logf(sqlstr, indexName)
+	ev := EsVersioning{
+		_exists: true,
+	}
+	if err := db.QueryRow(sqlstr, indexName).Scan(&ev.ID, &ev.CurrentVersion, &ev.TemplateName, &ev.IndexName); err != nil {
+		return nil, logerror(err)
+	}
+	return &ev, nil
 }

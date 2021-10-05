@@ -21,13 +21,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/route53"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // getRoute53Tags formats []*HostedZone.Tag to map[string]string
-func getRoute53Tags(ctx context.Context, hostedZone *route53.HostedZone, svc *route53.Route53) []utils.Tag {
+func getRoute53Tags(ctx context.Context, hostedZone *route53.HostedZone, svc *route53.Route53) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make([]utils.Tag, 0)
+	res := make([]common.Tag, 0)
 	var tagResourceType = route53.TagResourceTypeHostedzone
 
 	// It could be possible to optimise this to divide the amount of API calls by 10, by using ListTagsForResources which can list tags for up to 10 health checks or hosted zones at once
@@ -42,7 +42,7 @@ func getRoute53Tags(ctx context.Context, hostedZone *route53.HostedZone, svc *ro
 	}
 
 	for _, tag := range tags.ResourceTagSet.Tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

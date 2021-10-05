@@ -23,12 +23,10 @@ import (
 	"github.com/olivere/elastic"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/db"
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es"
 	"github.com/trackit/trackit/es/indexes/taggingReports"
 	"github.com/trackit/trackit/routes"
-	"github.com/trackit/trackit/tagging/utils"
 	"github.com/trackit/trackit/users"
 )
 
@@ -68,23 +66,8 @@ func routeGetResources(request *http.Request, a routes.Arguments) (int, interfac
 	}
 }
 
-// GetResourcesData gets resources report based on query params
-func GetResourcesData(ctx context.Context, parsedParams ResourcesQueryParams, user users.User, tx *sql.Tx) (int, []taggingReports.TaggingReportDocument, error) {
-	accountsAndIndexes, returnCode, err := es.GetAccountsAndIndexes(parsedParams.AccountsList, user, tx, taggingReports.Model.IndexSuffix)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	parsedParams.AccountsList = accountsAndIndexes.Accounts
-	parsedParams.IndexesList = accountsAndIndexes.Indexes
-	returnCode, resources, err := GetResources(ctx, parsedParams)
-	if err != nil {
-		return returnCode, nil, err
-	}
-	return returnCode, resources, nil
-}
-
 // GetResources does an elastic request and returns an array of resources report based on the request body
-func GetResources(ctx context.Context, params ResourcesQueryParams, user users.User) (int, []taggingReports.TaggingReportDocument, error) {
+func GetResources(ctx context.Context, params ResourcesRequestBody, user users.User) (int, []taggingReports.TaggingReportDocument, error) {
 	res, returnCode, err := makeElasticSearchRequest(ctx, params, user, getElasticSeachResourcesParams)
 	if err != nil {
 		return returnCode, nil, err
@@ -108,7 +91,7 @@ func GetResources(ctx context.Context, params ResourcesQueryParams, user users.U
 func makeElasticSearchRequest(ctx context.Context, params ResourcesRequestBody, user users.User,
 	esSearchParams func(ResourcesRequestBody, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
 	l := jsonlog.LoggerFromContextOrDefault(ctx)
-	index := es.IndexNameForUser(user, tagging.IndexPrefixTaggingReport)
+	index := es.IndexNameForUser(user, taggingReports.Model.IndexSuffix)
 	searchService := esSearchParams(
 		params,
 		es.Client,

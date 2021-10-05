@@ -31,7 +31,6 @@ import (
 	"github.com/trackit/trackit/models"
 )
 
-	MostUsedTags    []string  `json:"mostUsedTags"`
 const invalidMostUsedTagsId = "-1"
 
 // UpdateTaggingComplianceForUser updates tagging compliance based on latest tagging reports and latest most used tags reports

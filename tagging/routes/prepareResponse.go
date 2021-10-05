@@ -23,7 +23,6 @@ import (
 
 	terrors "github.com/trackit/trackit/errors"
 	"github.com/trackit/trackit/es/indexes/taggingReports"
-	"github.com/trackit/trackit/tagging/utils"
 )
 
 type (

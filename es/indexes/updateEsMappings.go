@@ -16,10 +16,6 @@ package indexes
 
 import (
 	"context"
-	"fmt"
-	"time"
-
-	utils "github.com/trackit/trackit/aws/usageReports")
 )
 
 // UpdateEsMappings updates Elasticsearch index mappings

@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // fetchOneRegion establishes a new API connection for the corresponding region and gets all the tags for all the buckets associated with it (passed through region_buckets
@@ -114,7 +115,7 @@ func FetchDailyS3Stats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	buckets := make([]BucketReport, 0)
 	for bucket := range merge(bucketChans...) {
 		buckets = append(buckets, BucketReport{
-			ReportBase: utils.ReportBase{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

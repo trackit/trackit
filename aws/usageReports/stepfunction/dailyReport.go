@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // fetchDailyStepFunctionsList sends in stepFunctionInfoChan the stepFunctions fetched from ListStateMachines
@@ -92,7 +93,7 @@ func FetchDailyStepFunctionsStats(ctx context.Context, awsAccount taws.AwsAccoun
 	stepFunctions := make([]StepReport, 0)
 	for stepFunction := range merge(stepChans...) {
 		stepFunctions = append(stepFunctions, StepReport{
-			ReportBase: utils.ReportBase{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

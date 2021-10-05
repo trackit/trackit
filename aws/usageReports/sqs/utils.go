@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 const MonitorSQSStsSessionName = "monitor-sqs"
@@ -34,7 +35,7 @@ const MonitorSQSStsSessionName = "monitor-sqs"
 type (
 	// QueueReport is saved in ES to have all the information of a SQS Queue
 	QueueReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Queue Queue `json:"queue"`
 	}
 
@@ -48,7 +49,7 @@ type (
 	// Queue contains all the information of an SQS Queue
 	Queue struct {
 		QueueBase
-		Tags []utils.Tag `json:"tags"`
+		Tags []common.Tag `json:"tags"`
 	}
 )
 

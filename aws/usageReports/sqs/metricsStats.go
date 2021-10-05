@@ -21,13 +21,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // getSQSTags formats []*queue.Tag to map[string]string
-func getSQSTags(ctx context.Context, queueUrl *string, svc *sqs.SQS) []utils.Tag {
+func getSQSTags(ctx context.Context, queueUrl *string, svc *sqs.SQS) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make([]utils.Tag, 0)
+	res := make([]common.Tag, 0)
 	tags, err := svc.ListQueueTags(&sqs.ListQueueTagsInput{
 		QueueUrl: queueUrl,
 	})
@@ -37,7 +37,7 @@ func getSQSTags(ctx context.Context, queueUrl *string, svc *sqs.SQS) []utils.Tag
 	}
 
 	for keyTag, valueTag := range tags.Tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   keyTag,
 			Value: aws.StringValue(valueTag),
 		})

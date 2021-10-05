@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 const MonitorRoute53StsSessionName = "monitor-route53"
@@ -34,7 +35,7 @@ const MonitorRoute53StsSessionName = "monitor-route53"
 type (
 	// HostedZoneReport is saved in ES to have all the information of a Route53 Hosted Zone
 	HostedZoneReport struct {
-		utils.ReportBase
+		common.ReportBase
 		HostedZone HostedZone `json:"hostedZone"`
 	}
 
@@ -48,7 +49,7 @@ type (
 	// HostedZone contains all the information of an Route53 Hosted Zone
 	HostedZone struct {
 		HostedZoneBase
-		Tags []utils.Tag `json:"tags"`
+		Tags []common.Tag `json:"tags"`
 	}
 )
 

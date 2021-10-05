@@ -59,7 +59,6 @@ func updateEsMappings(ctx context.Context) (err error) {
 func registerUpdateEsMappingsTask(db *sql.DB) (models.UpdateEsMappingsJob, error) {
 	job := models.UpdateEsMappingsJob{
 		WorkerID: backendId,
-		Created:  time.Now(),
 	}
 
 	err := job.Insert(db)

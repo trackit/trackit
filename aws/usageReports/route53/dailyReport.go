@@ -28,6 +28,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/config"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // getCompleteHostedZoneList calls ListHostedZones repeatedly until all the zones have been fetched (this is required if the account contains more than 100 elements, as a single ListHostedZones can only return at most 100 zones)
@@ -110,7 +111,7 @@ func FetchDailyRoute53Stats(ctx context.Context, awsAccount taws.AwsAccount) err
 	hostedZones := make([]HostedZoneReport, 0)
 	for hostedZone := range hostedZonesChan {
 		hostedZones = append(hostedZones, HostedZoneReport{
-			ReportBase: utils.ReportBase{
+			ReportBase: common.ReportBase{
 				Account:    account,
 				ReportDate: now,
 				ReportType: "daily",

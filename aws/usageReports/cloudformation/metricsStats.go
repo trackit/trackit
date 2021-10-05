@@ -21,13 +21,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/cloudformation"
 	"github.com/trackit/jsonlog"
 
-	"github.com/trackit/trackit/aws/usageReports"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 // getCloudFormationTags formats []*StackSummary.Tag to map[string]string
-func getCloudFormationTags(ctx context.Context, stack *cloudformation.StackSummary, svc *cloudformation.CloudFormation) []utils.Tag {
+func getCloudFormationTags(ctx context.Context, stack *cloudformation.StackSummary, svc *cloudformation.CloudFormation) []common.Tag {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	res := make([]utils.Tag, 0)
+	res := make([]common.Tag, 0)
 	tags, err := svc.DescribeStacks(&cloudformation.DescribeStacksInput{
 		StackName: stack.StackName,
 	})
@@ -37,7 +37,7 @@ func getCloudFormationTags(ctx context.Context, stack *cloudformation.StackSumma
 	}
 
 	for _, tag := range tags.Stacks[0].Tags {
-		res = append(res, utils.Tag{
+		res = append(res, common.Tag{
 			Key:   aws.StringValue(tag.Key),
 			Value: aws.StringValue(tag.Value),
 		})

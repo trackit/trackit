@@ -27,6 +27,7 @@ import (
 	taws "github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/aws/usageReports"
 	"github.com/trackit/trackit/es"
+	"github.com/trackit/trackit/es/indexes/common"
 )
 
 const MonitorCloudFormationStsSessionName = "monitor-cloudformation"
@@ -34,7 +35,7 @@ const MonitorCloudFormationStsSessionName = "monitor-cloudformation"
 type (
 	// StackReport is saved in ES to have all the information of a Cloud Formation Stack
 	StackReport struct {
-		utils.ReportBase
+		common.ReportBase
 		Stack Stack `json:"stack"`
 	}
 
@@ -49,7 +50,7 @@ type (
 	// Stack contains all the information of an Cloud Formation Stack
 	Stack struct {
 		StackBase
-		Tags []utils.Tag `json:"tags"`
+		Tags []common.Tag `json:"tags"`
 	}
 )
 
