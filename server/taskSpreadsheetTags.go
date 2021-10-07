@@ -50,18 +50,12 @@ func generateTagsReport(ctx context.Context, aaId int, date time.Time) (err erro
 	var generation bool
 	forceGeneration := !date.IsZero()
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	defer func() {
-		if tx != nil {
-			if err != nil {
-				tx.Rollback()
-			} else {
-				tx.Commit()
-			}
-		}
-	}()
+	defer utilsUsualTxFinalize(&tx, &err, &logger, "generate-tags-spreadsheet")
+
+	var user *models.User // We can't use := because then there would be a new err which would shadow the returned value
 	if tx, err = db.Db.BeginTx(ctx, nil); err != nil {
 	} else if aa, err = aws.GetAwsAccountWithId(aaId, tx); err != nil {
-	} else if user, err := models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
+	} else if user, err = models.UserByID(db.Db, aa.UserId); err != nil || user.AccountType != "trackit" {
 		if err == nil {
 			logger.Info("Task 'SpreadSheetTags' has been skipped because the user has the wrong account type.", map[string]interface{}{
 				"userAccountType": user.AccountType,
@@ -142,15 +136,16 @@ func registerAccountTagsReportGenerationCompletion(db *sql.DB, aaId int, updateI
 	}
 	date := time.Now()
 	dbAccountReports.Completed = date
-	dbAccountReports.Joberror = errToStr(jobErr)
-	dbAccountReports.Spreadsheeterror = errToStr(errs["speadsheetError"])
-	dbAccountReports.Tagsreporterror = errToStr(errs["tagsError"])
+	dbAccountReports.JobError = errToStr(jobErr)
+	dbAccountReports.SpreadsheetError = errToStr(errs["speadsheetError"])
+	dbAccountReports.TagsReportError = errToStr(errs["tagsError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err
 	}
 	if !forceGeneration {
-		dbAccount, err := models.AwsAccountByID(db, aaId)
+		var dbAccount *models.AwsAccount // We can't use := because then there would be a new err which would shadow the returned value
+		dbAccount, err = models.AwsAccountByID(db, aaId)
 		if err != nil {
 			return err
 		}

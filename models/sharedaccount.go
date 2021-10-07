@@ -30,14 +30,14 @@ type SharedAccountWithRole struct {
 
 // SharedAccountsWithRoleByUserID returns all the shared accounts and their role arn
 // for a user
-func SharedAccountsWithRoleByUserID(db XODB, userID int) ([]*SharedAccountWithRole, error) {
+func SharedAccountsWithRoleByUserID(db DB, userID int) ([]*SharedAccountWithRole, error) {
 	var err error
 	const sqlstr = `SELECT ` +
 		`sa.id, sa.account_id, sa.user_id, sa.user_permission, sa.sharing_accepted, aa.role_arn, aa.aws_identity, aa.user_id ` +
 		`FROM trackit.shared_account AS sa ` +
 		`INNER JOIN trackit.aws_account AS aa ON sa.account_id=aa.id ` +
 		`WHERE sa.user_id=?`
-	XOLog(sqlstr)
+	logf(sqlstr)
 	q, err := db.Query(sqlstr, userID)
 	if err != nil {
 		return nil, err

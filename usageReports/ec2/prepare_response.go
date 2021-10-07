@@ -31,7 +31,7 @@ import (
 
 type (
 
-	// Structure that allow to parse ES response for costs
+	// ResponseCost allows us to parse an ES response for costs
 	ResponseCost struct {
 		Accounts struct {
 			Buckets []struct {
@@ -48,7 +48,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EC2 Monthly instances
+	// ResponseEc2Monthly allows us to parse an ES response for EC2 Monthly instances
 	ResponseEc2Monthly struct {
 		Accounts struct {
 			Buckets []struct {
@@ -63,7 +63,7 @@ type (
 		} `json:"accounts"`
 	}
 
-	// Structure that allow to parse ES response for EC2 Daily instances
+	// ResponseEc2Daily allows us to parse an ES response for EC2 Daily instances
 	ResponseEc2Daily struct {
 		Accounts struct {
 			Buckets []struct {
@@ -112,7 +112,7 @@ type (
 		Volumes Volumes     `json:"volumes"`
 	}
 
-	// Volume contains information about EBS volumes
+	// Volumes contains information about EBS volumes
 	Volumes struct {
 		Read  map[string]float64 `json:"read"`
 		Write map[string]float64 `json:"write"`
@@ -120,12 +120,12 @@ type (
 )
 
 func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport {
-	tags := make(map[string]string, 0)
+	tags := make(map[string]string, len(oldInstance.Instance.Tags))
 	for _, tag := range oldInstance.Instance.Tags {
 		tags[tag.Key] = tag.Value
 	}
-	read := make(map[string]float64, 0)
-	write := make(map[string]float64, 0)
+	read := make(map[string]float64, len(oldInstance.Instance.Stats.Volumes))
+	write := make(map[string]float64, len(oldInstance.Instance.Stats.Volumes))
 	for _, volume := range oldInstance.Instance.Stats.Volumes {
 		read[volume.Id] = volume.Read
 		write[volume.Id] = volume.Write
@@ -157,7 +157,7 @@ func getEc2InstanceReportResponse(oldInstance ec2.InstanceReport) InstanceReport
 // addCostToInstance adds a cost for an instance based on billing data
 func addCostToInstance(instance ec2.InstanceReport, costs ResponseCost) ec2.InstanceReport {
 	if instance.Instance.Costs == nil {
-		instance.Instance.Costs = make(map[string]float64, 0)
+		instance.Instance.Costs = make(map[string]float64)
 	}
 	for _, accounts := range costs.Accounts.Buckets {
 		if accounts.Key != instance.Account {

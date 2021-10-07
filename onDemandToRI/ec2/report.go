@@ -99,7 +99,7 @@ type (
 func addUnreservedInstance(unreservedInstances []InstancesSpecs, instanceReport ec2.InstanceReport) []InstancesSpecs {
 	for i, unreservedInstance := range unreservedInstances {
 		if instanceMatchSpecs(instanceReport, unreservedInstance) {
-			unreservedInstances[i].InstanceCount += 1
+			unreservedInstances[i].InstanceCount++
 			return unreservedInstances
 		}
 	}
@@ -159,13 +159,13 @@ func getUnreservedInstances(instancesReport []ec2.InstanceReport, reservationsRe
 			if reservationReport.Reservation.State != "active" || reservationReport.Reservation.InstanceCount == 0 {
 				continue
 			}
-			if instanceMatchReservation(instanceReport, reservationReport) == true {
+			if instanceMatchReservation(instanceReport, reservationReport) {
 				reservationsReport[i].Reservation.InstanceCount = reservationReport.Reservation.InstanceCount - 1
 				foundReservation = true
 				break
 			}
 		}
-		if foundReservation == false {
+		if !foundReservation {
 			unreservedInstances = addUnreservedInstance(unreservedInstances, instanceReport)
 		}
 	}
@@ -193,11 +193,11 @@ func getEC2Pricings(ctx context.Context) (pricings.EC2Pricing, error) {
 
 // getPricingForSpecs returns the pricings for a given region/platform/type combination
 func getPricingForSpecs(region, platform, instanceType string, ec2Pricings pricings.EC2Pricing) (pricings.EC2Specs, error) {
-	if platforms, ok := ec2Pricings.Region[region]; ok == false {
+	if platforms, ok := ec2Pricings.Region[region]; !ok {
 		return pricings.EC2Specs{}, errors.New("Region not found in EC2 pricings")
-	} else if types, ok := platforms.Platform[platform]; ok == false {
+	} else if types, ok := platforms.Platform[platform]; !ok {
 		return pricings.EC2Specs{}, errors.New("EC2Platform not found in EC2 pricings")
-	} else if costSpecs, ok := types.Type[instanceType]; ok == false {
+	} else if costSpecs, ok := types.Type[instanceType]; !ok {
 		return pricings.EC2Specs{}, errors.New("EC2Type not found in EC2 pricings")
 	} else {
 		return *costSpecs, nil
@@ -208,7 +208,7 @@ func getPricingForSpecs(region, platform, instanceType string, ec2Pricings prici
 // the current generation
 func getCurrentGenerationPricingEquivalent(unreservedSpec InstancesSpecs, ec2Pricings pricings.EC2Pricing) (string, pricings.EC2Specs, error) {
 	equivalentType, ok := PreviousToCurrentGeneration[unreservedSpec.Type]
-	if ok == false {
+	if !ok {
 		return "", pricings.EC2Specs{}, errors.New("Equivalent instance type not found")
 	}
 	pricing, err := getPricingForSpecs(unreservedSpec.Region, unreservedSpec.Platform, unreservedSpec.Type, ec2Pricings)
@@ -246,7 +246,7 @@ func calculateCosts(ctx context.Context, unreservedIntances []InstancesSpecs, ec
 		unreservedSpec.OnDemand = OnDemandCost{odMonthly, od1yr, od3yr}
 
 		var ri1yrMonthlyCostPerUnit, ri3yrMonthlyCostPerUnit float64
-		if pricing.CurrentGeneration == true {
+		if pricing.CurrentGeneration {
 			unreservedSpec.Reservation.Type = unreservedSpec.Type
 			ri1yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.OneYearStandardNoUpfrontHourlyCost)
 			ri3yrMonthlyCostPerUnit = getMonthlyCostPerUnit(pricing.ThreeYearsStandardNoUpfrontHourlyCost)

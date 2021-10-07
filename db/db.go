@@ -20,6 +20,7 @@ import (
 	"log"
 	"time"
 
+	// We need the MySQL driver to register itself to be able to use database/sql properly
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/trackit/jsonlog"
 
@@ -33,7 +34,27 @@ const (
 
 var Db *sql.DB
 
+// OpenWorker setups the database connection for a worker and verifies it
+func OpenWorker() error {
+	if err := initDb(); err != nil {
+		return err
+	}
+	if err := attemptDbConnection(); err != nil {
+		return err
+	}
+	Db.SetMaxIdleConns(0)
+	return nil
+}
+
+// Close shutdowns the database connection
+func Close() error {
+	return Db.Close()
+}
+
 func init() {
+	if config.Worker {
+		return
+	}
 	fatalIfError(initDb())
 	fatalIfError(attemptDbConnection())
 	Db.SetMaxIdleConns(0)

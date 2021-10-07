@@ -18,6 +18,7 @@ import (
 	"database/sql"
 	"time"
 
+	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/aws"
 	"github.com/trackit/trackit/models"
 )
@@ -59,7 +60,7 @@ type AwsAccountWithBillRepositoriesWithStatus struct {
 }
 
 // GetBillRepositoryWithPendingForAwsAccount gets a BillRepositoryWithPending by Aws Account id
-func GetBillRepositoryWithPendingForAwsAccount(tx *sql.Tx, awsAccountId int) ([]BillRepositoryWithPending, error) {
+func GetBillRepositoryWithPendingForAwsAccount(tx *sql.Tx, awsAccountId int) (res []BillRepositoryWithPending, err error) {
 	timeLimit := time.Now().AddDate(0, 0, -7)
 	var sqlstr = `
 		SELECT
@@ -85,9 +86,13 @@ func GetBillRepositoryWithPendingForAwsAccount(tx *sql.Tx, awsAccountId int) ([]
 	if err != nil {
 		return nil, err
 	}
-	defer q.Close()
-	var res []BillRepositoryWithPending
-	var i int
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
+
+	var i uint
 	for i = 0; q.Next(); i++ {
 		res = append(res, BillRepositoryWithPending{})
 		err = q.Scan(
@@ -132,12 +137,12 @@ func WrapAwsAccountsWithBillRepositories(awsAccounts []aws.AwsAccount, tx *sql.T
 func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillRepositoriesWithPending) ([]AwsAccountWithBillRepositoriesWithPending, error) {
 	accounts := make([]AwsAccountWithBillRepositoriesWithPending, 0)
 	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
+		if !aa.ParentId.Valid {
 			accounts = append(accounts, aa)
 		}
 	}
 	for _, aa := range awsAccountsWithBillRepositories {
-		if aa.ParentId.Valid == false {
+		if !aa.ParentId.Valid {
 			continue
 		}
 		foundMatch := false
@@ -152,7 +157,7 @@ func sortSubAccounts(awsAccountsWithBillRepositories []AwsAccountWithBillReposit
 				continue AccountsLoop
 			}
 		}
-		if foundMatch == false {
+		if !foundMatch {
 			accounts = append(accounts, aa)
 		}
 	}
@@ -175,7 +180,12 @@ func WrapAwsAccountsWithBillRepositoriesWithPendingWithStatus(awsAccountsWithBil
 		var billRepositories []BillRepositoryWithStatus
 		var subAccounts []AwsAccountWithBillRepositoriesWithStatus
 		for _, billRepository := range awsAccount.BillRepositories {
-			brws, _ := WrapBillRepositoriesWithPendingWithStatus(tx, billRepository)
+			brws, err := WrapBillRepositoriesWithPendingWithStatus(tx, billRepository)
+			if err != nil {
+				jsonlog.DefaultLogger.Error("Failed to wrap one of the bill repositories", map[string]interface{}{
+					"error": err.Error(),
+				})
+			}
 			billRepositories = append(billRepositories, brws)
 		}
 		if awsAccount.SubAccounts != nil && len(awsAccount.SubAccounts) > 0 {

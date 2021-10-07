@@ -12,7 +12,7 @@
 //   See the License for the specific language governing permissions and
 //   limitations under the License.
 
-package plugins_account_anattached_eip
+package plugins_account_unattached_eip
 
 import (
 	"fmt"
@@ -51,9 +51,9 @@ func prepareResult(pluginRes *core.PluginResult) {
 func processEIP(pluginRes *core.PluginResult, region *string, eipRes *ec2.DescribeAddressesOutput) {
 	if eipRes.Addresses != nil {
 		for _, eip := range eipRes.Addresses {
-			pluginRes.Checked += 1
+			pluginRes.Checked++
 			if eip.AssociationId != nil {
-				pluginRes.Passed += 1
+				pluginRes.Passed++
 			} else {
 				eipDesc := aws.StringValue(eip.PublicIp)
 				if eipDesc == "" {
@@ -96,7 +96,7 @@ func getUnattachedEIP(pluginParams core.PluginParams, pluginRes *core.PluginResu
 	EIPChans := make([]<-chan EIP, 0, len(regionsOutput.Regions))
 	for _, region := range regionsOutput.Regions {
 		eipChan := make(chan EIP)
-		go fetchEIPInfos(pluginParams, region.RegionName, eipChan)
+		go fetchEIPInfos(pluginParams, region.RegionName, eipChan) // No need to handle the error here, it's sent down eipChan and thus handled in the next loop
 		EIPChans = append(EIPChans, eipChan)
 	}
 	for eip := range merge(EIPChans...) {

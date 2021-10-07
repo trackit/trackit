@@ -18,17 +18,21 @@ package models
 import "time"
 
 // IsAnomalyAlreadyEmailed checks if an anomaly has already been sent.
-func IsAnomalyAlreadyEmailed(db XODB, awsAccountId int, product string, date time.Time) (bool, error) {
+func IsAnomalyAlreadyEmailed(db DB, awsAccountId int, product string, date time.Time) (result bool, err error) {
 	const sqlstr = `SELECT ` +
 		`id, aws_account_id, product, recipient, date ` +
 		`FROM trackit.emailed_anomaly ` +
 		`WHERE aws_account_id = ? AND product = ? AND date = ?`
-	XOLog(sqlstr, awsAccountId, product, date)
+	logf(sqlstr, awsAccountId, product, date)
 	q, err := db.Query(sqlstr, awsAccountId, product, date)
 	if err != nil {
 		return false, err
 	}
-	defer q.Close()
+	defer func() {
+		if closeErr := q.Close(); err == nil {
+			err = closeErr
+		}
+	}()
 	if q.Next() {
 		return true, nil
 	}

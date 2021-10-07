@@ -144,7 +144,7 @@ func tagsUsageReportInsertDataInSheet(ctx context.Context, file *excelize.File, 
 			charColumn++
 		}
 	}
-	chartData := fmt.Sprintf(`{"name":"Costs","categories":"%s!$H$3:$H$%s","values":"%s!$I$3:$I$%s"}`, key, strconv.Itoa(charColumn - 1), key, strconv.Itoa(charColumn - 1))
+	chartData := fmt.Sprintf(`{"name":"Costs","categories":"%s!$H$3:$H$%s","values":"%s!$I$3:$I$%s"}`, key, strconv.Itoa(charColumn-1), key, strconv.Itoa(charColumn-1))
 	if err := generateLinearChart(ctx, file, key, chartData); err != nil {
 		return err
 	}
@@ -206,12 +206,11 @@ func tagsUsageReportGenerateHeader(file *excelize.File, key string) {
 		newColumnWidth("H", 30),
 	}
 	columns.setValues(file, key)
-	return
 }
 
 func generateLinearChart(ctx context.Context, file *excelize.File, sheetName, data string) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
-	err := file.AddChart(sheetName, "J1",fmt.Sprintf(
+	err := file.AddChart(sheetName, "J1", fmt.Sprintf(
 		`{"type":"bar",
 				"series":[%s],
 				"format":{

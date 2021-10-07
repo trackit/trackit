@@ -33,10 +33,6 @@ type PopupInfoResponseBody struct {
 	Popup bool `json:"popup"`
 }
 
-var (
-	tagbotFreeTrialDuration = time.Hour * 24 * 14
-)
-
 // shouldPopup verify if the user has access to Tagbot.
 func shouldPopup(request *http.Request, a routes.Arguments) (int, interface{}) {
 	l := jsonlog.LoggerFromContextOrDefault(request.Context())
@@ -69,7 +65,7 @@ func checkPopup(dbUser *models.TagbotUser, customer *models.User) (int, interfac
 			false,
 		}
 	}
-	if checkUserTagbotFreeTrial(customer.Created) {
+	if time.Now().Before(dbUser.FreeTierEndAt) {
 		return http.StatusOK, PopupInfoResponseBody{
 			false,
 		}
@@ -77,13 +73,4 @@ func checkPopup(dbUser *models.TagbotUser, customer *models.User) (int, interfac
 	return http.StatusOK, PopupInfoResponseBody{
 		true,
 	}
-}
-
-func checkUserTagbotFreeTrial(creationDate time.Time) bool {
-	currentTime := time.Now()
-	timeSinceCreation := currentTime.Sub(creationDate)
-	if timeSinceCreation > tagbotFreeTrialDuration {
-		return false
-	}
-	return true
 }

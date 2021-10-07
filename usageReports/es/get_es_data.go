@@ -36,7 +36,7 @@ import (
 // It will return the data, an http status code (as int) and an error.
 // Because an error can be generated, but is not critical and is not needed to be known by
 // the user (e.g if the index does not exists because it was not yet indexed ) the error will
-// be returned, but instead of having a 500 status code, it will return the provided status code
+// be returned, but instead of having a 500 Internal Server Error status code, it will return the provided status code
 // with empty data
 func makeElasticSearchRequest(ctx context.Context, parsedParams EsQueryParams,
 	esSearchParams func(EsQueryParams, *elastic.Client, string) *elastic.SearchService) (*elastic.SearchResult, int, error) {
@@ -116,7 +116,7 @@ func GetEsData(ctx context.Context, parsedParams EsQueryParams, user users.User,
 	returnCode, monthlyDomains, err := GetEsMonthlyDomains(ctx, parsedParams)
 	if err != nil {
 		return returnCode, nil, err
-	} else if monthlyDomains != nil && len(monthlyDomains) > 0 {
+	} else if len(monthlyDomains) > 0 { // Note: len(nil) is 0
 		return returnCode, monthlyDomains, nil
 	}
 	returnCode, dailyDomains, err := GetEsDailyDomains(ctx, parsedParams, user, tx)

@@ -15,9 +15,9 @@
 package routes
 
 import (
-	"net/http"
 	"database/sql"
 	"errors"
+	"net/http"
 
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/customer"
@@ -74,7 +74,7 @@ func routeCreateSubscription(request *http.Request, a routes.Arguments) (int, in
 	// Update invoice settings default
 	customerParams := &stripe.CustomerParams{
 		InvoiceSettings: &stripe.CustomerInvoiceSettingsParams{
-		DefaultPaymentMethod: stripe.String(pm.ID),
+			DefaultPaymentMethod: stripe.String(pm.ID),
 		},
 	}
 	c, err := customer.Update(
@@ -90,18 +90,18 @@ func routeCreateSubscription(request *http.Request, a routes.Arguments) (int, in
 	subscriptionParams := &stripe.SubscriptionParams{
 		Customer: stripe.String(body.CustomerID),
 		Items: []*stripe.SubscriptionItemsParams{
-		{
-			Plan: stripe.String("price_1HIaP7HPvmk5HTchKgWfjBwe"),
-		},
+			{
+				Plan: stripe.String("price_1HIaP7HPvmk5HTchKgWfjBwe"),
+			},
 		},
 	}
 	subscriptionParams.AddExpand("latest_invoice.payment_intent")
 	s, err := sub.New(subscriptionParams)
 	if err != nil {
-		l.Error("Stripe failed to create subscritpion", err)
+		l.Error("Stripe failed to create subscription", err)
 		return http.StatusInternalServerError, err
 	}
-	if (s.Status == "active") {
+	if s.Status == "active" {
 		dbUser.StripeCustomerEntitlement = true
 	}
 	dbUser.StripeSubscriptionIdentifier = s.ID

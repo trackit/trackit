@@ -35,7 +35,7 @@ var (
 )
 
 func argHandler(r *http.Request, a Arguments) (int, interface{}) {
-	return 200, a
+	return http.StatusOK, a
 }
 
 func intSliceIsEqual(first, second []int) bool {
@@ -134,8 +134,8 @@ func TestOverflowIntArg(t *testing.T) {
 	request := httptest.NewRequest("GET", "/test?testInt="+overflowInt64Str, nil)
 	response := httptest.NewRecorder()
 	status, body := h.Func(response, request, Arguments{})
-	if status != 400 {
-		t.Errorf("Expected 400. Got %d (%s)", status, body)
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected http.StatusBadRequest (400). Got %d (%s)", status, body)
 	}
 	if err, ok := body.(error); !ok {
 		t.Errorf("Expected error.")
@@ -151,8 +151,8 @@ func TestRightUintArg(t *testing.T) {
 	request := httptest.NewRequest("GET", "/test?testUint=84", nil)
 	response := httptest.NewRecorder()
 	status, body := h.Func(response, request, Arguments{})
-	if status != 200 {
-		t.Errorf("Expected 200. Got %d (%s)", status, body)
+	if status != http.StatusOK {
+		t.Errorf("Expected http.StatusOK (200). Got %d (%s)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
 	} else if testUint, ok := args[QueryArgTestUint]; !ok {
@@ -169,8 +169,8 @@ func TestOptionalStringArg(t *testing.T) {
 	request := httptest.NewRequest("GET", "/test?testString=Hi!", nil)
 	response := httptest.NewRecorder()
 	status, body := h.Func(response, request, Arguments{})
-	if status != 200 {
-		t.Errorf("Expected 200. Got %d (%s)", status, body)
+	if status != http.StatusOK {
+		t.Errorf("Expected http.StatusOK (200). Got %d (%s)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
 	} else if testString, ok := args[QueryArgTestOptionalString]; !ok {
@@ -182,8 +182,8 @@ func TestOptionalStringArg(t *testing.T) {
 	request = httptest.NewRequest("GET", "/test", nil)
 	response = httptest.NewRecorder()
 	status, body = h.Func(response, request, Arguments{})
-	if status != 200 {
-		t.Errorf("Expected 200. Got %d (%s)", status, body)
+	if status != http.StatusOK {
+		t.Errorf("Expected http.StatusOK (200). Got %d (%s)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
 	} else if _, ok := args[QueryArgTestOptionalString]; ok {
@@ -200,8 +200,8 @@ func TestNegativeUintArg(t *testing.T) {
 	request := httptest.NewRequest("GET", "/test?testUint=-21", nil)
 	response := httptest.NewRecorder()
 	status, body := h.Func(response, request, Arguments{})
-	if status != 400 {
-		t.Errorf("Expected 400. Got %d (%s)", status, body)
+	if status != http.StatusBadRequest {
+		t.Errorf("Expected http.StatusBadRequest (400). Got %d (%s)", status, body)
 	}
 	if err, ok := body.(error); !ok {
 		t.Errorf("Expected error.")
@@ -237,8 +237,8 @@ func TestMultipleArg(t *testing.T) {
 	request := httptest.NewRequest("GET", "/test?"+strings.Join(paramsURL, "&"), nil)
 	response := httptest.NewRecorder()
 	status, body := h.Func(response, request, Arguments{})
-	if status != 200 {
-		t.Errorf("Expected 200. Got %d (%v)", status, body)
+	if status != http.StatusOK {
+		t.Errorf("Expected http.StatusOK (200). Got %d (%v)", status, body)
 	} else if args, ok := body.(Arguments); !ok {
 		t.Errorf("Expected type Arguments.")
 	} else {

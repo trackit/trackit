@@ -22,28 +22,36 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/organizations"
 
+	"github.com/trackit/jsonlog"
 	"github.com/trackit/trackit/config"
 	"github.com/trackit/trackit/models"
 )
 
 func updateExistingAccount(ctx context.Context, aa AwsAccount, subs []AwsAccount, tx *sql.Tx) error {
-	exists, err := models.AwsAccountsByUserID(tx, aa.UserId)
+	exists, err := models.AwsAccountByUserID(tx, aa.UserId)
 	if err != nil {
 		return err
 	}
 	for _, exist := range exists {
-		if exist.ParentID.Valid == true {
+		if exist.ParentID.Valid {
 			continue
 		}
 		for _, sub := range subs {
 			if exist.AwsIdentity == sub.AwsIdentity && exist.AwsIdentity != aa.AwsIdentity {
 				exist.ParentID.Valid = true
 				exist.ParentID.Int64 = int64(aa.Id)
-				exist.Update(tx)
+				if updateErr := exist.Update(tx); updateErr != nil {
+					if err == nil {
+						err = updateErr
+					}
+					jsonlog.LoggerFromContextOrDefault(ctx).Error("Failure to update AWS account in database", map[string]interface{}{
+						"error": updateErr.Error(),
+					})
+				}
 			}
 		}
 	}
-	return nil
+	return err
 }
 
 // getAwsSubAccounts gets the list of sub accounts in AWS for an aws account
@@ -87,7 +95,7 @@ func PutSubAccounts(ctx context.Context, account AwsAccount, tx *sql.Tx) error {
 	if err != nil {
 		return err
 	}
-	alreadyAccounts, err := models.AwsAccountsByUserID(tx, account.UserId)
+	alreadyAccounts, err := models.AwsAccountByUserID(tx, account.UserId)
 	if err != nil {
 		return err
 	}
@@ -98,7 +106,17 @@ SubAccountsLoop:
 				continue SubAccountsLoop
 			}
 		}
-		sub.CreateAwsAccount(ctx, tx)
+		if createError := sub.CreateAwsAccount(ctx, tx); createError != nil {
+			if err == nil {
+				err = createError
+			}
+			jsonlog.LoggerFromContextOrDefault(ctx).Error("Failure to register AWS sub-account", map[string]interface{}{
+				"error": createError.Error(),
+			})
+		}
+	}
+	if err != nil {
+		return err
 	}
 	return updateExistingAccount(ctx, account, subAccounts, tx)
 }

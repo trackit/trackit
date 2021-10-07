@@ -81,14 +81,14 @@ func fetchDailyDomainsList(ctx context.Context, creds *credentials.Credentials, 
 				Region:            region,
 			},
 			Tags:  tags,
-			Costs: make(map[string]float64, 0),
+			Costs: make(map[string]float64),
 			Stats: stats,
 		}
 	}
 	return nil
 }
 
-// FetchDomainsStats retrieces ES information from the AWS API and generate a report
+// FetchDomainsStats retrieves ES information from the AWS API and generates a report
 func FetchDomainsStats(ctx context.Context, awsAccount taws.AwsAccount) error {
 	logger := jsonlog.LoggerFromContextOrDefault(ctx)
 	logger.Info("Fetching ES instance stats", map[string]interface{}{"awsAccountId": awsAccount.Id})

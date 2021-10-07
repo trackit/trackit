@@ -19,10 +19,6 @@ import (
 	"testing"
 )
 
-const (
-	envVarPrefix = "TRACKIT"
-)
-
 var (
 	// HttpAddress is the address and port the server shall bind to.
 	HttpAddress string

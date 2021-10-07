@@ -150,5 +150,4 @@ func elastiCacheUsageReportGenerateHeader(file *excelize.File) {
 		newColumnWidth("L", 30),
 	}
 	columns.setValues(file, elastiCacheUsageReportSheetName)
-	return
 }

@@ -20,14 +20,14 @@ import (
 )
 
 // DeleteExpiredForgottenPassword deletes the ForgottenPassword that are older than the date parameter
-func DeleteExpiredForgottenPassword(db XODB, date time.Time) error {
+func DeleteExpiredForgottenPassword(db DB, date time.Time) error {
 	var err error
 
 	// sql query
 	const sqlstr = `DELETE FROM trackit.forgotten_password WHERE created < ?`
 
 	// run query
-	XOLog(sqlstr, date)
+	logf(sqlstr, date)
 	_, err = db.Exec(sqlstr, date)
 	if err != nil {
 		return err

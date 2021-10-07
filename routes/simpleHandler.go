@@ -18,7 +18,7 @@ import (
 	"net/http"
 )
 
-// Handler is the type a route Handler must have.
+// SimpleHandler is the type a route handler must have.
 type SimpleHandler func(*http.Request, Arguments) (int, interface{})
 
 // H builds a Handler from a SimpleHandler. The produced handler has an empty

@@ -40,7 +40,7 @@ type costDiff map[string][]PricePoint
 func (cd costDiff) ToCSVable() [][]string {
 	csv := [][]string{}
 	keys := []string{}
-	for k, _ := range cd {
+	for k := range cd {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -70,7 +70,7 @@ func (cd costDiff) ToCSVable() [][]string {
 // getVariations compute the percentage of variation between each pair of consecutive
 // week/month in the interval selected by the user.
 func getVariations(pricePoints []PricePoint) []PricePoint {
-	for i := 1; i < len(pricePoints); i += 1 {
+	for i := 1; i < len(pricePoints); i++ {
 		if pricePoints[i-1].Cost == 0.0 {
 			pricePoints[i].PercentVariation = 0.0
 		} else {

@@ -23,8 +23,6 @@ import (
 	"github.com/trackit/trackit/es"
 )
 
-const typeTaggingCompliance = "tagging-compliance"
-const indexPrefixTaggingCompliance = "tagging-compliance"
 const templateNameTaggingCompliance = "tagging-compliance"
 
 // put the ElasticSearch index for *-tagging-compliance indices at startup.
@@ -43,7 +41,7 @@ func init() {
 const templateTaggingCompliance = `
 {
     "template":"*-tagging-compliance",
-    "version":1,
+    "version":2,
     "mappings":{
         "tagging-compliance":{
             "properties":{
@@ -64,6 +62,9 @@ const templateTaggingCompliance = `
                 },
                 "mostUsedTagsId":{
                     "type":"keyword"
+                },
+                "mostUsedTags":{
+                    "type":"text"
                 }
             },
             "_all": {
