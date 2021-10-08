@@ -111,6 +111,7 @@ func TestEpitechio(t *testing.T) {
 }
 */
 
+// Seems to just hang forever rn ? Need more investgation on whether this is some local ES problem, or perhaps due to the hardcoded role given here
 func TestUpdate(t *testing.T) {
 	latestManifest, err := UpdateReport(
 		context.Background(),

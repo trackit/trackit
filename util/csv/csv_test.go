@@ -63,11 +63,11 @@ func testExecutor(s interface{}, t *testing.T, testMessage func(interface{}, int
 	for i := 0; i < array.Len(); i++ {
 		v := r.Interface()
 		err := d.ReadRecord(v)
-		e := array.Index(i)
+		e := array.Index(i).Interface()
 		if err != nil {
 			t.Errorf("ReadRecord should succeed. Failed with %s.", err.Error())
 		}
-		if !testMessage(e, v) {
+		if testMessage(e, v) {
 			t.Errorf("Record structure should be %#v, is %#v instead.", e, v)
 		}
 	}
@@ -80,7 +80,7 @@ func TestDefaultNames(t *testing.T) {
 		{"1", "3", "2"},
 		{",", "", "\nnewline\n"},
 	}
-	testExecutor(dne, t, func(e, v interface{}) bool { return e != v })
+	testExecutor(dne, t, func(e, v interface{}) bool { return e != *v.(*DefaultNames) })
 }
 
 func TestTaggedNames(t *testing.T) {
@@ -90,7 +90,7 @@ func TestTaggedNames(t *testing.T) {
 		{"1", "3", "2"},
 		{",", "", "\nnewline\n"},
 	}
-	testExecutor(dne, t, func(e, v interface{}) bool { return e != v })
+	testExecutor(dne, t, func(e, v interface{}) bool { return e != *v.(*TaggedNames) })
 }
 
 func TestIgnoredNames(t *testing.T) {
@@ -100,7 +100,7 @@ func TestIgnoredNames(t *testing.T) {
 		{"1", "3", ""},
 		{",", "", ""},
 	}
-	testExecutor(dne, t, func(e, v interface{}) bool { return e != v })
+	testExecutor(dne, t, func(e, v interface{}) bool { return e != *v.(*IgnoredNames) })
 }
 
 func TestAnyNames(t *testing.T) {
@@ -111,6 +111,6 @@ func TestAnyNames(t *testing.T) {
 		{",", map[string]string{"Bar": "", "Baz": "\nnewline\n"}},
 	}
 	testExecutor(dne, t, func(e, v interface{}) bool {
-		return e.(AnyNames).Foo != v.(AnyNames).Foo || e.(AnyNames).Default["Bar"] != v.(AnyNames).Default["Bar"] || e.(AnyNames).Default["Baz"] != v.(AnyNames).Default["Baz"]
+		return e.(AnyNames).Foo != v.(*AnyNames).Foo || e.(AnyNames).Default["Bar"] != v.(*AnyNames).Default["Bar"] || e.(AnyNames).Default["Baz"] != v.(*AnyNames).Default["Baz"]
 	})
 }

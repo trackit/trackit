@@ -15,12 +15,9 @@
 package costs
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 	"time"
-
-	"github.com/olivere/elastic"
 )
 
 // Fonction not used
