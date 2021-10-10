@@ -25,7 +25,7 @@ func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
 		"123456",
 		"98765432",
 	}
-	expectedResult := `{"terms":{"usageAccountId":["123456","98765432"]}}`
+	expectedResult := `{"terms":{"account":["123456","98765432"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -44,7 +44,7 @@ func TestQueryAccountFiltersSingleAccount(t *testing.T) {
 	linkedAccountID := []string{
 		"123456",
 	}
-	expectedResult := `{"terms":{"usageAccountId":["123456"]}}`
+	expectedResult := `{"terms":{"account":["123456"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -62,7 +62,7 @@ func TestQueryAccountFiltersSingleAccount(t *testing.T) {
 func TestQueryTimeRange(t *testing.T) {
 	durationBegin, _ := time.Parse("2006-01-02", "2017-01-12")
 	durationEnd, _ := time.Parse("2006-01-02", "2017-05-23")
-	expectedResult := `{"range":{"usageStartDate":{"from":"2017-01-12T00:00:00Z","include_lower":true,"include_upper":true,"to":"2017-05-23T00:00:00Z"}}}`
+	expectedResult := `{"range":{"date":{"from":"2017-01-12T00:00:00Z","include_lower":true,"include_upper":true,"to":"2017-05-23T00:00:00Z"}}}`
 
 	res := createQueryTimeRange(durationBegin, durationEnd)
 	src, err := res.Source()

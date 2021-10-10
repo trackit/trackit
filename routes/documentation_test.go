@@ -44,7 +44,7 @@ func TestDocumentationHandler(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error should be nil, is '%s' instead.", err.Error())
 	} else if string(bytes) != testDocumentationExpected {
-		t.Errorf("Documentation should be\n%s\nis\n$s\ninstead.", testDocumentationExpected, string(bytes))
+		t.Errorf("Documentation should be\n%s\nis\n%s\ninstead.", testDocumentationExpected, string(bytes))
 	}
 	resetRegisteredHandlers()
 }

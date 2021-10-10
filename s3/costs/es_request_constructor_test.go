@@ -21,11 +21,11 @@ import (
 )
 
 func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
-	linkedAccountID := []uint{
-		123456,
-		98765432,
+	linkedAccountID := []string{
+		"123456",
+		"98765432",
 	}
-	expectedResult := `{"terms":{"usageAccountId":[123456,98765432]}}`
+	expectedResult := `{"terms":{"usageAccountId":["123456","98765432"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {
@@ -41,10 +41,10 @@ func TestQueryAccountFiltersMultipleAccounts(t *testing.T) {
 }
 
 func TestQueryAccountFiltersSingleAccount(t *testing.T) {
-	linkedAccountID := []uint{
-		123456,
+	linkedAccountID := []string{
+		"123456",
 	}
-	expectedResult := `{"terms":{"usageAccountId":[123456]}}`
+	expectedResult := `{"terms":{"usageAccountId":["123456"]}}`
 	res := createQueryAccountFilter(linkedAccountID)
 	src, err := res.Source()
 	if err != nil {

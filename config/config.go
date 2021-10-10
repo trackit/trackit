@@ -16,6 +16,7 @@ package config
 
 import (
 	"flag"
+	"testing"
 )
 
 var (
@@ -158,6 +159,7 @@ func init() {
 	flag.BoolVar(&Worker, "worker", false, "Whether to start API as a worker or not.")
 	flag.StringVar(&SQSQueueName, "sqs-queue-name", "trackit-dispatcher-queue", "Name of the SQS Queue for workers.")
 	flag.StringVar(&Environment, "env", "dev", "Environment of the Trackit API.")
+	testing.Init()
 	flag.Parse()
 	if len(EsAddress) == 0 {
 		EsAddress = stringArray{"http://127.0.0.1:9200"}

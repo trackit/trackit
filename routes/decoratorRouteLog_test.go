@@ -45,6 +45,7 @@ func basicRequestDataExpected(brd basicRequestData) basicLogMessage {
 	}
 }
 
+// This only checks the first message since the second one depends on the amount of time spent handling the request
 func TestRouteLogging(t *testing.T) {
 	h := H(getFoo).With(
 		RouteLog{},
@@ -75,8 +76,9 @@ func TestRouteLogging(t *testing.T) {
 			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", getFooResponse, r)
 		}
 		var blm basicLogMessage
-		if err := json.Unmarshal(buf.Bytes(), &blm); err != nil {
+		if err := json.NewDecoder(bytes.NewReader(buf.Bytes())).Decode(&blm); err != nil { // Note: the `err != nil` check will also fail if EOF was encountered, which is deliberate. Note that we use a JSON decoder so that we don't get an error from having two objects in a row (the two log messages, of which we only want the first)
 			t.Errorf("Failed to unmarshal log message with '%s'.", err.Error())
+			t.Errorf("Log message: '%s'.", buf.String())
 		}
 		return blm
 	}
