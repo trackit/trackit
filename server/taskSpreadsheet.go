@@ -212,6 +212,9 @@ func registerAccountReportGenerationCompletion(db *sql.DB, aaId int, updateId in
 	dbAccountReports.EsUsageReportError = errToStr(errs["esUsageReportError"])
 	dbAccountReports.ElasticacheUsageReportError = errToStr(errs["elasticacheUsageReportError"])
 	dbAccountReports.LambdaUsageReportError = errToStr(errs["lambdaUsageReportError"])
+	dbAccountReports.RiEc2reportError = errToStr(errs["riEc2ReportError"])
+	dbAccountReports.RiRdsReportError = errToStr(errs["riRdsReportError"])
+	dbAccountReports.OdToRiEc2reportError = errToStr(errs["odToRiEc2ReportError"])
 	err = dbAccountReports.Update(db)
 	if err != nil {
 		return err
