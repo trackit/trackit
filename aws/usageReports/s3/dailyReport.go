@@ -29,15 +29,15 @@ import (
 	"github.com/trackit/trackit/config"
 )
 
-// fetchOneRegion establishes a new API connection for the corresponding region and gets all the tags for all the buckets associated with it (passed through region_buckets
-func fetchOneRegion(ctx context.Context, creds *credentials.Credentials, region string, region_buckets []s3.Bucket, bucketChan chan Bucket) {
+// fetchOneRegion establishes a new API connection for the corresponding region and gets all the tags for all the buckets associated with it (passed through regionBuckets)
+func fetchOneRegion(ctx context.Context, creds *credentials.Credentials, region string, regionBuckets []s3.Bucket, bucketChan chan Bucket) {
 	defer close(bucketChan)
 	session := session.Must(session.NewSession(&aws.Config{
 		Credentials: creds,
 		Region:      aws.String(region),
 	}))
 	service := s3.New(session)
-	for _, bucket := range region_buckets {
+	for _, bucket := range regionBuckets {
 		bucketChan <- Bucket{
 			BucketBase: BucketBase{
 				Name:         aws.StringValue(bucket.Name),
