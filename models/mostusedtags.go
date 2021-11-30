@@ -89,7 +89,7 @@ func MostUsedTagsInUseByUser(db DB, userID int) (*MostUsedTag, error) {
 	return res[0], nil
 }
 
-// MostUsedTagsHistoryInUseByUser returns the currently used most used tags history of a user
+// MostUsedTagsHistoryByUser returns the currently used most used tags history of a user
 func MostUsedTagsHistoryByUser(db DB, userID int) ([]*MostUsedTag, error) {
 	var err error
 

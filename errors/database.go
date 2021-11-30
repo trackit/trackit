@@ -23,7 +23,10 @@ import (
 )
 
 const (
+	// DatabaseGenericError is the generic error type for database operations
 	DatabaseGenericError = iota
+
+	// DatabaseItemNotFound is the error type for database errors involving something not being found, such as an account not existing
 	DatabaseItemNotFound
 )
 

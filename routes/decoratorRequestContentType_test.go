@@ -94,15 +94,15 @@ func TestDocumentedHandlerWithBadRequestContentType(t *testing.T) {
 		t.Errorf("Status code should be %d, is %d instead.", http.StatusBadRequest, s)
 	}
 	if rt, ok := r.(error); ok {
-		if rt != ErrUnsupportedContentType {
+		if rt != errUnsupportedContentType {
 			t.Errorf(
 				"Response should be '%s', is '%s' instead.",
-				ErrUnsupportedContentType.Error(),
+				errUnsupportedContentType.Error(),
 				rt.Error(),
 			)
 		}
 	} else {
-		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 	}
 }
 
@@ -149,15 +149,15 @@ func TestNoRequestContentType(t *testing.T) {
 		t.Errorf("Status code should be %d, is %d instead.", http.StatusBadRequest, s)
 	}
 	if rt, ok := r.(error); ok {
-		if rt != ErrMissingContentType {
+		if rt != errMissingContentType {
 			t.Errorf(
 				"Response should be '%s', is '%s' instead.",
-				ErrMissingContentType.Error(),
+				errMissingContentType.Error(),
 				rt.Error(),
 			)
 		}
 	} else {
-		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 	}
 }
 
@@ -176,14 +176,14 @@ func TestMultipleRequestContentTypes(t *testing.T) {
 		t.Errorf("Status code should be %d, is %d instead.", http.StatusBadRequest, s)
 	}
 	if rt, ok := r.(error); ok {
-		if rt != ErrMultipleContentTypes {
+		if rt != errMultipleContentTypes {
 			t.Errorf(
 				"Response should be '%s', is '%s' instead.",
-				ErrMultipleContentTypes.Error(),
+				errMultipleContentTypes.Error(),
 				rt.Error(),
 			)
 		}
 	} else {
-		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 	}
 }

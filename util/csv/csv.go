@@ -34,11 +34,11 @@ func (err csvError) Error() string {
 }
 
 const (
-	ErrNotStruct               = csvError("Record is not a struct.")
-	ErrNotSupported            = csvError("Operation is not supported.")
-	ErrInvalidFieldType        = csvError("Field type not supported.")
-	ErrInvalidDefaultFieldType = csvError("Default field type not supported.")
-	StructFieldTag             = "csv"
+	errNotStruct               = csvError("Record is not a struct.")
+	errNotSupported            = csvError("Operation is not supported.")
+	errInvalidFieldType        = csvError("Field type not supported.")
+	errInvalidDefaultFieldType = csvError("Default field type not supported.")
+	structFieldTag             = "csv"
 )
 
 type recordType struct {
@@ -125,7 +125,7 @@ func buildRecordType(t reflect.Type) (recordType, error) {
 		t = t.Elem()
 	}
 	if t.Kind() != reflect.Struct {
-		return rt, ErrNotStruct
+		return rt, errNotStruct
 	} else {
 		rt.Type = t
 		rt.fieldByName = make(map[string]int)
@@ -146,7 +146,7 @@ func buildRecordType(t reflect.Type) (recordType, error) {
 }
 
 func getFieldName(field reflect.StructField) string {
-	tag := strings.Split(field.Tag.Get(StructFieldTag), ",")
+	tag := strings.Split(field.Tag.Get(structFieldTag), ",")
 	if len(tag) >= 2 && tag[1] == "any" {
 		return ""
 	} else if len(tag) > 0 && tag[0] != "" {
@@ -159,12 +159,12 @@ func getFieldName(field reflect.StructField) string {
 func validateRecordType(rt recordType) (recordType, error) {
 	if df := rt.defaultField; df >= 0 {
 		if rt.Type.FieldByIndex([]int{df}).Type != reflect.TypeOf(map[string]string{}) {
-			return rt, ErrInvalidDefaultFieldType
+			return rt, errInvalidDefaultFieldType
 		}
 	}
 	for i := range rt.nameByField {
 		if ft := rt.Type.FieldByIndex([]int{i}); ft.Type != reflect.TypeOf(string("")) {
-			return rt, ErrInvalidFieldType
+			return rt, errInvalidFieldType
 		}
 	}
 	return rt, nil

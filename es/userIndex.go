@@ -21,6 +21,7 @@ import (
 )
 
 const (
+	// IndexPrefixLineItems is the index prefix string for lineitems
 	IndexPrefixLineItems = "lineitems"
 )
 

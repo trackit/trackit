@@ -23,9 +23,16 @@ import (
 )
 
 const (
+	// SharedAccountGenericError is the generic error type for errors relating to shared accounts
 	SharedAccountGenericError = iota
+
+	// SharedAccountNoPermission is the shared account error type for situations in which permission to perform an operation is lacking
 	SharedAccountNoPermission
+
+	// SharedAccountBadPermission is the shared account error type for situations in which a permission level to perform an operation is present, but is invalid
 	SharedAccountBadPermission
+
+	// SharedAccountRequestError is the shared account error type for situations in which an internal request relating to the operation failed
 	SharedAccountRequestError
 )
 

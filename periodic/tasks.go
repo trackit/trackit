@@ -32,11 +32,6 @@ type contextKey uint
 type taskSignal uint
 
 const (
-	Hourly      = 1 * time.Hour
-	Daily       = 24 * time.Hour
-	TwiceDaily  = Daily / 2
-	ThriceDaily = Daily / 3
-
 	// TaskTime is a key for a context.Context where the starting time of
 	// the current request is stored.
 	TaskTime = contextKey(iota)

@@ -27,7 +27,7 @@ import (
 
 var (
 	EC2ServiceCode = "AmazonEC2"
-	// Pricing endpoints are only available in "us-east-1" and "ap-south-1"
+	// PricingApiEndpointRegion defines the pricing region, which is used for creating a client. Note: Pricing endpoints are only available in "us-east-1" and "ap-south-1"
 	PricingApiEndpointRegion = "us-east-1"
 )
 

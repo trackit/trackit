@@ -46,7 +46,7 @@ func TestCorsAllowOrigin(t *testing.T) {
 				)
 			}
 		} else {
-			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 		}
 		return response.Header()["Access-Control-Allow-Origin"]
 	}
@@ -73,7 +73,7 @@ func TestCorsAllowHeaders(t *testing.T) {
 				)
 			}
 		} else {
-			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 		}
 		return response.Header()["Access-Control-Allow-Headers"]
 	}
@@ -100,7 +100,7 @@ func TestCorsAllowCredentials(t *testing.T) {
 				)
 			}
 		} else {
-			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+			t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 		}
 		return response.Header()["Access-Control-Allow-Credentials"]
 	}
@@ -129,7 +129,7 @@ func TestCorsMethods(t *testing.T) {
 			)
 		}
 	} else {
-		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 	}
 	expected := []string{"GET", "POST", "OPTIONS"}
 	results := response.Header()["Access-Control-Allow-Methods"]
@@ -171,7 +171,7 @@ func TestCorsDocumentation(t *testing.T) {
 			)
 		}
 	} else {
-		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrUnsupportedContentType, r)
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errUnsupportedContentType, r)
 	}
 	expected := []string{"GET", "POST", "OPTIONS"}
 	results := response.Header()["Access-Control-Allow-Methods"]

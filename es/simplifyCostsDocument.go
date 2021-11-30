@@ -60,12 +60,23 @@ type aggregation = map[string]interface{} // aggregation has buckets
 type bucket = map[string]interface{}      // bucket has aggregations and values
 
 const (
-	BucketPrefix         = "by-"
-	BucketKeyKey         = "key"
-	AggBucketKey         = "buckets"
-	BucketKeyAsStringKey = "key_as_string"
-	BucketValueKey       = "value"
-	BucketValueValueKey  = "value"
+	// bucketPrefix is the string by which bucket keys are prefixed
+	bucketPrefix         = "by-"
+
+	// bucketKeyKey is the key for the bucket's key (i.e. the bucket's key can be seen at bucketKeyKey element of the bucket)
+	bucketKeyKey         = "key"
+
+	// bucketKeyAsStringKey is an alternate key for the bucket's key, and should work like BucketKeyKey
+	bucketKeyAsStringKey = "key_as_string"
+
+	// aggBucketKey is the key for the child buckets
+	aggBucketKey         = "buckets"
+
+	// bucketValueKey is the key for the bucket's values
+	bucketValueKey       = "value"
+
+	// BucketValueKey is the key for a value within the value map
+	bucketValueValueKey  = "value"
 )
 
 var (
@@ -124,12 +135,12 @@ func simplifyCostsDocumentRec(ctx context.Context, doc bucket, root bool) (Simpl
 }
 
 func getKey(doc bucket) (string, error) {
-	if key, ok := doc[BucketKeyKey]; ok {
+	if key, ok := doc[bucketKeyKey]; ok {
 		if tkey, ok := key.(string); ok {
 			return tkey, nil
 		}
 	}
-	if key, ok := doc[BucketKeyAsStringKey]; ok {
+	if key, ok := doc[bucketKeyAsStringKey]; ok {
 		if tkey, ok := key.(string); ok {
 			return tkey, nil
 		}
@@ -139,9 +150,9 @@ func getKey(doc bucket) (string, error) {
 
 func getValue(ctx context.Context, doc bucket) (float64, bool) {
 	var logger = jsonlog.LoggerFromContextOrDefault(ctx)
-	if value, ok := doc[BucketValueKey]; ok {
+	if value, ok := doc[bucketValueKey]; ok {
 		if tvalue, ok := value.(map[string]interface{}); ok {
-			if valuevalue, ok := tvalue[BucketValueValueKey]; ok {
+			if valuevalue, ok := tvalue[bucketValueValueKey]; ok {
 				if tvaluevalue, ok := valuevalue.(float64); ok {
 					return tvaluevalue, true
 				} else {
@@ -159,16 +170,16 @@ func getChildren(ctx context.Context, doc bucket) (string, []SimplifiedCostsDocu
 		logger.Error("Failed to get child key.", err.Error())
 		logger.Debug("Document is.", doc)
 		return "", nil, err
-	} else if childAgg, ok := doc[BucketPrefix+childKey].(map[string]interface{}); !ok {
+	} else if childAgg, ok := doc[bucketPrefix+childKey].(map[string]interface{}); !ok {
 		logger.Error(fmt.Sprintf("Failed to get buckets: value under '%s' is not an aggregation.", childKey), nil)
 		logger.Debug("Document is.", doc)
 		return "", nil, ErrFailedJsonParsing
-	} else if childAggsBuckets, ok := childAgg[AggBucketKey]; !ok {
-		logger.Error(fmt.Sprintf("Failed to get buckets: value under '%s' does not have '%s' field.", childKey, AggBucketKey), nil)
+	} else if childAggsBuckets, ok := childAgg[aggBucketKey]; !ok {
+		logger.Error(fmt.Sprintf("Failed to get buckets: value under '%s' does not have '%s' field.", childKey, aggBucketKey), nil)
 		logger.Debug("Document is.", doc)
 		return "", nil, ErrFailedJsonParsing
 	} else if children, ok := childAggsBuckets.([]interface{}); !ok {
-		logger.Error(fmt.Sprintf("Failed to get buckets: value under '%s.%s' is not a slice.", childKey, AggBucketKey), nil)
+		logger.Error(fmt.Sprintf("Failed to get buckets: value under '%s.%s' is not a slice.", childKey, aggBucketKey), nil)
 		logger.Debug("Document is.", doc)
 		return "", nil, ErrFailedJsonParsing
 	} else {
@@ -191,11 +202,11 @@ func getChildren(ctx context.Context, doc bucket) (string, []SimplifiedCostsDocu
 func getChildKey(ctx context.Context, doc map[string]interface{}) (string, error) {
 	var childKey string
 	for k := range doc {
-		if strings.HasPrefix(k, BucketPrefix) {
+		if strings.HasPrefix(k, bucketPrefix) {
 			if childKey != "" {
 				return "", ErrNoSingleAggregationBranch
 			} else {
-				childKey = strings.TrimPrefix(k, BucketPrefix)
+				childKey = strings.TrimPrefix(k, bucketPrefix)
 			}
 		}
 	}

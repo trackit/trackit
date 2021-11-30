@@ -20,6 +20,7 @@ type RequireAwsAccountId struct{}
 type routeArgKey uint
 
 const (
+	// AwsAccountSelection is the key to use with routes.Arguments when getting the AWS account information (of type aws.AwsAccount)
 	AwsAccountSelection = routeArgKey(iota)
 )
 

@@ -60,6 +60,7 @@ const (
 
 	opTypeCreate = "create"
 
+	// MaxAggregationSize determines the maximum amount of terms returned in an aggregation from an ES search
 	MaxAggregationSize = 0x7FFFFFFF
 )
 
