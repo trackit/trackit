@@ -40,9 +40,9 @@ type spreadsheet struct {
 type spreadsheetType uint8
 
 const (
-	MasterReport = spreadsheetType(iota)
-	RegularReport
-	TagsReport
+	masterReport = spreadsheetType(iota)
+	regularReport
+	tagsReport
 )
 
 func createSpreadsheet(aa taws.AwsAccount, date string) spreadsheet {
@@ -61,9 +61,9 @@ func getFilenameLocally(account taws.AwsAccount, date string, reportType spreads
 
 func getFilename(account taws.AwsAccount, date string, reportType spreadsheetType) string {
 	reportName := ""
-	if reportType == MasterReport {
+	if reportType == masterReport {
 		reportName = "MasterReport_"
-	} else if reportType == TagsReport {
+	} else if reportType == tagsReport {
 		reportName = "TagsReport_"
 	}
 	return fmt.Sprintf("TRACKIT_%s%s_%s.xlsx", reportName, account.Pretty, date)

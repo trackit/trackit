@@ -44,6 +44,7 @@ const (
 	// bills in a place where there isn't much of anything else.
 	MaxCheckedKeysByRepository = 10000
 
+	// ReadBillsStsSessionName is the STS session name used for getting repository service information
 	ReadBillsStsSessionName = "read-bills"
 )
 

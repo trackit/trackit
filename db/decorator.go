@@ -35,6 +35,7 @@ type RequestTransaction struct {
 type transactionArgumentKey uint
 
 const (
+	// Transaction is the key to use with routes.Arguments when getting the request transaction object (of type *sql.Tx)
 	Transaction = transactionArgumentKey(iota)
 )
 

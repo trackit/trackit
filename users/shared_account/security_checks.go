@@ -12,10 +12,9 @@ import (
 )
 
 const (
-	AdminLevel    = 0
-	StandardLevel = 1
-	ReadLevel     = 2
-	DatabaseError = "Error while getting data from database"
+	adminLevel    = 0
+	standardLevel = 1
+	readLevel     = 2
 )
 
 // safetyCheckByAccountId checks by AccountId if the user have a high enough
@@ -35,7 +34,7 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 	dbSharedAccount, err := models.SharedAccountByAccountID(tx, AccountId)
 	if err == nil {
 		for _, key := range dbSharedAccount {
-			if key.UserID == user.Id && (key.UserPermission == AdminLevel || key.UserPermission == StandardLevel) {
+			if key.UserID == user.Id && (key.UserPermission == adminLevel || key.UserPermission == standardLevel) {
 				return true, nil
 			}
 		}
@@ -49,9 +48,9 @@ func safetyCheckByAccountId(ctx context.Context, tx *sql.Tx, AccountId int, user
 
 // checkLevel checks if the current user permission level is high enough to perform an action
 func checkLevel(PermissionLevelToCheck int, currentUserPermissionLevel int) bool {
-	if currentUserPermissionLevel == AdminLevel {
+	if currentUserPermissionLevel == adminLevel {
 		return true
-	} else if currentUserPermissionLevel == StandardLevel {
+	} else if currentUserPermissionLevel == standardLevel {
 		if currentUserPermissionLevel <= PermissionLevelToCheck {
 			return true
 		}
@@ -144,7 +143,7 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 	if err == nil {
 		for _, key := range dbShareAccountByAccountId {
 			if key.UserID == user.Id && checkLevel(newPermissionLevel, key.UserPermission) {
-				if key.UserPermission == StandardLevel && dbShareAccount.UserPermission == AdminLevel {
+				if key.UserPermission == standardLevel && dbShareAccount.UserPermission == adminLevel {
 					return false, nil
 				}
 				return true, nil
@@ -157,11 +156,11 @@ func safetyCheckByShareIdAndPermissionLevel(ctx context.Context, tx *sql.Tx, sha
 
 // checkPermissionLevel checks user permission level
 func checkPermissionLevel(permissionLevel int) bool {
-	if permissionLevel == AdminLevel {
+	if permissionLevel == adminLevel {
 		return true
-	} else if permissionLevel == StandardLevel {
+	} else if permissionLevel == standardLevel {
 		return true
-	} else if permissionLevel == ReadLevel {
+	} else if permissionLevel == readLevel {
 		return true
 	} else {
 		return false

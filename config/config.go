@@ -47,9 +47,9 @@ var (
 	DefaultRoleBucket string
 	// DefaultRoleBucketPrefix is the billing prefix for the role added by default
 	DefaultRoleBucketPrefix string
-	// PrettyJsonResponses, if set, indicates JSON HTTP responses should be pretty.
+	// PrettyJsonResponses indicates whether JSON HTTP responses should be pretty.
 	PrettyJsonResponses bool
-	// EsAuth is the authentication used to connect to the ElasticSearch database.
+	// EsAuthentication is the authentication used to connect to the ElasticSearch database.
 	// It can be 'basic:user:password' for basic authentication.
 	EsAuthentication string
 	// EsAddress is the address where the ElasticSearch database resides.
@@ -74,11 +74,11 @@ var (
 	UrlEc2Pricing string
 	// Task is the task to be run. "server", by default.
 	Task string
-	// Periodics, if true, indicates periodic tasks should be run in goroutines within the process.
+	// Periodics indicates whether periodic tasks should be run in goroutines within the process.
 	Periodics bool
-	// Aws Market place product code
+	// MarketPlaceProductCode is the AWS Marketplace product code
 	MarketPlaceProductCode string
-	// Aws Market place product code for Tagbot
+	// TagbotMarketPlaceProductCode is the AWS Marketplace product code for Tagbot
 	TagbotMarketPlaceProductCode string
 	// AnomalyDetectionBollingerBandPeriod is the period in day used to generate the upper band.
 	AnomalyDetectionBollingerBandPeriod int
@@ -102,11 +102,11 @@ var (
 	AnomalyDetectionPrettyLevels string
 	// AnomalyEmailingMinLevel is the minimum level required for the mail to be sent.
 	AnomalyEmailingMinLevel int
-	// Stripe secret key for Tagbot.
+	// StripeKey is the Stripe secret key for Tagbot.
 	StripeKey string
-	// Whether to start API as a worker or not.
+	// Worker determines whether to start API as a worker or not.
 	Worker bool
-	// SQS Queue name for workers.
+	// SQSQueueName is the SQS queue name used by workers.
 	SQSQueueName string
 	// Environment (prod, stg, dev).
 	Environment string

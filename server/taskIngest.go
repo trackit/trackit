@@ -167,8 +167,8 @@ func registerUpdateCompletion(db *sql.DB, updateId int64, err error) error {
 }
 
 const (
-	UpdateIntervalMinutes = 6 * 60
-	UpdateIntervalWindow  = 2 * 60
+	updateIntervalMinutes = 6 * 60
+	updateIntervalWindow  = 2 * 60
 )
 
 // updateBillRepositoryForNextUpdate plans the next update for a
@@ -177,7 +177,7 @@ func updateBillRepositoryForNextUpdate(ctx context.Context, tx *sql.Tx, br s3.Bi
 	if latestManifest.After(br.LastImportedManifest) {
 		br.LastImportedManifest = latestManifest
 	}
-	updateDeltaMinutes := time.Duration(UpdateIntervalMinutes-UpdateIntervalWindow/2+rand.Int63n(UpdateIntervalWindow)) * time.Minute
+	updateDeltaMinutes := time.Duration(updateIntervalMinutes-updateIntervalWindow/2+rand.Int63n(updateIntervalWindow)) * time.Minute
 	br.NextUpdate = time.Now().Add(updateDeltaMinutes)
 	return s3.UpdateBillRepository(br, tx)
 }

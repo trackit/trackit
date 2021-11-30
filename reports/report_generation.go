@@ -47,13 +47,13 @@ func GenerateReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAccount
 	}
 	if aas == nil {
 		aas = []aws.AwsAccount{aa}
-		reportType = RegularReport
+		reportType = regularReport
 		logger.Info("Generating spreadsheet for account", map[string]interface{}{
 			"account": aa,
 			"date":    reportDate,
 		})
 	} else {
-		reportType = MasterReport
+		reportType = masterReport
 		logger.Info("Generating spreadsheet for accounts", map[string]interface{}{
 			"masterAccount": aa,
 			"accounts":      aas,
@@ -118,7 +118,7 @@ func GenerateTagsReport(ctx context.Context, aa aws.AwsAccount, aas []aws.AwsAcc
 			errs["tagsError"] = err
 		}
 		file.File.DeleteSheet(file.File.GetSheetName(1))
-		errs["speadsheetError"] = saveSpreadsheet(ctx, file, TagsReport)
+		errs["speadsheetError"] = saveSpreadsheet(ctx, file, tagsReport)
 	}
 	return
 }

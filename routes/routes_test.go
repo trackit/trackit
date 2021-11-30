@@ -155,11 +155,11 @@ func TestMethodMuxerMethodNotAllowed(t *testing.T) {
 		t.Errorf("Status code should be %d, is %d instead.", http.StatusOK, s)
 	}
 	if rt, ok := r.(error); ok {
-		if rt != ErrMethodNotAllowed {
-			t.Errorf("Response should be '%s', is '%s' instead.", ErrMethodNotAllowed, rt)
+		if rt != errMethodNotAllowed {
+			t.Errorf("Response should be '%s', is '%s' instead.", errMethodNotAllowed, rt)
 		}
 	} else {
-		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", ErrMethodNotAllowed, r)
+		t.Errorf("Response should be %[1]T %#[1]v, is %[2]T %#[2]v instead.", errMethodNotAllowed, r)
 	}
 }
 

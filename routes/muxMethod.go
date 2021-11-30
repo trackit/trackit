@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ErrMethodNotAllowed = constError("Method is not allowed.")
+	errMethodNotAllowed = constError("Method is not allowed.")
 )
 
 // MethodMuxer multiplexes requests based on their method. If a request arrives
@@ -45,7 +45,7 @@ func (mm MethodMuxer) handlerFunc() HandlerFunc {
 		if h, ok := mm[r.Method]; ok {
 			return h.Func(w, r, a)
 		} else {
-			return http.StatusMethodNotAllowed, ErrMethodNotAllowed
+			return http.StatusMethodNotAllowed, errMethodNotAllowed
 		}
 	}
 }

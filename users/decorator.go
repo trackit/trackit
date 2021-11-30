@@ -33,13 +33,19 @@ type authenticatedUserArgumentKey uint
 type viewerHandling uint
 
 const (
+	// AuthenticatedUser is the key to use with routes.Arguments when getting an (authenticated) user's information in a request (of type users.User) 
 	AuthenticatedUser            = authenticatedUserArgumentKey(iota)
-	TagRequireUserAuthentication = "require:userauth"
+	tagRequireUserAuthentication = "require:userauth"
 )
 
 const (
+	// ViewerCannot signifies that a viewer account is disallowed from performing an action
 	ViewerCannot = viewerHandling(iota)
+
+	// ViewerAsSelf signifies that a viewer account can perform an action, and that it will do so as itself
 	ViewerAsSelf
+
+	// ViewerAsParent signifies that a viewer account can perform an action, and that it will do so as its parent
 	ViewerAsParent
 )
 
@@ -99,6 +105,6 @@ func (RequireAuthenticatedUser) getDocumentation(hd routes.HandlerDocumentation)
 	if hd.Tags == nil {
 		hd.Tags = make(routes.Tags)
 	}
-	hd.Tags[TagRequireUserAuthentication] = []string{"authenticated"}
+	hd.Tags[tagRequireUserAuthentication] = []string{"authenticated"}
 	return hd
 }

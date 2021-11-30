@@ -19,10 +19,10 @@ import (
 )
 
 const (
-	ErrUnsupportedContentType = constError("bad content type")
-	ErrMultipleContentTypes   = constError("multiple content types")
-	ErrMissingContentType     = constError("missing content type")
-	TagRequiredContentType    = "required:contenttype"
+	errUnsupportedContentType = constError("bad content type")
+	errMultipleContentTypes   = constError("multiple content types")
+	errMissingContentType     = constError("missing content type")
+	tagRequiredContentType    = "required:contenttype"
 )
 
 // RequestContentType decorates handlers and requires requests to be of a given
@@ -43,13 +43,13 @@ func (rct RequestContentType) getFunc(hf HandlerFunc) HandlerFunc {
 		if bodyIsIgnoredForMethod(r.Method) {
 			return hf(w, r, a)
 		} else if contentTypes := r.Header["Content-Type"]; len(contentTypes) == 0 {
-			return http.StatusBadRequest, ErrMissingContentType
+			return http.StatusBadRequest, errMissingContentType
 		} else if len(contentTypes) > 1 {
-			return http.StatusBadRequest, ErrMultipleContentTypes
+			return http.StatusBadRequest, errMultipleContentTypes
 		} else if supportedContentTypes[contentTypes[0]] {
 			return hf(w, r, a)
 		} else {
-			return http.StatusBadRequest, ErrUnsupportedContentType
+			return http.StatusBadRequest, errUnsupportedContentType
 		}
 	}
 }
@@ -81,6 +81,6 @@ func (rct RequestContentType) getDocumentation(hd HandlerDocumentation) HandlerD
 	if hd.Tags == nil {
 		hd.Tags = make(Tags)
 	}
-	hd.Tags[TagRequiredContentType] = []string(rct)
+	hd.Tags[tagRequiredContentType] = []string(rct)
 	return hd
 }
