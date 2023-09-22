@@ -10,7 +10,7 @@ jobs:
           name: Get dependencies with go mod
           command: |
             set -xe
-            go mod download
+            go mod tidy
       - run:
           name: Build portable binary
           command: |
@@ -30,6 +30,23 @@ jobs:
       #         CONTAINER_NAME=msolution/trackit2-api
       #       fi
       #       docker build -t $CONTAINER_NAME docker/server/
+      # - run:
+      #     name: Login to Docker Hub
+      #     command: |
+      #       set -e
+      #       docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+      # - run:
+      #     name: Push API Docker image
+      #     command: |
+      #       set -xe
+      #       CONTAINER_NAME=msolution/stg-trackit2-api
+      #       if [ "$CIRCLE_BRANCH" == "master" ];
+      #       then
+      #         CONTAINER_NAME=msolution/trackit2-api
+      #       fi
+      #       docker tag $CONTAINER_NAME $CONTAINER_NAME:${CIRCLE_SHA1}
+      #       docker push $CONTAINER_NAME
+      #       docker push $CONTAINER_NAME:${CIRCLE_SHA1}
       ### ---------------- ###
   build-and-push:
     # working_directory: /go/src/github.com/trackit/trackit
@@ -41,7 +58,7 @@ jobs:
           name: Get dependencies with go mod
           command: |
             set -xe
-            go mod download
+            go mod tidy
       - run:
           name: Build portable binary
           command: |
