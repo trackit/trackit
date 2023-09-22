@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: /go/src/github.com/trackit/trackit
     docker:
-      - image: cimg/go:1.19
+      - image: golang:1.19
     steps:
       - checkout
       - run:
@@ -20,7 +20,7 @@ jobs:
   build-and-push:
     working_directory: /go/src/github.com/trackit/trackit
     docker:
-      - image: cimg/go:1.19
+      - image: golang:1.19
     steps:
       - checkout
       - run:
@@ -34,7 +34,9 @@ jobs:
             set -xe
             cd server/
             ./buildstatic.sh
-      - setup_remote_docker
+      - setup_remote_docker:
+          version: 20.10.14
+          docker_layer_caching: true
       - run:
           name: Copy SQL schema
           command: |
