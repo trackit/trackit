@@ -7,7 +7,6 @@ if [[ $(git status --porcelain 2>/dev/null | wc -l) -gt 0 ]]
 then
 	build_number="$build_number-devel"
 fi
-go mod tidy
 
 CGO_ENABLED=0 GOOS=linux go build \
 	-a \

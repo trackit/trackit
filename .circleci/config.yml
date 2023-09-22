@@ -10,7 +10,7 @@ jobs:
           name: Get dependencies with go mod
           command: |
             set -xe
-            go mod download
+            go mod tidy
       - run:
           name: Build portable binary
           command: |
