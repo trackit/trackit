@@ -31,6 +31,11 @@ jobs:
             fi
             docker build -t $CONTAINER_NAME docker/server/
       - run:
+          name: Login to Docker Hub
+          command: |
+            set -e
+            docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+      - run:
           name: Push API Docker image
           command: |
             set -xe
