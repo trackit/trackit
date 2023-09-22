@@ -18,18 +18,18 @@ jobs:
             cd server/
             ./buildstatic.sh
       ### For testing ####
-      # - setup_remote_docker:
-      #     docker_layer_caching: true
-      # - run:
-      #     name: Build API Docker image
-      #     command: |
-      #       set -xe
-      #       CONTAINER_NAME=msolution/stg-trackit2-api
-      #       if [ "$CIRCLE_BRANCH" == "master" ];
-      #       then
-      #         CONTAINER_NAME=msolution/trackit2-api
-      #       fi
-      #       docker build -t $CONTAINER_NAME docker/server/
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build API Docker image
+          command: |
+            set -xe
+            CONTAINER_NAME=msolution/stg-trackit2-api
+            if [ "$CIRCLE_BRANCH" == "master" ];
+            then
+              CONTAINER_NAME=msolution/trackit2-api
+            fi
+            docker build -t $CONTAINER_NAME docker/server/
       ### ---------------- ###
   build-and-push:
     # working_directory: /go/src/github.com/trackit/trackit
