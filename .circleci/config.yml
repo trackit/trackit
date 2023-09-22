@@ -3,7 +3,7 @@ jobs:
   build:
     # working_directory: /go/src/github.com/trackit/trackit
     docker:
-      - image: cimg/go
+      - image: cimg/go:1.19
     steps:
       - checkout
       - run:
