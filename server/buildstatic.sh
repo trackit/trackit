@@ -8,7 +8,6 @@ then
 	build_number="$build_number-devel"
 fi
 
-go mod tidy
 CGO_ENABLED=0 GOOS=linux go build \
 	-a \
 	-installsuffix cgo \
