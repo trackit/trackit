@@ -11,18 +11,18 @@ type AwsPricing struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsPricing exists in the database.
+// Exists returns true when the [AwsPricing] exists in the database.
 func (ap *AwsPricing) Exists() bool {
 	return ap._exists
 }
 
-// Deleted returns true when the AwsPricing has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsPricing] has been marked for deletion
+// from the database.
 func (ap *AwsPricing) Deleted() bool {
 	return ap._deleted
 }
 
-// Insert inserts the AwsPricing to the database.
+// Insert inserts the [AwsPricing] to the database.
 func (ap *AwsPricing) Insert(db DB) error {
 	switch {
 	case ap._exists: // already exists
@@ -40,12 +40,12 @@ func (ap *AwsPricing) Insert(db DB) error {
 	logf(sqlstr, ap.Product, ap.Pricing)
 	res, err := db.Exec(sqlstr, ap.Product, ap.Pricing)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	ap.ID = int(id)
 	// set exists
@@ -53,7 +53,7 @@ func (ap *AwsPricing) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsPricing in the database.
+// Update updates a [AwsPricing] in the database.
 func (ap *AwsPricing) Update(db DB) error {
 	switch {
 	case !ap._exists: // doesn't exist
@@ -73,7 +73,7 @@ func (ap *AwsPricing) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AwsPricing to the database.
+// Save saves the [AwsPricing] to the database.
 func (ap *AwsPricing) Save(db DB) error {
 	if ap.Exists() {
 		return ap.Update(db)
@@ -81,7 +81,7 @@ func (ap *AwsPricing) Save(db DB) error {
 	return ap.Insert(db)
 }
 
-// Upsert performs an upsert for AwsPricing.
+// Upsert performs an upsert for [AwsPricing].
 func (ap *AwsPricing) Upsert(db DB) error {
 	switch {
 	case ap._deleted: // deleted
@@ -98,14 +98,14 @@ func (ap *AwsPricing) Upsert(db DB) error {
 	// run
 	logf(sqlstr, ap.ID, ap.Product, ap.Pricing)
 	if _, err := db.Exec(sqlstr, ap.ID, ap.Product, ap.Pricing); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	ap._exists = true
 	return nil
 }
 
-// Delete deletes the AwsPricing from the database.
+// Delete deletes the [AwsPricing] from the database.
 func (ap *AwsPricing) Delete(db DB) error {
 	switch {
 	case !ap._exists: // doesn't exist
@@ -126,7 +126,7 @@ func (ap *AwsPricing) Delete(db DB) error {
 	return nil
 }
 
-// AwsPricingByID retrieves a row from 'trackit.aws_pricing' as a AwsPricing.
+// AwsPricingByID retrieves a row from 'trackit.aws_pricing' as a [AwsPricing].
 //
 // Generated from index 'aws_pricing_id_pkey'.
 func AwsPricingByID(db DB, id int) (*AwsPricing, error) {
@@ -146,7 +146,7 @@ func AwsPricingByID(db DB, id int) (*AwsPricing, error) {
 	return &ap, nil
 }
 
-// AwsPricingByProduct retrieves a row from 'trackit.aws_pricing' as a AwsPricing.
+// AwsPricingByProduct retrieves a row from 'trackit.aws_pricing' as a [AwsPricing].
 //
 // Generated from index 'product'.
 func AwsPricingByProduct(db DB, product string) (*AwsPricing, error) {

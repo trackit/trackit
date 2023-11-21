@@ -17,18 +17,18 @@ type UserOnboardTagbotJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the UserOnboardTagbotJob exists in the database.
+// Exists returns true when the [UserOnboardTagbotJob] exists in the database.
 func (uotj *UserOnboardTagbotJob) Exists() bool {
 	return uotj._exists
 }
 
-// Deleted returns true when the UserOnboardTagbotJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [UserOnboardTagbotJob] has been marked for deletion
+// from the database.
 func (uotj *UserOnboardTagbotJob) Deleted() bool {
 	return uotj._deleted
 }
 
-// Insert inserts the UserOnboardTagbotJob to the database.
+// Insert inserts the [UserOnboardTagbotJob] to the database.
 func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	switch {
 	case uotj._exists: // already exists
@@ -46,12 +46,12 @@ func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	logf(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
 	res, err := db.Exec(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	uotj.ID = int(id)
 	// set exists
@@ -59,7 +59,7 @@ func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a UserOnboardTagbotJob in the database.
+// Update updates a [UserOnboardTagbotJob] in the database.
 func (uotj *UserOnboardTagbotJob) Update(db DB) error {
 	switch {
 	case !uotj._exists: // doesn't exist
@@ -79,7 +79,7 @@ func (uotj *UserOnboardTagbotJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the UserOnboardTagbotJob to the database.
+// Save saves the [UserOnboardTagbotJob] to the database.
 func (uotj *UserOnboardTagbotJob) Save(db DB) error {
 	if uotj.Exists() {
 		return uotj.Update(db)
@@ -87,7 +87,7 @@ func (uotj *UserOnboardTagbotJob) Save(db DB) error {
 	return uotj.Insert(db)
 }
 
-// Upsert performs an upsert for UserOnboardTagbotJob.
+// Upsert performs an upsert for [UserOnboardTagbotJob].
 func (uotj *UserOnboardTagbotJob) Upsert(db DB) error {
 	switch {
 	case uotj._deleted: // deleted
@@ -104,14 +104,14 @@ func (uotj *UserOnboardTagbotJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, uotj.ID, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
 	if _, err := db.Exec(sqlstr, uotj.ID, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	uotj._exists = true
 	return nil
 }
 
-// Delete deletes the UserOnboardTagbotJob from the database.
+// Delete deletes the [UserOnboardTagbotJob] from the database.
 func (uotj *UserOnboardTagbotJob) Delete(db DB) error {
 	switch {
 	case !uotj._exists: // doesn't exist
@@ -132,7 +132,7 @@ func (uotj *UserOnboardTagbotJob) Delete(db DB) error {
 	return nil
 }
 
-// UserOnboardTagbotJobByUserID retrieves a row from 'trackit.user_onboard_tagbot_job' as a UserOnboardTagbotJob.
+// UserOnboardTagbotJobByUserID retrieves a row from 'trackit.user_onboard_tagbot_job' as a [UserOnboardTagbotJob].
 //
 // Generated from index 'foreign_user'.
 func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, error) {
@@ -166,7 +166,7 @@ func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, e
 	return res, nil
 }
 
-// UserOnboardTagbotJobByID retrieves a row from 'trackit.user_onboard_tagbot_job' as a UserOnboardTagbotJob.
+// UserOnboardTagbotJobByID retrieves a row from 'trackit.user_onboard_tagbot_job' as a [UserOnboardTagbotJob].
 //
 // Generated from index 'user_onboard_tagbot_job_id_pkey'.
 func UserOnboardTagbotJobByID(db DB, id int) (*UserOnboardTagbotJob, error) {
@@ -186,7 +186,7 @@ func UserOnboardTagbotJobByID(db DB, id int) (*UserOnboardTagbotJob, error) {
 	return &uotj, nil
 }
 
-// User returns the User associated with the UserOnboardTagbotJob's (UserID).
+// User returns the User associated with the [UserOnboardTagbotJob]'s (UserID).
 //
 // Generated from foreign key 'user_onboard_tagbot_job_ibfk_1'.
 func (uotj *UserOnboardTagbotJob) User(db DB) (*User, error) {

@@ -17,18 +17,18 @@ type UserUpdateTagsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the UserUpdateTagsJob exists in the database.
+// Exists returns true when the [UserUpdateTagsJob] exists in the database.
 func (uutj *UserUpdateTagsJob) Exists() bool {
 	return uutj._exists
 }
 
-// Deleted returns true when the UserUpdateTagsJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [UserUpdateTagsJob] has been marked for deletion
+// from the database.
 func (uutj *UserUpdateTagsJob) Deleted() bool {
 	return uutj._deleted
 }
 
-// Insert inserts the UserUpdateTagsJob to the database.
+// Insert inserts the [UserUpdateTagsJob] to the database.
 func (uutj *UserUpdateTagsJob) Insert(db DB) error {
 	switch {
 	case uutj._exists: // already exists
@@ -46,12 +46,12 @@ func (uutj *UserUpdateTagsJob) Insert(db DB) error {
 	logf(sqlstr, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
 	res, err := db.Exec(sqlstr, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	uutj.ID = int(id)
 	// set exists
@@ -59,7 +59,7 @@ func (uutj *UserUpdateTagsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a UserUpdateTagsJob in the database.
+// Update updates a [UserUpdateTagsJob] in the database.
 func (uutj *UserUpdateTagsJob) Update(db DB) error {
 	switch {
 	case !uutj._exists: // doesn't exist
@@ -79,7 +79,7 @@ func (uutj *UserUpdateTagsJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the UserUpdateTagsJob to the database.
+// Save saves the [UserUpdateTagsJob] to the database.
 func (uutj *UserUpdateTagsJob) Save(db DB) error {
 	if uutj.Exists() {
 		return uutj.Update(db)
@@ -87,7 +87,7 @@ func (uutj *UserUpdateTagsJob) Save(db DB) error {
 	return uutj.Insert(db)
 }
 
-// Upsert performs an upsert for UserUpdateTagsJob.
+// Upsert performs an upsert for [UserUpdateTagsJob].
 func (uutj *UserUpdateTagsJob) Upsert(db DB) error {
 	switch {
 	case uutj._deleted: // deleted
@@ -104,14 +104,14 @@ func (uutj *UserUpdateTagsJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, uutj.ID, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
 	if _, err := db.Exec(sqlstr, uutj.ID, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	uutj._exists = true
 	return nil
 }
 
-// Delete deletes the UserUpdateTagsJob from the database.
+// Delete deletes the [UserUpdateTagsJob] from the database.
 func (uutj *UserUpdateTagsJob) Delete(db DB) error {
 	switch {
 	case !uutj._exists: // doesn't exist
@@ -132,7 +132,7 @@ func (uutj *UserUpdateTagsJob) Delete(db DB) error {
 	return nil
 }
 
-// UserUpdateTagsJobByUserID retrieves a row from 'trackit.user_update_tags_job' as a UserUpdateTagsJob.
+// UserUpdateTagsJobByUserID retrieves a row from 'trackit.user_update_tags_job' as a [UserUpdateTagsJob].
 //
 // Generated from index 'foreign_user'.
 func UserUpdateTagsJobByUserID(db DB, userID int) ([]*UserUpdateTagsJob, error) {
@@ -166,7 +166,7 @@ func UserUpdateTagsJobByUserID(db DB, userID int) ([]*UserUpdateTagsJob, error) 
 	return res, nil
 }
 
-// UserUpdateTagsJobByID retrieves a row from 'trackit.user_update_tags_job' as a UserUpdateTagsJob.
+// UserUpdateTagsJobByID retrieves a row from 'trackit.user_update_tags_job' as a [UserUpdateTagsJob].
 //
 // Generated from index 'user_update_tags_job_id_pkey'.
 func UserUpdateTagsJobByID(db DB, id int) (*UserUpdateTagsJob, error) {
@@ -186,7 +186,7 @@ func UserUpdateTagsJobByID(db DB, id int) (*UserUpdateTagsJob, error) {
 	return &uutj, nil
 }
 
-// User returns the User associated with the UserUpdateTagsJob's (UserID).
+// User returns the User associated with the [UserUpdateTagsJob]'s (UserID).
 //
 // Generated from foreign key 'user_update_tags_job_ibfk_1'.
 func (uutj *UserUpdateTagsJob) User(db DB) (*User, error) {

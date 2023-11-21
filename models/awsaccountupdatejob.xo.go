@@ -34,18 +34,18 @@ type AwsAccountUpdateJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsAccountUpdateJob exists in the database.
+// Exists returns true when the [AwsAccountUpdateJob] exists in the database.
 func (aauj *AwsAccountUpdateJob) Exists() bool {
 	return aauj._exists
 }
 
-// Deleted returns true when the AwsAccountUpdateJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsAccountUpdateJob] has been marked for deletion
+// from the database.
 func (aauj *AwsAccountUpdateJob) Deleted() bool {
 	return aauj._deleted
 }
 
-// Insert inserts the AwsAccountUpdateJob to the database.
+// Insert inserts the [AwsAccountUpdateJob] to the database.
 func (aauj *AwsAccountUpdateJob) Insert(db DB) error {
 	switch {
 	case aauj._exists: // already exists
@@ -63,12 +63,12 @@ func (aauj *AwsAccountUpdateJob) Insert(db DB) error {
 	logf(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
 	res, err := db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	aauj.ID = int(id)
 	// set exists
@@ -76,7 +76,7 @@ func (aauj *AwsAccountUpdateJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsAccountUpdateJob in the database.
+// Update updates a [AwsAccountUpdateJob] in the database.
 func (aauj *AwsAccountUpdateJob) Update(db DB) error {
 	switch {
 	case !aauj._exists: // doesn't exist
@@ -96,7 +96,7 @@ func (aauj *AwsAccountUpdateJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AwsAccountUpdateJob to the database.
+// Save saves the [AwsAccountUpdateJob] to the database.
 func (aauj *AwsAccountUpdateJob) Save(db DB) error {
 	if aauj.Exists() {
 		return aauj.Update(db)
@@ -104,7 +104,7 @@ func (aauj *AwsAccountUpdateJob) Save(db DB) error {
 	return aauj.Insert(db)
 }
 
-// Upsert performs an upsert for AwsAccountUpdateJob.
+// Upsert performs an upsert for [AwsAccountUpdateJob].
 func (aauj *AwsAccountUpdateJob) Upsert(db DB) error {
 	switch {
 	case aauj._deleted: // deleted
@@ -121,14 +121,14 @@ func (aauj *AwsAccountUpdateJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, aauj.ID, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
 	if _, err := db.Exec(sqlstr, aauj.ID, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	aauj._exists = true
 	return nil
 }
 
-// Delete deletes the AwsAccountUpdateJob from the database.
+// Delete deletes the [AwsAccountUpdateJob] from the database.
 func (aauj *AwsAccountUpdateJob) Delete(db DB) error {
 	switch {
 	case !aauj._exists: // doesn't exist
@@ -149,7 +149,7 @@ func (aauj *AwsAccountUpdateJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountUpdateJobByID retrieves a row from 'trackit.aws_account_update_job' as a AwsAccountUpdateJob.
+// AwsAccountUpdateJobByID retrieves a row from 'trackit.aws_account_update_job' as a [AwsAccountUpdateJob].
 //
 // Generated from index 'aws_account_update_job_id_pkey'.
 func AwsAccountUpdateJobByID(db DB, id int) (*AwsAccountUpdateJob, error) {
@@ -169,7 +169,7 @@ func AwsAccountUpdateJobByID(db DB, id int) (*AwsAccountUpdateJob, error) {
 	return &aauj, nil
 }
 
-// AwsAccountUpdateJobByAwsAccountID retrieves a row from 'trackit.aws_account_update_job' as a AwsAccountUpdateJob.
+// AwsAccountUpdateJobByAwsAccountID retrieves a row from 'trackit.aws_account_update_job' as a [AwsAccountUpdateJob].
 //
 // Generated from index 'foreign_aws_account'.
 func AwsAccountUpdateJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountUpdateJob, error) {
@@ -203,7 +203,7 @@ func AwsAccountUpdateJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountUp
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the AwsAccountUpdateJob's (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the [AwsAccountUpdateJob]'s (AwsAccountID).
 //
 // Generated from foreign key 'aws_account_update_job_ibfk_1'.
 func (aauj *AwsAccountUpdateJob) AwsAccount(db DB) (*AwsAccount, error) {

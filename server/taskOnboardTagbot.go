@@ -70,6 +70,14 @@ func taskOnboardTagbot(ctx context.Context) error {
 			"args": args,
 		})
 	}
+
+	err = models.CompleteTagbotOnboarding(db.Db, userId)
+	if err != nil {
+		logger.Error("Failed to update tagboat onboarding status to completed", map[string]interface{}{
+			"err": err.Error(),
+		})
+		return err
+	}
 	return err
 }
 

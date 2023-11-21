@@ -27,18 +27,18 @@ type User struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the User exists in the database.
+// Exists returns true when the [User] exists in the database.
 func (u *User) Exists() bool {
 	return u._exists
 }
 
-// Deleted returns true when the User has been marked for deletion from
-// the database.
+// Deleted returns true when the [User] has been marked for deletion
+// from the database.
 func (u *User) Deleted() bool {
 	return u._deleted
 }
 
-// Insert inserts the User to the database.
+// Insert inserts the [User] to the database.
 func (u *User) Insert(db DB) error {
 	switch {
 	case u._exists: // already exists
@@ -56,12 +56,12 @@ func (u *User) Insert(db DB) error {
 	logf(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
 	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	u.ID = int(id)
 	// set exists
@@ -69,7 +69,7 @@ func (u *User) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a User in the database.
+// Update updates a [User] in the database.
 func (u *User) Update(db DB) error {
 	switch {
 	case !u._exists: // doesn't exist
@@ -89,7 +89,7 @@ func (u *User) Update(db DB) error {
 	return nil
 }
 
-// Save saves the User to the database.
+// Save saves the [User] to the database.
 func (u *User) Save(db DB) error {
 	if u.Exists() {
 		return u.Update(db)
@@ -97,7 +97,7 @@ func (u *User) Save(db DB) error {
 	return u.Insert(db)
 }
 
-// Upsert performs an upsert for User.
+// Upsert performs an upsert for [User].
 func (u *User) Upsert(db DB) error {
 	switch {
 	case u._deleted: // deleted
@@ -114,14 +114,14 @@ func (u *User) Upsert(db DB) error {
 	// run
 	logf(sqlstr, u.ID, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
 	if _, err := db.Exec(sqlstr, u.ID, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	u._exists = true
 	return nil
 }
 
-// Delete deletes the User from the database.
+// Delete deletes the [User] from the database.
 func (u *User) Delete(db DB) error {
 	switch {
 	case !u._exists: // doesn't exist
@@ -142,7 +142,7 @@ func (u *User) Delete(db DB) error {
 	return nil
 }
 
-// UserByParentUserID retrieves a row from 'trackit.user' as a User.
+// UserByParentUserID retrieves a row from 'trackit.user' as a [User].
 //
 // Generated from index 'parent_user'.
 func UserByParentUserID(db DB, parentUserID sql.NullInt64) ([]*User, error) {
@@ -176,7 +176,7 @@ func UserByParentUserID(db DB, parentUserID sql.NullInt64) ([]*User, error) {
 	return res, nil
 }
 
-// UserByEmailAccountType retrieves a row from 'trackit.user' as a User.
+// UserByEmailAccountType retrieves a row from 'trackit.user' as a [User].
 //
 // Generated from index 'unique_email_account_type'.
 func UserByEmailAccountType(db DB, email, accountType string) (*User, error) {
@@ -196,7 +196,7 @@ func UserByEmailAccountType(db DB, email, accountType string) (*User, error) {
 	return &u, nil
 }
 
-// UserByID retrieves a row from 'trackit.user' as a User.
+// UserByID retrieves a row from 'trackit.user' as a [User].
 //
 // Generated from index 'user_id_pkey'.
 func UserByID(db DB, id int) (*User, error) {
@@ -216,7 +216,7 @@ func UserByID(db DB, id int) (*User, error) {
 	return &u, nil
 }
 
-// User returns the User associated with the User's (ParentUserID).
+// User returns the User associated with the [User]'s (ParentUserID).
 //
 // Generated from foreign key 'parent_user'.
 func (u *User) User(db DB) (*User, error) {

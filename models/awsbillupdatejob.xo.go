@@ -18,18 +18,18 @@ type AwsBillUpdateJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsBillUpdateJob exists in the database.
+// Exists returns true when the [AwsBillUpdateJob] exists in the database.
 func (abuj *AwsBillUpdateJob) Exists() bool {
 	return abuj._exists
 }
 
-// Deleted returns true when the AwsBillUpdateJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsBillUpdateJob] has been marked for deletion
+// from the database.
 func (abuj *AwsBillUpdateJob) Deleted() bool {
 	return abuj._deleted
 }
 
-// Insert inserts the AwsBillUpdateJob to the database.
+// Insert inserts the [AwsBillUpdateJob] to the database.
 func (abuj *AwsBillUpdateJob) Insert(db DB) error {
 	switch {
 	case abuj._exists: // already exists
@@ -47,12 +47,12 @@ func (abuj *AwsBillUpdateJob) Insert(db DB) error {
 	logf(sqlstr, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
 	res, err := db.Exec(sqlstr, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	abuj.ID = int(id)
 	// set exists
@@ -60,7 +60,7 @@ func (abuj *AwsBillUpdateJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsBillUpdateJob in the database.
+// Update updates a [AwsBillUpdateJob] in the database.
 func (abuj *AwsBillUpdateJob) Update(db DB) error {
 	switch {
 	case !abuj._exists: // doesn't exist
@@ -80,7 +80,7 @@ func (abuj *AwsBillUpdateJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AwsBillUpdateJob to the database.
+// Save saves the [AwsBillUpdateJob] to the database.
 func (abuj *AwsBillUpdateJob) Save(db DB) error {
 	if abuj.Exists() {
 		return abuj.Update(db)
@@ -88,7 +88,7 @@ func (abuj *AwsBillUpdateJob) Save(db DB) error {
 	return abuj.Insert(db)
 }
 
-// Upsert performs an upsert for AwsBillUpdateJob.
+// Upsert performs an upsert for [AwsBillUpdateJob].
 func (abuj *AwsBillUpdateJob) Upsert(db DB) error {
 	switch {
 	case abuj._deleted: // deleted
@@ -105,14 +105,14 @@ func (abuj *AwsBillUpdateJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, abuj.ID, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
 	if _, err := db.Exec(sqlstr, abuj.ID, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	abuj._exists = true
 	return nil
 }
 
-// Delete deletes the AwsBillUpdateJob from the database.
+// Delete deletes the [AwsBillUpdateJob] from the database.
 func (abuj *AwsBillUpdateJob) Delete(db DB) error {
 	switch {
 	case !abuj._exists: // doesn't exist
@@ -133,7 +133,7 @@ func (abuj *AwsBillUpdateJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsBillUpdateJobByID retrieves a row from 'trackit.aws_bill_update_job' as a AwsBillUpdateJob.
+// AwsBillUpdateJobByID retrieves a row from 'trackit.aws_bill_update_job' as a [AwsBillUpdateJob].
 //
 // Generated from index 'aws_bill_update_job_id_pkey'.
 func AwsBillUpdateJobByID(db DB, id int) (*AwsBillUpdateJob, error) {
@@ -153,7 +153,7 @@ func AwsBillUpdateJobByID(db DB, id int) (*AwsBillUpdateJob, error) {
 	return &abuj, nil
 }
 
-// AwsBillUpdateJobByAwsBillRepositoryID retrieves a row from 'trackit.aws_bill_update_job' as a AwsBillUpdateJob.
+// AwsBillUpdateJobByAwsBillRepositoryID retrieves a row from 'trackit.aws_bill_update_job' as a [AwsBillUpdateJob].
 //
 // Generated from index 'foreign_bill_repository'.
 func AwsBillUpdateJobByAwsBillRepositoryID(db DB, awsBillRepositoryID int) ([]*AwsBillUpdateJob, error) {
@@ -187,7 +187,7 @@ func AwsBillUpdateJobByAwsBillRepositoryID(db DB, awsBillRepositoryID int) ([]*A
 	return res, nil
 }
 
-// AwsBillRepository returns the AwsBillRepository associated with the AwsBillUpdateJob's (AwsBillRepositoryID).
+// AwsBillRepository returns the AwsBillRepository associated with the [AwsBillUpdateJob]'s (AwsBillRepositoryID).
 //
 // Generated from foreign key 'aws_bill_update_job_ibfk_1'.
 func (abuj *AwsBillUpdateJob) AwsBillRepository(db DB) (*AwsBillRepository, error) {

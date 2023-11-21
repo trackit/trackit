@@ -17,18 +17,18 @@ type EmailedAnomaly struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the EmailedAnomaly exists in the database.
+// Exists returns true when the [EmailedAnomaly] exists in the database.
 func (ea *EmailedAnomaly) Exists() bool {
 	return ea._exists
 }
 
-// Deleted returns true when the EmailedAnomaly has been marked for deletion from
-// the database.
+// Deleted returns true when the [EmailedAnomaly] has been marked for deletion
+// from the database.
 func (ea *EmailedAnomaly) Deleted() bool {
 	return ea._deleted
 }
 
-// Insert inserts the EmailedAnomaly to the database.
+// Insert inserts the [EmailedAnomaly] to the database.
 func (ea *EmailedAnomaly) Insert(db DB) error {
 	switch {
 	case ea._exists: // already exists
@@ -46,12 +46,12 @@ func (ea *EmailedAnomaly) Insert(db DB) error {
 	logf(sqlstr, ea.AwsAccountID, ea.Product, ea.Recipient, ea.Date)
 	res, err := db.Exec(sqlstr, ea.AwsAccountID, ea.Product, ea.Recipient, ea.Date)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	ea.ID = int(id)
 	// set exists
@@ -59,7 +59,7 @@ func (ea *EmailedAnomaly) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a EmailedAnomaly in the database.
+// Update updates a [EmailedAnomaly] in the database.
 func (ea *EmailedAnomaly) Update(db DB) error {
 	switch {
 	case !ea._exists: // doesn't exist
@@ -79,7 +79,7 @@ func (ea *EmailedAnomaly) Update(db DB) error {
 	return nil
 }
 
-// Save saves the EmailedAnomaly to the database.
+// Save saves the [EmailedAnomaly] to the database.
 func (ea *EmailedAnomaly) Save(db DB) error {
 	if ea.Exists() {
 		return ea.Update(db)
@@ -87,7 +87,7 @@ func (ea *EmailedAnomaly) Save(db DB) error {
 	return ea.Insert(db)
 }
 
-// Upsert performs an upsert for EmailedAnomaly.
+// Upsert performs an upsert for [EmailedAnomaly].
 func (ea *EmailedAnomaly) Upsert(db DB) error {
 	switch {
 	case ea._deleted: // deleted
@@ -104,14 +104,14 @@ func (ea *EmailedAnomaly) Upsert(db DB) error {
 	// run
 	logf(sqlstr, ea.ID, ea.AwsAccountID, ea.Product, ea.Recipient, ea.Date)
 	if _, err := db.Exec(sqlstr, ea.ID, ea.AwsAccountID, ea.Product, ea.Recipient, ea.Date); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	ea._exists = true
 	return nil
 }
 
-// Delete deletes the EmailedAnomaly from the database.
+// Delete deletes the [EmailedAnomaly] from the database.
 func (ea *EmailedAnomaly) Delete(db DB) error {
 	switch {
 	case !ea._exists: // doesn't exist
@@ -132,7 +132,7 @@ func (ea *EmailedAnomaly) Delete(db DB) error {
 	return nil
 }
 
-// EmailedAnomalyByID retrieves a row from 'trackit.emailed_anomaly' as a EmailedAnomaly.
+// EmailedAnomalyByID retrieves a row from 'trackit.emailed_anomaly' as a [EmailedAnomaly].
 //
 // Generated from index 'emailed_anomaly_id_pkey'.
 func EmailedAnomalyByID(db DB, id int) (*EmailedAnomaly, error) {
@@ -152,7 +152,7 @@ func EmailedAnomalyByID(db DB, id int) (*EmailedAnomaly, error) {
 	return &ea, nil
 }
 
-// EmailedAnomalyByAwsAccountID retrieves a row from 'trackit.emailed_anomaly' as a EmailedAnomaly.
+// EmailedAnomalyByAwsAccountID retrieves a row from 'trackit.emailed_anomaly' as a [EmailedAnomaly].
 //
 // Generated from index 'foreign_aws_account'.
 func EmailedAnomalyByAwsAccountID(db DB, awsAccountID int) ([]*EmailedAnomaly, error) {
@@ -186,7 +186,7 @@ func EmailedAnomalyByAwsAccountID(db DB, awsAccountID int) ([]*EmailedAnomaly, e
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the EmailedAnomaly's (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the [EmailedAnomaly]'s (AwsAccountID).
 //
 // Generated from foreign key 'emailed_anomaly_ibfk_1'.
 func (ea *EmailedAnomaly) AwsAccount(db DB) (*AwsAccount, error) {

@@ -27,18 +27,18 @@ type AwsAccountMasterReportsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsAccountMasterReportsJob exists in the database.
+// Exists returns true when the [AwsAccountMasterReportsJob] exists in the database.
 func (aamrj *AwsAccountMasterReportsJob) Exists() bool {
 	return aamrj._exists
 }
 
-// Deleted returns true when the AwsAccountMasterReportsJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsAccountMasterReportsJob] has been marked for deletion
+// from the database.
 func (aamrj *AwsAccountMasterReportsJob) Deleted() bool {
 	return aamrj._deleted
 }
 
-// Insert inserts the AwsAccountMasterReportsJob to the database.
+// Insert inserts the [AwsAccountMasterReportsJob] to the database.
 func (aamrj *AwsAccountMasterReportsJob) Insert(db DB) error {
 	switch {
 	case aamrj._exists: // already exists
@@ -56,12 +56,12 @@ func (aamrj *AwsAccountMasterReportsJob) Insert(db DB) error {
 	logf(sqlstr, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
 	res, err := db.Exec(sqlstr, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	aamrj.ID = int(id)
 	// set exists
@@ -69,7 +69,7 @@ func (aamrj *AwsAccountMasterReportsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsAccountMasterReportsJob in the database.
+// Update updates a [AwsAccountMasterReportsJob] in the database.
 func (aamrj *AwsAccountMasterReportsJob) Update(db DB) error {
 	switch {
 	case !aamrj._exists: // doesn't exist
@@ -89,7 +89,7 @@ func (aamrj *AwsAccountMasterReportsJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AwsAccountMasterReportsJob to the database.
+// Save saves the [AwsAccountMasterReportsJob] to the database.
 func (aamrj *AwsAccountMasterReportsJob) Save(db DB) error {
 	if aamrj.Exists() {
 		return aamrj.Update(db)
@@ -97,7 +97,7 @@ func (aamrj *AwsAccountMasterReportsJob) Save(db DB) error {
 	return aamrj.Insert(db)
 }
 
-// Upsert performs an upsert for AwsAccountMasterReportsJob.
+// Upsert performs an upsert for [AwsAccountMasterReportsJob].
 func (aamrj *AwsAccountMasterReportsJob) Upsert(db DB) error {
 	switch {
 	case aamrj._deleted: // deleted
@@ -114,14 +114,14 @@ func (aamrj *AwsAccountMasterReportsJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, aamrj.ID, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
 	if _, err := db.Exec(sqlstr, aamrj.ID, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	aamrj._exists = true
 	return nil
 }
 
-// Delete deletes the AwsAccountMasterReportsJob from the database.
+// Delete deletes the [AwsAccountMasterReportsJob] from the database.
 func (aamrj *AwsAccountMasterReportsJob) Delete(db DB) error {
 	switch {
 	case !aamrj._exists: // doesn't exist
@@ -142,7 +142,7 @@ func (aamrj *AwsAccountMasterReportsJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountMasterReportsJobByID retrieves a row from 'trackit.aws_account_master_reports_job' as a AwsAccountMasterReportsJob.
+// AwsAccountMasterReportsJobByID retrieves a row from 'trackit.aws_account_master_reports_job' as a [AwsAccountMasterReportsJob].
 //
 // Generated from index 'aws_account_master_reports_job_id_pkey'.
 func AwsAccountMasterReportsJobByID(db DB, id int) (*AwsAccountMasterReportsJob, error) {
@@ -162,7 +162,7 @@ func AwsAccountMasterReportsJobByID(db DB, id int) (*AwsAccountMasterReportsJob,
 	return &aamrj, nil
 }
 
-// AwsAccountMasterReportsJobByAwsAccountID retrieves a row from 'trackit.aws_account_master_reports_job' as a AwsAccountMasterReportsJob.
+// AwsAccountMasterReportsJobByAwsAccountID retrieves a row from 'trackit.aws_account_master_reports_job' as a [AwsAccountMasterReportsJob].
 //
 // Generated from index 'foreign_aws_account'.
 func AwsAccountMasterReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountMasterReportsJob, error) {
@@ -196,7 +196,7 @@ func AwsAccountMasterReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAc
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the AwsAccountMasterReportsJob's (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the [AwsAccountMasterReportsJob]'s (AwsAccountID).
 //
 // Generated from foreign key 'aws_account_master_reports_job_ibfk_1'.
 func (aamrj *AwsAccountMasterReportsJob) AwsAccount(db DB) (*AwsAccount, error) {

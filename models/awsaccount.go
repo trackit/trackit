@@ -70,3 +70,11 @@ func AwsAccountsByParentId(db DB, parentID int) (res []*AwsAccount, err error) {
 	}
 	return res, nil
 }
+
+func CompleteTagbotOnboarding(db DB, userID int) error {
+	_, err := db.Exec(`UPDATE aws_account SET tagbot_onboarding = 'COMPLETED' WHERE user_id=?`, userID)
+	if err != nil {
+		return logerror(err)
+	}
+	return nil
+}

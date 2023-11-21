@@ -19,18 +19,18 @@ type AwsAccountTagsReportsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsAccountTagsReportsJob exists in the database.
+// Exists returns true when the [AwsAccountTagsReportsJob] exists in the database.
 func (aatrj *AwsAccountTagsReportsJob) Exists() bool {
 	return aatrj._exists
 }
 
-// Deleted returns true when the AwsAccountTagsReportsJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsAccountTagsReportsJob] has been marked for deletion
+// from the database.
 func (aatrj *AwsAccountTagsReportsJob) Deleted() bool {
 	return aatrj._deleted
 }
 
-// Insert inserts the AwsAccountTagsReportsJob to the database.
+// Insert inserts the [AwsAccountTagsReportsJob] to the database.
 func (aatrj *AwsAccountTagsReportsJob) Insert(db DB) error {
 	switch {
 	case aatrj._exists: // already exists
@@ -48,12 +48,12 @@ func (aatrj *AwsAccountTagsReportsJob) Insert(db DB) error {
 	logf(sqlstr, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
 	res, err := db.Exec(sqlstr, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	aatrj.ID = int(id)
 	// set exists
@@ -61,7 +61,7 @@ func (aatrj *AwsAccountTagsReportsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsAccountTagsReportsJob in the database.
+// Update updates a [AwsAccountTagsReportsJob] in the database.
 func (aatrj *AwsAccountTagsReportsJob) Update(db DB) error {
 	switch {
 	case !aatrj._exists: // doesn't exist
@@ -81,7 +81,7 @@ func (aatrj *AwsAccountTagsReportsJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AwsAccountTagsReportsJob to the database.
+// Save saves the [AwsAccountTagsReportsJob] to the database.
 func (aatrj *AwsAccountTagsReportsJob) Save(db DB) error {
 	if aatrj.Exists() {
 		return aatrj.Update(db)
@@ -89,7 +89,7 @@ func (aatrj *AwsAccountTagsReportsJob) Save(db DB) error {
 	return aatrj.Insert(db)
 }
 
-// Upsert performs an upsert for AwsAccountTagsReportsJob.
+// Upsert performs an upsert for [AwsAccountTagsReportsJob].
 func (aatrj *AwsAccountTagsReportsJob) Upsert(db DB) error {
 	switch {
 	case aatrj._deleted: // deleted
@@ -106,14 +106,14 @@ func (aatrj *AwsAccountTagsReportsJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, aatrj.ID, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
 	if _, err := db.Exec(sqlstr, aatrj.ID, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	aatrj._exists = true
 	return nil
 }
 
-// Delete deletes the AwsAccountTagsReportsJob from the database.
+// Delete deletes the [AwsAccountTagsReportsJob] from the database.
 func (aatrj *AwsAccountTagsReportsJob) Delete(db DB) error {
 	switch {
 	case !aatrj._exists: // doesn't exist
@@ -134,7 +134,7 @@ func (aatrj *AwsAccountTagsReportsJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountTagsReportsJobByID retrieves a row from 'trackit.aws_account_tags_reports_job' as a AwsAccountTagsReportsJob.
+// AwsAccountTagsReportsJobByID retrieves a row from 'trackit.aws_account_tags_reports_job' as a [AwsAccountTagsReportsJob].
 //
 // Generated from index 'aws_account_tags_reports_job_id_pkey'.
 func AwsAccountTagsReportsJobByID(db DB, id int) (*AwsAccountTagsReportsJob, error) {
@@ -154,7 +154,7 @@ func AwsAccountTagsReportsJobByID(db DB, id int) (*AwsAccountTagsReportsJob, err
 	return &aatrj, nil
 }
 
-// AwsAccountTagsReportsJobByAwsAccountID retrieves a row from 'trackit.aws_account_tags_reports_job' as a AwsAccountTagsReportsJob.
+// AwsAccountTagsReportsJobByAwsAccountID retrieves a row from 'trackit.aws_account_tags_reports_job' as a [AwsAccountTagsReportsJob].
 //
 // Generated from index 'foreign_aws_account'.
 func AwsAccountTagsReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountTagsReportsJob, error) {
@@ -188,7 +188,7 @@ func AwsAccountTagsReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAcco
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the AwsAccountTagsReportsJob's (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the [AwsAccountTagsReportsJob]'s (AwsAccountID).
 //
 // Generated from foreign key 'aws_account_tags_reports_job_ibfk_1'.
 func (aatrj *AwsAccountTagsReportsJob) AwsAccount(db DB) (*AwsAccount, error) {

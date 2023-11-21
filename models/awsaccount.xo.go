@@ -28,22 +28,24 @@ type AwsAccount struct {
 	LastTagsSpreadsheetReportGeneration   time.Time     `json:"last_tags_spreadsheet_report_generation"`   // last_tags_spreadsheet_report_generation
 	NextTagsSpreadsheetReportGeneration   time.Time     `json:"next_tags_spreadsheet_report_generation"`   // next_tags_spreadsheet_report_generation
 	NeedsTagbotOnboarding                 bool          `json:"needs_tagbot_onboarding"`                   // needs_tagbot_onboarding
+	TagbotOnboardingStarted               time.Time     `json:"tagbot_onboarding_started"`                 // tagbot_onboarding_started
+	TagbotOnboarding                      string        `json:"tagbot_onboarding"`                         // tagbot_onboarding
 	// xo fields
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsAccount exists in the database.
+// Exists returns true when the [AwsAccount] exists in the database.
 func (aa *AwsAccount) Exists() bool {
 	return aa._exists
 }
 
-// Deleted returns true when the AwsAccount has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsAccount] has been marked for deletion
+// from the database.
 func (aa *AwsAccount) Deleted() bool {
 	return aa._deleted
 }
 
-// Insert inserts the AwsAccount to the database.
+// Insert inserts the [AwsAccount] to the database.
 func (aa *AwsAccount) Insert(db DB) error {
 	switch {
 	case aa._exists: // already exists
@@ -53,20 +55,20 @@ func (aa *AwsAccount) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account (` +
-		`user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding` +
+		`user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding, tagbot_onboarding_started, tagbot_onboarding` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
-	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
+	logf(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.TagbotOnboardingStarted, aa.TagbotOnboarding)
+	res, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.TagbotOnboardingStarted, aa.TagbotOnboarding)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	aa.ID = int(id)
 	// set exists
@@ -74,7 +76,7 @@ func (aa *AwsAccount) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsAccount in the database.
+// Update updates a [AwsAccount] in the database.
 func (aa *AwsAccount) Update(db DB) error {
 	switch {
 	case !aa._exists: // doesn't exist
@@ -84,17 +86,17 @@ func (aa *AwsAccount) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account SET ` +
-		`user_id = ?, pretty = ?, role_arn = ?, external = ?, next_update = ?, payer = ?, next_update_plugins = ?, aws_identity = ?, parent_id = ?, last_spreadsheet_report_generation = ?, next_spreadsheet_report_generation = ?, next_update_anomalies_detection = ?, last_anomalies_update = ?, last_master_spreadsheet_report_generation = ?, next_master_spreadsheet_report_generation = ?, last_tags_spreadsheet_report_generation = ?, next_tags_spreadsheet_report_generation = ?, needs_tagbot_onboarding = ? ` +
+		`user_id = ?, pretty = ?, role_arn = ?, external = ?, next_update = ?, payer = ?, next_update_plugins = ?, aws_identity = ?, parent_id = ?, last_spreadsheet_report_generation = ?, next_spreadsheet_report_generation = ?, next_update_anomalies_detection = ?, last_anomalies_update = ?, last_master_spreadsheet_report_generation = ?, next_master_spreadsheet_report_generation = ?, last_tags_spreadsheet_report_generation = ?, next_tags_spreadsheet_report_generation = ?, needs_tagbot_onboarding = ?, tagbot_onboarding_started = ?, tagbot_onboarding = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.ID)
-	if _, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.ID); err != nil {
+	logf(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.TagbotOnboardingStarted, aa.TagbotOnboarding, aa.ID)
+	if _, err := db.Exec(sqlstr, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.TagbotOnboardingStarted, aa.TagbotOnboarding, aa.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
 }
 
-// Save saves the AwsAccount to the database.
+// Save saves the [AwsAccount] to the database.
 func (aa *AwsAccount) Save(db DB) error {
 	if aa.Exists() {
 		return aa.Update(db)
@@ -102,7 +104,7 @@ func (aa *AwsAccount) Save(db DB) error {
 	return aa.Insert(db)
 }
 
-// Upsert performs an upsert for AwsAccount.
+// Upsert performs an upsert for [AwsAccount].
 func (aa *AwsAccount) Upsert(db DB) error {
 	switch {
 	case aa._deleted: // deleted
@@ -110,23 +112,23 @@ func (aa *AwsAccount) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account (` +
-		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding` +
+		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding, tagbot_onboarding_started, tagbot_onboarding` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`user_id = VALUES(user_id), pretty = VALUES(pretty), role_arn = VALUES(role_arn), external = VALUES(external), next_update = VALUES(next_update), payer = VALUES(payer), next_update_plugins = VALUES(next_update_plugins), aws_identity = VALUES(aws_identity), parent_id = VALUES(parent_id), last_spreadsheet_report_generation = VALUES(last_spreadsheet_report_generation), next_spreadsheet_report_generation = VALUES(next_spreadsheet_report_generation), next_update_anomalies_detection = VALUES(next_update_anomalies_detection), last_anomalies_update = VALUES(last_anomalies_update), last_master_spreadsheet_report_generation = VALUES(last_master_spreadsheet_report_generation), next_master_spreadsheet_report_generation = VALUES(next_master_spreadsheet_report_generation), last_tags_spreadsheet_report_generation = VALUES(last_tags_spreadsheet_report_generation), next_tags_spreadsheet_report_generation = VALUES(next_tags_spreadsheet_report_generation), needs_tagbot_onboarding = VALUES(needs_tagbot_onboarding)`
+		`user_id = VALUES(user_id), pretty = VALUES(pretty), role_arn = VALUES(role_arn), external = VALUES(external), next_update = VALUES(next_update), payer = VALUES(payer), next_update_plugins = VALUES(next_update_plugins), aws_identity = VALUES(aws_identity), parent_id = VALUES(parent_id), last_spreadsheet_report_generation = VALUES(last_spreadsheet_report_generation), next_spreadsheet_report_generation = VALUES(next_spreadsheet_report_generation), next_update_anomalies_detection = VALUES(next_update_anomalies_detection), last_anomalies_update = VALUES(last_anomalies_update), last_master_spreadsheet_report_generation = VALUES(last_master_spreadsheet_report_generation), next_master_spreadsheet_report_generation = VALUES(next_master_spreadsheet_report_generation), last_tags_spreadsheet_report_generation = VALUES(last_tags_spreadsheet_report_generation), next_tags_spreadsheet_report_generation = VALUES(next_tags_spreadsheet_report_generation), needs_tagbot_onboarding = VALUES(needs_tagbot_onboarding), tagbot_onboarding_started = VALUES(tagbot_onboarding_started), tagbot_onboarding = VALUES(tagbot_onboarding)`
 	// run
-	logf(sqlstr, aa.ID, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding)
-	if _, err := db.Exec(sqlstr, aa.ID, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding); err != nil {
-		return err
+	logf(sqlstr, aa.ID, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.TagbotOnboardingStarted, aa.TagbotOnboarding)
+	if _, err := db.Exec(sqlstr, aa.ID, aa.UserID, aa.Pretty, aa.RoleArn, aa.External, aa.NextUpdate, aa.Payer, aa.NextUpdatePlugins, aa.AwsIdentity, aa.ParentID, aa.LastSpreadsheetReportGeneration, aa.NextSpreadsheetReportGeneration, aa.NextUpdateAnomaliesDetection, aa.LastAnomaliesUpdate, aa.LastMasterSpreadsheetReportGeneration, aa.NextMasterSpreadsheetReportGeneration, aa.LastTagsSpreadsheetReportGeneration, aa.NextTagsSpreadsheetReportGeneration, aa.NeedsTagbotOnboarding, aa.TagbotOnboardingStarted, aa.TagbotOnboarding); err != nil {
+		return logerror(err)
 	}
 	// set exists
 	aa._exists = true
 	return nil
 }
 
-// Delete deletes the AwsAccount from the database.
+// Delete deletes the [AwsAccount] from the database.
 func (aa *AwsAccount) Delete(db DB) error {
 	switch {
 	case !aa._exists: // doesn't exist
@@ -147,13 +149,13 @@ func (aa *AwsAccount) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountByID retrieves a row from 'trackit.aws_account' as a AwsAccount.
+// AwsAccountByID retrieves a row from 'trackit.aws_account' as a [AwsAccount].
 //
 // Generated from index 'aws_account_id_pkey'.
 func AwsAccountByID(db DB, id int) (*AwsAccount, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding ` +
+		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding, tagbot_onboarding_started, tagbot_onboarding ` +
 		`FROM trackit.aws_account ` +
 		`WHERE id = ?`
 	// run
@@ -161,19 +163,19 @@ func AwsAccountByID(db DB, id int) (*AwsAccount, error) {
 	aa := AwsAccount{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration, &aa.NeedsTagbotOnboarding); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration, &aa.NeedsTagbotOnboarding, &aa.TagbotOnboardingStarted, &aa.TagbotOnboarding); err != nil {
 		return nil, logerror(err)
 	}
 	return &aa, nil
 }
 
-// AwsAccountByUserID retrieves a row from 'trackit.aws_account' as a AwsAccount.
+// AwsAccountByUserID retrieves a row from 'trackit.aws_account' as a [AwsAccount].
 //
 // Generated from index 'foreign_user'.
 func AwsAccountByUserID(db DB, userID int) ([]*AwsAccount, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding ` +
+		`id, user_id, pretty, role_arn, external, next_update, payer, next_update_plugins, aws_identity, parent_id, last_spreadsheet_report_generation, next_spreadsheet_report_generation, next_update_anomalies_detection, last_anomalies_update, last_master_spreadsheet_report_generation, next_master_spreadsheet_report_generation, last_tags_spreadsheet_report_generation, next_tags_spreadsheet_report_generation, needs_tagbot_onboarding, tagbot_onboarding_started, tagbot_onboarding ` +
 		`FROM trackit.aws_account ` +
 		`WHERE user_id = ?`
 	// run
@@ -190,7 +192,7 @@ func AwsAccountByUserID(db DB, userID int) ([]*AwsAccount, error) {
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration, &aa.NeedsTagbotOnboarding); err != nil {
+		if err := rows.Scan(&aa.ID, &aa.UserID, &aa.Pretty, &aa.RoleArn, &aa.External, &aa.NextUpdate, &aa.Payer, &aa.NextUpdatePlugins, &aa.AwsIdentity, &aa.ParentID, &aa.LastSpreadsheetReportGeneration, &aa.NextSpreadsheetReportGeneration, &aa.NextUpdateAnomaliesDetection, &aa.LastAnomaliesUpdate, &aa.LastMasterSpreadsheetReportGeneration, &aa.NextMasterSpreadsheetReportGeneration, &aa.LastTagsSpreadsheetReportGeneration, &aa.NextTagsSpreadsheetReportGeneration, &aa.NeedsTagbotOnboarding, &aa.TagbotOnboardingStarted, &aa.TagbotOnboarding); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aa)
@@ -201,7 +203,7 @@ func AwsAccountByUserID(db DB, userID int) ([]*AwsAccount, error) {
 	return res, nil
 }
 
-// User returns the User associated with the AwsAccount's (UserID).
+// User returns the User associated with the [AwsAccount]'s (UserID).
 //
 // Generated from foreign key 'aws_account_ibfk_1'.
 func (aa *AwsAccount) User(db DB) (*User, error) {

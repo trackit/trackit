@@ -11,18 +11,18 @@ type TagbotDiscountCode struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the TagbotDiscountCode exists in the database.
+// Exists returns true when the [TagbotDiscountCode] exists in the database.
 func (tdc *TagbotDiscountCode) Exists() bool {
 	return tdc._exists
 }
 
-// Deleted returns true when the TagbotDiscountCode has been marked for deletion from
-// the database.
+// Deleted returns true when the [TagbotDiscountCode] has been marked for deletion
+// from the database.
 func (tdc *TagbotDiscountCode) Deleted() bool {
 	return tdc._deleted
 }
 
-// Insert inserts the TagbotDiscountCode to the database.
+// Insert inserts the [TagbotDiscountCode] to the database.
 func (tdc *TagbotDiscountCode) Insert(db DB) error {
 	switch {
 	case tdc._exists: // already exists
@@ -40,12 +40,12 @@ func (tdc *TagbotDiscountCode) Insert(db DB) error {
 	logf(sqlstr, tdc.Code, tdc.Description)
 	res, err := db.Exec(sqlstr, tdc.Code, tdc.Description)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	tdc.ID = int(id)
 	// set exists
@@ -53,7 +53,7 @@ func (tdc *TagbotDiscountCode) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a TagbotDiscountCode in the database.
+// Update updates a [TagbotDiscountCode] in the database.
 func (tdc *TagbotDiscountCode) Update(db DB) error {
 	switch {
 	case !tdc._exists: // doesn't exist
@@ -73,7 +73,7 @@ func (tdc *TagbotDiscountCode) Update(db DB) error {
 	return nil
 }
 
-// Save saves the TagbotDiscountCode to the database.
+// Save saves the [TagbotDiscountCode] to the database.
 func (tdc *TagbotDiscountCode) Save(db DB) error {
 	if tdc.Exists() {
 		return tdc.Update(db)
@@ -81,7 +81,7 @@ func (tdc *TagbotDiscountCode) Save(db DB) error {
 	return tdc.Insert(db)
 }
 
-// Upsert performs an upsert for TagbotDiscountCode.
+// Upsert performs an upsert for [TagbotDiscountCode].
 func (tdc *TagbotDiscountCode) Upsert(db DB) error {
 	switch {
 	case tdc._deleted: // deleted
@@ -98,14 +98,14 @@ func (tdc *TagbotDiscountCode) Upsert(db DB) error {
 	// run
 	logf(sqlstr, tdc.ID, tdc.Code, tdc.Description)
 	if _, err := db.Exec(sqlstr, tdc.ID, tdc.Code, tdc.Description); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	tdc._exists = true
 	return nil
 }
 
-// Delete deletes the TagbotDiscountCode from the database.
+// Delete deletes the [TagbotDiscountCode] from the database.
 func (tdc *TagbotDiscountCode) Delete(db DB) error {
 	switch {
 	case !tdc._exists: // doesn't exist
@@ -126,7 +126,7 @@ func (tdc *TagbotDiscountCode) Delete(db DB) error {
 	return nil
 }
 
-// TagbotDiscountCodeByID retrieves a row from 'trackit.tagbot_discount_code' as a TagbotDiscountCode.
+// TagbotDiscountCodeByID retrieves a row from 'trackit.tagbot_discount_code' as a [TagbotDiscountCode].
 //
 // Generated from index 'tagbot_discount_code_id_pkey'.
 func TagbotDiscountCodeByID(db DB, id int) (*TagbotDiscountCode, error) {
@@ -146,7 +146,7 @@ func TagbotDiscountCodeByID(db DB, id int) (*TagbotDiscountCode, error) {
 	return &tdc, nil
 }
 
-// TagbotDiscountCodeByCode retrieves a row from 'trackit.tagbot_discount_code' as a TagbotDiscountCode.
+// TagbotDiscountCodeByCode retrieves a row from 'trackit.tagbot_discount_code' as a [TagbotDiscountCode].
 //
 // Generated from index 'unique_code'.
 func TagbotDiscountCodeByCode(db DB, code string) (*TagbotDiscountCode, error) {

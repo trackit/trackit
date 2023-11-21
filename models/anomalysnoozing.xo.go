@@ -11,18 +11,18 @@ type AnomalySnoozing struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AnomalySnoozing exists in the database.
+// Exists returns true when the [AnomalySnoozing] exists in the database.
 func (as *AnomalySnoozing) Exists() bool {
 	return as._exists
 }
 
-// Deleted returns true when the AnomalySnoozing has been marked for deletion from
-// the database.
+// Deleted returns true when the [AnomalySnoozing] has been marked for deletion
+// from the database.
 func (as *AnomalySnoozing) Deleted() bool {
 	return as._deleted
 }
 
-// Insert inserts the AnomalySnoozing to the database.
+// Insert inserts the [AnomalySnoozing] to the database.
 func (as *AnomalySnoozing) Insert(db DB) error {
 	switch {
 	case as._exists: // already exists
@@ -40,12 +40,12 @@ func (as *AnomalySnoozing) Insert(db DB) error {
 	logf(sqlstr, as.UserID, as.AnomalyID)
 	res, err := db.Exec(sqlstr, as.UserID, as.AnomalyID)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	as.ID = int(id)
 	// set exists
@@ -53,7 +53,7 @@ func (as *AnomalySnoozing) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AnomalySnoozing in the database.
+// Update updates a [AnomalySnoozing] in the database.
 func (as *AnomalySnoozing) Update(db DB) error {
 	switch {
 	case !as._exists: // doesn't exist
@@ -73,7 +73,7 @@ func (as *AnomalySnoozing) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AnomalySnoozing to the database.
+// Save saves the [AnomalySnoozing] to the database.
 func (as *AnomalySnoozing) Save(db DB) error {
 	if as.Exists() {
 		return as.Update(db)
@@ -81,7 +81,7 @@ func (as *AnomalySnoozing) Save(db DB) error {
 	return as.Insert(db)
 }
 
-// Upsert performs an upsert for AnomalySnoozing.
+// Upsert performs an upsert for [AnomalySnoozing].
 func (as *AnomalySnoozing) Upsert(db DB) error {
 	switch {
 	case as._deleted: // deleted
@@ -98,14 +98,14 @@ func (as *AnomalySnoozing) Upsert(db DB) error {
 	// run
 	logf(sqlstr, as.ID, as.UserID, as.AnomalyID)
 	if _, err := db.Exec(sqlstr, as.ID, as.UserID, as.AnomalyID); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	as._exists = true
 	return nil
 }
 
-// Delete deletes the AnomalySnoozing from the database.
+// Delete deletes the [AnomalySnoozing] from the database.
 func (as *AnomalySnoozing) Delete(db DB) error {
 	switch {
 	case !as._exists: // doesn't exist
@@ -126,7 +126,7 @@ func (as *AnomalySnoozing) Delete(db DB) error {
 	return nil
 }
 
-// AnomalySnoozingByID retrieves a row from 'trackit.anomaly_snoozing' as a AnomalySnoozing.
+// AnomalySnoozingByID retrieves a row from 'trackit.anomaly_snoozing' as a [AnomalySnoozing].
 //
 // Generated from index 'anomaly_snoozing_id_pkey'.
 func AnomalySnoozingByID(db DB, id int) (*AnomalySnoozing, error) {
@@ -146,7 +146,7 @@ func AnomalySnoozingByID(db DB, id int) (*AnomalySnoozing, error) {
 	return &as, nil
 }
 
-// AnomalySnoozingByUserIDAnomalyID retrieves a row from 'trackit.anomaly_snoozing' as a AnomalySnoozing.
+// AnomalySnoozingByUserIDAnomalyID retrieves a row from 'trackit.anomaly_snoozing' as a [AnomalySnoozing].
 //
 // Generated from index 'user_id'.
 func AnomalySnoozingByUserIDAnomalyID(db DB, userID int, anomalyID string) (*AnomalySnoozing, error) {
@@ -166,7 +166,7 @@ func AnomalySnoozingByUserIDAnomalyID(db DB, userID int, anomalyID string) (*Ano
 	return &as, nil
 }
 
-// User returns the User associated with the AnomalySnoozing's (UserID).
+// User returns the User associated with the [AnomalySnoozing]'s (UserID).
 //
 // Generated from foreign key 'anomaly_snoozing_ibfk_1'.
 func (as *AnomalySnoozing) User(db DB) (*User, error) {

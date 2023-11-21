@@ -23,18 +23,18 @@ type TagbotUser struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the TagbotUser exists in the database.
+// Exists returns true when the [TagbotUser] exists in the database.
 func (tu *TagbotUser) Exists() bool {
 	return tu._exists
 }
 
-// Deleted returns true when the TagbotUser has been marked for deletion from
-// the database.
+// Deleted returns true when the [TagbotUser] has been marked for deletion
+// from the database.
 func (tu *TagbotUser) Deleted() bool {
 	return tu._deleted
 }
 
-// Insert inserts the TagbotUser to the database.
+// Insert inserts the [TagbotUser] to the database.
 func (tu *TagbotUser) Insert(db DB) error {
 	switch {
 	case tu._exists: // already exists
@@ -52,12 +52,12 @@ func (tu *TagbotUser) Insert(db DB) error {
 	logf(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier, tu.FreeTierEndAt, tu.DiscountCodeID)
 	res, err := db.Exec(sqlstr, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier, tu.FreeTierEndAt, tu.DiscountCodeID)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	tu.ID = int(id)
 	// set exists
@@ -65,7 +65,7 @@ func (tu *TagbotUser) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a TagbotUser in the database.
+// Update updates a [TagbotUser] in the database.
 func (tu *TagbotUser) Update(db DB) error {
 	switch {
 	case !tu._exists: // doesn't exist
@@ -85,7 +85,7 @@ func (tu *TagbotUser) Update(db DB) error {
 	return nil
 }
 
-// Save saves the TagbotUser to the database.
+// Save saves the [TagbotUser] to the database.
 func (tu *TagbotUser) Save(db DB) error {
 	if tu.Exists() {
 		return tu.Update(db)
@@ -93,7 +93,7 @@ func (tu *TagbotUser) Save(db DB) error {
 	return tu.Insert(db)
 }
 
-// Upsert performs an upsert for TagbotUser.
+// Upsert performs an upsert for [TagbotUser].
 func (tu *TagbotUser) Upsert(db DB) error {
 	switch {
 	case tu._deleted: // deleted
@@ -110,14 +110,14 @@ func (tu *TagbotUser) Upsert(db DB) error {
 	// run
 	logf(sqlstr, tu.ID, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier, tu.FreeTierEndAt, tu.DiscountCodeID)
 	if _, err := db.Exec(sqlstr, tu.ID, tu.UserID, tu.AwsCustomerIdentifier, tu.AwsCustomerEntitlement, tu.StripeCustomerIdentifier, tu.StripeCustomerEntitlement, tu.StripeSubscriptionIdentifier, tu.StripePaymentMethodIdentifier, tu.FreeTierEndAt, tu.DiscountCodeID); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	tu._exists = true
 	return nil
 }
 
-// Delete deletes the TagbotUser from the database.
+// Delete deletes the [TagbotUser] from the database.
 func (tu *TagbotUser) Delete(db DB) error {
 	switch {
 	case !tu._exists: // doesn't exist
@@ -138,7 +138,7 @@ func (tu *TagbotUser) Delete(db DB) error {
 	return nil
 }
 
-// TagbotUserByDiscountCodeID retrieves a row from 'trackit.tagbot_user' as a TagbotUser.
+// TagbotUserByDiscountCodeID retrieves a row from 'trackit.tagbot_user' as a [TagbotUser].
 //
 // Generated from index 'foreign_discount_code'.
 func TagbotUserByDiscountCodeID(db DB, discountCodeID sql.NullInt64) ([]*TagbotUser, error) {
@@ -172,7 +172,7 @@ func TagbotUserByDiscountCodeID(db DB, discountCodeID sql.NullInt64) ([]*TagbotU
 	return res, nil
 }
 
-// TagbotUserByID retrieves a row from 'trackit.tagbot_user' as a TagbotUser.
+// TagbotUserByID retrieves a row from 'trackit.tagbot_user' as a [TagbotUser].
 //
 // Generated from index 'tagbot_user_id_pkey'.
 func TagbotUserByID(db DB, id int) (*TagbotUser, error) {
@@ -192,7 +192,7 @@ func TagbotUserByID(db DB, id int) (*TagbotUser, error) {
 	return &tu, nil
 }
 
-// TagbotUserByUserID retrieves a row from 'trackit.tagbot_user' as a TagbotUser.
+// TagbotUserByUserID retrieves a row from 'trackit.tagbot_user' as a [TagbotUser].
 //
 // Generated from index 'user_id'.
 func TagbotUserByUserID(db DB, userID int) (*TagbotUser, error) {
@@ -212,14 +212,14 @@ func TagbotUserByUserID(db DB, userID int) (*TagbotUser, error) {
 	return &tu, nil
 }
 
-// User returns the User associated with the TagbotUser's (UserID).
+// User returns the User associated with the [TagbotUser]'s (UserID).
 //
 // Generated from foreign key 'tagbot_user_ibfk_1'.
 func (tu *TagbotUser) User(db DB) (*User, error) {
 	return UserByID(db, tu.UserID)
 }
 
-// TagbotDiscountCode returns the TagbotDiscountCode associated with the TagbotUser's (DiscountCodeID).
+// TagbotDiscountCode returns the TagbotDiscountCode associated with the [TagbotUser]'s (DiscountCodeID).
 //
 // Generated from foreign key 'tagbot_user_ibfk_2'.
 func (tu *TagbotUser) TagbotDiscountCode(db DB) (*TagbotDiscountCode, error) {

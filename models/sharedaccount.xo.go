@@ -13,18 +13,18 @@ type SharedAccount struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the SharedAccount exists in the database.
+// Exists returns true when the [SharedAccount] exists in the database.
 func (sa *SharedAccount) Exists() bool {
 	return sa._exists
 }
 
-// Deleted returns true when the SharedAccount has been marked for deletion from
-// the database.
+// Deleted returns true when the [SharedAccount] has been marked for deletion
+// from the database.
 func (sa *SharedAccount) Deleted() bool {
 	return sa._deleted
 }
 
-// Insert inserts the SharedAccount to the database.
+// Insert inserts the [SharedAccount] to the database.
 func (sa *SharedAccount) Insert(db DB) error {
 	switch {
 	case sa._exists: // already exists
@@ -42,12 +42,12 @@ func (sa *SharedAccount) Insert(db DB) error {
 	logf(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted)
 	res, err := db.Exec(sqlstr, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	sa.ID = int(id)
 	// set exists
@@ -55,7 +55,7 @@ func (sa *SharedAccount) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a SharedAccount in the database.
+// Update updates a [SharedAccount] in the database.
 func (sa *SharedAccount) Update(db DB) error {
 	switch {
 	case !sa._exists: // doesn't exist
@@ -75,7 +75,7 @@ func (sa *SharedAccount) Update(db DB) error {
 	return nil
 }
 
-// Save saves the SharedAccount to the database.
+// Save saves the [SharedAccount] to the database.
 func (sa *SharedAccount) Save(db DB) error {
 	if sa.Exists() {
 		return sa.Update(db)
@@ -83,7 +83,7 @@ func (sa *SharedAccount) Save(db DB) error {
 	return sa.Insert(db)
 }
 
-// Upsert performs an upsert for SharedAccount.
+// Upsert performs an upsert for [SharedAccount].
 func (sa *SharedAccount) Upsert(db DB) error {
 	switch {
 	case sa._deleted: // deleted
@@ -100,14 +100,14 @@ func (sa *SharedAccount) Upsert(db DB) error {
 	// run
 	logf(sqlstr, sa.ID, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted)
 	if _, err := db.Exec(sqlstr, sa.ID, sa.AccountID, sa.UserID, sa.UserPermission, sa.SharingAccepted); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	sa._exists = true
 	return nil
 }
 
-// Delete deletes the SharedAccount from the database.
+// Delete deletes the [SharedAccount] from the database.
 func (sa *SharedAccount) Delete(db DB) error {
 	switch {
 	case !sa._exists: // doesn't exist
@@ -128,7 +128,7 @@ func (sa *SharedAccount) Delete(db DB) error {
 	return nil
 }
 
-// SharedAccountByAccountID retrieves a row from 'trackit.shared_account' as a SharedAccount.
+// SharedAccountByAccountID retrieves a row from 'trackit.shared_account' as a [SharedAccount].
 //
 // Generated from index 'foreign_aws_account'.
 func SharedAccountByAccountID(db DB, accountID int) ([]*SharedAccount, error) {
@@ -162,7 +162,7 @@ func SharedAccountByAccountID(db DB, accountID int) ([]*SharedAccount, error) {
 	return res, nil
 }
 
-// SharedAccountByUserID retrieves a row from 'trackit.shared_account' as a SharedAccount.
+// SharedAccountByUserID retrieves a row from 'trackit.shared_account' as a [SharedAccount].
 //
 // Generated from index 'foreign_user_id'.
 func SharedAccountByUserID(db DB, userID int) ([]*SharedAccount, error) {
@@ -196,7 +196,7 @@ func SharedAccountByUserID(db DB, userID int) ([]*SharedAccount, error) {
 	return res, nil
 }
 
-// SharedAccountByID retrieves a row from 'trackit.shared_account' as a SharedAccount.
+// SharedAccountByID retrieves a row from 'trackit.shared_account' as a [SharedAccount].
 //
 // Generated from index 'shared_account_id_pkey'.
 func SharedAccountByID(db DB, id int) (*SharedAccount, error) {
@@ -216,14 +216,14 @@ func SharedAccountByID(db DB, id int) (*SharedAccount, error) {
 	return &sa, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the SharedAccount's (AccountID).
+// AwsAccount returns the AwsAccount associated with the [SharedAccount]'s (AccountID).
 //
 // Generated from foreign key 'shared_account_ibfk_1'.
 func (sa *SharedAccount) AwsAccount(db DB) (*AwsAccount, error) {
 	return AwsAccountByID(db, sa.AccountID)
 }
 
-// User returns the User associated with the SharedAccount's (UserID).
+// User returns the User associated with the [SharedAccount]'s (UserID).
 //
 // Generated from foreign key 'shared_account_ibfk_2'.
 func (sa *SharedAccount) User(db DB) (*User, error) {

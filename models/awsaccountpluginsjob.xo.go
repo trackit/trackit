@@ -17,18 +17,18 @@ type AwsAccountPluginsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the AwsAccountPluginsJob exists in the database.
+// Exists returns true when the [AwsAccountPluginsJob] exists in the database.
 func (aapj *AwsAccountPluginsJob) Exists() bool {
 	return aapj._exists
 }
 
-// Deleted returns true when the AwsAccountPluginsJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [AwsAccountPluginsJob] has been marked for deletion
+// from the database.
 func (aapj *AwsAccountPluginsJob) Deleted() bool {
 	return aapj._deleted
 }
 
-// Insert inserts the AwsAccountPluginsJob to the database.
+// Insert inserts the [AwsAccountPluginsJob] to the database.
 func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	switch {
 	case aapj._exists: // already exists
@@ -46,12 +46,12 @@ func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	logf(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
 	res, err := db.Exec(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	aapj.ID = int(id)
 	// set exists
@@ -59,7 +59,7 @@ func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a AwsAccountPluginsJob in the database.
+// Update updates a [AwsAccountPluginsJob] in the database.
 func (aapj *AwsAccountPluginsJob) Update(db DB) error {
 	switch {
 	case !aapj._exists: // doesn't exist
@@ -79,7 +79,7 @@ func (aapj *AwsAccountPluginsJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the AwsAccountPluginsJob to the database.
+// Save saves the [AwsAccountPluginsJob] to the database.
 func (aapj *AwsAccountPluginsJob) Save(db DB) error {
 	if aapj.Exists() {
 		return aapj.Update(db)
@@ -87,7 +87,7 @@ func (aapj *AwsAccountPluginsJob) Save(db DB) error {
 	return aapj.Insert(db)
 }
 
-// Upsert performs an upsert for AwsAccountPluginsJob.
+// Upsert performs an upsert for [AwsAccountPluginsJob].
 func (aapj *AwsAccountPluginsJob) Upsert(db DB) error {
 	switch {
 	case aapj._deleted: // deleted
@@ -104,14 +104,14 @@ func (aapj *AwsAccountPluginsJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, aapj.ID, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
 	if _, err := db.Exec(sqlstr, aapj.ID, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	aapj._exists = true
 	return nil
 }
 
-// Delete deletes the AwsAccountPluginsJob from the database.
+// Delete deletes the [AwsAccountPluginsJob] from the database.
 func (aapj *AwsAccountPluginsJob) Delete(db DB) error {
 	switch {
 	case !aapj._exists: // doesn't exist
@@ -132,7 +132,7 @@ func (aapj *AwsAccountPluginsJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountPluginsJobByID retrieves a row from 'trackit.aws_account_plugins_job' as a AwsAccountPluginsJob.
+// AwsAccountPluginsJobByID retrieves a row from 'trackit.aws_account_plugins_job' as a [AwsAccountPluginsJob].
 //
 // Generated from index 'aws_account_plugins_job_id_pkey'.
 func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
@@ -152,7 +152,7 @@ func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
 	return &aapj, nil
 }
 
-// AwsAccountPluginsJobByAwsAccountID retrieves a row from 'trackit.aws_account_plugins_job' as a AwsAccountPluginsJob.
+// AwsAccountPluginsJobByAwsAccountID retrieves a row from 'trackit.aws_account_plugins_job' as a [AwsAccountPluginsJob].
 //
 // Generated from index 'foreign_aws_account'.
 func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountPluginsJob, error) {
@@ -186,7 +186,7 @@ func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountP
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the AwsAccountPluginsJob's (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the [AwsAccountPluginsJob]'s (AwsAccountID).
 //
 // Generated from foreign key 'aws_account_plugins_job_ibfk_1'.
 func (aapj *AwsAccountPluginsJob) AwsAccount(db DB) (*AwsAccount, error) {

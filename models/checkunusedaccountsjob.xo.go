@@ -16,18 +16,18 @@ type CheckUnusedAccountsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the CheckUnusedAccountsJob exists in the database.
+// Exists returns true when the [CheckUnusedAccountsJob] exists in the database.
 func (cuaj *CheckUnusedAccountsJob) Exists() bool {
 	return cuaj._exists
 }
 
-// Deleted returns true when the CheckUnusedAccountsJob has been marked for deletion from
-// the database.
+// Deleted returns true when the [CheckUnusedAccountsJob] has been marked for deletion
+// from the database.
 func (cuaj *CheckUnusedAccountsJob) Deleted() bool {
 	return cuaj._deleted
 }
 
-// Insert inserts the CheckUnusedAccountsJob to the database.
+// Insert inserts the [CheckUnusedAccountsJob] to the database.
 func (cuaj *CheckUnusedAccountsJob) Insert(db DB) error {
 	switch {
 	case cuaj._exists: // already exists
@@ -45,12 +45,12 @@ func (cuaj *CheckUnusedAccountsJob) Insert(db DB) error {
 	logf(sqlstr, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
 	res, err := db.Exec(sqlstr, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
 	if err != nil {
-		return err
+		return logerror(err)
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return logerror(err)
 	} // set primary key
 	cuaj.ID = int(id)
 	// set exists
@@ -58,7 +58,7 @@ func (cuaj *CheckUnusedAccountsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a CheckUnusedAccountsJob in the database.
+// Update updates a [CheckUnusedAccountsJob] in the database.
 func (cuaj *CheckUnusedAccountsJob) Update(db DB) error {
 	switch {
 	case !cuaj._exists: // doesn't exist
@@ -78,7 +78,7 @@ func (cuaj *CheckUnusedAccountsJob) Update(db DB) error {
 	return nil
 }
 
-// Save saves the CheckUnusedAccountsJob to the database.
+// Save saves the [CheckUnusedAccountsJob] to the database.
 func (cuaj *CheckUnusedAccountsJob) Save(db DB) error {
 	if cuaj.Exists() {
 		return cuaj.Update(db)
@@ -86,7 +86,7 @@ func (cuaj *CheckUnusedAccountsJob) Save(db DB) error {
 	return cuaj.Insert(db)
 }
 
-// Upsert performs an upsert for CheckUnusedAccountsJob.
+// Upsert performs an upsert for [CheckUnusedAccountsJob].
 func (cuaj *CheckUnusedAccountsJob) Upsert(db DB) error {
 	switch {
 	case cuaj._deleted: // deleted
@@ -103,14 +103,14 @@ func (cuaj *CheckUnusedAccountsJob) Upsert(db DB) error {
 	// run
 	logf(sqlstr, cuaj.ID, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
 	if _, err := db.Exec(sqlstr, cuaj.ID, cuaj.Completed, cuaj.WorkerID, cuaj.JobError); err != nil {
-		return err
+		return logerror(err)
 	}
 	// set exists
 	cuaj._exists = true
 	return nil
 }
 
-// Delete deletes the CheckUnusedAccountsJob from the database.
+// Delete deletes the [CheckUnusedAccountsJob] from the database.
 func (cuaj *CheckUnusedAccountsJob) Delete(db DB) error {
 	switch {
 	case !cuaj._exists: // doesn't exist
@@ -131,7 +131,7 @@ func (cuaj *CheckUnusedAccountsJob) Delete(db DB) error {
 	return nil
 }
 
-// CheckUnusedAccountsJobByID retrieves a row from 'trackit.check_unused_accounts_job' as a CheckUnusedAccountsJob.
+// CheckUnusedAccountsJobByID retrieves a row from 'trackit.check_unused_accounts_job' as a [CheckUnusedAccountsJob].
 //
 // Generated from index 'check_unused_accounts_job_id_pkey'.
 func CheckUnusedAccountsJobByID(db DB, id int) (*CheckUnusedAccountsJob, error) {
