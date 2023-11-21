@@ -9,6 +9,7 @@ import (
 // AwsBillRepositoryDueUpdate represents a row from 'trackit.aws_bill_repository_due_update'.
 type AwsBillRepositoryDueUpdate struct {
 	ID                   int       `json:"id"`                     // id
+	Created              time.Time `json:"created"`                // created
 	AwsAccountID         int       `json:"aws_account_id"`         // aws_account_id
 	Bucket               string    `json:"bucket"`                 // bucket
 	Prefix               string    `json:"prefix"`                 // prefix

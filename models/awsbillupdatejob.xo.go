@@ -9,6 +9,7 @@ import (
 // AwsBillUpdateJob represents a row from 'trackit.aws_bill_update_job'.
 type AwsBillUpdateJob struct {
 	ID                  int       `json:"id"`                     // id
+	Created             time.Time `json:"created"`                // created
 	AwsBillRepositoryID int       `json:"aws_bill_repository_id"` // aws_bill_repository_id
 	Expired             time.Time `json:"expired"`                // expired
 	Completed           time.Time `json:"completed"`              // completed
@@ -39,13 +40,13 @@ func (abuj *AwsBillUpdateJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_bill_update_job (` +
-		`aws_bill_repository_id, expired, completed, worker_id, error` +
+		`created, aws_bill_repository_id, expired, completed, worker_id, error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
-	res, err := db.Exec(sqlstr, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
+	logf(sqlstr, abuj.Created, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
+	res, err := db.Exec(sqlstr, abuj.Created, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
 	if err != nil {
 		return logerror(err)
 	}
@@ -70,11 +71,11 @@ func (abuj *AwsBillUpdateJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_bill_update_job SET ` +
-		`aws_bill_repository_id = ?, expired = ?, completed = ?, worker_id = ?, error = ? ` +
+		`created = ?, aws_bill_repository_id = ?, expired = ?, completed = ?, worker_id = ?, error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error, abuj.ID)
-	if _, err := db.Exec(sqlstr, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error, abuj.ID); err != nil {
+	logf(sqlstr, abuj.Created, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error, abuj.ID)
+	if _, err := db.Exec(sqlstr, abuj.Created, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error, abuj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -96,15 +97,15 @@ func (abuj *AwsBillUpdateJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_bill_update_job (` +
-		`id, aws_bill_repository_id, expired, completed, worker_id, error` +
+		`id, created, aws_bill_repository_id, expired, completed, worker_id, error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`aws_bill_repository_id = VALUES(aws_bill_repository_id), expired = VALUES(expired), completed = VALUES(completed), worker_id = VALUES(worker_id), error = VALUES(error)`
+		`created = VALUES(created), aws_bill_repository_id = VALUES(aws_bill_repository_id), expired = VALUES(expired), completed = VALUES(completed), worker_id = VALUES(worker_id), error = VALUES(error)`
 	// run
-	logf(sqlstr, abuj.ID, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
-	if _, err := db.Exec(sqlstr, abuj.ID, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error); err != nil {
+	logf(sqlstr, abuj.ID, abuj.Created, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error)
+	if _, err := db.Exec(sqlstr, abuj.ID, abuj.Created, abuj.AwsBillRepositoryID, abuj.Expired, abuj.Completed, abuj.WorkerID, abuj.Error); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -139,7 +140,7 @@ func (abuj *AwsBillUpdateJob) Delete(db DB) error {
 func AwsBillUpdateJobByID(db DB, id int) (*AwsBillUpdateJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_bill_repository_id, expired, completed, worker_id, error ` +
+		`id, created, aws_bill_repository_id, expired, completed, worker_id, error ` +
 		`FROM trackit.aws_bill_update_job ` +
 		`WHERE id = ?`
 	// run
@@ -147,7 +148,7 @@ func AwsBillUpdateJobByID(db DB, id int) (*AwsBillUpdateJob, error) {
 	abuj := AwsBillUpdateJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&abuj.ID, &abuj.AwsBillRepositoryID, &abuj.Expired, &abuj.Completed, &abuj.WorkerID, &abuj.Error); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&abuj.ID, &abuj.Created, &abuj.AwsBillRepositoryID, &abuj.Expired, &abuj.Completed, &abuj.WorkerID, &abuj.Error); err != nil {
 		return nil, logerror(err)
 	}
 	return &abuj, nil
@@ -159,7 +160,7 @@ func AwsBillUpdateJobByID(db DB, id int) (*AwsBillUpdateJob, error) {
 func AwsBillUpdateJobByAwsBillRepositoryID(db DB, awsBillRepositoryID int) ([]*AwsBillUpdateJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_bill_repository_id, expired, completed, worker_id, error ` +
+		`id, created, aws_bill_repository_id, expired, completed, worker_id, error ` +
 		`FROM trackit.aws_bill_update_job ` +
 		`WHERE aws_bill_repository_id = ?`
 	// run
@@ -176,7 +177,7 @@ func AwsBillUpdateJobByAwsBillRepositoryID(db DB, awsBillRepositoryID int) ([]*A
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&abuj.ID, &abuj.AwsBillRepositoryID, &abuj.Expired, &abuj.Completed, &abuj.WorkerID, &abuj.Error); err != nil {
+		if err := rows.Scan(&abuj.ID, &abuj.Created, &abuj.AwsBillRepositoryID, &abuj.Expired, &abuj.Completed, &abuj.WorkerID, &abuj.Error); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &abuj)

@@ -9,6 +9,7 @@ import (
 // AwsAccountReportsJob represents a row from 'trackit.aws_account_reports_job'.
 type AwsAccountReportsJob struct {
 	ID                          int       `json:"id"`                          // id
+	Created                     time.Time `json:"created"`                     // created
 	AwsAccountID                int       `json:"aws_account_id"`              // aws_account_id
 	Completed                   time.Time `json:"completed"`                   // completed
 	WorkerID                    string    `json:"worker_id"`                   // worker_id
@@ -48,13 +49,13 @@ func (aarj *AwsAccountReportsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account_reports_job (` +
-		`aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
+		`created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError)
-	res, err := db.Exec(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError)
+	logf(sqlstr, aarj.Created, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError)
+	res, err := db.Exec(sqlstr, aarj.Created, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError)
 	if err != nil {
 		return logerror(err)
 	}
@@ -79,11 +80,11 @@ func (aarj *AwsAccountReportsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account_reports_job SET ` +
-		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, costDiffError = ?, ec2UsageReportError = ?, rdsUsageReportError = ?, esUsageReportError = ?, elasticacheUsageReportError = ?, lambdaUsageReportError = ?, riEc2ReportError = ?, riRdsReportError = ?, odToRiEc2ReportError = ? ` +
+		`created = ?, aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, costDiffError = ?, ec2UsageReportError = ?, rdsUsageReportError = ?, esUsageReportError = ?, elasticacheUsageReportError = ?, lambdaUsageReportError = ?, riEc2ReportError = ?, riRdsReportError = ?, odToRiEc2ReportError = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError, aarj.ID)
-	if _, err := db.Exec(sqlstr, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError, aarj.ID); err != nil {
+	logf(sqlstr, aarj.Created, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError, aarj.ID)
+	if _, err := db.Exec(sqlstr, aarj.Created, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError, aarj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -105,15 +106,15 @@ func (aarj *AwsAccountReportsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account_reports_job (` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), spreadsheetError = VALUES(spreadsheetError), costDiffError = VALUES(costDiffError), ec2UsageReportError = VALUES(ec2UsageReportError), rdsUsageReportError = VALUES(rdsUsageReportError), esUsageReportError = VALUES(esUsageReportError), elasticacheUsageReportError = VALUES(elasticacheUsageReportError), lambdaUsageReportError = VALUES(lambdaUsageReportError), riEc2ReportError = VALUES(riEc2ReportError), riRdsReportError = VALUES(riRdsReportError), odToRiEc2ReportError = VALUES(odToRiEc2ReportError)`
+		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), spreadsheetError = VALUES(spreadsheetError), costDiffError = VALUES(costDiffError), ec2UsageReportError = VALUES(ec2UsageReportError), rdsUsageReportError = VALUES(rdsUsageReportError), esUsageReportError = VALUES(esUsageReportError), elasticacheUsageReportError = VALUES(elasticacheUsageReportError), lambdaUsageReportError = VALUES(lambdaUsageReportError), riEc2ReportError = VALUES(riEc2ReportError), riRdsReportError = VALUES(riRdsReportError), odToRiEc2ReportError = VALUES(odToRiEc2ReportError)`
 	// run
-	logf(sqlstr, aarj.ID, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError)
-	if _, err := db.Exec(sqlstr, aarj.ID, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError); err != nil {
+	logf(sqlstr, aarj.ID, aarj.Created, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError)
+	if _, err := db.Exec(sqlstr, aarj.ID, aarj.Created, aarj.AwsAccountID, aarj.Completed, aarj.WorkerID, aarj.JobError, aarj.SpreadsheetError, aarj.CostDiffError, aarj.Ec2usageReportError, aarj.RdsUsageReportError, aarj.EsUsageReportError, aarj.ElasticacheUsageReportError, aarj.LambdaUsageReportError, aarj.RiEc2reportError, aarj.RiRdsReportError, aarj.OdToRiEc2reportError); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -148,7 +149,7 @@ func (aarj *AwsAccountReportsJob) Delete(db DB) error {
 func AwsAccountReportsJobByID(db DB, id int) (*AwsAccountReportsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
 		`FROM trackit.aws_account_reports_job ` +
 		`WHERE id = ?`
 	// run
@@ -156,7 +157,7 @@ func AwsAccountReportsJobByID(db DB, id int) (*AwsAccountReportsJob, error) {
 	aarj := AwsAccountReportsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aarj.ID, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.JobError, &aarj.SpreadsheetError, &aarj.CostDiffError, &aarj.Ec2usageReportError, &aarj.RdsUsageReportError, &aarj.EsUsageReportError, &aarj.ElasticacheUsageReportError, &aarj.LambdaUsageReportError, &aarj.RiEc2reportError, &aarj.RiRdsReportError, &aarj.OdToRiEc2reportError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aarj.ID, &aarj.Created, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.JobError, &aarj.SpreadsheetError, &aarj.CostDiffError, &aarj.Ec2usageReportError, &aarj.RdsUsageReportError, &aarj.EsUsageReportError, &aarj.ElasticacheUsageReportError, &aarj.LambdaUsageReportError, &aarj.RiEc2reportError, &aarj.RiRdsReportError, &aarj.OdToRiEc2reportError); err != nil {
 		return nil, logerror(err)
 	}
 	return &aarj, nil
@@ -168,7 +169,7 @@ func AwsAccountReportsJobByID(db DB, id int) (*AwsAccountReportsJob, error) {
 func AwsAccountReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountReportsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
 		`FROM trackit.aws_account_reports_job ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -185,7 +186,7 @@ func AwsAccountReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountR
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aarj.ID, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.JobError, &aarj.SpreadsheetError, &aarj.CostDiffError, &aarj.Ec2usageReportError, &aarj.RdsUsageReportError, &aarj.EsUsageReportError, &aarj.ElasticacheUsageReportError, &aarj.LambdaUsageReportError, &aarj.RiEc2reportError, &aarj.RiRdsReportError, &aarj.OdToRiEc2reportError); err != nil {
+		if err := rows.Scan(&aarj.ID, &aarj.Created, &aarj.AwsAccountID, &aarj.Completed, &aarj.WorkerID, &aarj.JobError, &aarj.SpreadsheetError, &aarj.CostDiffError, &aarj.Ec2usageReportError, &aarj.RdsUsageReportError, &aarj.EsUsageReportError, &aarj.ElasticacheUsageReportError, &aarj.LambdaUsageReportError, &aarj.RiEc2reportError, &aarj.RiRdsReportError, &aarj.OdToRiEc2reportError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aarj)

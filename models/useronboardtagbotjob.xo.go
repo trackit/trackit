@@ -9,6 +9,7 @@ import (
 // UserOnboardTagbotJob represents a row from 'trackit.user_onboard_tagbot_job'.
 type UserOnboardTagbotJob struct {
 	ID        int       `json:"id"`        // id
+	Created   time.Time `json:"created"`   // created
 	UserID    int       `json:"user_id"`   // user_id
 	Completed time.Time `json:"completed"` // completed
 	WorkerID  string    `json:"worker_id"` // worker_id
@@ -38,13 +39,13 @@ func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.user_onboard_tagbot_job (` +
-		`user_id, completed, worker_id, job_error` +
+		`created, user_id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
-	res, err := db.Exec(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
+	logf(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
+	res, err := db.Exec(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
 	if err != nil {
 		return logerror(err)
 	}
@@ -69,11 +70,11 @@ func (uotj *UserOnboardTagbotJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.user_onboard_tagbot_job SET ` +
-		`user_id = ?, completed = ?, worker_id = ?, job_error = ? ` +
+		`created = ?, user_id = ?, completed = ?, worker_id = ?, job_error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID)
-	if _, err := db.Exec(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID); err != nil {
+	logf(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID)
+	if _, err := db.Exec(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -95,15 +96,15 @@ func (uotj *UserOnboardTagbotJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.user_onboard_tagbot_job (` +
-		`id, user_id, completed, worker_id, job_error` +
+		`id, created, user_id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`user_id = VALUES(user_id), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
+		`created = VALUES(created), user_id = VALUES(user_id), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
 	// run
-	logf(sqlstr, uotj.ID, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
-	if _, err := db.Exec(sqlstr, uotj.ID, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError); err != nil {
+	logf(sqlstr, uotj.ID, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
+	if _, err := db.Exec(sqlstr, uotj.ID, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -138,7 +139,7 @@ func (uotj *UserOnboardTagbotJob) Delete(db DB) error {
 func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, user_id, completed, worker_id, job_error ` +
+		`id, created, user_id, completed, worker_id, job_error ` +
 		`FROM trackit.user_onboard_tagbot_job ` +
 		`WHERE user_id = ?`
 	// run
@@ -155,7 +156,7 @@ func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, e
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&uotj.ID, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
+		if err := rows.Scan(&uotj.ID, &uotj.Created, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &uotj)
@@ -172,7 +173,7 @@ func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, e
 func UserOnboardTagbotJobByID(db DB, id int) (*UserOnboardTagbotJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, user_id, completed, worker_id, job_error ` +
+		`id, created, user_id, completed, worker_id, job_error ` +
 		`FROM trackit.user_onboard_tagbot_job ` +
 		`WHERE id = ?`
 	// run
@@ -180,7 +181,7 @@ func UserOnboardTagbotJobByID(db DB, id int) (*UserOnboardTagbotJob, error) {
 	uotj := UserOnboardTagbotJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&uotj.ID, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&uotj.ID, &uotj.Created, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
 		return nil, logerror(err)
 	}
 	return &uotj, nil

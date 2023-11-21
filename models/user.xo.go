@@ -10,6 +10,7 @@ import (
 // User represents a row from 'trackit.user'.
 type User struct {
 	ID                     int            `json:"id"`                       // id
+	Created                time.Time      `json:"created"`                  // created
 	Email                  string         `json:"email"`                    // email
 	Auth                   string         `json:"auth"`                     // auth
 	NextExternal           sql.NullString `json:"next_external"`            // next_external
@@ -48,13 +49,13 @@ func (u *User) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.user (` +
-		`email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type` +
+		`created, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
-	res, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
+	logf(sqlstr, u.Created, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
+	res, err := db.Exec(sqlstr, u.Created, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
 	if err != nil {
 		return logerror(err)
 	}
@@ -79,11 +80,11 @@ func (u *User) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.user SET ` +
-		`email = ?, auth = ?, next_external = ?, parent_user_id = ?, aws_customer_identifier = ?, aws_customer_entitlement = ?, next_update_entitlement = ?, anomalies_filters = ?, next_update_tags = ?, last_seen = ?, last_unused_reminder = ?, last_unused_slack = ?, account_type = ? ` +
+		`created = ?, email = ?, auth = ?, next_external = ?, parent_user_id = ?, aws_customer_identifier = ?, aws_customer_entitlement = ?, next_update_entitlement = ?, anomalies_filters = ?, next_update_tags = ?, last_seen = ?, last_unused_reminder = ?, last_unused_slack = ?, account_type = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType, u.ID)
-	if _, err := db.Exec(sqlstr, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType, u.ID); err != nil {
+	logf(sqlstr, u.Created, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType, u.ID)
+	if _, err := db.Exec(sqlstr, u.Created, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType, u.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -105,15 +106,15 @@ func (u *User) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.user (` +
-		`id, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type` +
+		`id, created, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`email = VALUES(email), auth = VALUES(auth), next_external = VALUES(next_external), parent_user_id = VALUES(parent_user_id), aws_customer_identifier = VALUES(aws_customer_identifier), aws_customer_entitlement = VALUES(aws_customer_entitlement), next_update_entitlement = VALUES(next_update_entitlement), anomalies_filters = VALUES(anomalies_filters), next_update_tags = VALUES(next_update_tags), last_seen = VALUES(last_seen), last_unused_reminder = VALUES(last_unused_reminder), last_unused_slack = VALUES(last_unused_slack), account_type = VALUES(account_type)`
+		`created = VALUES(created), email = VALUES(email), auth = VALUES(auth), next_external = VALUES(next_external), parent_user_id = VALUES(parent_user_id), aws_customer_identifier = VALUES(aws_customer_identifier), aws_customer_entitlement = VALUES(aws_customer_entitlement), next_update_entitlement = VALUES(next_update_entitlement), anomalies_filters = VALUES(anomalies_filters), next_update_tags = VALUES(next_update_tags), last_seen = VALUES(last_seen), last_unused_reminder = VALUES(last_unused_reminder), last_unused_slack = VALUES(last_unused_slack), account_type = VALUES(account_type)`
 	// run
-	logf(sqlstr, u.ID, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
-	if _, err := db.Exec(sqlstr, u.ID, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType); err != nil {
+	logf(sqlstr, u.ID, u.Created, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType)
+	if _, err := db.Exec(sqlstr, u.ID, u.Created, u.Email, u.Auth, u.NextExternal, u.ParentUserID, u.AwsCustomerIdentifier, u.AwsCustomerEntitlement, u.NextUpdateEntitlement, u.AnomaliesFilters, u.NextUpdateTags, u.LastSeen, u.LastUnusedReminder, u.LastUnusedSlack, u.AccountType); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -148,7 +149,7 @@ func (u *User) Delete(db DB) error {
 func UserByParentUserID(db DB, parentUserID sql.NullInt64) ([]*User, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
+		`id, created, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
 		`FROM trackit.user ` +
 		`WHERE parent_user_id = ?`
 	// run
@@ -165,7 +166,7 @@ func UserByParentUserID(db DB, parentUserID sql.NullInt64) ([]*User, error) {
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType); err != nil {
+		if err := rows.Scan(&u.ID, &u.Created, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &u)
@@ -182,7 +183,7 @@ func UserByParentUserID(db DB, parentUserID sql.NullInt64) ([]*User, error) {
 func UserByEmailAccountType(db DB, email, accountType string) (*User, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
+		`id, created, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
 		`FROM trackit.user ` +
 		`WHERE email = ? AND account_type = ?`
 	// run
@@ -190,7 +191,7 @@ func UserByEmailAccountType(db DB, email, accountType string) (*User, error) {
 	u := User{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, email, accountType).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType); err != nil {
+	if err := db.QueryRow(sqlstr, email, accountType).Scan(&u.ID, &u.Created, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType); err != nil {
 		return nil, logerror(err)
 	}
 	return &u, nil
@@ -202,7 +203,7 @@ func UserByEmailAccountType(db DB, email, accountType string) (*User, error) {
 func UserByID(db DB, id int) (*User, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
+		`id, created, email, auth, next_external, parent_user_id, aws_customer_identifier, aws_customer_entitlement, next_update_entitlement, anomalies_filters, next_update_tags, last_seen, last_unused_reminder, last_unused_slack, account_type ` +
 		`FROM trackit.user ` +
 		`WHERE id = ?`
 	// run
@@ -210,7 +211,7 @@ func UserByID(db DB, id int) (*User, error) {
 	u := User{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&u.ID, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&u.ID, &u.Created, &u.Email, &u.Auth, &u.NextExternal, &u.ParentUserID, &u.AwsCustomerIdentifier, &u.AwsCustomerEntitlement, &u.NextUpdateEntitlement, &u.AnomaliesFilters, &u.NextUpdateTags, &u.LastSeen, &u.LastUnusedReminder, &u.LastUnusedSlack, &u.AccountType); err != nil {
 		return nil, logerror(err)
 	}
 	return &u, nil

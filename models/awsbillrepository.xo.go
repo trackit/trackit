@@ -9,6 +9,7 @@ import (
 // AwsBillRepository represents a row from 'trackit.aws_bill_repository'.
 type AwsBillRepository struct {
 	ID                   int       `json:"id"`                     // id
+	Created              time.Time `json:"created"`                // created
 	AwsAccountID         int       `json:"aws_account_id"`         // aws_account_id
 	Bucket               string    `json:"bucket"`                 // bucket
 	Prefix               string    `json:"prefix"`                 // prefix
@@ -40,13 +41,13 @@ func (abr *AwsBillRepository) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`aws_account_id, bucket, prefix, next_update, last_imported_manifest, error` +
+		`created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
-	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
+	logf(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
+	res, err := db.Exec(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
 	if err != nil {
 		return logerror(err)
 	}
@@ -71,11 +72,11 @@ func (abr *AwsBillRepository) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_bill_repository SET ` +
-		`aws_account_id = ?, bucket = ?, prefix = ?, next_update = ?, last_imported_manifest = ?, error = ? ` +
+		`created = ?, aws_account_id = ?, bucket = ?, prefix = ?, next_update = ?, last_imported_manifest = ?, error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error, abr.ID)
-	if _, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error, abr.ID); err != nil {
+	logf(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error, abr.ID)
+	if _, err := db.Exec(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error, abr.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -97,15 +98,15 @@ func (abr *AwsBillRepository) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`id, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error` +
+		`id, created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`aws_account_id = VALUES(aws_account_id), bucket = VALUES(bucket), prefix = VALUES(prefix), next_update = VALUES(next_update), last_imported_manifest = VALUES(last_imported_manifest), error = VALUES(error)`
+		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), bucket = VALUES(bucket), prefix = VALUES(prefix), next_update = VALUES(next_update), last_imported_manifest = VALUES(last_imported_manifest), error = VALUES(error)`
 	// run
-	logf(sqlstr, abr.ID, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
-	if _, err := db.Exec(sqlstr, abr.ID, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error); err != nil {
+	logf(sqlstr, abr.ID, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
+	if _, err := db.Exec(sqlstr, abr.ID, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -140,7 +141,7 @@ func (abr *AwsBillRepository) Delete(db DB) error {
 func AwsBillRepositoryByID(db DB, id int) (*AwsBillRepository, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error ` +
+		`id, created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE id = ?`
 	// run
@@ -148,7 +149,7 @@ func AwsBillRepositoryByID(db DB, id int) (*AwsBillRepository, error) {
 	abr := AwsBillRepository{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest, &abr.Error); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.Created, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest, &abr.Error); err != nil {
 		return nil, logerror(err)
 	}
 	return &abr, nil
@@ -160,7 +161,7 @@ func AwsBillRepositoryByID(db DB, id int) (*AwsBillRepository, error) {
 func AwsBillRepositoryByAwsAccountID(db DB, awsAccountID int) ([]*AwsBillRepository, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error ` +
+		`id, created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -177,7 +178,7 @@ func AwsBillRepositoryByAwsAccountID(db DB, awsAccountID int) ([]*AwsBillReposit
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest, &abr.Error); err != nil {
+		if err := rows.Scan(&abr.ID, &abr.Created, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest, &abr.Error); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &abr)

@@ -10,6 +10,7 @@ import (
 // AwsAccountPluginsDueUpdate represents a row from 'trackit.aws_account_plugins_due_update'.
 type AwsAccountPluginsDueUpdate struct {
 	ID                int           `json:"id"`                  // id
+	Created           time.Time     `json:"created"`             // created
 	UserID            int           `json:"user_id"`             // user_id
 	Pretty            string        `json:"pretty"`              // pretty
 	RoleArn           string        `json:"role_arn"`            // role_arn

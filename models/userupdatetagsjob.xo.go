@@ -9,6 +9,7 @@ import (
 // UserUpdateTagsJob represents a row from 'trackit.user_update_tags_job'.
 type UserUpdateTagsJob struct {
 	ID        int       `json:"id"`        // id
+	Created   time.Time `json:"created"`   // created
 	UserID    int       `json:"user_id"`   // user_id
 	Completed time.Time `json:"completed"` // completed
 	WorkerID  string    `json:"worker_id"` // worker_id
@@ -38,13 +39,13 @@ func (uutj *UserUpdateTagsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.user_update_tags_job (` +
-		`user_id, completed, worker_id, job_error` +
+		`created, user_id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
-	res, err := db.Exec(sqlstr, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
+	logf(sqlstr, uutj.Created, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
+	res, err := db.Exec(sqlstr, uutj.Created, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
 	if err != nil {
 		return logerror(err)
 	}
@@ -69,11 +70,11 @@ func (uutj *UserUpdateTagsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.user_update_tags_job SET ` +
-		`user_id = ?, completed = ?, worker_id = ?, job_error = ? ` +
+		`created = ?, user_id = ?, completed = ?, worker_id = ?, job_error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError, uutj.ID)
-	if _, err := db.Exec(sqlstr, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError, uutj.ID); err != nil {
+	logf(sqlstr, uutj.Created, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError, uutj.ID)
+	if _, err := db.Exec(sqlstr, uutj.Created, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError, uutj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -95,15 +96,15 @@ func (uutj *UserUpdateTagsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.user_update_tags_job (` +
-		`id, user_id, completed, worker_id, job_error` +
+		`id, created, user_id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`user_id = VALUES(user_id), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
+		`created = VALUES(created), user_id = VALUES(user_id), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
 	// run
-	logf(sqlstr, uutj.ID, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
-	if _, err := db.Exec(sqlstr, uutj.ID, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError); err != nil {
+	logf(sqlstr, uutj.ID, uutj.Created, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError)
+	if _, err := db.Exec(sqlstr, uutj.ID, uutj.Created, uutj.UserID, uutj.Completed, uutj.WorkerID, uutj.JobError); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -138,7 +139,7 @@ func (uutj *UserUpdateTagsJob) Delete(db DB) error {
 func UserUpdateTagsJobByUserID(db DB, userID int) ([]*UserUpdateTagsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, user_id, completed, worker_id, job_error ` +
+		`id, created, user_id, completed, worker_id, job_error ` +
 		`FROM trackit.user_update_tags_job ` +
 		`WHERE user_id = ?`
 	// run
@@ -155,7 +156,7 @@ func UserUpdateTagsJobByUserID(db DB, userID int) ([]*UserUpdateTagsJob, error) 
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&uutj.ID, &uutj.UserID, &uutj.Completed, &uutj.WorkerID, &uutj.JobError); err != nil {
+		if err := rows.Scan(&uutj.ID, &uutj.Created, &uutj.UserID, &uutj.Completed, &uutj.WorkerID, &uutj.JobError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &uutj)
@@ -172,7 +173,7 @@ func UserUpdateTagsJobByUserID(db DB, userID int) ([]*UserUpdateTagsJob, error) 
 func UserUpdateTagsJobByID(db DB, id int) (*UserUpdateTagsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, user_id, completed, worker_id, job_error ` +
+		`id, created, user_id, completed, worker_id, job_error ` +
 		`FROM trackit.user_update_tags_job ` +
 		`WHERE id = ?`
 	// run
@@ -180,7 +181,7 @@ func UserUpdateTagsJobByID(db DB, id int) (*UserUpdateTagsJob, error) {
 	uutj := UserUpdateTagsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&uutj.ID, &uutj.UserID, &uutj.Completed, &uutj.WorkerID, &uutj.JobError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&uutj.ID, &uutj.Created, &uutj.UserID, &uutj.Completed, &uutj.WorkerID, &uutj.JobError); err != nil {
 		return nil, logerror(err)
 	}
 	return &uutj, nil

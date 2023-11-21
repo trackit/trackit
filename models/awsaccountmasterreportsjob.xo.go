@@ -9,6 +9,7 @@ import (
 // AwsAccountMasterReportsJob represents a row from 'trackit.aws_account_master_reports_job'.
 type AwsAccountMasterReportsJob struct {
 	ID                          int       `json:"id"`                          // id
+	Created                     time.Time `json:"created"`                     // created
 	AwsAccountID                int       `json:"aws_account_id"`              // aws_account_id
 	Completed                   time.Time `json:"completed"`                   // completed
 	WorkerID                    string    `json:"worker_id"`                   // worker_id
@@ -48,13 +49,13 @@ func (aamrj *AwsAccountMasterReportsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account_master_reports_job (` +
-		`aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
+		`created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
-	res, err := db.Exec(sqlstr, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
+	logf(sqlstr, aamrj.Created, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
+	res, err := db.Exec(sqlstr, aamrj.Created, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
 	if err != nil {
 		return logerror(err)
 	}
@@ -79,11 +80,11 @@ func (aamrj *AwsAccountMasterReportsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account_master_reports_job SET ` +
-		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, costDiffError = ?, ec2UsageReportError = ?, rdsUsageReportError = ?, esUsageReportError = ?, elasticacheUsageReportError = ?, lambdaUsageReportError = ?, riEc2ReportError = ?, riRdsReportError = ?, odToRiEc2ReportError = ? ` +
+		`created = ?, aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, costDiffError = ?, ec2UsageReportError = ?, rdsUsageReportError = ?, esUsageReportError = ?, elasticacheUsageReportError = ?, lambdaUsageReportError = ?, riEc2ReportError = ?, riRdsReportError = ?, odToRiEc2ReportError = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError, aamrj.ID)
-	if _, err := db.Exec(sqlstr, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError, aamrj.ID); err != nil {
+	logf(sqlstr, aamrj.Created, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError, aamrj.ID)
+	if _, err := db.Exec(sqlstr, aamrj.Created, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError, aamrj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -105,15 +106,15 @@ func (aamrj *AwsAccountMasterReportsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account_master_reports_job (` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), spreadsheetError = VALUES(spreadsheetError), costDiffError = VALUES(costDiffError), ec2UsageReportError = VALUES(ec2UsageReportError), rdsUsageReportError = VALUES(rdsUsageReportError), esUsageReportError = VALUES(esUsageReportError), elasticacheUsageReportError = VALUES(elasticacheUsageReportError), lambdaUsageReportError = VALUES(lambdaUsageReportError), riEc2ReportError = VALUES(riEc2ReportError), riRdsReportError = VALUES(riRdsReportError), odToRiEc2ReportError = VALUES(odToRiEc2ReportError)`
+		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), spreadsheetError = VALUES(spreadsheetError), costDiffError = VALUES(costDiffError), ec2UsageReportError = VALUES(ec2UsageReportError), rdsUsageReportError = VALUES(rdsUsageReportError), esUsageReportError = VALUES(esUsageReportError), elasticacheUsageReportError = VALUES(elasticacheUsageReportError), lambdaUsageReportError = VALUES(lambdaUsageReportError), riEc2ReportError = VALUES(riEc2ReportError), riRdsReportError = VALUES(riRdsReportError), odToRiEc2ReportError = VALUES(odToRiEc2ReportError)`
 	// run
-	logf(sqlstr, aamrj.ID, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
-	if _, err := db.Exec(sqlstr, aamrj.ID, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError); err != nil {
+	logf(sqlstr, aamrj.ID, aamrj.Created, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError)
+	if _, err := db.Exec(sqlstr, aamrj.ID, aamrj.Created, aamrj.AwsAccountID, aamrj.Completed, aamrj.WorkerID, aamrj.JobError, aamrj.SpreadsheetError, aamrj.CostDiffError, aamrj.Ec2usageReportError, aamrj.RdsUsageReportError, aamrj.EsUsageReportError, aamrj.ElasticacheUsageReportError, aamrj.LambdaUsageReportError, aamrj.RiEc2reportError, aamrj.RiRdsReportError, aamrj.OdToRiEc2reportError); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -148,7 +149,7 @@ func (aamrj *AwsAccountMasterReportsJob) Delete(db DB) error {
 func AwsAccountMasterReportsJobByID(db DB, id int) (*AwsAccountMasterReportsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
 		`FROM trackit.aws_account_master_reports_job ` +
 		`WHERE id = ?`
 	// run
@@ -156,7 +157,7 @@ func AwsAccountMasterReportsJobByID(db DB, id int) (*AwsAccountMasterReportsJob,
 	aamrj := AwsAccountMasterReportsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aamrj.ID, &aamrj.AwsAccountID, &aamrj.Completed, &aamrj.WorkerID, &aamrj.JobError, &aamrj.SpreadsheetError, &aamrj.CostDiffError, &aamrj.Ec2usageReportError, &aamrj.RdsUsageReportError, &aamrj.EsUsageReportError, &aamrj.ElasticacheUsageReportError, &aamrj.LambdaUsageReportError, &aamrj.RiEc2reportError, &aamrj.RiRdsReportError, &aamrj.OdToRiEc2reportError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aamrj.ID, &aamrj.Created, &aamrj.AwsAccountID, &aamrj.Completed, &aamrj.WorkerID, &aamrj.JobError, &aamrj.SpreadsheetError, &aamrj.CostDiffError, &aamrj.Ec2usageReportError, &aamrj.RdsUsageReportError, &aamrj.EsUsageReportError, &aamrj.ElasticacheUsageReportError, &aamrj.LambdaUsageReportError, &aamrj.RiEc2reportError, &aamrj.RiRdsReportError, &aamrj.OdToRiEc2reportError); err != nil {
 		return nil, logerror(err)
 	}
 	return &aamrj, nil
@@ -168,7 +169,7 @@ func AwsAccountMasterReportsJobByID(db DB, id int) (*AwsAccountMasterReportsJob,
 func AwsAccountMasterReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountMasterReportsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, costDiffError, ec2UsageReportError, rdsUsageReportError, esUsageReportError, elasticacheUsageReportError, lambdaUsageReportError, riEc2ReportError, riRdsReportError, odToRiEc2ReportError ` +
 		`FROM trackit.aws_account_master_reports_job ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -185,7 +186,7 @@ func AwsAccountMasterReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAc
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aamrj.ID, &aamrj.AwsAccountID, &aamrj.Completed, &aamrj.WorkerID, &aamrj.JobError, &aamrj.SpreadsheetError, &aamrj.CostDiffError, &aamrj.Ec2usageReportError, &aamrj.RdsUsageReportError, &aamrj.EsUsageReportError, &aamrj.ElasticacheUsageReportError, &aamrj.LambdaUsageReportError, &aamrj.RiEc2reportError, &aamrj.RiRdsReportError, &aamrj.OdToRiEc2reportError); err != nil {
+		if err := rows.Scan(&aamrj.ID, &aamrj.Created, &aamrj.AwsAccountID, &aamrj.Completed, &aamrj.WorkerID, &aamrj.JobError, &aamrj.SpreadsheetError, &aamrj.CostDiffError, &aamrj.Ec2usageReportError, &aamrj.RdsUsageReportError, &aamrj.EsUsageReportError, &aamrj.ElasticacheUsageReportError, &aamrj.LambdaUsageReportError, &aamrj.RiEc2reportError, &aamrj.RiRdsReportError, &aamrj.OdToRiEc2reportError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aamrj)

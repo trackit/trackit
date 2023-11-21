@@ -10,6 +10,7 @@ import (
 // UserUpdateTagsDueUpdate represents a row from 'trackit.user_update_tags_due_update'.
 type UserUpdateTagsDueUpdate struct {
 	ID                     int            `json:"id"`                       // id
+	Created                time.Time      `json:"created"`                  // created
 	Email                  string         `json:"email"`                    // email
 	Auth                   string         `json:"auth"`                     // auth
 	NextExternal           sql.NullString `json:"next_external"`            // next_external

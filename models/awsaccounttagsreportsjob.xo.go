@@ -9,6 +9,7 @@ import (
 // AwsAccountTagsReportsJob represents a row from 'trackit.aws_account_tags_reports_job'.
 type AwsAccountTagsReportsJob struct {
 	ID               int       `json:"id"`               // id
+	Created          time.Time `json:"created"`          // created
 	AwsAccountID     int       `json:"aws_account_id"`   // aws_account_id
 	Completed        time.Time `json:"completed"`        // completed
 	WorkerID         string    `json:"worker_id"`        // worker_id
@@ -40,13 +41,13 @@ func (aatrj *AwsAccountTagsReportsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account_tags_reports_job (` +
-		`aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError` +
+		`created, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
-	res, err := db.Exec(sqlstr, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
+	logf(sqlstr, aatrj.Created, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
+	res, err := db.Exec(sqlstr, aatrj.Created, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
 	if err != nil {
 		return logerror(err)
 	}
@@ -71,11 +72,11 @@ func (aatrj *AwsAccountTagsReportsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account_tags_reports_job SET ` +
-		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, tagsReportError = ? ` +
+		`created = ?, aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, spreadsheetError = ?, tagsReportError = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError, aatrj.ID)
-	if _, err := db.Exec(sqlstr, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError, aatrj.ID); err != nil {
+	logf(sqlstr, aatrj.Created, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError, aatrj.ID)
+	if _, err := db.Exec(sqlstr, aatrj.Created, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError, aatrj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -97,15 +98,15 @@ func (aatrj *AwsAccountTagsReportsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account_tags_reports_job (` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), spreadsheetError = VALUES(spreadsheetError), tagsReportError = VALUES(tagsReportError)`
+		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), spreadsheetError = VALUES(spreadsheetError), tagsReportError = VALUES(tagsReportError)`
 	// run
-	logf(sqlstr, aatrj.ID, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
-	if _, err := db.Exec(sqlstr, aatrj.ID, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError); err != nil {
+	logf(sqlstr, aatrj.ID, aatrj.Created, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError)
+	if _, err := db.Exec(sqlstr, aatrj.ID, aatrj.Created, aatrj.AwsAccountID, aatrj.Completed, aatrj.WorkerID, aatrj.JobError, aatrj.SpreadsheetError, aatrj.TagsReportError); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -140,7 +141,7 @@ func (aatrj *AwsAccountTagsReportsJob) Delete(db DB) error {
 func AwsAccountTagsReportsJobByID(db DB, id int) (*AwsAccountTagsReportsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError ` +
 		`FROM trackit.aws_account_tags_reports_job ` +
 		`WHERE id = ?`
 	// run
@@ -148,7 +149,7 @@ func AwsAccountTagsReportsJobByID(db DB, id int) (*AwsAccountTagsReportsJob, err
 	aatrj := AwsAccountTagsReportsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aatrj.ID, &aatrj.AwsAccountID, &aatrj.Completed, &aatrj.WorkerID, &aatrj.JobError, &aatrj.SpreadsheetError, &aatrj.TagsReportError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aatrj.ID, &aatrj.Created, &aatrj.AwsAccountID, &aatrj.Completed, &aatrj.WorkerID, &aatrj.JobError, &aatrj.SpreadsheetError, &aatrj.TagsReportError); err != nil {
 		return nil, logerror(err)
 	}
 	return &aatrj, nil
@@ -160,7 +161,7 @@ func AwsAccountTagsReportsJobByID(db DB, id int) (*AwsAccountTagsReportsJob, err
 func AwsAccountTagsReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountTagsReportsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError, spreadsheetError, tagsReportError ` +
 		`FROM trackit.aws_account_tags_reports_job ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -177,7 +178,7 @@ func AwsAccountTagsReportsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAcco
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aatrj.ID, &aatrj.AwsAccountID, &aatrj.Completed, &aatrj.WorkerID, &aatrj.JobError, &aatrj.SpreadsheetError, &aatrj.TagsReportError); err != nil {
+		if err := rows.Scan(&aatrj.ID, &aatrj.Created, &aatrj.AwsAccountID, &aatrj.Completed, &aatrj.WorkerID, &aatrj.JobError, &aatrj.SpreadsheetError, &aatrj.TagsReportError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aatrj)

@@ -9,6 +9,7 @@ import (
 // AwsAccountStatus represents a row from 'trackit.aws_account_status'.
 type AwsAccountStatus struct {
 	AwsBillRepositoryID int       `json:"aws_bill_repository_id"` // aws_bill_repository_id
+	Created             time.Time `json:"created"`                // created
 	Completed           time.Time `json:"completed"`              // completed
 	Error               string    `json:"error"`                  // error
 }

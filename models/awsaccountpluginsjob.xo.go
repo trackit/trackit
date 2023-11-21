@@ -9,6 +9,7 @@ import (
 // AwsAccountPluginsJob represents a row from 'trackit.aws_account_plugins_job'.
 type AwsAccountPluginsJob struct {
 	ID           int       `json:"id"`             // id
+	Created      time.Time `json:"created"`        // created
 	AwsAccountID int       `json:"aws_account_id"` // aws_account_id
 	Completed    time.Time `json:"completed"`      // completed
 	WorkerID     string    `json:"worker_id"`      // worker_id
@@ -38,13 +39,13 @@ func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account_plugins_job (` +
-		`aws_account_id, completed, worker_id, jobError` +
+		`created, aws_account_id, completed, worker_id, jobError` +
 		`) VALUES (` +
-		`?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
-	res, err := db.Exec(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
+	logf(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
+	res, err := db.Exec(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
 	if err != nil {
 		return logerror(err)
 	}
@@ -69,11 +70,11 @@ func (aapj *AwsAccountPluginsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account_plugins_job SET ` +
-		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ? ` +
+		`created = ?, aws_account_id = ?, completed = ?, worker_id = ?, jobError = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID)
-	if _, err := db.Exec(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID); err != nil {
+	logf(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID)
+	if _, err := db.Exec(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
@@ -95,15 +96,15 @@ func (aapj *AwsAccountPluginsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account_plugins_job (` +
-		`id, aws_account_id, completed, worker_id, jobError` +
+		`id, created, aws_account_id, completed, worker_id, jobError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError)`
+		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError)`
 	// run
-	logf(sqlstr, aapj.ID, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
-	if _, err := db.Exec(sqlstr, aapj.ID, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError); err != nil {
+	logf(sqlstr, aapj.ID, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
+	if _, err := db.Exec(sqlstr, aapj.ID, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError); err != nil {
 		return logerror(err)
 	}
 	// set exists
@@ -138,7 +139,7 @@ func (aapj *AwsAccountPluginsJob) Delete(db DB) error {
 func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError ` +
 		`FROM trackit.aws_account_plugins_job ` +
 		`WHERE id = ?`
 	// run
@@ -146,7 +147,7 @@ func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
 	aapj := AwsAccountPluginsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aapj.ID, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aapj.ID, &aapj.Created, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
 		return nil, logerror(err)
 	}
 	return &aapj, nil
@@ -158,7 +159,7 @@ func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
 func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountPluginsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, aws_account_id, completed, worker_id, jobError ` +
+		`id, created, aws_account_id, completed, worker_id, jobError ` +
 		`FROM trackit.aws_account_plugins_job ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -175,7 +176,7 @@ func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountP
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aapj.ID, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
+		if err := rows.Scan(&aapj.ID, &aapj.Created, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aapj)
