@@ -16,18 +16,18 @@ type ForgottenPassword struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the [ForgottenPassword] exists in the database.
+// Exists returns true when the ForgottenPassword exists in the database.
 func (fp *ForgottenPassword) Exists() bool {
 	return fp._exists
 }
 
-// Deleted returns true when the [ForgottenPassword] has been marked for deletion
-// from the database.
+// Deleted returns true when the ForgottenPassword has been marked for deletion from
+// the database.
 func (fp *ForgottenPassword) Deleted() bool {
 	return fp._deleted
 }
 
-// Insert inserts the [ForgottenPassword] to the database.
+// Insert inserts the ForgottenPassword to the database.
 func (fp *ForgottenPassword) Insert(db DB) error {
 	switch {
 	case fp._exists: // already exists
@@ -45,12 +45,12 @@ func (fp *ForgottenPassword) Insert(db DB) error {
 	logf(sqlstr, fp.Created, fp.UserID, fp.Token)
 	res, err := db.Exec(sqlstr, fp.Created, fp.UserID, fp.Token)
 	if err != nil {
-		return logerror(err)
+		return err
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return logerror(err)
+		return err
 	} // set primary key
 	fp.ID = int(id)
 	// set exists
@@ -58,7 +58,7 @@ func (fp *ForgottenPassword) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a [ForgottenPassword] in the database.
+// Update updates a ForgottenPassword in the database.
 func (fp *ForgottenPassword) Update(db DB) error {
 	switch {
 	case !fp._exists: // doesn't exist
@@ -78,7 +78,7 @@ func (fp *ForgottenPassword) Update(db DB) error {
 	return nil
 }
 
-// Save saves the [ForgottenPassword] to the database.
+// Save saves the ForgottenPassword to the database.
 func (fp *ForgottenPassword) Save(db DB) error {
 	if fp.Exists() {
 		return fp.Update(db)
@@ -86,7 +86,7 @@ func (fp *ForgottenPassword) Save(db DB) error {
 	return fp.Insert(db)
 }
 
-// Upsert performs an upsert for [ForgottenPassword].
+// Upsert performs an upsert for ForgottenPassword.
 func (fp *ForgottenPassword) Upsert(db DB) error {
 	switch {
 	case fp._deleted: // deleted
@@ -103,14 +103,14 @@ func (fp *ForgottenPassword) Upsert(db DB) error {
 	// run
 	logf(sqlstr, fp.ID, fp.Created, fp.UserID, fp.Token)
 	if _, err := db.Exec(sqlstr, fp.ID, fp.Created, fp.UserID, fp.Token); err != nil {
-		return logerror(err)
+		return err
 	}
 	// set exists
 	fp._exists = true
 	return nil
 }
 
-// Delete deletes the [ForgottenPassword] from the database.
+// Delete deletes the ForgottenPassword from the database.
 func (fp *ForgottenPassword) Delete(db DB) error {
 	switch {
 	case !fp._exists: // doesn't exist
@@ -131,7 +131,7 @@ func (fp *ForgottenPassword) Delete(db DB) error {
 	return nil
 }
 
-// ForgottenPasswordByUserID retrieves a row from 'trackit.forgotten_password' as a [ForgottenPassword].
+// ForgottenPasswordByUserID retrieves a row from 'trackit.forgotten_password' as a ForgottenPassword.
 //
 // Generated from index 'foreign_user'.
 func ForgottenPasswordByUserID(db DB, userID int) ([]*ForgottenPassword, error) {
@@ -165,7 +165,7 @@ func ForgottenPasswordByUserID(db DB, userID int) ([]*ForgottenPassword, error) 
 	return res, nil
 }
 
-// ForgottenPasswordByID retrieves a row from 'trackit.forgotten_password' as a [ForgottenPassword].
+// ForgottenPasswordByID retrieves a row from 'trackit.forgotten_password' as a ForgottenPassword.
 //
 // Generated from index 'forgotten_password_id_pkey'.
 func ForgottenPasswordByID(db DB, id int) (*ForgottenPassword, error) {
@@ -185,7 +185,7 @@ func ForgottenPasswordByID(db DB, id int) (*ForgottenPassword, error) {
 	return &fp, nil
 }
 
-// User returns the User associated with the [ForgottenPassword]'s (UserID).
+// User returns the User associated with the ForgottenPassword's (UserID).
 //
 // Generated from foreign key 'forgotten_password_ibfk_1'.
 func (fp *ForgottenPassword) User(db DB) (*User, error) {

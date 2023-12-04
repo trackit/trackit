@@ -10,7 +10,6 @@ import (
 // AwsAccountUpdateJob represents a row from 'trackit.aws_account_update_job'.
 type AwsAccountUpdateJob struct {
 	ID                      int            `json:"id"`                        // id
-	Created                 time.Time      `json:"created"`                   // created
 	AwsAccountID            int            `json:"aws_account_id"`            // aws_account_id
 	Completed               time.Time      `json:"completed"`                 // completed
 	WorkerID                string         `json:"worker_id"`                 // worker_id
@@ -35,18 +34,18 @@ type AwsAccountUpdateJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the [AwsAccountUpdateJob] exists in the database.
+// Exists returns true when the AwsAccountUpdateJob exists in the database.
 func (aauj *AwsAccountUpdateJob) Exists() bool {
 	return aauj._exists
 }
 
-// Deleted returns true when the [AwsAccountUpdateJob] has been marked for deletion
-// from the database.
+// Deleted returns true when the AwsAccountUpdateJob has been marked for deletion from
+// the database.
 func (aauj *AwsAccountUpdateJob) Deleted() bool {
 	return aauj._deleted
 }
 
-// Insert inserts the [AwsAccountUpdateJob] to the database.
+// Insert inserts the AwsAccountUpdateJob to the database.
 func (aauj *AwsAccountUpdateJob) Insert(db DB) error {
 	switch {
 	case aauj._exists: // already exists
@@ -56,20 +55,20 @@ func (aauj *AwsAccountUpdateJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account_update_job (` +
-		`created, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error` +
+		`aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aauj.Created, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
-	res, err := db.Exec(sqlstr, aauj.Created, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
+	logf(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
+	res, err := db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
 	if err != nil {
-		return logerror(err)
+		return err
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return logerror(err)
+		return err
 	} // set primary key
 	aauj.ID = int(id)
 	// set exists
@@ -77,7 +76,7 @@ func (aauj *AwsAccountUpdateJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a [AwsAccountUpdateJob] in the database.
+// Update updates a AwsAccountUpdateJob in the database.
 func (aauj *AwsAccountUpdateJob) Update(db DB) error {
 	switch {
 	case !aauj._exists: // doesn't exist
@@ -87,17 +86,17 @@ func (aauj *AwsAccountUpdateJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account_update_job SET ` +
-		`created = ?, aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, rdsError = ?, ec2Error = ?, historyError = ?, esError = ?, monthly_reports_generated = ?, elastiCacheError = ?, lambdaError = ?, riEc2Error = ?, riRdsError = ?, odToRiEc2Error = ?, ebsError = ?, stepFunctionError = ?, s3Error = ?, sqsError = ?, cloudFormationError = ?, route53Error = ? ` +
+		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ?, rdsError = ?, ec2Error = ?, historyError = ?, esError = ?, monthly_reports_generated = ?, elastiCacheError = ?, lambdaError = ?, riEc2Error = ?, riRdsError = ?, odToRiEc2Error = ?, ebsError = ?, stepFunctionError = ?, s3Error = ?, sqsError = ?, cloudFormationError = ?, route53Error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aauj.Created, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error, aauj.ID)
-	if _, err := db.Exec(sqlstr, aauj.Created, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error, aauj.ID); err != nil {
+	logf(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error, aauj.ID)
+	if _, err := db.Exec(sqlstr, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error, aauj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
 }
 
-// Save saves the [AwsAccountUpdateJob] to the database.
+// Save saves the AwsAccountUpdateJob to the database.
 func (aauj *AwsAccountUpdateJob) Save(db DB) error {
 	if aauj.Exists() {
 		return aauj.Update(db)
@@ -105,7 +104,7 @@ func (aauj *AwsAccountUpdateJob) Save(db DB) error {
 	return aauj.Insert(db)
 }
 
-// Upsert performs an upsert for [AwsAccountUpdateJob].
+// Upsert performs an upsert for AwsAccountUpdateJob.
 func (aauj *AwsAccountUpdateJob) Upsert(db DB) error {
 	switch {
 	case aauj._deleted: // deleted
@@ -113,23 +112,23 @@ func (aauj *AwsAccountUpdateJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account_update_job (` +
-		`id, created, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error` +
+		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), rdsError = VALUES(rdsError), ec2Error = VALUES(ec2Error), historyError = VALUES(historyError), esError = VALUES(esError), monthly_reports_generated = VALUES(monthly_reports_generated), elastiCacheError = VALUES(elastiCacheError), lambdaError = VALUES(lambdaError), riEc2Error = VALUES(riEc2Error), riRdsError = VALUES(riRdsError), odToRiEc2Error = VALUES(odToRiEc2Error), ebsError = VALUES(ebsError), stepFunctionError = VALUES(stepFunctionError), s3Error = VALUES(s3Error), sqsError = VALUES(sqsError), cloudFormationError = VALUES(cloudFormationError), route53Error = VALUES(route53Error)`
+		`aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError), rdsError = VALUES(rdsError), ec2Error = VALUES(ec2Error), historyError = VALUES(historyError), esError = VALUES(esError), monthly_reports_generated = VALUES(monthly_reports_generated), elastiCacheError = VALUES(elastiCacheError), lambdaError = VALUES(lambdaError), riEc2Error = VALUES(riEc2Error), riRdsError = VALUES(riRdsError), odToRiEc2Error = VALUES(odToRiEc2Error), ebsError = VALUES(ebsError), stepFunctionError = VALUES(stepFunctionError), s3Error = VALUES(s3Error), sqsError = VALUES(sqsError), cloudFormationError = VALUES(cloudFormationError), route53Error = VALUES(route53Error)`
 	// run
-	logf(sqlstr, aauj.ID, aauj.Created, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
-	if _, err := db.Exec(sqlstr, aauj.ID, aauj.Created, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error); err != nil {
-		return logerror(err)
+	logf(sqlstr, aauj.ID, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error)
+	if _, err := db.Exec(sqlstr, aauj.ID, aauj.AwsAccountID, aauj.Completed, aauj.WorkerID, aauj.JobError, aauj.RdsError, aauj.Ec2error, aauj.HistoryError, aauj.EsError, aauj.MonthlyReportsGenerated, aauj.ElastiCacheError, aauj.LambdaError, aauj.RiEc2error, aauj.RiRdsError, aauj.OdToRiEc2error, aauj.EbsError, aauj.StepFunctionError, aauj.S3error, aauj.SqsError, aauj.CloudFormationError, aauj.Route53error); err != nil {
+		return err
 	}
 	// set exists
 	aauj._exists = true
 	return nil
 }
 
-// Delete deletes the [AwsAccountUpdateJob] from the database.
+// Delete deletes the AwsAccountUpdateJob from the database.
 func (aauj *AwsAccountUpdateJob) Delete(db DB) error {
 	switch {
 	case !aauj._exists: // doesn't exist
@@ -150,13 +149,13 @@ func (aauj *AwsAccountUpdateJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountUpdateJobByID retrieves a row from 'trackit.aws_account_update_job' as a [AwsAccountUpdateJob].
+// AwsAccountUpdateJobByID retrieves a row from 'trackit.aws_account_update_job' as a AwsAccountUpdateJob.
 //
 // Generated from index 'aws_account_update_job_id_pkey'.
 func AwsAccountUpdateJobByID(db DB, id int) (*AwsAccountUpdateJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error ` +
+		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error ` +
 		`FROM trackit.aws_account_update_job ` +
 		`WHERE id = ?`
 	// run
@@ -164,19 +163,19 @@ func AwsAccountUpdateJobByID(db DB, id int) (*AwsAccountUpdateJob, error) {
 	aauj := AwsAccountUpdateJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aauj.ID, &aauj.Created, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.JobError, &aauj.RdsError, &aauj.Ec2error, &aauj.HistoryError, &aauj.EsError, &aauj.MonthlyReportsGenerated, &aauj.ElastiCacheError, &aauj.LambdaError, &aauj.RiEc2error, &aauj.RiRdsError, &aauj.OdToRiEc2error, &aauj.EbsError, &aauj.StepFunctionError, &aauj.S3error, &aauj.SqsError, &aauj.CloudFormationError, &aauj.Route53error); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.JobError, &aauj.RdsError, &aauj.Ec2error, &aauj.HistoryError, &aauj.EsError, &aauj.MonthlyReportsGenerated, &aauj.ElastiCacheError, &aauj.LambdaError, &aauj.RiEc2error, &aauj.RiRdsError, &aauj.OdToRiEc2error, &aauj.EbsError, &aauj.StepFunctionError, &aauj.S3error, &aauj.SqsError, &aauj.CloudFormationError, &aauj.Route53error); err != nil {
 		return nil, logerror(err)
 	}
 	return &aauj, nil
 }
 
-// AwsAccountUpdateJobByAwsAccountID retrieves a row from 'trackit.aws_account_update_job' as a [AwsAccountUpdateJob].
+// AwsAccountUpdateJobByAwsAccountID retrieves a row from 'trackit.aws_account_update_job' as a AwsAccountUpdateJob.
 //
 // Generated from index 'foreign_aws_account'.
 func AwsAccountUpdateJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountUpdateJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error ` +
+		`id, aws_account_id, completed, worker_id, jobError, rdsError, ec2Error, historyError, esError, monthly_reports_generated, elastiCacheError, lambdaError, riEc2Error, riRdsError, odToRiEc2Error, ebsError, stepFunctionError, s3Error, sqsError, cloudFormationError, route53Error ` +
 		`FROM trackit.aws_account_update_job ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -193,7 +192,7 @@ func AwsAccountUpdateJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountUp
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aauj.ID, &aauj.Created, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.JobError, &aauj.RdsError, &aauj.Ec2error, &aauj.HistoryError, &aauj.EsError, &aauj.MonthlyReportsGenerated, &aauj.ElastiCacheError, &aauj.LambdaError, &aauj.RiEc2error, &aauj.RiRdsError, &aauj.OdToRiEc2error, &aauj.EbsError, &aauj.StepFunctionError, &aauj.S3error, &aauj.SqsError, &aauj.CloudFormationError, &aauj.Route53error); err != nil {
+		if err := rows.Scan(&aauj.ID, &aauj.AwsAccountID, &aauj.Completed, &aauj.WorkerID, &aauj.JobError, &aauj.RdsError, &aauj.Ec2error, &aauj.HistoryError, &aauj.EsError, &aauj.MonthlyReportsGenerated, &aauj.ElastiCacheError, &aauj.LambdaError, &aauj.RiEc2error, &aauj.RiRdsError, &aauj.OdToRiEc2error, &aauj.EbsError, &aauj.StepFunctionError, &aauj.S3error, &aauj.SqsError, &aauj.CloudFormationError, &aauj.Route53error); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aauj)
@@ -204,7 +203,7 @@ func AwsAccountUpdateJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountUp
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the [AwsAccountUpdateJob]'s (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the AwsAccountUpdateJob's (AwsAccountID).
 //
 // Generated from foreign key 'aws_account_update_job_ibfk_1'.
 func (aauj *AwsAccountUpdateJob) AwsAccount(db DB) (*AwsAccount, error) {

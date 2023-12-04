@@ -9,7 +9,6 @@ import (
 // UserOnboardTagbotJob represents a row from 'trackit.user_onboard_tagbot_job'.
 type UserOnboardTagbotJob struct {
 	ID        int       `json:"id"`        // id
-	Created   time.Time `json:"created"`   // created
 	UserID    int       `json:"user_id"`   // user_id
 	Completed time.Time `json:"completed"` // completed
 	WorkerID  string    `json:"worker_id"` // worker_id
@@ -18,18 +17,18 @@ type UserOnboardTagbotJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the [UserOnboardTagbotJob] exists in the database.
+// Exists returns true when the UserOnboardTagbotJob exists in the database.
 func (uotj *UserOnboardTagbotJob) Exists() bool {
 	return uotj._exists
 }
 
-// Deleted returns true when the [UserOnboardTagbotJob] has been marked for deletion
-// from the database.
+// Deleted returns true when the UserOnboardTagbotJob has been marked for deletion from
+// the database.
 func (uotj *UserOnboardTagbotJob) Deleted() bool {
 	return uotj._deleted
 }
 
-// Insert inserts the [UserOnboardTagbotJob] to the database.
+// Insert inserts the UserOnboardTagbotJob to the database.
 func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	switch {
 	case uotj._exists: // already exists
@@ -39,20 +38,20 @@ func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.user_onboard_tagbot_job (` +
-		`created, user_id, completed, worker_id, job_error` +
+		`user_id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
-	res, err := db.Exec(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
+	logf(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
+	res, err := db.Exec(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
 	if err != nil {
-		return logerror(err)
+		return err
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return logerror(err)
+		return err
 	} // set primary key
 	uotj.ID = int(id)
 	// set exists
@@ -60,7 +59,7 @@ func (uotj *UserOnboardTagbotJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a [UserOnboardTagbotJob] in the database.
+// Update updates a UserOnboardTagbotJob in the database.
 func (uotj *UserOnboardTagbotJob) Update(db DB) error {
 	switch {
 	case !uotj._exists: // doesn't exist
@@ -70,17 +69,17 @@ func (uotj *UserOnboardTagbotJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.user_onboard_tagbot_job SET ` +
-		`created = ?, user_id = ?, completed = ?, worker_id = ?, job_error = ? ` +
+		`user_id = ?, completed = ?, worker_id = ?, job_error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID)
-	if _, err := db.Exec(sqlstr, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID); err != nil {
+	logf(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID)
+	if _, err := db.Exec(sqlstr, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError, uotj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
 }
 
-// Save saves the [UserOnboardTagbotJob] to the database.
+// Save saves the UserOnboardTagbotJob to the database.
 func (uotj *UserOnboardTagbotJob) Save(db DB) error {
 	if uotj.Exists() {
 		return uotj.Update(db)
@@ -88,7 +87,7 @@ func (uotj *UserOnboardTagbotJob) Save(db DB) error {
 	return uotj.Insert(db)
 }
 
-// Upsert performs an upsert for [UserOnboardTagbotJob].
+// Upsert performs an upsert for UserOnboardTagbotJob.
 func (uotj *UserOnboardTagbotJob) Upsert(db DB) error {
 	switch {
 	case uotj._deleted: // deleted
@@ -96,23 +95,23 @@ func (uotj *UserOnboardTagbotJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.user_onboard_tagbot_job (` +
-		`id, created, user_id, completed, worker_id, job_error` +
+		`id, user_id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`created = VALUES(created), user_id = VALUES(user_id), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
+		`user_id = VALUES(user_id), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
 	// run
-	logf(sqlstr, uotj.ID, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
-	if _, err := db.Exec(sqlstr, uotj.ID, uotj.Created, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError); err != nil {
-		return logerror(err)
+	logf(sqlstr, uotj.ID, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError)
+	if _, err := db.Exec(sqlstr, uotj.ID, uotj.UserID, uotj.Completed, uotj.WorkerID, uotj.JobError); err != nil {
+		return err
 	}
 	// set exists
 	uotj._exists = true
 	return nil
 }
 
-// Delete deletes the [UserOnboardTagbotJob] from the database.
+// Delete deletes the UserOnboardTagbotJob from the database.
 func (uotj *UserOnboardTagbotJob) Delete(db DB) error {
 	switch {
 	case !uotj._exists: // doesn't exist
@@ -133,13 +132,13 @@ func (uotj *UserOnboardTagbotJob) Delete(db DB) error {
 	return nil
 }
 
-// UserOnboardTagbotJobByUserID retrieves a row from 'trackit.user_onboard_tagbot_job' as a [UserOnboardTagbotJob].
+// UserOnboardTagbotJobByUserID retrieves a row from 'trackit.user_onboard_tagbot_job' as a UserOnboardTagbotJob.
 //
 // Generated from index 'foreign_user'.
 func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, user_id, completed, worker_id, job_error ` +
+		`id, user_id, completed, worker_id, job_error ` +
 		`FROM trackit.user_onboard_tagbot_job ` +
 		`WHERE user_id = ?`
 	// run
@@ -156,7 +155,7 @@ func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, e
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&uotj.ID, &uotj.Created, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
+		if err := rows.Scan(&uotj.ID, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &uotj)
@@ -167,13 +166,13 @@ func UserOnboardTagbotJobByUserID(db DB, userID int) ([]*UserOnboardTagbotJob, e
 	return res, nil
 }
 
-// UserOnboardTagbotJobByID retrieves a row from 'trackit.user_onboard_tagbot_job' as a [UserOnboardTagbotJob].
+// UserOnboardTagbotJobByID retrieves a row from 'trackit.user_onboard_tagbot_job' as a UserOnboardTagbotJob.
 //
 // Generated from index 'user_onboard_tagbot_job_id_pkey'.
 func UserOnboardTagbotJobByID(db DB, id int) (*UserOnboardTagbotJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, user_id, completed, worker_id, job_error ` +
+		`id, user_id, completed, worker_id, job_error ` +
 		`FROM trackit.user_onboard_tagbot_job ` +
 		`WHERE id = ?`
 	// run
@@ -181,13 +180,13 @@ func UserOnboardTagbotJobByID(db DB, id int) (*UserOnboardTagbotJob, error) {
 	uotj := UserOnboardTagbotJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&uotj.ID, &uotj.Created, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&uotj.ID, &uotj.UserID, &uotj.Completed, &uotj.WorkerID, &uotj.JobError); err != nil {
 		return nil, logerror(err)
 	}
 	return &uotj, nil
 }
 
-// User returns the User associated with the [UserOnboardTagbotJob]'s (UserID).
+// User returns the User associated with the UserOnboardTagbotJob's (UserID).
 //
 // Generated from foreign key 'user_onboard_tagbot_job_ibfk_1'.
 func (uotj *UserOnboardTagbotJob) User(db DB) (*User, error) {

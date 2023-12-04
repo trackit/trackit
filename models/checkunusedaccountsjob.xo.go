@@ -9,7 +9,6 @@ import (
 // CheckUnusedAccountsJob represents a row from 'trackit.check_unused_accounts_job'.
 type CheckUnusedAccountsJob struct {
 	ID        int       `json:"id"`        // id
-	Created   time.Time `json:"created"`   // created
 	Completed time.Time `json:"completed"` // completed
 	WorkerID  string    `json:"worker_id"` // worker_id
 	JobError  string    `json:"job_error"` // job_error
@@ -17,18 +16,18 @@ type CheckUnusedAccountsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the [CheckUnusedAccountsJob] exists in the database.
+// Exists returns true when the CheckUnusedAccountsJob exists in the database.
 func (cuaj *CheckUnusedAccountsJob) Exists() bool {
 	return cuaj._exists
 }
 
-// Deleted returns true when the [CheckUnusedAccountsJob] has been marked for deletion
-// from the database.
+// Deleted returns true when the CheckUnusedAccountsJob has been marked for deletion from
+// the database.
 func (cuaj *CheckUnusedAccountsJob) Deleted() bool {
 	return cuaj._deleted
 }
 
-// Insert inserts the [CheckUnusedAccountsJob] to the database.
+// Insert inserts the CheckUnusedAccountsJob to the database.
 func (cuaj *CheckUnusedAccountsJob) Insert(db DB) error {
 	switch {
 	case cuaj._exists: // already exists
@@ -38,20 +37,20 @@ func (cuaj *CheckUnusedAccountsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.check_unused_accounts_job (` +
-		`created, completed, worker_id, job_error` +
+		`completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?` +
+		`?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, cuaj.Created, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
-	res, err := db.Exec(sqlstr, cuaj.Created, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
+	logf(sqlstr, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
+	res, err := db.Exec(sqlstr, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
 	if err != nil {
-		return logerror(err)
+		return err
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return logerror(err)
+		return err
 	} // set primary key
 	cuaj.ID = int(id)
 	// set exists
@@ -59,7 +58,7 @@ func (cuaj *CheckUnusedAccountsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a [CheckUnusedAccountsJob] in the database.
+// Update updates a CheckUnusedAccountsJob in the database.
 func (cuaj *CheckUnusedAccountsJob) Update(db DB) error {
 	switch {
 	case !cuaj._exists: // doesn't exist
@@ -69,17 +68,17 @@ func (cuaj *CheckUnusedAccountsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.check_unused_accounts_job SET ` +
-		`created = ?, completed = ?, worker_id = ?, job_error = ? ` +
+		`completed = ?, worker_id = ?, job_error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, cuaj.Created, cuaj.Completed, cuaj.WorkerID, cuaj.JobError, cuaj.ID)
-	if _, err := db.Exec(sqlstr, cuaj.Created, cuaj.Completed, cuaj.WorkerID, cuaj.JobError, cuaj.ID); err != nil {
+	logf(sqlstr, cuaj.Completed, cuaj.WorkerID, cuaj.JobError, cuaj.ID)
+	if _, err := db.Exec(sqlstr, cuaj.Completed, cuaj.WorkerID, cuaj.JobError, cuaj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
 }
 
-// Save saves the [CheckUnusedAccountsJob] to the database.
+// Save saves the CheckUnusedAccountsJob to the database.
 func (cuaj *CheckUnusedAccountsJob) Save(db DB) error {
 	if cuaj.Exists() {
 		return cuaj.Update(db)
@@ -87,7 +86,7 @@ func (cuaj *CheckUnusedAccountsJob) Save(db DB) error {
 	return cuaj.Insert(db)
 }
 
-// Upsert performs an upsert for [CheckUnusedAccountsJob].
+// Upsert performs an upsert for CheckUnusedAccountsJob.
 func (cuaj *CheckUnusedAccountsJob) Upsert(db DB) error {
 	switch {
 	case cuaj._deleted: // deleted
@@ -95,23 +94,23 @@ func (cuaj *CheckUnusedAccountsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.check_unused_accounts_job (` +
-		`id, created, completed, worker_id, job_error` +
+		`id, completed, worker_id, job_error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`created = VALUES(created), completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
+		`completed = VALUES(completed), worker_id = VALUES(worker_id), job_error = VALUES(job_error)`
 	// run
-	logf(sqlstr, cuaj.ID, cuaj.Created, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
-	if _, err := db.Exec(sqlstr, cuaj.ID, cuaj.Created, cuaj.Completed, cuaj.WorkerID, cuaj.JobError); err != nil {
-		return logerror(err)
+	logf(sqlstr, cuaj.ID, cuaj.Completed, cuaj.WorkerID, cuaj.JobError)
+	if _, err := db.Exec(sqlstr, cuaj.ID, cuaj.Completed, cuaj.WorkerID, cuaj.JobError); err != nil {
+		return err
 	}
 	// set exists
 	cuaj._exists = true
 	return nil
 }
 
-// Delete deletes the [CheckUnusedAccountsJob] from the database.
+// Delete deletes the CheckUnusedAccountsJob from the database.
 func (cuaj *CheckUnusedAccountsJob) Delete(db DB) error {
 	switch {
 	case !cuaj._exists: // doesn't exist
@@ -132,13 +131,13 @@ func (cuaj *CheckUnusedAccountsJob) Delete(db DB) error {
 	return nil
 }
 
-// CheckUnusedAccountsJobByID retrieves a row from 'trackit.check_unused_accounts_job' as a [CheckUnusedAccountsJob].
+// CheckUnusedAccountsJobByID retrieves a row from 'trackit.check_unused_accounts_job' as a CheckUnusedAccountsJob.
 //
 // Generated from index 'check_unused_accounts_job_id_pkey'.
 func CheckUnusedAccountsJobByID(db DB, id int) (*CheckUnusedAccountsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, completed, worker_id, job_error ` +
+		`id, completed, worker_id, job_error ` +
 		`FROM trackit.check_unused_accounts_job ` +
 		`WHERE id = ?`
 	// run
@@ -146,7 +145,7 @@ func CheckUnusedAccountsJobByID(db DB, id int) (*CheckUnusedAccountsJob, error) 
 	cuaj := CheckUnusedAccountsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&cuaj.ID, &cuaj.Created, &cuaj.Completed, &cuaj.WorkerID, &cuaj.JobError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&cuaj.ID, &cuaj.Completed, &cuaj.WorkerID, &cuaj.JobError); err != nil {
 		return nil, logerror(err)
 	}
 	return &cuaj, nil

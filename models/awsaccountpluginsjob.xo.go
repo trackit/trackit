@@ -9,7 +9,6 @@ import (
 // AwsAccountPluginsJob represents a row from 'trackit.aws_account_plugins_job'.
 type AwsAccountPluginsJob struct {
 	ID           int       `json:"id"`             // id
-	Created      time.Time `json:"created"`        // created
 	AwsAccountID int       `json:"aws_account_id"` // aws_account_id
 	Completed    time.Time `json:"completed"`      // completed
 	WorkerID     string    `json:"worker_id"`      // worker_id
@@ -18,18 +17,18 @@ type AwsAccountPluginsJob struct {
 	_exists, _deleted bool
 }
 
-// Exists returns true when the [AwsAccountPluginsJob] exists in the database.
+// Exists returns true when the AwsAccountPluginsJob exists in the database.
 func (aapj *AwsAccountPluginsJob) Exists() bool {
 	return aapj._exists
 }
 
-// Deleted returns true when the [AwsAccountPluginsJob] has been marked for deletion
-// from the database.
+// Deleted returns true when the AwsAccountPluginsJob has been marked for deletion from
+// the database.
 func (aapj *AwsAccountPluginsJob) Deleted() bool {
 	return aapj._deleted
 }
 
-// Insert inserts the [AwsAccountPluginsJob] to the database.
+// Insert inserts the AwsAccountPluginsJob to the database.
 func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	switch {
 	case aapj._exists: // already exists
@@ -39,20 +38,20 @@ func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_account_plugins_job (` +
-		`created, aws_account_id, completed, worker_id, jobError` +
+		`aws_account_id, completed, worker_id, jobError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?` +
+		`?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
-	res, err := db.Exec(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
+	logf(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
+	res, err := db.Exec(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
 	if err != nil {
-		return logerror(err)
+		return err
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return logerror(err)
+		return err
 	} // set primary key
 	aapj.ID = int(id)
 	// set exists
@@ -60,7 +59,7 @@ func (aapj *AwsAccountPluginsJob) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a [AwsAccountPluginsJob] in the database.
+// Update updates a AwsAccountPluginsJob in the database.
 func (aapj *AwsAccountPluginsJob) Update(db DB) error {
 	switch {
 	case !aapj._exists: // doesn't exist
@@ -70,17 +69,17 @@ func (aapj *AwsAccountPluginsJob) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_account_plugins_job SET ` +
-		`created = ?, aws_account_id = ?, completed = ?, worker_id = ?, jobError = ? ` +
+		`aws_account_id = ?, completed = ?, worker_id = ?, jobError = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID)
-	if _, err := db.Exec(sqlstr, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID); err != nil {
+	logf(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID)
+	if _, err := db.Exec(sqlstr, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError, aapj.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
 }
 
-// Save saves the [AwsAccountPluginsJob] to the database.
+// Save saves the AwsAccountPluginsJob to the database.
 func (aapj *AwsAccountPluginsJob) Save(db DB) error {
 	if aapj.Exists() {
 		return aapj.Update(db)
@@ -88,7 +87,7 @@ func (aapj *AwsAccountPluginsJob) Save(db DB) error {
 	return aapj.Insert(db)
 }
 
-// Upsert performs an upsert for [AwsAccountPluginsJob].
+// Upsert performs an upsert for AwsAccountPluginsJob.
 func (aapj *AwsAccountPluginsJob) Upsert(db DB) error {
 	switch {
 	case aapj._deleted: // deleted
@@ -96,23 +95,23 @@ func (aapj *AwsAccountPluginsJob) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_account_plugins_job (` +
-		`id, created, aws_account_id, completed, worker_id, jobError` +
+		`id, aws_account_id, completed, worker_id, jobError` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError)`
+		`aws_account_id = VALUES(aws_account_id), completed = VALUES(completed), worker_id = VALUES(worker_id), jobError = VALUES(jobError)`
 	// run
-	logf(sqlstr, aapj.ID, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
-	if _, err := db.Exec(sqlstr, aapj.ID, aapj.Created, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError); err != nil {
-		return logerror(err)
+	logf(sqlstr, aapj.ID, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError)
+	if _, err := db.Exec(sqlstr, aapj.ID, aapj.AwsAccountID, aapj.Completed, aapj.WorkerID, aapj.JobError); err != nil {
+		return err
 	}
 	// set exists
 	aapj._exists = true
 	return nil
 }
 
-// Delete deletes the [AwsAccountPluginsJob] from the database.
+// Delete deletes the AwsAccountPluginsJob from the database.
 func (aapj *AwsAccountPluginsJob) Delete(db DB) error {
 	switch {
 	case !aapj._exists: // doesn't exist
@@ -133,13 +132,13 @@ func (aapj *AwsAccountPluginsJob) Delete(db DB) error {
 	return nil
 }
 
-// AwsAccountPluginsJobByID retrieves a row from 'trackit.aws_account_plugins_job' as a [AwsAccountPluginsJob].
+// AwsAccountPluginsJobByID retrieves a row from 'trackit.aws_account_plugins_job' as a AwsAccountPluginsJob.
 //
 // Generated from index 'aws_account_plugins_job_id_pkey'.
 func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, aws_account_id, completed, worker_id, jobError ` +
+		`id, aws_account_id, completed, worker_id, jobError ` +
 		`FROM trackit.aws_account_plugins_job ` +
 		`WHERE id = ?`
 	// run
@@ -147,19 +146,19 @@ func AwsAccountPluginsJobByID(db DB, id int) (*AwsAccountPluginsJob, error) {
 	aapj := AwsAccountPluginsJob{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&aapj.ID, &aapj.Created, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&aapj.ID, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
 		return nil, logerror(err)
 	}
 	return &aapj, nil
 }
 
-// AwsAccountPluginsJobByAwsAccountID retrieves a row from 'trackit.aws_account_plugins_job' as a [AwsAccountPluginsJob].
+// AwsAccountPluginsJobByAwsAccountID retrieves a row from 'trackit.aws_account_plugins_job' as a AwsAccountPluginsJob.
 //
 // Generated from index 'foreign_aws_account'.
 func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountPluginsJob, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, aws_account_id, completed, worker_id, jobError ` +
+		`id, aws_account_id, completed, worker_id, jobError ` +
 		`FROM trackit.aws_account_plugins_job ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -176,7 +175,7 @@ func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountP
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&aapj.ID, &aapj.Created, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
+		if err := rows.Scan(&aapj.ID, &aapj.AwsAccountID, &aapj.Completed, &aapj.WorkerID, &aapj.JobError); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &aapj)
@@ -187,7 +186,7 @@ func AwsAccountPluginsJobByAwsAccountID(db DB, awsAccountID int) ([]*AwsAccountP
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the [AwsAccountPluginsJob]'s (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the AwsAccountPluginsJob's (AwsAccountID).
 //
 // Generated from foreign key 'aws_account_plugins_job_ibfk_1'.
 func (aapj *AwsAccountPluginsJob) AwsAccount(db DB) (*AwsAccount, error) {

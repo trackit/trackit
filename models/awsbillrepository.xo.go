@@ -9,29 +9,28 @@ import (
 // AwsBillRepository represents a row from 'trackit.aws_bill_repository'.
 type AwsBillRepository struct {
 	ID                   int       `json:"id"`                     // id
-	Created              time.Time `json:"created"`                // created
 	AwsAccountID         int       `json:"aws_account_id"`         // aws_account_id
 	Bucket               string    `json:"bucket"`                 // bucket
 	Prefix               string    `json:"prefix"`                 // prefix
-	NextUpdate           time.Time `json:"next_update"`            // next_update
 	LastImportedManifest time.Time `json:"last_imported_manifest"` // last_imported_manifest
+	NextUpdate           time.Time `json:"next_update"`            // next_update
 	Error                string    `json:"error"`                  // error
 	// xo fields
 	_exists, _deleted bool
 }
 
-// Exists returns true when the [AwsBillRepository] exists in the database.
+// Exists returns true when the AwsBillRepository exists in the database.
 func (abr *AwsBillRepository) Exists() bool {
 	return abr._exists
 }
 
-// Deleted returns true when the [AwsBillRepository] has been marked for deletion
-// from the database.
+// Deleted returns true when the AwsBillRepository has been marked for deletion from
+// the database.
 func (abr *AwsBillRepository) Deleted() bool {
 	return abr._deleted
 }
 
-// Insert inserts the [AwsBillRepository] to the database.
+// Insert inserts the AwsBillRepository to the database.
 func (abr *AwsBillRepository) Insert(db DB) error {
 	switch {
 	case abr._exists: // already exists
@@ -41,20 +40,20 @@ func (abr *AwsBillRepository) Insert(db DB) error {
 	}
 	// insert (primary key generated and returned by database)
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error` +
+		`aws_account_id, bucket, prefix, last_imported_manifest, next_update, error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?` +
 		`)`
 	// run
-	logf(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
-	res, err := db.Exec(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
+	logf(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error)
+	res, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error)
 	if err != nil {
-		return logerror(err)
+		return err
 	}
 	// retrieve id
 	id, err := res.LastInsertId()
 	if err != nil {
-		return logerror(err)
+		return err
 	} // set primary key
 	abr.ID = int(id)
 	// set exists
@@ -62,7 +61,7 @@ func (abr *AwsBillRepository) Insert(db DB) error {
 	return nil
 }
 
-// Update updates a [AwsBillRepository] in the database.
+// Update updates a AwsBillRepository in the database.
 func (abr *AwsBillRepository) Update(db DB) error {
 	switch {
 	case !abr._exists: // doesn't exist
@@ -72,17 +71,17 @@ func (abr *AwsBillRepository) Update(db DB) error {
 	}
 	// update with primary key
 	const sqlstr = `UPDATE trackit.aws_bill_repository SET ` +
-		`created = ?, aws_account_id = ?, bucket = ?, prefix = ?, next_update = ?, last_imported_manifest = ?, error = ? ` +
+		`aws_account_id = ?, bucket = ?, prefix = ?, last_imported_manifest = ?, next_update = ?, error = ? ` +
 		`WHERE id = ?`
 	// run
-	logf(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error, abr.ID)
-	if _, err := db.Exec(sqlstr, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error, abr.ID); err != nil {
+	logf(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID)
+	if _, err := db.Exec(sqlstr, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error, abr.ID); err != nil {
 		return logerror(err)
 	}
 	return nil
 }
 
-// Save saves the [AwsBillRepository] to the database.
+// Save saves the AwsBillRepository to the database.
 func (abr *AwsBillRepository) Save(db DB) error {
 	if abr.Exists() {
 		return abr.Update(db)
@@ -90,7 +89,7 @@ func (abr *AwsBillRepository) Save(db DB) error {
 	return abr.Insert(db)
 }
 
-// Upsert performs an upsert for [AwsBillRepository].
+// Upsert performs an upsert for AwsBillRepository.
 func (abr *AwsBillRepository) Upsert(db DB) error {
 	switch {
 	case abr._deleted: // deleted
@@ -98,23 +97,23 @@ func (abr *AwsBillRepository) Upsert(db DB) error {
 	}
 	// upsert
 	const sqlstr = `INSERT INTO trackit.aws_bill_repository (` +
-		`id, created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error` +
+		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error` +
 		`) VALUES (` +
-		`?, ?, ?, ?, ?, ?, ?, ?` +
+		`?, ?, ?, ?, ?, ?, ?` +
 		`)` +
 		` ON DUPLICATE KEY UPDATE ` +
-		`created = VALUES(created), aws_account_id = VALUES(aws_account_id), bucket = VALUES(bucket), prefix = VALUES(prefix), next_update = VALUES(next_update), last_imported_manifest = VALUES(last_imported_manifest), error = VALUES(error)`
+		`aws_account_id = VALUES(aws_account_id), bucket = VALUES(bucket), prefix = VALUES(prefix), last_imported_manifest = VALUES(last_imported_manifest), next_update = VALUES(next_update), error = VALUES(error)`
 	// run
-	logf(sqlstr, abr.ID, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error)
-	if _, err := db.Exec(sqlstr, abr.ID, abr.Created, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.NextUpdate, abr.LastImportedManifest, abr.Error); err != nil {
-		return logerror(err)
+	logf(sqlstr, abr.ID, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error)
+	if _, err := db.Exec(sqlstr, abr.ID, abr.AwsAccountID, abr.Bucket, abr.Prefix, abr.LastImportedManifest, abr.NextUpdate, abr.Error); err != nil {
+		return err
 	}
 	// set exists
 	abr._exists = true
 	return nil
 }
 
-// Delete deletes the [AwsBillRepository] from the database.
+// Delete deletes the AwsBillRepository from the database.
 func (abr *AwsBillRepository) Delete(db DB) error {
 	switch {
 	case !abr._exists: // doesn't exist
@@ -135,13 +134,13 @@ func (abr *AwsBillRepository) Delete(db DB) error {
 	return nil
 }
 
-// AwsBillRepositoryByID retrieves a row from 'trackit.aws_bill_repository' as a [AwsBillRepository].
+// AwsBillRepositoryByID retrieves a row from 'trackit.aws_bill_repository' as a AwsBillRepository.
 //
 // Generated from index 'aws_bill_repository_id_pkey'.
 func AwsBillRepositoryByID(db DB, id int) (*AwsBillRepository, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error ` +
+		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE id = ?`
 	// run
@@ -149,19 +148,19 @@ func AwsBillRepositoryByID(db DB, id int) (*AwsBillRepository, error) {
 	abr := AwsBillRepository{
 		_exists: true,
 	}
-	if err := db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.Created, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest, &abr.Error); err != nil {
+	if err := db.QueryRow(sqlstr, id).Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error); err != nil {
 		return nil, logerror(err)
 	}
 	return &abr, nil
 }
 
-// AwsBillRepositoryByAwsAccountID retrieves a row from 'trackit.aws_bill_repository' as a [AwsBillRepository].
+// AwsBillRepositoryByAwsAccountID retrieves a row from 'trackit.aws_bill_repository' as a AwsBillRepository.
 //
 // Generated from index 'foreign_aws_account'.
 func AwsBillRepositoryByAwsAccountID(db DB, awsAccountID int) ([]*AwsBillRepository, error) {
 	// query
 	const sqlstr = `SELECT ` +
-		`id, created, aws_account_id, bucket, prefix, next_update, last_imported_manifest, error ` +
+		`id, aws_account_id, bucket, prefix, last_imported_manifest, next_update, error ` +
 		`FROM trackit.aws_bill_repository ` +
 		`WHERE aws_account_id = ?`
 	// run
@@ -178,7 +177,7 @@ func AwsBillRepositoryByAwsAccountID(db DB, awsAccountID int) ([]*AwsBillReposit
 			_exists: true,
 		}
 		// scan
-		if err := rows.Scan(&abr.ID, &abr.Created, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.NextUpdate, &abr.LastImportedManifest, &abr.Error); err != nil {
+		if err := rows.Scan(&abr.ID, &abr.AwsAccountID, &abr.Bucket, &abr.Prefix, &abr.LastImportedManifest, &abr.NextUpdate, &abr.Error); err != nil {
 			return nil, logerror(err)
 		}
 		res = append(res, &abr)
@@ -189,7 +188,7 @@ func AwsBillRepositoryByAwsAccountID(db DB, awsAccountID int) ([]*AwsBillReposit
 	return res, nil
 }
 
-// AwsAccount returns the AwsAccount associated with the [AwsBillRepository]'s (AwsAccountID).
+// AwsAccount returns the AwsAccount associated with the AwsBillRepository's (AwsAccountID).
 //
 // Generated from foreign key 'aws_bill_repository_ibfk_1'.
 func (abr *AwsBillRepository) AwsAccount(db DB) (*AwsAccount, error) {
