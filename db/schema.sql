@@ -1262,3 +1262,6 @@ ALTER TABLE tagbot_user ADD CONSTRAINT foreign_discount_code FOREIGN KEY (discou
 
 -- Set all the existing rows to have a usable value for free_tier_end_at (i.e. the default of 14 days)
 UPDATE tagbot_user INNER JOIN user ON user.id = tagbot_user.user_id SET tagbot_user.free_tier_end_at = DATE_ADD(user.created, INTERVAL 14 DAY);
+
+ALTER TABLE aws_account ADD tagbot_onboarding_started TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE aws_account ADD tagbot_onboarding VARCHAR(255) NOT NULL DEFAULT 'NEEDED';
