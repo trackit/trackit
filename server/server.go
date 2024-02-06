@@ -34,6 +34,7 @@ import (
 	_ "github.com/trackit/trackit/costs/diff"
 	_ "github.com/trackit/trackit/costs/tags"
 	"github.com/trackit/trackit/db"
+	_ "github.com/trackit/trackit/health"
 	"github.com/trackit/trackit/periodic"
 	_ "github.com/trackit/trackit/plugins"
 	_ "github.com/trackit/trackit/reports"
